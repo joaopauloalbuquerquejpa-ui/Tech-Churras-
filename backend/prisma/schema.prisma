@@ -1,0 +1,125 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  GRILLMASTER
+  BOUTIQUE_OWNER
+  ADMIN
+  BLOCKED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  phone     String?
+  role      Role     @default(CUSTOMER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders      Order[]       @relation("CustomerOrders")
+  grillmaster Grillmaster?
+  boutique    Boutique?
+}
+
+model Grillmaster {
+  id          String  @id @default(uuid())
+  userId      String  @unique
+  bio         String?
+  experience  Int     @default(0)
+  pricePerDay Float
+  available   Boolean @default(true)
+  city        String
+  state       String
+  rating      Float   @default(0)
+  approved   Boolean  @default(false)
+  totalOrders Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id])
+  orders Order[]
+}
+
+model Boutique {
+  id          String  @id @default(uuid())
+  userId      String  @unique
+  name        String
+  description String?
+  city        String
+  state       String
+  phone       String?
+  rating      Float   @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id])
+  products Product[]
+  orders   Order[]
+}
+
+model Product {
+  id          String  @id @default(uuid())
+  boutiqueId  String
+  name        String
+  description String?
+  price       Float
+  unit        String  @default("kg")
+  available   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  boutique   Boutique    @relation(fields: [boutiqueId], references: [id])
+  orderItems OrderItem[]
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  customerId    String
+  grillmasterId String?
+  boutiqueId    String?
+  status        OrderStatus @default(PENDING)
+  eventDate     DateTime
+  eventAddress  String
+  guestCount    Int
+  totalPrice    Float
+  notes         String?
+  paymentId     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer    User         @relation("CustomerOrders", fields: [customerId], references: [id])
+  grillmaster Grillmaster? @relation(fields: [grillmasterId], references: [id])
+  boutique    Boutique?    @relation(fields: [boutiqueId], references: [id])
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  productId String
+  quantity  Float
+  unitPrice Float
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
