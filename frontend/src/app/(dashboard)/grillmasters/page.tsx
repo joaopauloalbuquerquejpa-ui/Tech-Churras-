@@ -128,7 +128,7 @@ export default function GrillmastersPage() {
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 32 }}>ðŸ”¥</span>
+                <span style={{ fontSize: 32 }}>🔥</span>
                 <div>
                   <h1 style={{ margin: 0, color: "#FFFFFF", fontSize: 26, fontWeight: 700, letterSpacing: "-0.5px" }}>
                     Churrasqueiros
