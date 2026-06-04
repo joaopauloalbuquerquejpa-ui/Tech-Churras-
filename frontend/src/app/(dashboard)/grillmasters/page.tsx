@@ -47,8 +47,6 @@ export default function GrillmastersPage() {
 
   useEffect(() => {
   fetchGrillmasters();
-}, [page, availableOnly, sortBy]);
-    fetchGrillmasters();
   }, [token, page, availableOnly, sortBy]);
 
   async function fetchGrillmasters() {
