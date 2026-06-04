@@ -1,4 +1,4 @@
-'use client'
+ï»¿'use client'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
@@ -23,17 +23,17 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <nav className="bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-orange-500">?? Tech Churras</h1>
-        <div className="flex items-center gap-4">
-          <span className="text-gray-400">Olá, {user?.name || 'Usuário'}</span>
-          <button onClick={handleLogout} className="bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded text-sm">
+    <div className='min-h-screen bg-gray-950 text-white'>
+      <nav className='bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between'>
+        <h1 className='text-xl font-bold text-orange-500'>Tech Churras</h1>
+        <div className='flex items-center gap-4'>
+          <span className='text-gray-400'>Ola, {user?.name || 'Usuario'}</span>
+          <button onClick={handleLogout} className='bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded text-sm'>
             Sair
           </button>
         </div>
       </nav>
-      <main className="p-6">{children}</main>
+      <main className='p-6'>{children}</main>
     </div>
   )
 }
