@@ -69,7 +69,7 @@ export default function GrillmastersPage() {
       setGrillmasters(data.grillmasters ?? []);
       setTotalPages(data.totalPages ?? 1);
     } catch {
-      setError("Não foi possível carregar os churrasqueiros. Tente novamente.");
+      setError("Não foi possível carregar os Acougues. Tente novamente.");
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ export default function GrillmastersPage() {
                 <span style={{ fontSize: 32 }}>🔥</span>
                 <div>
                   <h1 style={{ margin: 0, color: "#FFFFFF", fontSize: 26, fontWeight: 700, letterSpacing: "-0.5px" }}>
-                    Churrasqueiros
+                    s
                   </h1>
                   <p style={{ margin: 0, color: "#D4957A", fontSize: 13 }}>
                     Mestres da brasa disponíveis pra seu evento
