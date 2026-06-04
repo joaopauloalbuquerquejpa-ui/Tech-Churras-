@@ -46,12 +46,8 @@ export default function GrillmastersPage() {
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    const localToken = token || localStorage.getItem('token');
-if (!localToken) {
-  router.push("/login");
-  return;
-}
-    }
+  fetchGrillmasters();
+}, [page, availableOnly, sortBy]);
     fetchGrillmasters();
   }, [token, page, availableOnly, sortBy]);
 
