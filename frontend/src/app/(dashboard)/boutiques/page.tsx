@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
@@ -11,7 +11,7 @@ interface Boutique {
   state: string
   phone: string
   rating: number
-  isOpen: boolean
+  open: boolean
 }
 
 export default function BoutiquesPage() {
@@ -67,7 +67,7 @@ export default function BoutiquesPage() {
 
       {!loading && filtered.length === 0 && (
         <div className='text-center py-16 text-gray-400'>
-          <p className='text-4xl mb-4'>🥩</p>
+          <p className='text-4xl mb-4'>ðŸ¥©</p>
           <p className='text-lg'>Nenhuma boutique encontrada.</p>
         </div>
       )}
@@ -77,15 +77,15 @@ export default function BoutiquesPage() {
           <div key={boutique.id} className='bg-gray-900 rounded-xl p-5 hover:bg-gray-800 transition'>
             <div className='flex items-start justify-between mb-3'>
               <h2 className='font-bold text-lg'>{boutique.name}</h2>
-              <span className={'text-xs px-2 py-1 rounded-full font-medium ' + (boutique.isOpen ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
-                {boutique.isOpen ? 'Aberto' : 'Fechado'}
+              <span className={'text-xs px-2 py-1 rounded-full font-medium ' + (boutique.open ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
+                {boutique.open ? 'Aberto' : 'Fechado'}
               </span>
             </div>
             {boutique.description && <p className='text-gray-400 text-sm mb-3'>{boutique.description}</p>}
             <div className='text-sm text-gray-400 space-y-1'>
-              {boutique.city && <p>📍 {boutique.city}{boutique.state ? ', ' + boutique.state : ''}</p>}
-              {boutique.phone && <p>📞 {boutique.phone}</p>}
-              {boutique.rating > 0 && <p>⭐ {boutique.rating.toFixed(1)}</p>}
+              {boutique.city && <p>ðŸ“ {boutique.city}{boutique.state ? ', ' + boutique.state : ''}</p>}
+              {boutique.phone && <p>ðŸ“ž {boutique.phone}</p>}
+              {boutique.rating > 0 && <p>â­ {boutique.rating.toFixed(1)}</p>}
             </div>
           </div>
         ))}
