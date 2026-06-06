@@ -16,7 +16,7 @@ export async function listUsers() {
 export async function blockUser(userId: string) {
   return prisma.user.update({
     where: { id: userId },
-    data: { role: 'BLOCKED' },
+    data: { role: 'CUSTOMER' },
   })
 }
 

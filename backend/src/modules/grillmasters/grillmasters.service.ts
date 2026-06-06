@@ -4,7 +4,7 @@ import { z } from 'zod'
 export const createGrillmasterSchema = z.object({
   bio: z.string().optional(),
   experience: z.number().int().min(0).default(0),
-  pricePerDay: z.number().positive(),
+  pricePerHour: z.number().positive(),
   city: z.string().min(2),
   state: z.string().min(2),
 })
@@ -13,7 +13,7 @@ export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>
 
 export async function createGrillmaster(userId: string, data: CreateGrillmasterInput) {
   const existing = await prisma.grillmaster.findUnique({ where: { userId } })
-  if (existing) throw new Error('Perfil de churrasqueiro j√° existe')
+  if (existing) throw new Error('Perfil de churrasqueiro j· existe')
 
   return prisma.grillmaster.create({
     data: { userId, ...data },
@@ -27,7 +27,7 @@ export async function listGrillmasters(city?: string) {
       available: true,
       ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
     },
-    include: { user: { select: { name: true, email: true } },
+    include: { user: { select: { name: true, email: true } } },
     orderBy: { rating: 'desc' },
   })
 }
@@ -35,9 +35,9 @@ export async function listGrillmasters(city?: string) {
 export async function getGrillmasterById(id: string) {
   const grillmaster = await prisma.grillmaster.findUnique({
     where: { id },
-    include: { user: { select: { name: true, email: true } },
+    include: { user: { select: { name: true, email: true } } },
   })
-  if (!grillmaster) throw new Error('Churrasqueiro n√£o encontrado')
+  if (!grillmaster) throw new Error('Churrasqueiro n„o encontrado')
   return grillmaster
 }
 
