@@ -86,7 +86,7 @@ export default function OrdersPage() {
             </div>
             <div className='flex items-center justify-between'>
               <div>
-                {order.grillmaster && <p className='text-sm'>Churrasqueiro: {order.grillmaster.name}</p>}
+                {order.grillmaster && <p className='text-sm'>Churrasqueiro: {order.grillmaster.user?.name}</p>}
                 {order.boutique && <p className='text-sm'>Acougue: {order.boutique.name}</p>}
                 <p className='text-xs text-gray-400 mt-1'>Evento: {new Date(order.eventDate).toLocaleDateString('pt-BR')}</p>
               </div>
