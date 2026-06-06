@@ -62,7 +62,7 @@ export default function GrillmastersPage() {
       if (cityFilter.trim()) params.city = cityFilter.trim();
 
       const { data } = await api.get<GrillmastersResponse>("/grillmasters", { params });
-      setGrillmasters(data.grillmasters ?? []);
+      setGrillmasters(Array.isArray(data) ? data : data.grillmasters ?? []);;
       setTotalPages(data.totalPages ?? 1);
     } catch {
       setError("NÃ£o foi possÃ­vel carregar os churrasqueiros. Tente novamente.");
