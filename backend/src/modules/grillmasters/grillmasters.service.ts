@@ -27,7 +27,7 @@ export async function listGrillmasters(city?: string) {
       available: true,
       ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
     },
-    include: { user: { select: { name: true, email: true, phone: true } } },
+    include: { user: { select: { name: true, email: true } },
     orderBy: { rating: 'desc' },
   })
 }
@@ -35,7 +35,7 @@ export async function listGrillmasters(city?: string) {
 export async function getGrillmasterById(id: string) {
   const grillmaster = await prisma.grillmaster.findUnique({
     where: { id },
-    include: { user: { select: { name: true, email: true, phone: true } } },
+    include: { user: { select: { name: true, email: true } },
   })
   if (!grillmaster) throw new Error('Churrasqueiro não encontrado')
   return grillmaster
