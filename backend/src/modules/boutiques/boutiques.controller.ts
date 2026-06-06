@@ -1,16 +1,9 @@
-import { FastifyRequest, FastifyReply } from 'fastify'
-import {
-  createBoutiqueSchema,
-  createProductSchema,
-  createBoutique,
-  listBoutiques,
-  getBoutiqueById,
-  addProduct,
-} from './boutiques.service'
+﻿import { FastifyRequest, FastifyReply } from 'fastify'
+import { createBoutique, listBoutiques, getBoutiqueById, updateBoutique, createBoutiqueSchema } from './boutiques.service'
 
 export async function createBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const userId = (req.user as any).id
+    const userId = (req as any).user.id
     const data = createBoutiqueSchema.parse(req.body)
     const boutique = await createBoutique(userId, data)
     return reply.status(201).send(boutique)
@@ -20,16 +13,12 @@ export async function createBoutiqueHandler(req: FastifyRequest, reply: FastifyR
 }
 
 export async function listBoutiquesHandler(req: FastifyRequest, reply: FastifyReply) {
-  try {
-    const { city } = req.query as { city?: string }
-    const boutiques = await listBoutiques(city)
-    return reply.send(boutiques)
-  } catch (err: any) {
-    return reply.status(400).send({ error: err.message })
-  }
+  const { city } = req.query as { city?: string }
+  const boutiques = await listBoutiques(city)
+  return reply.send(boutiques)
 }
 
-export async function getBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
+export async function getBoutiqueByIdHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { id } = req.params as { id: string }
     const boutique = await getBoutiqueById(id)
@@ -39,12 +28,12 @@ export async function getBoutiqueHandler(req: FastifyRequest, reply: FastifyRepl
   }
 }
 
-export async function addProductHandler(req: FastifyRequest, reply: FastifyReply) {
+export async function updateBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const userId = (req.user as any).id
-    const data = createProductSchema.parse(req.body)
-    const product = await addProduct(userId, data)
-    return reply.status(201).send(product)
+    const userId = (req as any).user.id
+    const data = createBoutiqueSchema.partial().parse(req.body)
+    const boutique = await updateBoutique(userId, data)
+    return reply.send(boutique)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

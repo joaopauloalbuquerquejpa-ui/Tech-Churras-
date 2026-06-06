@@ -1,4 +1,4 @@
-import { prisma } from '../../config/prisma'
+﻿import { prisma } from '../../config/prisma'
 import { z } from 'zod'
 
 export const createOrderSchema = z.object({
@@ -6,8 +6,8 @@ export const createOrderSchema = z.object({
   boutiqueId: z.string().optional(),
   eventDate: z.string().transform(s => new Date(s)),
   eventAddress: z.string().min(5),
-  guestCount: z.number().int().positive(),
-  totalPrice: z.number().positive(),
+  eventHours: z.number().int().min(1).default(4),
+  guestCount: z.number().int().min(1),
   notes: z.string().optional(),
   items: z.array(z.object({
     productId: z.string(),
@@ -20,46 +20,30 @@ export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
 export async function createOrder(customerId: string, data: CreateOrderInput) {
   const { items, ...orderData } = data
+  const itemsTotal = items?.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0) ?? 0
+  const grillmaster = data.grillmasterId
+    ? await prisma.grillmaster.findUnique({ where: { id: data.grillmasterId } })
+    : null
+  const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) : 0
+  const totalPrice = itemsTotal + grillmasterCost
 
   return prisma.order.create({
     data: {
       customerId,
       ...orderData,
-      items: items ? {
-        create: items,
-      } : undefined,
+      totalPrice,
+      items: items ? { create: items } : undefined,
     },
-    include: {
-      grillmaster: { include: { user: { select: { name: true } } } },
-      boutique: true,
-      items: { include: { product: true } },
-    },
+    include: { items: true, grillmaster: true, boutique: true },
   })
 }
 
 export async function listOrders(customerId: string) {
   return prisma.order.findMany({
     where: { customerId },
-    include: {
-      grillmaster: { include: { user: { select: { name: true } } } },
-      boutique: true,
-      items: { include: { product: true } },
-    },
+    include: { items: { include: { product: true } }, grillmaster: true, boutique: true },
     orderBy: { createdAt: 'desc' },
   })
-}
-
-export async function getOrderById(id: string, customerId: string) {
-  const order = await prisma.order.findFirst({
-    where: { id, customerId },
-    include: {
-      grillmaster: { include: { user: { select: { name: true, phone: true } } } },
-      boutique: true,
-      items: { include: { product: true } },
-    },
-  })
-  if (!order) throw new Error('Pedido não encontrado')
-  return order
 }
 
 export async function updateOrderStatus(id: string, status: string) {
@@ -67,4 +51,13 @@ export async function updateOrderStatus(id: string, status: string) {
     where: { id },
     data: { status: status as any },
   })
+}
+
+export async function getOrderById(id: string, customerId: string) {
+  const order = await prisma.order.findFirst({
+    where: { id, customerId },
+    include: { items: { include: { product: true } }, grillmaster: true, boutique: true },
+  })
+  if (!order) throw new Error('Pedido nao encontrado')
+  return order
 }

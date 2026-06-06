@@ -1,17 +1,10 @@
-import { FastifyInstance } from 'fastify'
-import {
-  createBoutiqueHandler,
-  listBoutiquesHandler,
-  getBoutiqueHandler,
-  addProductHandler,
-} from './boutiques.controller'
+﻿import { FastifyInstance } from 'fastify'
+import { authenticate } from '../../middlewares/auth.middleware'
+import { createBoutiqueHandler, listBoutiquesHandler, getBoutiqueByIdHandler, updateBoutiqueHandler } from './boutiques.controller'
 
-export async function boutiquesRoutes(app: FastifyInstance) {
-  // Público
+export async function boutiqueRoutes(app: FastifyInstance) {
   app.get('/boutiques', listBoutiquesHandler)
-  app.get('/boutiques/:id', getBoutiqueHandler)
-
-  // Autenticado
-  app.post('/boutiques', { preHandler: [app.authenticate] }, createBoutiqueHandler)
-  app.post('/boutiques/products', { preHandler: [app.authenticate] }, addProductHandler)
+  app.get('/boutiques/:id', getBoutiqueByIdHandler)
+  app.post('/boutiques', { preHandler: [authenticate] }, createBoutiqueHandler)
+  app.patch('/boutiques', { preHandler: [authenticate] }, updateBoutiqueHandler)
 }
