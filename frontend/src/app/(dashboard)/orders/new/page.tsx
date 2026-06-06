@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-interface Grillmaster { id: string; name: string; pricePerDay: number }
+interface Grillmaster { id: string; name: string; pricePerHour: number }
 interface Boutique { id: string; name: string }
 
 export default function NewOrderPage() {
@@ -54,7 +54,7 @@ export default function NewOrderPage() {
           <select value={form.grillmasterId} onChange={e => setForm({...form, grillmasterId: e.target.value})}
             className='w-full bg-gray-800 rounded-lg px-3 py-2 text-white'>
             <option value=''>Selecione...</option>
-            {grillmasters.map(g => <option key={g.id} value={g.id}>{g.name} - R$ {g.pricePerDay}/dia</option>)}
+            {grillmasters.map(g => <option key={g.id} value={g.id}>{g.name} - R$ {g.pricePerHour}/hora</option>)}
           </select>
         </div>
         <div>
