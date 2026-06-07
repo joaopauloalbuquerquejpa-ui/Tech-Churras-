@@ -397,7 +397,7 @@ export default function GrillmastersPage() {
                       </div>
                       <button
                         disabled={!g.available}
-                        onClick={() => router.push(`/dashboard/orders/new?grillmasterId=${g.id}`)}
+                        onClick={() => router.push(`/orders/new?grillmasterId=${g.id}`)}
                         style={{
                           background: g.available ? "#C23B22" : "#DDD",
                           color: g.available ? "#FFF" : "#999",
