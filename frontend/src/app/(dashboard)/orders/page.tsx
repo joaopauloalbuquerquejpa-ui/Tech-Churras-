@@ -8,7 +8,8 @@ interface Order {
   status: string
   totalPrice: number
   eventDate: string
-  grillmaster?: { name: string }
+  eventHours: number
+  grillmaster?: { user?: { name: string } }
   boutique?: { name: string }
   createdAt: string
 }
@@ -85,11 +86,11 @@ export default function OrdersPage() {
               </span>
             </div>
             <div className='flex items-center justify-between'>
-              <div>
+              <p className='text-sm'>Churrasqueiro: {order.grillmaster?.user?.name || 'Não selecionado'}</p>
                 {order.grillmaster && <p className='text-sm'>Churrasqueiro: {order.grillmaster.user?.name}</p>}
                 {order.boutique && <p className='text-sm'>Acougue: {order.boutique.name}</p>}
                 <p className='text-xs text-gray-400 mt-1'>Evento: {new Date(order.eventDate).toLocaleDateString('pt-BR')}</p>
-              </div>
+              </div><p className='text-orange-400 font-bold text-lg'>R$ {(order.totalPrice ?? 0).toFixed(2)}</p>
               <p className='text-orange-400 font-bold text-lg'>R$ {order.totalPrice?.toFixed(2)}</p>
             </div>
           </Link>

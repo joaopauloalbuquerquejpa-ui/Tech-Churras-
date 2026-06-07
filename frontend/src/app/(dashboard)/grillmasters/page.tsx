@@ -10,7 +10,7 @@ interface Grillmaster {
   userId: string;
   bio: string;
   experience: number;
-  pricePerDay: number;
+  pricePerHour: number;
   available: boolean;
   city: string;
   state: string;
@@ -41,7 +41,7 @@ export default function GrillmastersPage() {
   const [search, setSearch] = useState("");
   const [cityFilter, setCityFilter] = useState("");
   const [availableOnly, setAvailableOnly] = useState(false);
-  const [sortBy, setSortBy] = useState<"rating" | "pricePerDay" | "experience">("rating");
+  const [sortBy, setSortBy] = useState<"rating" | "pricePerHour" | "experience">("rating");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -220,7 +220,7 @@ export default function GrillmastersPage() {
               }}
             >
               <option value="rating">Melhor avaliaÃ§Ã£o</option>
-              <option value="pricePerDay">Menor preÃ§o</option>
+              <option value="pricePerHour">Menor preÃ§o</option>
               <option value="experience">Mais experiente</option>
             </select>
           </div>
@@ -392,7 +392,7 @@ export default function GrillmastersPage() {
                       <div>
                         <span style={{ fontSize: 11, color: "#999", display: "block" }}>DiÃ¡ria</span>
                         <span style={{ fontSize: 20, fontWeight: 700, color: "#C23B22" }}>
-                          R$ {(g.pricePerDay ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                          R$ {(g.pricePerHour ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
                         </span>
                       </div>
                       <button
