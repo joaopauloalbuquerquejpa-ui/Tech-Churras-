@@ -71,31 +71,3 @@ export default function OrdersPage() {
           <p className='text-4xl mb-4'>🥩</p>
           <p className='text-lg'>Nenhum pedido ainda.</p>
           <Link href='/orders/new' className='mt-4 inline-block bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg'>
-            Fazer primeiro pedido
-          </Link>
-        </div>
-      )}
-
-      <div className='space-y-4'>
-        {orders.map(order => (
-          <Link key={order.id} href={'/orders/' + order.id} className='block bg-gray-900 rounded-xl p-5 hover:bg-gray-800 transition'>
-            <div className='flex items-center justify-between mb-2'>
-              <span className='text-sm text-gray-400'>#{order.id.slice(0, 8)}</span>
-              <span className={'text-xs text-white px-2 py-1 rounded-full ' + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
-                {STATUS_LABEL[order.status] || order.status}
-              </span>
-            </div>
-            <div className='flex items-center justify-between'>
-              <p className='text-sm'>Churrasqueiro: {order.grillmaster?.user?.name || 'Não selecionado'}</p>
-                {order.grillmaster && <p className='text-sm'>Churrasqueiro: {order.grillmaster.user?.name}</p>}
-                {order.boutique && <p className='text-sm'>Acougue: {order.boutique.name}</p>}
-                <p className='text-xs text-gray-400 mt-1'>Evento: {new Date(order.eventDate).toLocaleDateString('pt-BR')}</p>
-              </div><p className='text-orange-400 font-bold text-lg'>R$ {(order.totalPrice ?? 0).toFixed(2)}</p>
-              <p className='text-orange-400 font-bold text-lg'>R$ {order.totalPrice?.toFixed(2)}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  )
-}
