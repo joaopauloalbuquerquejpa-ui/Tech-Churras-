@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Grillmaster {
   id: string
@@ -191,16 +192,20 @@ export default function GrillmastersPage() {
           {filtered.map(g => {
             const name = g.user?.name ?? 'Churrasqueiro'
             const avatarBg = getAvatarColor(name)
+            const isFounder = ['jota', 'albuquerque', 'joao paulo', 'joão paulo'].some(k => name.toLowerCase().includes(k))
             return (
               <div key={g.id} className="bg-gray-900 rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-150">
                 <div className={'h-1.5 ' + (g.available ? 'bg-orange-500' : 'bg-gray-600')} />
                 <div className="p-5">
                   <div className="flex gap-3 mb-3">
                     <div
-                      className="w-14 h-14 rounded-full shrink-0 flex items-center justify-center text-white font-bold text-lg"
-                      style={{ background: avatarBg }}
+                      className="w-14 h-14 rounded-full shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-lg"
+                      style={isFounder ? undefined : { background: avatarBg }}
                     >
-                      {getInitials(name)}
+                      {isFounder
+                        ? <Image src="/jota.jpg" alt={name} width={56} height={56} className="object-cover w-full h-full" />
+                        : getInitials(name)
+                      }
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
