@@ -30,6 +30,7 @@ export default function DashboardLayout({
     { href: '/boutiques', label: 'Acougues' },
     { href: '/orders', label: 'Pedidos' },
     { href: '/admin', label: 'Admin' },
+    { href: '/founder', label: 'Fundador' },
   ]
 
   return (
