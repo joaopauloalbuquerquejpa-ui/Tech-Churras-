@@ -1,11 +1,10 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function NewGrillmasterPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const [form, setForm] = useState({
     bio: '',
     experience: 1,
@@ -13,6 +12,7 @@ export default function NewGrillmasterPage() {
     city: '',
     state: '',
     specialties: '',
+    phone: '',
   })
 
   async function handleSubmit() {
@@ -30,7 +30,7 @@ export default function NewGrillmasterPage() {
         body: JSON.stringify(form),
       })
       if (res.ok) {
-        router.push('/grillmasters')
+        setSuccess(true)
       } else {
         const err = await res.json()
         alert('Erro: ' + (err.error || 'ao cadastrar'))
@@ -38,6 +38,25 @@ export default function NewGrillmasterPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (success) {
+    return (
+      <div className="max-w-xl mx-auto p-6">
+        <div className="bg-gray-900 rounded-xl p-8 text-center">
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-green-400 text-2xl font-bold">&#10003;</span>
+          </div>
+          <h2 className="text-xl font-bold mb-2">Perfil enviado!</h2>
+          <p className="text-gray-400 mb-6">
+            Seu perfil foi enviado com sucesso. Aguarde a aprovacao do administrador para aparecer na listagem.
+          </p>
+          <Link href="/grillmasters" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg inline-block font-medium">
+            Ver churrasqueiros
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -109,12 +128,22 @@ export default function NewGrillmasterPage() {
             className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
           />
         </div>
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Telefone</label>
+          <input
+            type="tel"
+            value={form.phone}
+            onChange={e => setForm({ ...form, phone: e.target.value })}
+            placeholder="(11) 99999-9999"
+            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
+          />
+        </div>
         <button
           onClick={handleSubmit}
           disabled={loading}
           className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 py-3 rounded-lg font-bold"
         >
-          {loading ? 'Cadastrando...' : 'Cadastrar'}
+          {loading ? 'Enviando...' : 'Enviar para aprovacao'}
         </button>
       </div>
     </div>

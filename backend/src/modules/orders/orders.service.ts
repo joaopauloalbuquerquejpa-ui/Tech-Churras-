@@ -1,4 +1,4 @@
-﻿import { prisma } from '../../config/prisma'
+import { prisma } from '../../config/prisma'
 import { z } from 'zod'
 
 export const createOrderSchema = z.object({
@@ -34,14 +34,18 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       totalPrice,
       items: items ? { create: items } : undefined,
     },
-    include: { items: true, grillmaster: true, boutique: true },
+    include: { items: true, grillmaster: { include: { user: true } }, boutique: true },
   })
 }
 
 export async function listOrders(customerId: string) {
   return prisma.order.findMany({
     where: { customerId },
-    include: { items: { include: { product: true } }, grillmaster: true, boutique: true },
+    include: {
+      items: { include: { product: true } },
+      grillmaster: { include: { user: true } },
+      boutique: true,
+    },
     orderBy: { createdAt: 'desc' },
   })
 }
@@ -56,7 +60,11 @@ export async function updateOrderStatus(id: string, status: string) {
 export async function getOrderById(id: string, customerId: string) {
   const order = await prisma.order.findFirst({
     where: { id, customerId },
-    include: { items: { include: { product: true } }, grillmaster: true, boutique: true },
+    include: {
+      items: { include: { product: true } },
+      grillmaster: { include: { user: true } },
+      boutique: true,
+    },
   })
   if (!order) throw new Error('Pedido nao encontrado')
   return order
