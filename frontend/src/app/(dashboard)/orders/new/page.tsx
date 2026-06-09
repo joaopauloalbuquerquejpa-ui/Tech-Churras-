@@ -1,9 +1,10 @@
-﻿'use client'
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+'use client'
+import { useEffect, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
-export default function NewOrderPage() {
+function NewOrderForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [grillmasters, setGrillmasters] = useState<any[]>([])
   const [boutiques, setBoutiques] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -16,6 +17,11 @@ export default function NewOrderPage() {
     guestCount: 10,
     notes: '',
   })
+
+  useEffect(() => {
+    const id = searchParams.get('grillmasterId')
+    if (id) setForm(prev => ({ ...prev, grillmasterId: id }))
+  }, [searchParams])
 
   useEffect(() => {
     const raw = localStorage.getItem('auth-storage')
@@ -94,5 +100,13 @@ export default function NewOrderPage() {
         </button>
       </div>
     </div>
+  )
+}
+
+export default function NewOrderPage() {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <NewOrderForm />
+    </Suspense>
   )
 }

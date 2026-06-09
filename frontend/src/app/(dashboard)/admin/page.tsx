@@ -7,7 +7,7 @@ interface Order {
   totalPrice: number
   eventDate: string
   user?: { name: string; email: string }
-  grillmaster?: { name: string }
+  grillmaster?: { user?: { name: string } }
   boutique?: { name: string }
 }
 
@@ -93,7 +93,7 @@ export default function AdminPage() {
               </div>
               <div className='flex items-center justify-between'>
                 <div className='text-sm text-gray-400'>
-                  {order.grillmaster && <p>Churrasqueiro: {order.grillmaster.name}</p>}
+                  {order.grillmaster && <p>Churrasqueiro: {order.grillmaster.user?.name}</p>}
                   {order.boutique && <p>Acougue: {order.boutique.name}</p>}
                   <p>Evento: {new Date(order.eventDate).toLocaleDateString('pt-BR')}</p>
                 </div>
