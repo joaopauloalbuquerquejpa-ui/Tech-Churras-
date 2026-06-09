@@ -1,21 +1,22 @@
 'use client'
+import Image from 'next/image'
 import Link from 'next/link'
 
 const conquistas = [
   {
-    icon: '🔥',
+    icon: '◎',
     titulo: 'Festivais',
-    texto: 'Palcos dos maiores festivais do pais: Barbaros, Let\'s Grill e Carnivoria.',
+    texto: 'Palcos dos maiores festivais do país: Bárbaros, Let\'s Grill e Carnivoria.',
   },
   {
     icon: '★',
     titulo: 'Celebridades',
-    texto: 'Atendeu icones como Madonna, Lady Gaga e Neymar Jr., alem de atletas da NBA e NFL.',
+    texto: 'Atendeu ícones como Madonna, Lady Gaga e Neymar Jr., além de atletas da NBA e NFL.',
   },
   {
     icon: '◆',
     titulo: 'Corporativo',
-    texto: 'Elevou o padrao de eventos para gigantes como Grupo Heineken e RedBull.',
+    texto: 'Elevou o padrão de eventos para gigantes como Grupo Heineken e RedBull.',
   },
   {
     icon: '◉',
@@ -25,12 +26,12 @@ const conquistas = [
   {
     icon: '◈',
     titulo: 'Internacional',
-    texto: 'Assinou o cardapio do One Resort Aquapark & SPA na Tunisia.',
+    texto: 'Assinou o cardápio do One Resort Aquapark & SPA na Tunísia.',
   },
   {
     icon: '◍',
     titulo: 'Zanzibar',
-    texto: 'Socio executivo do Bahari of Brazil na Ilha de Zanzibar, Tanzania.',
+    texto: 'Sócio executivo do Bahari of Brazil na Ilha de Zanzibar, Tanzânia.',
   },
 ]
 
@@ -44,28 +45,32 @@ export default function FounderPage() {
           Churrasqueiro dos Famosos
         </span>
         <h1 className="text-4xl md:text-5xl font-bold mb-3">
-          Conhea o Fundador
+          Conheça o Fundador
         </h1>
         <p className="text-gray-400 text-lg">
-          A historia por tras da revolucao do churrasco
+          A história por trás da revolução do churrasco
         </p>
       </div>
 
       {/* BIO */}
       <div className="bg-gray-900 rounded-2xl p-8 mb-8 border border-gray-800 flex flex-col md:flex-row gap-8 items-start">
-        {/* Placeholder para foto futura */}
-        {/* <img src="/jota.jpg" alt="Jota Albuquerque" className="w-48 h-48 rounded-xl object-cover shrink-0" /> */}
-        <div className="w-40 h-40 rounded-xl bg-gray-800 border border-orange-500/30 shrink-0 flex items-center justify-center">
-          <span className="text-4xl font-black text-orange-500">JA</span>
+        <div className="shrink-0 rounded-xl overflow-hidden border-2 border-orange-500">
+          <Image
+            src="/jota.jpg"
+            alt="Jota Albuquerque"
+            width={340}
+            height={420}
+            className="object-cover"
+          />
         </div>
         <div>
           <h2 className="text-2xl font-bold mb-1">Jota Albuquerque</h2>
           <span className="text-orange-400 text-sm font-medium">Fundador & CEO da Tech Churras</span>
           <p className="text-gray-300 mt-4 leading-relaxed">
-            Com mais de 13 anos de trajetoria, Joao "Jota" Albuquerque consolidou-se como o
-            Churrasqueiro dos Famosos e uma das maiores referencias do churrasco no Brasil.
-            Especialista em dominar o fogo e a brasa, ele transforma cada evento em uma experiencia
-            memoravel que une tecnica apurada, excelencia gastronomica e hospitalidade.
+            Com mais de 13 anos de trajetória, João "Jota" Albuquerque consolidou-se como o
+            Churrasqueiro dos Famosos e uma das maiores referências do churrasco no Brasil.
+            Especialista em dominar o fogo e a brasa, ele transforma cada evento em uma experiência
+            memorável que une técnica apurada, excelência gastronômica e hospitalidade.
           </p>
         </div>
       </div>
@@ -91,11 +96,11 @@ export default function FounderPage() {
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 mb-6">
         <h2 className="text-xl font-bold mb-4">Por que a Tech Churras existe</h2>
         <p className="text-gray-300 leading-relaxed">
-          Organizar um churrasco profissional era um pesadelo logistico. Erros no calculo de carne,
-          profissionais sem qualificacao e insumos duvidosos geravam desperdicio e frustracao. Jota
+          Organizar um churrasco profissional era um pesadelo logístico. Erros no cálculo de carne,
+          profissionais sem qualificação e insumos duvidosos geravam desperdício e frustração. Jota
           criou a Tech Churras para resolver isso: uma plataforma end-to-end que conecta os melhores
-          churrasqueiros, as melhores boutiques de carne e os clientes que merecem uma experiencia
-          premium. Do aplicativo a brasa, a Tech Churras executa tudo.
+          churrasqueiros, as melhores boutiques de carne e os clientes que merecem uma experiência
+          premium. Do aplicativo à brasa, a Tech Churras executa tudo.
         </p>
       </div>
 
@@ -103,9 +108,9 @@ export default function FounderPage() {
       <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-8 mb-10">
         <h2 className="text-xl font-bold mb-4 text-orange-400">A Chancela Jota Grillmaster</h2>
         <p className="text-gray-300 leading-relaxed">
-          Cada churrasqueiro na plataforma passa pelo processo de curadoria e certificacao pessoal de
-          Jota. A Chancela Jota Grillmaster e a garantia de que voce esta contratando um profissional
-          treinado nos mais altos padroes da gastronomia do fogo.
+          Cada churrasqueiro na plataforma passa pelo processo de curadoria e certificação pessoal de
+          Jota. A Chancela Jota Grillmaster é a garantia de que você está contratando um profissional
+          treinado nos mais altos padrões da gastronomia do fogo.
         </p>
       </div>
 
