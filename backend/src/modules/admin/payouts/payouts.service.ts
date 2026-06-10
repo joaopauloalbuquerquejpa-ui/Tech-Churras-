@@ -92,7 +92,11 @@ export async function generatePayouts() {
   })
   const existingSet = new Set(existing.map(p => `${p.orderId}:${p.type}`))
 
-  const toCreate: Parameters<typeof prisma.payout.createMany>[0]['data'] = []
+  const toCreate: {
+    type: string; recipientId: string; orderId: string
+    grossAmount: number; commission: number; amount: number
+    weekStart: Date; weekEnd: Date; pixKey?: string | null
+  }[] = []
 
   for (const order of orders) {
     if (order.grillmasterId && !existingSet.has(`${order.id}:GRILLMASTER`)) {
