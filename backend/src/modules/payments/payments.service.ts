@@ -7,9 +7,12 @@ dotenv.config()
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'https://tech-churras.vercel.app'
 const BACKEND_URL = process.env.BACKEND_URL ?? 'https://tech-churras-production.up.railway.app'
 
-const mpClient = new MercadoPagoConfig({ accessToken: process.env.MP_ACCESS_TOKEN! })
-const preferenceClient = new Preference(mpClient)
-const paymentClient = new Payment(mpClient)
+function getClients() {
+  const token = process.env.MP_ACCESS_TOKEN
+  if (!token) throw new Error('MP_ACCESS_TOKEN nao configurado. Adicione no Railway.')
+  const client = new MercadoPagoConfig({ accessToken: token })
+  return { preference: new Preference(client), payment: new Payment(client), token }
+}
 
 export async function createPreference(orderId: string, customerId: string) {
   const order = await prisma.order.findFirst({
@@ -20,6 +23,8 @@ export async function createPreference(orderId: string, customerId: string) {
 
   const gmName = order.grillmaster?.user?.name ?? 'Grillmaster'
   const title = `Churrasco - ${gmName} - Pedido #${order.id.slice(0, 8)}`
+
+  const { preference: preferenceClient, token } = getClients()
 
   const result = await preferenceClient.create({
     body: {
@@ -48,7 +53,7 @@ export async function createPreference(orderId: string, customerId: string) {
     data: { paymentId: result.id },
   })
 
-  const isSandbox = process.env.MP_ACCESS_TOKEN?.startsWith('TEST-')
+  const isSandbox = token.startsWith('TEST-')
   return {
     checkout_url: isSandbox ? result.sandbox_init_point : result.init_point,
     preferenceId: result.id,
@@ -61,6 +66,8 @@ export async function handleMPWebhook(payload: any) {
   const paymentId = payload?.data?.id
 
   if (type !== 'payment' || !paymentId) return { received: true }
+
+  const { payment: paymentClient } = getClients()
 
   const payment = await paymentClient.get({ id: paymentId })
 
