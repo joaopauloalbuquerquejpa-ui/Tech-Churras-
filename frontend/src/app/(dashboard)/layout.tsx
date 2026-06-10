@@ -26,6 +26,7 @@ export default function DashboardLayout({
 
   const links = [
     { href: '/dashboard', label: 'Dashboard' },
+    { href: '/menu', label: 'Menu' },
     { href: '/grillmasters', label: 'Churrasqueiros' },
     { href: '/boutiques', label: 'Acougues' },
     { href: '/orders', label: 'Pedidos' },
