@@ -29,10 +29,10 @@
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "fastify": "^5.8.5",
+    "mercadopago": "^3.1.0",
     "pg": "^8.21.0",
     "prisma": "^7.8.0",
     "react-hook-form": "^7.77.0",
-    "stripe": "^22.2.0",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

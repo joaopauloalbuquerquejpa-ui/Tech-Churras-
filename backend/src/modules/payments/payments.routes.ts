@@ -1,13 +1,7 @@
 import { FastifyInstance } from 'fastify'
-import {
-  createPaymentIntentHandler,
-  stripeWebhookHandler,
-} from './payments.controller'
+import { createPreferenceHandler, mpWebhookHandler } from './payments.controller'
 
 export async function paymentsRoutes(app: FastifyInstance) {
-  // Webhook do Stripe (sem autenticação JWT)
-  app.post('/payments/webhook', stripeWebhookHandler)
-
-  // Autenticado
-  app.post('/payments/:orderId', { preHandler: [app.authenticate] }, createPaymentIntentHandler)
+  app.post('/payments/webhook', mpWebhookHandler)
+  app.post('/payments/create-preference', { preHandler: [app.authenticate] }, createPreferenceHandler)
 }

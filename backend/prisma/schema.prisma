@@ -150,6 +150,8 @@ model Order {
   totalPrice    Float       @default(0)
   notes         String?
   paymentId     String?
+  paymentStatus String?
+  paidAt        DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
