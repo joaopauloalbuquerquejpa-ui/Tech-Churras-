@@ -17,7 +17,12 @@ dotenv.config()
 const app = Fastify({ logger: true })
 
 // Plugins
-app.register(cors, { origin: true, credentials: true })
+app.register(cors, {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+})
 app.register(jwt, { secret: process.env.JWT_SECRET ?? 'supersecret' })
 app.register(cookie)
 
