@@ -75,6 +75,13 @@ export async function listAllOrders() {
   })
 }
 
+export async function markOrderPaid(orderId: string) {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { status: 'COMPLETED', paymentStatus: 'PAID', paidAt: new Date() },
+  })
+}
+
 export async function getDashboardStats() {
   const [totalUsers, totalOrders, totalBoutiques, totalGrillmasters, revenue] = await Promise.all([
     prisma.user.count(),

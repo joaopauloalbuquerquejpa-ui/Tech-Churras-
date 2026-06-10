@@ -11,6 +11,7 @@ import {
   rejectBoutique,
   listAllOrders,
   getDashboardStats,
+  markOrderPaid,
 } from './admin.service'
 
 export async function listUsersHandler(req: FastifyRequest, reply: FastifyReply) {
@@ -96,6 +97,15 @@ export async function listAllOrdersHandler(req: FastifyRequest, reply: FastifyRe
     return reply.send(await listAllOrders())
   } catch (err: any) {
     return reply.status(500).send({ error: err.message })
+  }
+}
+
+export async function markOrderPaidHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { orderId } = req.params as { orderId: string }
+    return reply.send(await markOrderPaid(orderId))
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
   }
 }
 

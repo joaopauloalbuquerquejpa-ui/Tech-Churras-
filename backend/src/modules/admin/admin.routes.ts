@@ -11,6 +11,7 @@ import {
   rejectBoutiqueHandler,
   listAllOrdersHandler,
   getDashboardStatsHandler,
+  markOrderPaidHandler,
 } from './admin.controller'
 import {
   listPayoutsHandler,
@@ -38,6 +39,7 @@ export async function adminRoutes(app: FastifyInstance) {
   app.patch('/admin/boutiques/:boutiqueId/reject', rejectBoutiqueHandler)
 
   app.get('/admin/orders', listAllOrdersHandler)
+  app.patch('/admin/orders/:orderId/mark-paid', markOrderPaidHandler)
 
   app.get('/admin/payouts', listPayoutsHandler)
   app.get('/admin/payouts/summary', getPayoutsSummaryHandler)
