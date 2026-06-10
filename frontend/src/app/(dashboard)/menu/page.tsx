@@ -1,5 +1,8 @@
 'use client'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+
+const VIDEO_BRASA = 'https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4'
 
 const passos = [
   {
@@ -33,6 +36,7 @@ const kits = [
     btnLabel: 'Escolher Este Kit',
     btnCls: 'bg-orange-500 hover:bg-orange-600 text-white',
     href: '/menu/novo?kit=essential',
+    hoverEffect: 'flame',
   },
   {
     key: 'prime',
@@ -47,6 +51,7 @@ const kits = [
     btnLabel: 'Escolher Este Kit',
     btnCls: 'bg-amber-500 hover:bg-amber-600 text-black',
     href: '/menu/novo?kit=prime',
+    hoverEffect: 'gold',
   },
   {
     key: 'firetech',
@@ -61,10 +66,41 @@ const kits = [
     btnLabel: 'Falar com Especialista',
     btnCls: 'bg-red-600 hover:bg-red-700 text-white',
     href: '/menu/novo?kit=firetech',
+    hoverEffect: 'fire',
   },
 ]
 
+const PARTICLES = [
+  { left: '8%',  bottom: '12%', size: 6,  delay: '0s',    dur: '3.2s' },
+  { left: '18%', bottom: '8%',  size: 4,  delay: '0.7s',  dur: '2.5s' },
+  { left: '30%', bottom: '20%', size: 10, delay: '1.1s',  dur: '4s'   },
+  { left: '45%', bottom: '5%',  size: 5,  delay: '0.3s',  dur: '2.8s' },
+  { left: '58%', bottom: '15%', size: 8,  delay: '1.5s',  dur: '3.5s' },
+  { left: '70%', bottom: '10%', size: 4,  delay: '0.5s',  dur: '2.3s' },
+  { left: '80%', bottom: '18%', size: 12, delay: '0.9s',  dur: '4.2s' },
+  { left: '91%', bottom: '7%',  size: 6,  delay: '1.8s',  dur: '3s'   },
+]
+
+function useInView(ref: React.RefObject<Element | null>) {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect() } },
+      { threshold: 0.15 }
+    )
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [ref])
+  return visible
+}
+
 export default function MenuPage() {
+  const passosRef = useRef<HTMLDivElement>(null)
+  const passosVisible = useInView(passosRef)
+  const [hoveredKit, setHoveredKit] = useState<string | null>(null)
+
   function scrollToKits() {
     document.getElementById('kits')?.scrollIntoView({ behavior: 'smooth' })
   }
@@ -72,44 +108,107 @@ export default function MenuPage() {
   return (
     <div className="max-w-6xl mx-auto">
 
-      {/* ── HERO ── */}
-      <section
-        className="relative rounded-2xl overflow-hidden py-20 px-6 text-center mb-16"
-        style={{
-          background: 'radial-gradient(ellipse at 50% 110%, rgba(249,115,22,0.22) 0%, transparent 62%), #0a0a0a',
-        }}
-      >
-        <span className="inline-block text-xs font-bold tracking-widest text-orange-400 uppercase mb-4 px-3 py-1 rounded-full border border-orange-500/30">
-          Powered by Jota Grillmaster
-        </span>
-        <h1 className="text-4xl md:text-6xl font-black mb-4 leading-tight">
-          Seu Churrasco Perfeito<br className="hidden md:block" /> Começa Aqui
-        </h1>
-        <p className="text-gray-400 text-lg md:text-xl max-w-xl mx-auto mb-10">
-          Do churrasqueiro ideal aos melhores cortes — tudo em um só lugar
-        </p>
+      {/* ── HERO com vídeo ── */}
+      <section className="relative rounded-2xl overflow-hidden mb-16" style={{ minHeight: 520 }}>
+        {/* Vídeo de fundo */}
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ zIndex: 0 }}
+        >
+          <source src={VIDEO_BRASA} type="video/mp4" />
+        </video>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Link
-            href="/menu/novo"
-            className="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-500/20"
-          >
-            Montar Meu Churrasco
-          </Link>
-          <button
-            onClick={scrollToKits}
-            className="inline-flex items-center justify-center gap-2 border-2 border-orange-500/50 hover:border-orange-500 text-orange-400 hover:text-white hover:bg-orange-500/10 font-bold px-8 py-4 rounded-xl text-lg transition-all"
-          >
-            Ver Kits Prontos
-          </button>
-        </div>
+        {/* Overlay escuro */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.88) 100%)',
+            zIndex: 1,
+          }}
+        />
 
-        {/* Trust signals */}
-        <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-500">
-          <span>✓ Profissionais chancelados por Jota Grillmaster</span>
-          <span>✓ Preço fechado antes do evento</span>
-          <span>✓ Grillmaster retira os insumos para você</span>
-          <span>✓ Suporte durante todo o evento</span>
+        {/* Overlay laranja radial */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(249,115,22,0.16) 0%, transparent 70%)',
+            zIndex: 2,
+          }}
+        />
+
+        {/* Partículas de fogo */}
+        {PARTICLES.map((p, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full animate-float-particle pointer-events-none"
+            style={{
+              left: p.left,
+              bottom: p.bottom,
+              width: p.size,
+              height: p.size,
+              background: `radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(249,115,22,0.7) 60%, transparent 100%)`,
+              animationDelay: p.delay,
+              animationDuration: p.dur,
+              zIndex: 3,
+            }}
+          />
+        ))}
+
+        {/* Conteúdo */}
+        <div className="relative py-20 px-6 text-center" style={{ zIndex: 4 }}>
+          <span
+            className="inline-block text-xs font-bold tracking-widest text-orange-400 uppercase mb-4 px-3 py-1 rounded-full border border-orange-500/30 animate-fadeInUp"
+            style={{ animationDelay: '0.1s', opacity: 0 }}
+          >
+            Powered by Jota Grillmaster
+          </span>
+
+          <h1
+            className="text-4xl md:text-6xl font-black mb-4 leading-tight animate-fadeInUp"
+            style={{ animationDelay: '0.3s', opacity: 0 }}
+          >
+            Seu Churrasco Perfeito<br className="hidden md:block" /> Começa Aqui
+          </h1>
+
+          <p
+            className="text-gray-300 text-lg md:text-xl max-w-xl mx-auto mb-10 animate-fadeInUp"
+            style={{ animationDelay: '0.6s', opacity: 0 }}
+          >
+            Do churrasqueiro ideal aos melhores cortes — tudo em um só lugar
+          </p>
+
+          <div
+            className="flex flex-col sm:flex-row gap-4 justify-center mb-12 animate-fadeInUp"
+            style={{ animationDelay: '0.9s', opacity: 0 }}
+          >
+            <Link
+              href="/menu/novo"
+              className="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-xl text-lg transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-500/30 animate-flamePulse"
+            >
+              Montar Meu Churrasco
+            </Link>
+            <button
+              onClick={scrollToKits}
+              className="inline-flex items-center justify-center gap-2 border-2 border-orange-500/50 hover:border-orange-500 text-orange-400 hover:text-white hover:bg-orange-500/10 font-bold px-8 py-4 rounded-xl text-lg transition-all"
+            >
+              Ver Kits Prontos
+            </button>
+          </div>
+
+          <div
+            className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-gray-400 animate-fadeInUp"
+            style={{ animationDelay: '1.1s', opacity: 0 }}
+          >
+            <span>&#10003; Profissionais chancelados por Jota Grillmaster</span>
+            <span>&#10003; Preço fechado antes do evento</span>
+            <span>&#10003; Grillmaster retira os insumos para você</span>
+            <span>&#10003; Suporte durante todo o evento</span>
+          </div>
         </div>
       </section>
 
@@ -117,13 +216,18 @@ export default function MenuPage() {
       <section className="mb-16 px-2">
         <h2 className="text-2xl font-bold text-center mb-2">Como Funciona</h2>
         <p className="text-gray-500 text-center text-sm mb-8">Três passos. Um churrasco perfeito.</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {passos.map(p => (
+        <div ref={passosRef} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {passos.map((p, i) => (
             <div
               key={p.n}
               className="bg-gray-900 border border-gray-800 hover:border-orange-500/40 rounded-2xl p-6 text-center transition-all hover:-translate-y-0.5"
+              style={
+                passosVisible
+                  ? { animation: `slideInFromBottom 0.6s ease forwards`, animationDelay: `${i * 0.15}s`, opacity: 0 }
+                  : { opacity: 0 }
+              }
             >
-              <div className="w-14 h-14 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mx-auto mb-4">
+              <div className="w-14 h-14 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center mx-auto mb-4 animate-pulseScale">
                 <span className="text-2xl font-black text-orange-500">{p.n}</span>
               </div>
               <h3 className="font-bold text-white mb-2">{p.titulo}</h3>
@@ -140,40 +244,79 @@ export default function MenuPage() {
           Kits pensados para cada tipo de evento. Do íntimo ao grandioso.
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {kits.map(k => (
-            <div
-              key={k.key}
-              className={`bg-gray-900 border-2 rounded-2xl p-6 flex flex-col transition-all hover:-translate-y-1 ${k.borderCls}`}
-            >
-              <div className="flex items-start justify-between mb-4">
-                <span className={`text-xs font-bold px-2 py-1 rounded-full tracking-widest uppercase ${k.badgeCls}`}>
-                  {k.badge}
-                </span>
-              </div>
-              <h3 className={`text-xl font-black mb-1 ${k.tituloCls}`}>{k.nome}</h3>
-              <p className="text-xs text-gray-500 mb-4">Para {k.para}</p>
-              <ul className="space-y-1 mb-6 flex-1">
-                {k.inclui.map(item => (
-                  <li key={item} className="text-sm text-gray-300 flex items-center gap-2">
-                    <span className="text-orange-500 text-xs">◆</span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <p className="text-2xl font-black text-white mb-4">{k.preco}</p>
-              <Link
-                href={k.href}
-                className={`w-full text-center font-bold py-3 rounded-xl transition-colors ${k.btnCls}`}
+          {kits.map(k => {
+            const isHovered = hoveredKit === k.key
+            const extraStyle: React.CSSProperties = {}
+            if (isHovered && k.hoverEffect === 'gold') {
+              extraStyle.background = 'linear-gradient(135deg, #1a1500 0%, #2a1f00 50%, #1a1500 100%)'
+              extraStyle.backgroundSize = '200% 200%'
+            }
+            if (isHovered && k.hoverEffect === 'fire') {
+              extraStyle.boxShadow = '0 0 30px rgba(239,68,68,0.4), 0 0 60px rgba(249,115,22,0.2)'
+            }
+            if (isHovered && k.hoverEffect === 'flame') {
+              extraStyle.boxShadow = '0 0 20px rgba(249,115,22,0.3)'
+            }
+            return (
+              <div
+                key={k.key}
+                onMouseEnter={() => setHoveredKit(k.key)}
+                onMouseLeave={() => setHoveredKit(null)}
+                className={`bg-gray-900 border-2 rounded-2xl p-6 flex flex-col transition-all duration-300 hover:-translate-y-1 ${k.borderCls} ${isHovered && k.hoverEffect === 'fire' ? 'animate-flamePulse' : ''}`}
+                style={extraStyle}
               >
-                {k.btnLabel}
-              </Link>
-            </div>
-          ))}
+                <div className="flex items-start justify-between mb-4">
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full tracking-widest uppercase ${k.badgeCls}`}>
+                    {k.badge}
+                  </span>
+                </div>
+
+                <h3
+                  className={`text-xl font-black mb-1 ${k.tituloCls}`}
+                  style={
+                    isHovered && k.hoverEffect === 'gold'
+                      ? {
+                          background: 'linear-gradient(90deg, #f59e0b, #fde68a, #f59e0b)',
+                          backgroundSize: '200% auto',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                          animation: 'goldShimmer 1.5s linear infinite',
+                        }
+                      : undefined
+                  }
+                >
+                  {k.nome}
+                </h3>
+
+                <p className="text-xs text-gray-500 mb-4">Para {k.para}</p>
+                <ul className="space-y-1 mb-6 flex-1">
+                  {k.inclui.map(item => (
+                    <li key={item} className="text-sm text-gray-300 flex items-center gap-2">
+                      <span className="text-orange-500 text-xs">&#9670;</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-2xl font-black text-white mb-4">{k.preco}</p>
+                <Link
+                  href={k.href}
+                  className={`w-full text-center font-bold py-3 rounded-xl transition-colors ${k.btnCls}`}
+                >
+                  {k.btnLabel}
+                </Link>
+              </div>
+            )
+          })}
         </div>
 
         {/* Kit Personalizado */}
-        <div className="border-2 border-dashed border-orange-500/40 hover:border-orange-500/70 rounded-2xl p-8 text-center transition-all hover:-translate-y-0.5 bg-orange-500/5">
-          <div className="text-4xl mb-3 text-orange-400 font-bold">✎</div>
+        <div
+          className="border-2 border-dashed rounded-2xl p-8 text-center transition-all hover:-translate-y-0.5 bg-orange-500/5 group"
+          style={{ borderColor: 'rgba(249,115,22,0.4)' }}
+          onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(249,115,22,0.7)')}
+          onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(249,115,22,0.4)')}
+        >
+          <div className="text-4xl mb-3 text-orange-400 font-bold group-hover:animate-pulseScale inline-block">&#9998;</div>
           <h3 className="text-xl font-bold text-white mb-2">Monte do Seu Jeito</h3>
           <p className="text-gray-400 text-sm mb-6 max-w-md mx-auto">
             Escolha cada item, cada corte e cada detalhe do seu evento. Calculadora inteligente inclusa.
