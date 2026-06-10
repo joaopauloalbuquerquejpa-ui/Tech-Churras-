@@ -7,6 +7,11 @@ import {
   getMyBoutique,
   createBoutiqueSchema,
   updateBoutiqueSchema,
+  getKitsByBoutique,
+  createKit,
+  updateKit,
+  deleteKit,
+  createKitSchema,
 } from './boutiques.service'
 import {
   createProduct,
@@ -59,6 +64,50 @@ export async function updateBoutiqueHandler(req: FastifyRequest, reply: FastifyR
     const data = updateBoutiqueSchema.parse(req.body)
     const boutique = await updateBoutique(userId, data)
     return reply.send(boutique)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getKitsByBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { id } = req.params as { id: string }
+    const kits = await getKitsByBoutique(id)
+    return reply.send(kits)
+  } catch (err: any) {
+    return reply.status(500).send({ error: err.message })
+  }
+}
+
+export async function createKitHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req as any).user.id
+    const data = createKitSchema.parse(req.body)
+    const kit = await createKit(userId, data)
+    return reply.status(201).send(kit)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function updateKitHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req as any).user.id
+    const { kitId } = req.params as { kitId: string }
+    const data = createKitSchema.partial().parse(req.body)
+    const kit = await updateKit(kitId, userId, data)
+    return reply.send(kit)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function deleteKitHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req as any).user.id
+    const { kitId } = req.params as { kitId: string }
+    await deleteKit(kitId, userId)
+    return reply.status(204).send()
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

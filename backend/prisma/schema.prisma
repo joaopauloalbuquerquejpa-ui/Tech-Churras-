@@ -57,6 +57,7 @@ model Grillmaster {
   rating       Float    @default(0)
   approved     Boolean  @default(false)
   totalOrders  Int      @default(0)
+  isChancelado Boolean  @default(false)
   specialties  String?  @default("")
   photoUrl     String?
   createdAt    DateTime @default(now())
@@ -78,25 +79,41 @@ model GrillmasterSchedule {
 }
 
 model Boutique {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  name        String
-  description String?
-  city        String
-  state       String
-  address     String?
-  phone       String?
-  latitude    Float?
-  longitude   Float?
-  rating      Float    @default(0)
-  approved    Boolean  @default(false)
-  open        Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  name           String
+  description    String?
+  city           String
+  state          String
+  address        String?
+  phone          String?
+  latitude       Float?
+  longitude      Float?
+  rating         Float    @default(0)
+  approved       Boolean  @default(false)
+  open           Boolean  @default(true)
+  monthlyFee     Float    @default(369.00)
+  commissionRate Float    @default(0.03)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user     User      @relation(fields: [userId], references: [id])
+  user     User           @relation(fields: [userId], references: [id])
   products Product[]
   orders   Order[]
+  kits     KitChurrasco[]
+}
+
+model KitChurrasco {
+  id          String   @id @default(uuid())
+  boutiqueId  String
+  boutique    Boutique @relation(fields: [boutiqueId], references: [id])
+  name        String
+  description String
+  price       Float
+  minGuests   Int
+  maxGuests   Int
+  items       String
+  createdAt   DateTime @default(now())
 }
 
 model Product {

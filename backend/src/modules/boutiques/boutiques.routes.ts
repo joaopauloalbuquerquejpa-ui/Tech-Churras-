@@ -6,6 +6,10 @@ import {
   getBoutiqueByIdHandler,
   updateBoutiqueHandler,
   getMyBoutiqueHandler,
+  getKitsByBoutiqueHandler,
+  createKitHandler,
+  updateKitHandler,
+  deleteKitHandler,
   createProductHandler,
   updateProductHandler,
   deleteProductHandler,
@@ -18,6 +22,11 @@ export async function boutiqueRoutes(app: FastifyInstance) {
   app.get('/boutiques/:id', getBoutiqueByIdHandler)
   app.post('/boutiques', { preHandler: [authenticate] }, createBoutiqueHandler)
   app.patch('/boutiques', { preHandler: [authenticate] }, updateBoutiqueHandler)
+
+  app.get('/boutiques/:id/kits', getKitsByBoutiqueHandler)
+  app.post('/boutiques/kits', { preHandler: [authenticate] }, createKitHandler)
+  app.patch('/boutiques/kits/:kitId', { preHandler: [authenticate] }, updateKitHandler)
+  app.delete('/boutiques/kits/:kitId', { preHandler: [authenticate] }, deleteKitHandler)
 
   app.post('/boutiques/products', { preHandler: [authenticate] }, createProductHandler)
   app.patch('/boutiques/products/:productId', { preHandler: [authenticate] }, updateProductHandler)

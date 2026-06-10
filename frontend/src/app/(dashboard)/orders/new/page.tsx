@@ -18,21 +18,44 @@ interface Product {
   category: string
 }
 
+interface Kit {
+  id: string
+  boutiqueId: string
+  name: string
+  description: string
+  price: number
+  minGuests: number
+  maxGuests: number
+  items: string
+}
+
+function calculateInsumos(homens: number, mulheres: number, criancas: number) {
+  const totalCarne = homens * 400 + mulheres * 300 + criancas * 150
+  const totalCarvao = Math.ceil(homens / 5)
+  const totalPessoas = homens + mulheres + criancas
+  return { totalCarne, totalCarvao, totalPessoas }
+}
+
 function NewOrderForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [grillmasters, setGrillmasters] = useState<any[]>([])
   const [boutiques, setBoutiques] = useState<any[]>([])
   const [boutiqueProducts, setBoutiqueProducts] = useState<Product[]>([])
+  const [boutiqueKits, setBoutiqueKits] = useState<Kit[]>([])
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(false)
+  const [acompanhamentos, setAcompanhamentos] = useState(false)
+  const [acompanhamentosText, setAcompanhamentosText] = useState('')
   const [form, setForm] = useState({
     grillmasterId: '',
     boutiqueId: '',
     eventDate: '',
     eventAddress: '',
     eventHours: 4,
-    guestCount: 10,
+    homens: 5,
+    mulheres: 3,
+    criancas: 2,
     notes: '',
   })
 
@@ -50,15 +73,24 @@ function NewOrderForm() {
   }, [])
 
   useEffect(() => {
-    if (!form.boutiqueId) { setBoutiqueProducts([]); setSelectedQty({}); return }
-    fetch(BASE + '/boutiques/' + form.boutiqueId, {
-      headers: { Authorization: 'Bearer ' + getToken() },
-    })
+    if (!form.boutiqueId) {
+      setBoutiqueProducts([])
+      setBoutiqueKits([])
+      setSelectedQty({})
+      return
+    }
+    const h = { headers: { Authorization: 'Bearer ' + getToken() } }
+    fetch(BASE + '/boutiques/' + form.boutiqueId, h)
       .then(r => r.json())
       .then(d => setBoutiqueProducts(d.products || []))
       .catch(() => setBoutiqueProducts([]))
+    fetch(BASE + '/boutiques/' + form.boutiqueId + '/kits', h)
+      .then(r => r.json())
+      .then(d => setBoutiqueKits(Array.isArray(d) ? d : []))
+      .catch(() => setBoutiqueKits([]))
   }, [form.boutiqueId])
 
+  const insumos = calculateInsumos(form.homens, form.mulheres, form.criancas)
   const selectedGrillmaster = grillmasters.find(g => g.id === form.grillmasterId)
   const grillmasterCost = selectedGrillmaster ? selectedGrillmaster.pricePerHour * form.eventHours : 0
   const itemsTotal = Object.entries(selectedQty).reduce((sum, [pid, qty]) => {
@@ -67,9 +99,16 @@ function NewOrderForm() {
   }, 0)
   const totalEstimate = grillmasterCost + itemsTotal
 
+  const bestKit = boutiqueKits.find(k => insumos.totalPessoas >= k.minGuests && insumos.totalPessoas <= k.maxGuests)
+    ?? (boutiqueKits.length > 0
+      ? boutiqueKits.reduce((prev, curr) =>
+          Math.abs(curr.minGuests - insumos.totalPessoas) < Math.abs(prev.minGuests - insumos.totalPessoas) ? curr : prev
+        )
+      : null)
+
   async function handleSubmit() {
     if (!form.grillmasterId || !form.eventDate || !form.eventAddress) {
-      alert('Preencha churrasqueiro, data e endereco do evento')
+      alert('Preencha churrasqueiro, data e endereço do evento')
       return
     }
     setLoading(true)
@@ -81,10 +120,24 @@ function NewOrderForm() {
           return { productId, quantity, unitPrice: p.price }
         })
 
+      let notes = form.notes
+      if (acompanhamentos && acompanhamentosText.trim()) {
+        notes = 'ACOMPANHAMENTOS: ' + acompanhamentosText.trim() + (notes ? '\n' + notes : '')
+      }
+
       const res = await fetch(BASE + '/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
-        body: JSON.stringify({ ...form, items: items.length > 0 ? items : undefined }),
+        body: JSON.stringify({
+          grillmasterId: form.grillmasterId,
+          boutiqueId: form.boutiqueId || undefined,
+          eventDate: form.eventDate,
+          eventAddress: form.eventAddress,
+          eventHours: form.eventHours,
+          guestCount: insumos.totalPessoas,
+          notes: notes || undefined,
+          items: items.length > 0 ? items : undefined,
+        }),
       })
       if (res.ok) router.push('/orders')
       else {
@@ -100,6 +153,8 @@ function NewOrderForm() {
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">Novo Pedido</h1>
       <div className="bg-gray-900 rounded-xl p-6 space-y-4">
+
+        {/* Churrasqueiro */}
         <div>
           <label className="block text-sm text-gray-400 mb-1">Churrasqueiro *</label>
           <select
@@ -113,8 +168,10 @@ function NewOrderForm() {
             ))}
           </select>
         </div>
+
+        {/* Açougue */}
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Acougue (opcional)</label>
+          <label className="block text-sm text-gray-400 mb-1">Açougue (opcional)</label>
           <select
             value={form.boutiqueId}
             onChange={e => setForm({ ...form, boutiqueId: e.target.value })}
@@ -127,9 +184,10 @@ function NewOrderForm() {
           </select>
         </div>
 
+        {/* Produtos do açougue */}
         {boutiqueProducts.length > 0 && (
           <div className="border border-gray-700 rounded-xl p-4">
-            <p className="text-sm font-medium text-gray-300 mb-3">Produtos do acougue</p>
+            <p className="text-sm font-medium text-gray-300 mb-3">Produtos do açougue</p>
             <div className="space-y-3">
               {boutiqueProducts.map(p => {
                 const qty = selectedQty[p.id] || 0
@@ -162,6 +220,41 @@ function NewOrderForm() {
           </div>
         )}
 
+        {/* Kits do açougue */}
+        {boutiqueKits.length > 0 && (
+          <div>
+            <p className="text-sm font-medium text-gray-300 mb-2">Kits disponíveis</p>
+            <div className="grid grid-cols-1 gap-3">
+              {boutiqueKits.map(k => {
+                const isMatch = k === bestKit
+                return (
+                  <div
+                    key={k.id}
+                    className={'rounded-xl p-4 border transition-colors ' + (isMatch
+                      ? 'border-orange-500 bg-orange-500/10'
+                      : 'border-gray-700 bg-gray-800')}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <p className="font-semibold text-sm text-white">{k.name}</p>
+                      {isMatch && (
+                        <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">
+                          Recomendado
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mb-2">{k.description}</p>
+                    <div className="flex items-center justify-between text-xs text-gray-400">
+                      <span>{k.minGuests}–{k.maxGuests} pessoas</span>
+                      <span className="text-orange-400 font-bold text-sm">R$ {k.price.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Data */}
         <div>
           <label className="block text-sm text-gray-400 mb-1">Data do Evento *</label>
           <input
@@ -171,18 +264,22 @@ function NewOrderForm() {
             className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
           />
         </div>
+
+        {/* Endereço */}
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Endereco do Evento *</label>
+          <label className="block text-sm text-gray-400 mb-1">Endereço do Evento *</label>
           <input
             type="text"
             value={form.eventAddress}
             onChange={e => setForm({ ...form, eventAddress: e.target.value })}
-            placeholder="Rua, numero, bairro, cidade"
+            placeholder="Rua, número, bairro, cidade"
             className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
           />
         </div>
+
+        {/* Horas */}
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Horas de Servico</label>
+          <label className="block text-sm text-gray-400 mb-1">Horas de Serviço</label>
           <input
             type="number"
             value={form.eventHours}
@@ -190,17 +287,85 @@ function NewOrderForm() {
             className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
           />
         </div>
+
+        {/* Convidados — 3 inputs */}
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Numero de Pessoas</label>
-          <input
-            type="number"
-            value={form.guestCount}
-            onChange={e => setForm({ ...form, guestCount: +e.target.value })}
-            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
-          />
+          <label className="block text-sm text-gray-400 mb-2">Convidados</label>
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Homens</label>
+              <input
+                type="number"
+                min={0}
+                value={form.homens}
+                onChange={e => setForm({ ...form, homens: Math.max(0, +e.target.value) })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white text-center"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Mulheres</label>
+              <input
+                type="number"
+                min={0}
+                value={form.mulheres}
+                onChange={e => setForm({ ...form, mulheres: Math.max(0, +e.target.value) })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white text-center"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Crianças</label>
+              <input
+                type="number"
+                min={0}
+                value={form.criancas}
+                onChange={e => setForm({ ...form, criancas: Math.max(0, +e.target.value) })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white text-center"
+              />
+            </div>
+          </div>
         </div>
+
+        {/* Estimativa de insumos */}
+        {insumos.totalPessoas > 0 && (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm space-y-1">
+            <p className="text-gray-300 font-medium mb-1">Estimativa de Insumos</p>
+            <p className="text-gray-400">
+              Carne estimada: <span className="text-white font-semibold">{(insumos.totalCarne / 1000).toFixed(1)} kg</span>
+            </p>
+            <p className="text-gray-400">
+              Carvão estimado: <span className="text-white font-semibold">{insumos.totalCarvao} {insumos.totalCarvao === 1 ? 'saco' : 'sacos'}</span>
+            </p>
+            <p className="text-gray-400">
+              Total de pessoas: <span className="text-white font-semibold">{insumos.totalPessoas}</span>
+            </p>
+          </div>
+        )}
+
+        {/* Acompanhamentos toggle */}
         <div>
-          <label className="block text-sm text-gray-400 mb-1">Observacoes</label>
+          <label className="flex items-center gap-3 cursor-pointer">
+            <button
+              type="button"
+              onClick={() => setAcompanhamentos(v => !v)}
+              className={'relative w-11 h-6 rounded-full transition-colors ' + (acompanhamentos ? 'bg-orange-500' : 'bg-gray-700')}
+            >
+              <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (acompanhamentos ? 'translate-x-5' : 'translate-x-0')} />
+            </button>
+            <span className="text-sm text-gray-300">Deseja que o Grillmaster prepare acompanhamentos no local?</span>
+          </label>
+          {acompanhamentos && (
+            <textarea
+              value={acompanhamentosText}
+              onChange={e => setAcompanhamentosText(e.target.value)}
+              placeholder="Liste os ingredientes que você vai providenciar..."
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white h-24 resize-none mt-2 text-sm"
+            />
+          )}
+        </div>
+
+        {/* Observações */}
+        <div>
+          <label className="block text-sm text-gray-400 mb-1">Observações</label>
           <textarea
             value={form.notes}
             onChange={e => setForm({ ...form, notes: e.target.value })}
@@ -208,6 +373,7 @@ function NewOrderForm() {
           />
         </div>
 
+        {/* Estimativa financeira */}
         {totalEstimate > 0 && (
           <div className="bg-gray-800 rounded-lg px-4 py-3 flex items-center justify-between">
             <span className="text-sm text-gray-400">Estimativa total</span>

@@ -49,7 +49,8 @@ export async function listPendingGrillmastersHandler(req: FastifyRequest, reply:
 export async function approveGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { grillmasterId } = req.params as { grillmasterId: string }
-    return reply.send(await approveGrillmaster(grillmasterId))
+    const { isChancelado, pricePerHour } = (req.body as any) || {}
+    return reply.send(await approveGrillmaster(grillmasterId, { isChancelado, pricePerHour }))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

@@ -26,10 +26,18 @@ export async function listPendingGrillmasters() {
   })
 }
 
-export async function approveGrillmaster(grillmasterId: string) {
+export async function approveGrillmaster(
+  grillmasterId: string,
+  extras?: { isChancelado?: boolean; pricePerHour?: number }
+) {
   return prisma.grillmaster.update({
     where: { id: grillmasterId },
-    data: { approved: true, available: true },
+    data: {
+      approved: true,
+      available: true,
+      ...(extras?.isChancelado !== undefined ? { isChancelado: extras.isChancelado } : {}),
+      ...(extras?.pricePerHour !== undefined ? { pricePerHour: extras.pricePerHour } : {}),
+    },
   })
 }
 
