@@ -150,7 +150,7 @@ function GuidedOrderForm() {
   const [productsLoading, setProductsLoading] = useState(false)
 
   // Step 1
-  const [selectedGrillmasterId, setSelectedGrillmasterId] = useState(() => searchParams.get('grillmasterId') ?? '')
+  const [selectedGrillmasterId, setSelectedGrillmasterId] = useState('')
   const [citySearch, setCitySearch] = useState('')
 
   // Step 2
@@ -174,6 +174,11 @@ function GuidedOrderForm() {
   // Step 5
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    const paramId = searchParams.get('grillmasterId')
+    if (paramId) setSelectedGrillmasterId(paramId)
+  }, [searchParams])
 
   useEffect(() => {
     const h = { Authorization: 'Bearer ' + getToken() }
