@@ -31,6 +31,7 @@ export default function DashboardLayout({
     { href: '/grillmasters', label: 'Churrasqueiros' },
     { href: '/boutiques', label: 'Acougues' },
     { href: '/orders', label: 'Pedidos' },
+    ...(user?.role === 'GRILLMASTER' ? [{ href: '/grillmasters/dashboard', label: 'Meu Dashboard' }] : []),
     { href: '/admin', label: 'Admin' },
     { href: '/founder', label: 'Fundador' },
   ]

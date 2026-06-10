@@ -141,7 +141,7 @@ function Counter({ value, onChange }: { value: number; onChange: (v: number) => 
 
 function GuidedOrderForm() {
   const router = useRouter()
-  useSearchParams()
+  const searchParams = useSearchParams()
 
   const [step, setStep] = useState(1)
   const [grillmasters, setGrillmasters] = useState<Grillmaster[]>([])
@@ -150,7 +150,7 @@ function GuidedOrderForm() {
   const [productsLoading, setProductsLoading] = useState(false)
 
   // Step 1
-  const [selectedGrillmasterId, setSelectedGrillmasterId] = useState('')
+  const [selectedGrillmasterId, setSelectedGrillmasterId] = useState(() => searchParams.get('grillmasterId') ?? '')
   const [citySearch, setCitySearch] = useState('')
 
   // Step 2

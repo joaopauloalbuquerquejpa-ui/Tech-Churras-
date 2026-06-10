@@ -5,6 +5,7 @@ import {
   listGrillmasters,
   getGrillmasterById,
   updateGrillmaster,
+  getMyGrillmasterOrders,
 } from './grillmasters.service'
 
 export async function createGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
@@ -44,6 +45,15 @@ export async function updateGrillmasterHandler(req: FastifyRequest, reply: Fasti
     const data = createGrillmasterSchema.partial().parse(req.body)
     const grillmaster = await updateGrillmaster(userId, data)
     return reply.send(grillmaster)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getMyOrdersHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    return reply.send(await getMyGrillmasterOrders(userId))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

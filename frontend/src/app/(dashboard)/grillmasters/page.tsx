@@ -209,7 +209,9 @@ export default function GrillmastersPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="font-bold text-white leading-tight">{name}</h3>
+                        <Link href={'/grillmasters/' + g.id} className="font-bold text-white leading-tight hover:text-orange-400 transition-colors">
+                        {name}
+                      </Link>
                         <span className={'text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ' + (g.available ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400')}>
                           {g.available ? 'Disponivel' : 'Ocupado'}
                         </span>
@@ -243,7 +245,7 @@ export default function GrillmastersPage() {
                     </div>
                     <button
                       disabled={!g.available}
-                      onClick={() => router.push('/orders/new?grillmasterId=' + g.id)}
+                      onClick={() => router.push('/menu/novo?grillmasterId=' + g.id)}
                       className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
                     >
                       {g.available ? 'Contratar' : 'Indisponivel'}

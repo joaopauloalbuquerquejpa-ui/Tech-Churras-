@@ -13,7 +13,7 @@ export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>
 
 export async function createGrillmaster(userId: string, data: CreateGrillmasterInput) {
   const existing = await prisma.grillmaster.findUnique({ where: { userId } })
-  if (existing) throw new Error('Perfil de churrasqueiro já existe')
+  if (existing) throw new Error('Perfil de churrasqueiro jï¿½ existe')
 
   return prisma.grillmaster.create({
     data: { userId, ...data },
@@ -37,7 +37,7 @@ export async function getGrillmasterById(id: string) {
     where: { id },
     include: { user: { select: { name: true, email: true } } },
   })
-  if (!grillmaster) throw new Error('Churrasqueiro não encontrado')
+  if (!grillmaster) throw new Error('Churrasqueiro nï¿½o encontrado')
   return grillmaster
 }
 
@@ -46,4 +46,21 @@ export async function updateGrillmaster(userId: string, data: Partial<CreateGril
     where: { userId },
     data,
   })
+}
+
+export async function getMyGrillmasterOrders(userId: string) {
+  const gm = await prisma.grillmaster.findUnique({ where: { userId } })
+  if (!gm) throw new Error('Perfil de churrasqueiro nao encontrado')
+  return {
+    grillmaster: gm,
+    orders: await prisma.order.findMany({
+      where: { grillmasterId: gm.id },
+      include: {
+        customer: { select: { name: true, email: true } },
+        boutique: { select: { name: true } },
+        items: { include: { product: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+  }
 }

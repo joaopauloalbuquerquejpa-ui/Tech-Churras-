@@ -65,11 +65,62 @@ export async function listOrders(customerId: string) {
   })
 }
 
+async function sendWhatsAppConfirmation(
+  phone: string,
+  customerName: string,
+  orderId: string,
+  grillmasterName: string,
+  eventDate: Date
+) {
+  const instance = process.env.ZAPI_INSTANCE
+  const token = process.env.ZAPI_TOKEN
+  if (!instance || !token) {
+    console.log('[WhatsApp] ZAPI_INSTANCE/ZAPI_TOKEN nao configurados — pulando envio')
+    return
+  }
+  const cleanPhone = phone.replace(/\D/g, '')
+  const date = new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  }).format(eventDate)
+  const message =
+    `🔥 Seu churrasco está confirmado! Olá ${customerName}, seu pedido #${orderId.slice(0, 8)} com ${grillmasterName} foi confirmado para ${date}. Acompanhe em: https://www.techchurras.com.br/orders/${orderId}`
+  try {
+    const res = await fetch(
+      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, message }),
+      }
+    )
+    if (!res.ok) console.log('[WhatsApp] Erro:', res.status, await res.text())
+    else console.log('[WhatsApp] Mensagem enviada para', cleanPhone)
+  } catch (err) {
+    console.log('[WhatsApp] Falha na requisicao:', err)
+  }
+}
+
 export async function updateOrderStatus(id: string, status: string) {
-  return prisma.order.update({
+  const updated = await prisma.order.update({
     where: { id },
     data: { status: status as any },
+    include: {
+      customer: true,
+      grillmaster: { include: { user: { select: { name: true } } } },
+    },
   })
+  if (status === 'CONFIRMED' && updated.customer.phone) {
+    const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
+    sendWhatsAppConfirmation(
+      updated.customer.phone,
+      updated.customer.name,
+      updated.id,
+      gmName,
+      updated.eventDate
+    ).catch(err => console.log('[WhatsApp] Erro:', err))
+  }
+  return updated
 }
 
 export async function getOrderById(id: string, customerId: string) {
