@@ -168,13 +168,17 @@ export default function DashboardPage() {
               Grillmaster chancelado + cortes premium + calculadora inteligente
             </p>
           </div>
-          <Link
-            href="/menu"
-            className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-xl text-base transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-500/30 whitespace-nowrap animate-flamePulse animate-fadeInUp"
+          <span
+            className="shrink-0 animate-fadeInUp"
             style={{ animationDelay: '0.3s', opacity: 0 }}
           >
-            Montar Meu Churrasco
-          </Link>
+            <Link
+              href="/menu"
+              className="block bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-xl text-base transition-all hover:-translate-y-0.5 shadow-lg shadow-orange-500/30 whitespace-nowrap animate-flamePulse"
+            >
+              Montar Meu Churrasco
+            </Link>
+          </span>
         </div>
       </section>
 
