@@ -292,7 +292,8 @@ function GuidedOrderForm() {
         }),
       })
       if (res.ok) {
-        router.push('/orders')
+        const order = await res.json()
+        router.push('/orders/' + order.id + '/payment')
       } else {
         const err = await res.json()
         alert('Erro: ' + (err.error || 'ao criar pedido'))
