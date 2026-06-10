@@ -8,6 +8,9 @@ interface Order {
   status: string
   totalPrice: number
   eventDate: string
+  eventAddress: string
+  eventHours: number
+  guestCount: number
   grillmaster?: { user?: { name: string } }
   boutique?: { name: string }
 }
@@ -66,23 +69,43 @@ export default function OrdersPage() {
         </div>
       )}
       <div className="space-y-4">
-        {orders.map(order => (
-          <Link key={order.id} href={"/orders/" + order.id} className="block bg-gray-900 rounded-xl p-5 hover:bg-gray-800 transition">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-gray-400">#{order.id.slice(0, 8)}</span>
-              <span className={"text-xs text-white px-2 py-1 rounded-full " + (STATUS_COLOR[order.status] || "bg-gray-500")}>
-                {STATUS_LABEL[order.status] || order.status}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm">Churrasqueiro: {order.grillmaster?.user?.name || "Nao selecionado"}</p>
-                {order.boutique && <p className="text-sm">Acougue: {order.boutique.name}</p>}
+        {orders.map(order => {
+          const date = order.eventDate
+            ? new Date(order.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '—'
+          const gmName = order.grillmaster?.user?.name || 'Não selecionado'
+          return (
+            <Link key={order.id} href={'/orders/' + order.id} className="block bg-gray-900 rounded-2xl p-5 hover:bg-gray-800 transition-colors border border-gray-800 hover:border-orange-500/30">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs text-gray-500 font-mono">#{order.id.slice(0, 8)}</span>
+                <span className={'text-xs text-white px-2.5 py-1 rounded-full font-medium ' + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
+                  {STATUS_LABEL[order.status] || order.status}
+                </span>
               </div>
-              <p className="text-orange-400 font-bold text-lg">R$ {(order.totalPrice ?? 0).toFixed(2)}</p>
-            </div>
-          </Link>
-        ))}
+
+              <div className="flex items-end justify-between gap-4">
+                <div className="space-y-1.5 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-white font-semibold">{gmName}</span>
+                    {order.boutique && (
+                      <span className="text-xs text-gray-500">&middot; {order.boutique.name}</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
+                    <span>{date}</span>
+                    <span className="text-gray-600">|</span>
+                    <span>{order.guestCount} {order.guestCount === 1 ? 'convidado' : 'convidados'}</span>
+                    <span className="text-gray-600">|</span>
+                    <span>{order.eventHours}h de serviço</span>
+                  </div>
+                </div>
+                <p className="text-orange-400 font-bold text-xl shrink-0">
+                  R$ {(order.totalPrice ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )
