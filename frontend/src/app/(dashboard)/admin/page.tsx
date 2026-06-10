@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -186,10 +187,18 @@ export default function AdminPage() {
             <p className="text-gray-400 text-sm">Açougues</p>
             <p className="text-3xl font-bold text-orange-400">{stats.totalBoutiques}</p>
           </div>
-          <div className="bg-gray-900 rounded-xl p-5 md:col-span-2">
+          <div className="bg-gray-900 rounded-xl p-5">
             <p className="text-gray-400 text-sm">Receita Total</p>
             <p className="text-3xl font-bold text-green-400">R$ {(stats.totalRevenue ?? 0).toFixed(2)}</p>
           </div>
+          <Link
+            href="/admin/repasses"
+            className="bg-gray-900 rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 hover:bg-gray-800 transition-all group"
+          >
+            <p className="text-gray-400 text-sm group-hover:text-orange-400 transition-colors">Repasses Semanais</p>
+            <p className="text-lg font-bold text-orange-400 mt-1">Gerenciar</p>
+            <p className="text-xs text-gray-600 mt-1">Controle de pagamentos para parceiros</p>
+          </Link>
         </div>
       )}
 

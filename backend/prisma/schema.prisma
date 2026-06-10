@@ -61,6 +61,7 @@ model Grillmaster {
   isChancelado Boolean  @default(false)
   specialties  String?  @default("")
   photoUrl     String?
+  pixKey       String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -96,6 +97,7 @@ model Boutique {
   open           Boolean  @default(true)
   monthlyFee     Float    @default(369.00)
   commissionRate Float    @default(0.03)
+  pixKey         String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -171,6 +173,23 @@ model OrderItem {
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+}
+
+model Payout {
+  id          String    @id @default(cuid())
+  type        String
+  recipientId String
+  orderId     String?
+  amount      Float
+  commission  Float     @default(15)
+  grossAmount Float
+  status      String    @default("PENDING")
+  weekStart   DateTime
+  weekEnd     DateTime
+  paidAt      DateTime?
+  pixKey      String?
+  notes       String?
+  createdAt   DateTime  @default(now())
 }
 
 model Review {

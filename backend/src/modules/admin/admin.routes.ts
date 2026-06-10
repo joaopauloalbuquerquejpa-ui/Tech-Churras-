@@ -12,6 +12,12 @@ import {
   listAllOrdersHandler,
   getDashboardStatsHandler,
 } from './admin.controller'
+import {
+  listPayoutsHandler,
+  getPayoutsSummaryHandler,
+  generatePayoutsHandler,
+  markPayoutPaidHandler,
+} from './payouts/payouts.controller'
 
 export async function adminRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.authenticate)
@@ -32,4 +38,9 @@ export async function adminRoutes(app: FastifyInstance) {
   app.patch('/admin/boutiques/:boutiqueId/reject', rejectBoutiqueHandler)
 
   app.get('/admin/orders', listAllOrdersHandler)
+
+  app.get('/admin/payouts', listPayoutsHandler)
+  app.get('/admin/payouts/summary', getPayoutsSummaryHandler)
+  app.post('/admin/payouts/generate', generatePayoutsHandler)
+  app.patch('/admin/payouts/:id/mark-paid', markPayoutPaidHandler)
 }
