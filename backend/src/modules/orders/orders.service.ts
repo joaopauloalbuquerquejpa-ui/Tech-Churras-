@@ -12,7 +12,6 @@ export const createOrderSchema = z.object({
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().positive(),
-    unitPrice: z.number().positive(),
   })).optional(),
 })
 
@@ -20,7 +19,22 @@ export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
 export async function createOrder(customerId: string, data: CreateOrderInput) {
   const { items, ...orderData } = data
-  const itemsTotal = items?.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0) ?? 0
+
+  // Fetch real prices from DB — never trust client-supplied prices
+  let itemsWithPrice: { productId: string; quantity: number; unitPrice: number }[] = []
+  if (items && items.length > 0) {
+    const products = await prisma.product.findMany({
+      where: { id: { in: items.map(i => i.productId) } },
+      select: { id: true, price: true },
+    })
+    const priceMap = Object.fromEntries(products.map(p => [p.id, p.price]))
+    itemsWithPrice = items
+      .filter(i => priceMap[i.productId] !== undefined)
+      .map(i => ({ productId: i.productId, quantity: i.quantity, unitPrice: priceMap[i.productId] }))
+  }
+
+  const itemsTotal = itemsWithPrice.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0)
+
   const grillmaster = data.grillmasterId
     ? await prisma.grillmaster.findUnique({ where: { id: data.grillmasterId } })
     : null
@@ -32,7 +46,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       customerId,
       ...orderData,
       totalPrice,
-      items: items ? { create: items } : undefined,
+      items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
     },
     include: { items: true, grillmaster: { include: { user: true } }, boutique: true },
   })

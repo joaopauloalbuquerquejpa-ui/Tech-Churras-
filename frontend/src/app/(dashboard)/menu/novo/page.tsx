@@ -273,6 +273,10 @@ function GuidedOrderForm() {
   async function handleSubmit() {
     setSubmitting(true)
     try {
+      const orderItems = boutiqueProducts
+        .filter(p => (selectedQty[p.id] || 0) > 0)
+        .map(p => ({ productId: p.id, quantity: selectedQty[p.id] }))
+
       const res = await fetch(BASE + '/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
@@ -284,6 +288,7 @@ function GuidedOrderForm() {
           eventHours,
           guestCount: insumos.totalPessoas || 1,
           notes: buildNotes(),
+          items: orderItems.length > 0 ? orderItems : undefined,
         }),
       })
       if (res.ok) {
