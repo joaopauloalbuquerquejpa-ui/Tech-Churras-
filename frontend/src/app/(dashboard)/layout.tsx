@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import Link from 'next/link'
+import NotificationBell from '@/components/NotificationBell'
 
 export default function DashboardLayout({
   children,
@@ -51,8 +52,9 @@ export default function DashboardLayout({
             ))}
           </div>
         </div>
-        <div className='flex items-center gap-4'>
+        <div className='flex items-center gap-3'>
           <span className='text-gray-400 text-sm hidden md:block'>Ola, {user?.name || 'Usuario'}</span>
+          <NotificationBell />
           <button onClick={handleLogout}
             className='bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded text-sm'>
             Sair

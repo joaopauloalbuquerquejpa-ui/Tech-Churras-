@@ -40,9 +40,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders     Order[]      @relation("CustomerOrders")
-  grillmaster Grillmaster?
-  boutique   Boutique?
+  orders          Order[]  @relation("CustomerOrders")
+  grillmaster     Grillmaster?
+  boutique        Boutique?
+  customerReviews Review[] @relation("CustomerReviews")
 }
 
 model Grillmaster {
@@ -66,6 +67,7 @@ model Grillmaster {
   user     User                  @relation(fields: [userId], references: [id])
   orders   Order[]
   schedule GrillmasterSchedule[]
+  reviews  Review[]
 }
 
 model GrillmasterSchedule {
@@ -101,6 +103,7 @@ model Boutique {
   products Product[]
   orders   Order[]
   kits     KitChurrasco[]
+  reviews  Review[]
 }
 
 model KitChurrasco {
@@ -154,6 +157,7 @@ model Order {
   grillmaster Grillmaster? @relation(fields: [grillmasterId], references: [id])
   boutique    Boutique?    @relation(fields: [boutiqueId], references: [id])
   items       OrderItem[]
+  review      Review?
 }
 
 model OrderItem {
@@ -165,4 +169,22 @@ model OrderItem {
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+}
+
+model Review {
+  id              String   @id @default(uuid())
+  orderId         String   @unique
+  customerId      String
+  grillmasterId   String?
+  boutiqueId      String?
+  grillRating     Int
+  boutiqueRating  Int?
+  grillComment    String?
+  boutiqueComment String?
+  createdAt       DateTime @default(now())
+
+  order       Order        @relation(fields: [orderId], references: [id])
+  customer    User         @relation("CustomerReviews", fields: [customerId], references: [id])
+  grillmaster Grillmaster? @relation(fields: [grillmasterId], references: [id])
+  boutique    Boutique?    @relation(fields: [boutiqueId], references: [id])
 }

@@ -2,6 +2,9 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+const BASE = 'https://tech-churras-production.up.railway.app'
 
 interface Order {
   id: string
@@ -13,6 +16,7 @@ interface Order {
   guestCount: number
   grillmaster?: { user?: { name: string } }
   boutique?: { name: string }
+  review?: { id: string } | null
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -32,7 +36,7 @@ const STATUS_COLOR: Record<string, string> = {
 }
 
 export default function OrdersPage() {
-  const { token } = useAuthStore()
+  const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -42,7 +46,8 @@ export default function OrdersPage() {
     try {
       const raw = localStorage.getItem('auth-storage')
       const t = raw ? JSON.parse(raw)?.state?.token : null
-      const res = await fetch('https://tech-churras-production.up.railway.app/orders', {
+      if (!t) { router.push('/login'); return }
+      const res = await fetch(BASE + '/orders', {
         headers: { Authorization: 'Bearer ' + t }
       })
       const data = await res.json()
@@ -55,7 +60,7 @@ export default function OrdersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Meus Pedidos</h1>
-        <Link href="/orders/new" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium">
+        <Link href="/orders/new" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
           Novo Pedido
         </Link>
       </div>
@@ -73,37 +78,69 @@ export default function OrdersPage() {
           const date = order.eventDate
             ? new Date(order.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
             : '—'
-          const gmName = order.grillmaster?.user?.name || 'Não selecionado'
+          const gmName = order.grillmaster?.user?.name || 'Nao selecionado'
+          const isCompleted = order.status === 'COMPLETED'
+          const hasReview = !!order.review
+
           return (
-            <Link key={order.id} href={'/orders/' + order.id} className="block bg-gray-900 rounded-2xl p-5 hover:bg-gray-800 transition-colors border border-gray-800 hover:border-orange-500/30">
+            <div key={order.id} className="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-orange-500/30 transition-colors">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs text-gray-500 font-mono">#{order.id.slice(0, 8)}</span>
-                <span className={'text-xs text-white px-2.5 py-1 rounded-full font-medium ' + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
-                  {STATUS_LABEL[order.status] || order.status}
-                </span>
+                <div className="flex items-center gap-2">
+                  {isCompleted && (
+                    hasReview ? (
+                      <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2.5 py-1 rounded-full font-medium">
+                        &#10003; Avaliado
+                      </span>
+                    ) : (
+                      <Link
+                        href={'/orders/' + order.id + '/review'}
+                        className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2.5 py-1 rounded-full font-medium hover:bg-orange-500/30 transition-colors"
+                      >
+                        &#9733; Avaliar
+                      </Link>
+                    )
+                  )}
+                  <span className={'text-xs text-white px-2.5 py-1 rounded-full font-medium ' + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
+                    {STATUS_LABEL[order.status] || order.status}
+                  </span>
+                </div>
               </div>
 
-              <div className="flex items-end justify-between gap-4">
-                <div className="space-y-1.5 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-white font-semibold">{gmName}</span>
-                    {order.boutique && (
-                      <span className="text-xs text-gray-500">&middot; {order.boutique.name}</span>
-                    )}
+              <Link href={'/orders/' + order.id} className="block group">
+                <div className="flex items-end justify-between gap-4">
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-white font-semibold group-hover:text-orange-400 transition-colors">{gmName}</span>
+                      {order.boutique && (
+                        <span className="text-xs text-gray-500">&middot; {order.boutique.name}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
+                      <span>{date}</span>
+                      <span className="text-gray-600">|</span>
+                      <span>{order.guestCount} {order.guestCount === 1 ? 'convidado' : 'convidados'}</span>
+                      <span className="text-gray-600">|</span>
+                      <span>{order.eventHours}h de servico</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
-                    <span>{date}</span>
-                    <span className="text-gray-600">|</span>
-                    <span>{order.guestCount} {order.guestCount === 1 ? 'convidado' : 'convidados'}</span>
-                    <span className="text-gray-600">|</span>
-                    <span>{order.eventHours}h de serviço</span>
-                  </div>
+                  <p className="text-orange-400 font-bold text-xl shrink-0">
+                    R$ {(order.totalPrice ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
                 </div>
-                <p className="text-orange-400 font-bold text-xl shrink-0">
-                  R$ {(order.totalPrice ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                </p>
-              </div>
-            </Link>
+              </Link>
+
+              {order.status === 'PENDING' && (
+                <div className="mt-3 pt-3 border-t border-gray-800">
+                  <Link
+                    href={'/orders/' + order.id + '/payment'}
+                    className="inline-flex items-center gap-2 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                  >
+                    Pagar agora
+                  </Link>
+                </div>
+              )}
+            </div>
           )
         })}
       </div>

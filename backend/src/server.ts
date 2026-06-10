@@ -10,6 +10,7 @@ import { authenticate } from './middlewares/auth.middleware'
 import { ordersRoutes } from './modules/orders/orders.routes'
 import { paymentsRoutes } from './modules/payments/payments.routes'
 import { adminRoutes } from './modules/admin/admin.routes'
+import { reviewsRoutes } from './modules/reviews/reviews.routes'
 
 dotenv.config()
 
@@ -28,8 +29,9 @@ app.register(authRoutes)
 app.register(boutiqueRoutes)
 app.register(ordersRoutes)
 app.register(paymentsRoutes)
-app.register(adminRoutes) 
+app.register(adminRoutes)
 app.register(grillmastersRoutes)
+app.register(reviewsRoutes)
 
 // Health check
 app.get('/health', async () => {

@@ -59,6 +59,7 @@ export async function listOrders(customerId: string) {
       items: { include: { product: true } },
       grillmaster: { include: { user: true } },
       boutique: true,
+      review: { select: { id: true } },
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -78,6 +79,7 @@ export async function getOrderById(id: string, customerId: string) {
       items: { include: { product: true } },
       grillmaster: { include: { user: true } },
       boutique: true,
+      review: { select: { id: true } },
     },
   })
   if (!order) throw new Error('Pedido nao encontrado')

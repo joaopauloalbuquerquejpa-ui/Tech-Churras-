@@ -139,8 +139,10 @@ function NewOrderForm() {
           items: items.length > 0 ? items : undefined,
         }),
       })
-      if (res.ok) router.push('/orders')
-      else {
+      if (res.ok) {
+        const order = await res.json()
+        router.push('/orders/' + order.id + '/payment')
+      } else {
         const err = await res.json()
         alert('Erro: ' + (err.error || 'ao criar pedido'))
       }
