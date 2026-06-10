@@ -36,35 +36,26 @@ interface Boutique {
   description?: string
 }
 
-interface Corte {
+interface Product {
   id: string
-  nome: string
-  preco: number
+  name: string
+  description?: string
+  price: number
   unit: string
-  categoria: string
+  category: string
+  available: boolean
 }
 
-const CORTES: Corte[] = [
-  { id: 'picanha', nome: 'Picanha', preco: 89.90, unit: 'kg', categoria: 'Bovinos' },
-  { id: 'fraldinha', nome: 'Fraldinha', preco: 54.90, unit: 'kg', categoria: 'Bovinos' },
-  { id: 'costela', nome: 'Costela', preco: 38.90, unit: 'kg', categoria: 'Bovinos' },
-  { id: 'alcatra', nome: 'Alcatra', preco: 49.90, unit: 'kg', categoria: 'Bovinos' },
-  { id: 'linguica', nome: 'Linguiça Artesanal', preco: 32.90, unit: 'kg', categoria: 'Suínos' },
-  { id: 'costela_suina', nome: 'Costela Suína', preco: 28.90, unit: 'kg', categoria: 'Suínos' },
-  { id: 'frango', nome: 'Frango Inteiro', preco: 18.90, unit: 'kg', categoria: 'Aves' },
-  { id: 'coxa', nome: 'Coxa e Sobrecoxa', preco: 14.90, unit: 'kg', categoria: 'Aves' },
-  { id: 'pao_alho', nome: 'Pão de Alho', preco: 12.90, unit: 'un', categoria: 'Acompanhamentos' },
-  { id: 'vinagrete', nome: 'Vinagrete', preco: 8.90, unit: 'pote', categoria: 'Acompanhamentos' },
-  { id: 'farofa', nome: 'Farofa Artesanal', preco: 9.90, unit: 'pote', categoria: 'Acompanhamentos' },
-]
+const STEPS = ['Grillmaster', 'Seu Evento', 'Açougue', 'Carnes', 'Confirmar']
 
-const KIT_TIERS = [
-  { key: 'essential', nome: 'Kit Essencial', preco: 189, minPessoas: 1, maxPessoas: 15, cor: 'border-orange-500', badgeCor: 'bg-orange-500 text-white' },
-  { key: 'prime', nome: 'Kit Prime', preco: 389, minPessoas: 16, maxPessoas: 30, cor: 'border-amber-500', badgeCor: 'bg-amber-500 text-black' },
-  { key: 'firetech', nome: 'Kit Firetech', preco: 0, minPessoas: 31, maxPessoas: 999, cor: 'border-red-600', badgeCor: 'bg-red-600 text-white' },
-]
-
-const STEPS = ['Grillmaster', 'Seu Evento', 'Carnes', 'Açougue', 'Confirmar']
+const CATEGORY_LABELS: Record<string, string> = {
+  CARNE: 'Bovinos e Suínos',
+  SAL_TEMPERO: 'Sal e Temperos',
+  CARVAO: 'Carvão',
+  ACOMPANHAMENTO: 'Acompanhamentos',
+  BEBIDA: 'Bebidas',
+  OUTRO: 'Outros',
+}
 
 function calculateInsumos(homens: number, mulheres: number, criancas: number) {
   const totalCarne = homens * 400 + mulheres * 300 + criancas * 150
@@ -95,12 +86,21 @@ function StepIndicator({ step }: { step: number }) {
               <div
                 className={
                   'w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ' +
-                  (done ? 'bg-green-500 text-white' : active ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : 'bg-gray-800 text-gray-500')
+                  (done
+                    ? 'bg-green-500 text-white'
+                    : active
+                    ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
+                    : 'bg-gray-800 text-gray-500')
                 }
               >
                 {done ? '✓' : n}
               </div>
-              <span className={'text-xs hidden md:block ' + (active ? 'text-orange-400 font-medium' : done ? 'text-green-400' : 'text-gray-600')}>
+              <span
+                className={
+                  'text-xs hidden md:block ' +
+                  (active ? 'text-orange-400 font-medium' : done ? 'text-green-400' : 'text-gray-600')
+                }
+              >
                 {s}
               </span>
             </div>
@@ -141,11 +141,13 @@ function Counter({ value, onChange }: { value: number; onChange: (v: number) => 
 
 function GuidedOrderForm() {
   const router = useRouter()
-  const searchParams = useSearchParams()
+  useSearchParams()
 
   const [step, setStep] = useState(1)
   const [grillmasters, setGrillmasters] = useState<Grillmaster[]>([])
   const [boutiques, setBoutiques] = useState<Boutique[]>([])
+  const [boutiqueProducts, setBoutiqueProducts] = useState<Product[]>([])
+  const [productsLoading, setProductsLoading] = useState(false)
 
   // Step 1
   const [selectedGrillmasterId, setSelectedGrillmasterId] = useState('')
@@ -162,26 +164,16 @@ function GuidedOrderForm() {
   const [criancas, setCriancas] = useState(2)
 
   // Step 3
-  const [selectedKit, setSelectedKit] = useState('')
-  const [customExpanded, setCustomExpanded] = useState(false)
-  const [customQty, setCustomQty] = useState<Record<string, number>>({})
-  const [acompanhamentos, setAcompanhamentos] = useState(false)
-  const [acompanhamentosText, setAcompanhamentosText] = useState('')
+  const [selectedBoutiqueId, setSelectedBoutiqueId] = useState('')
 
   // Step 4
-  const [selectedBoutiqueId, setSelectedBoutiqueId] = useState('')
+  const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
+  const [acompanhamentos, setAcompanhamentos] = useState(false)
+  const [acompanhamentosText, setAcompanhamentosText] = useState('')
 
   // Step 5
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    const kit = searchParams.get('kit')
-    if (kit) {
-      setSelectedKit(kit)
-      if (kit === 'custom') setCustomExpanded(true)
-    }
-  }, [searchParams])
 
   useEffect(() => {
     const h = { Authorization: 'Bearer ' + getToken() }
@@ -195,6 +187,17 @@ function GuidedOrderForm() {
       .catch(() => {})
   }, [])
 
+  useEffect(() => {
+    if (!selectedBoutiqueId) { setBoutiqueProducts([]); return }
+    setProductsLoading(true)
+    setBoutiqueProducts([])
+    fetch(BASE + '/boutiques/' + selectedBoutiqueId + '/products')
+      .then(r => r.json())
+      .then(d => setBoutiqueProducts(Array.isArray(d) ? d : []))
+      .catch(() => setBoutiqueProducts([]))
+      .finally(() => setProductsLoading(false))
+  }, [selectedBoutiqueId])
+
   async function fetchCep(cep: string) {
     if (cep.length !== 8) return
     try {
@@ -204,7 +207,8 @@ function GuidedOrderForm() {
       if (data.erro) return
       setEventAddress(
         [data.logradouro, data.bairro, data.localidade + ' - ' + data.uf]
-          .filter(Boolean).join(', ')
+          .filter(Boolean)
+          .join(', ')
       )
     } catch {}
   }
@@ -213,13 +217,18 @@ function GuidedOrderForm() {
   const selectedGm = grillmasters.find(g => g.id === selectedGrillmasterId)
   const selectedBoutique = boutiques.find(b => b.id === selectedBoutiqueId)
   const grillmasterCost = selectedGm ? selectedGm.pricePerHour * eventHours : 0
-  const customItemsCost = CORTES.reduce((sum, c) => sum + (customQty[c.id] || 0) * c.preco, 0)
-  const selectedKitTier = KIT_TIERS.find(k => k.key === selectedKit)
-  const kitCost = selectedKit === 'custom' ? customItemsCost : (selectedKitTier?.preco ?? 0)
-  const totalEstimate = grillmasterCost + (selectedKit === 'custom' ? customItemsCost : (selectedKitTier?.preco ?? 0))
 
-  const bestKit = KIT_TIERS.find(k => insumos.totalPessoas >= k.minPessoas && insumos.totalPessoas <= k.maxPessoas)
-    ?? KIT_TIERS[0]
+  const productsCost = boutiqueProducts.reduce((sum, p) => {
+    return sum + (selectedQty[p.id] || 0) * p.price
+  }, 0)
+
+  const totalEstimate = grillmasterCost + productsCost
+
+  const filteredGrillmasters = grillmasters.filter(
+    g => !citySearch || g.city.toLowerCase().includes(citySearch.toLowerCase())
+  )
+
+  const categorias = [...new Set(boutiqueProducts.map(p => p.category))]
 
   function validate(): boolean {
     if (step === 1 && !selectedGrillmasterId) {
@@ -251,15 +260,10 @@ function GuidedOrderForm() {
 
   function buildNotes() {
     const parts: string[] = []
-    if (selectedKit && selectedKit !== 'custom') {
-      parts.push('KIT: ' + (selectedKitTier?.nome ?? selectedKit))
-    }
-    if (selectedKit === 'custom') {
-      const items = CORTES
-        .filter(c => (customQty[c.id] || 0) > 0)
-        .map(c => c.nome + ' ' + customQty[c.id] + c.unit)
-      if (items.length > 0) parts.push('CORTES: ' + items.join(', '))
-    }
+    const items = boutiqueProducts
+      .filter(p => (selectedQty[p.id] || 0) > 0)
+      .map(p => p.name + ' ' + selectedQty[p.id] + p.unit)
+    if (items.length > 0) parts.push('CORTES: ' + items.join(', '))
     if (acompanhamentos && acompanhamentosText.trim()) {
       parts.push('ACOMPANHAMENTOS: ' + acompanhamentosText.trim())
     }
@@ -293,12 +297,6 @@ function GuidedOrderForm() {
     }
   }
 
-  const filteredGrillmasters = grillmasters.filter(g =>
-    !citySearch || g.city.toLowerCase().includes(citySearch.toLowerCase())
-  )
-
-  const categorias = [...new Set(CORTES.map(c => c.categoria))]
-
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
@@ -325,15 +323,18 @@ function GuidedOrderForm() {
           </div>
 
           {filteredGrillmasters.length === 0 && (
-            <p className="text-gray-500 text-center py-10">Nenhum churrasqueiro disponível no momento.</p>
+            <p className="text-gray-500 text-center py-10">
+              Nenhum churrasqueiro disponível no momento.
+            </p>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredGrillmasters.map(g => {
               const name = g.user?.name ?? 'Churrasqueiro'
               const selected = selectedGrillmasterId === g.id
-              const isFounder = ['jota', 'albuquerque', 'joao paulo', 'joão paulo']
-                .some(k => name.toLowerCase().includes(k))
+              const isFounder = ['jota', 'albuquerque', 'joao paulo', 'joão paulo'].some(k =>
+                name.toLowerCase().includes(k)
+              )
               const specialties = g.specialties
                 ? g.specialties.split(',').map(s => s.trim()).filter(Boolean)
                 : []
@@ -352,7 +353,13 @@ function GuidedOrderForm() {
                   <div className="flex gap-3 mb-3">
                     <div className="w-14 h-14 rounded-full overflow-hidden shrink-0 border-2 border-orange-500/30 flex items-center justify-center bg-gray-800">
                       {isFounder ? (
-                        <Image src="/jota.jpg" alt={name} width={56} height={56} className="object-cover w-full h-full" />
+                        <Image
+                          src="/jota.jpg"
+                          alt={name}
+                          width={56}
+                          height={56}
+                          className="object-cover w-full h-full"
+                        />
                       ) : (
                         <span className="font-bold text-orange-400">{getInitials(name)}</span>
                       )}
@@ -366,7 +373,9 @@ function GuidedOrderForm() {
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400">{g.city}, {g.state}</p>
+                      <p className="text-xs text-gray-400">
+                        {g.city}, {g.state}
+                      </p>
                       <div className="flex items-center gap-1 mt-0.5">
                         <span className="text-yellow-400 text-xs">{renderStars(g.rating ?? 0)}</span>
                         <span className="text-xs text-gray-500">({g.totalOrders ?? 0})</span>
@@ -383,7 +392,12 @@ function GuidedOrderForm() {
                   {specialties.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
                       {specialties.slice(0, 3).map(s => (
-                        <span key={s} className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full">{s}</span>
+                        <span
+                          key={s}
+                          className="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full"
+                        >
+                          {s}
+                        </span>
                       ))}
                     </div>
                   )}
@@ -393,9 +407,7 @@ function GuidedOrderForm() {
                   <button
                     className={
                       'w-full py-2 rounded-xl text-sm font-bold transition-colors ' +
-                      (selected
-                        ? 'bg-green-500 text-white'
-                        : 'bg-orange-500 hover:bg-orange-600 text-white')
+                      (selected ? 'bg-green-500 text-white' : 'bg-orange-500 hover:bg-orange-600 text-white')
                     }
                   >
                     {selected ? '✓ Selecionado' : 'Selecionar'}
@@ -418,9 +430,7 @@ function GuidedOrderForm() {
           <div className="bg-gray-900 rounded-2xl p-6 space-y-4 border border-gray-800">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="flex items-center gap-2 text-sm text-gray-400 mb-1">
-                  Data do Evento *
-                </label>
+                <label className="text-sm text-gray-400 mb-1 block">Data do Evento *</label>
                 <input
                   type="date"
                   value={eventDate}
@@ -429,9 +439,7 @@ function GuidedOrderForm() {
                 />
               </div>
               <div>
-                <label className="flex items-center gap-2 text-sm text-gray-400 mb-1">
-                  Horário de Início
-                </label>
+                <label className="text-sm text-gray-400 mb-1 block">Horário de Início</label>
                 <input
                   type="time"
                   value={eventTime}
@@ -442,7 +450,9 @@ function GuidedOrderForm() {
             </div>
 
             <div>
-              <label className="text-sm text-gray-400 mb-1 block">CEP (auto-preenche o endereço)</label>
+              <label className="text-sm text-gray-400 mb-1 block">
+                CEP (auto-preenche o endereço)
+              </label>
               <input
                 type="text"
                 placeholder="00000000"
@@ -489,12 +499,13 @@ function GuidedOrderForm() {
                 className="w-full accent-orange-500"
               />
               <div className="flex justify-between text-xs text-gray-600 mt-1">
-                <span>2h</span><span>6h</span><span>12h</span>
+                <span>2h</span>
+                <span>6h</span>
+                <span>12h</span>
               </div>
             </div>
           </div>
 
-          {/* Convidados */}
           <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
             <h3 className="font-bold mb-4">Convidados</h3>
             <div className="grid grid-cols-3 gap-4 mb-6">
@@ -510,16 +521,20 @@ function GuidedOrderForm() {
               ))}
             </div>
 
-            {/* Estimativa de insumos */}
             {insumos.totalPessoas > 0 && (
               <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 grid grid-cols-3 gap-3 text-center">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Carne estimada</p>
-                  <p className="font-bold text-white">{(insumos.totalCarne / 1000).toFixed(1)} kg</p>
+                  <p className="font-bold text-white">
+                    {(insumos.totalCarne / 1000).toFixed(1)} kg
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Carvão</p>
-                  <p className="font-bold text-white">{insumos.totalCarvao} {insumos.totalCarvao === 1 ? 'saco' : 'sacos'}</p>
+                  <p className="font-bold text-white">
+                    {insumos.totalCarvao}{' '}
+                    {insumos.totalCarvao === 1 ? 'saco' : 'sacos'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Total pessoas</p>
@@ -531,155 +546,32 @@ function GuidedOrderForm() {
         </div>
       )}
 
-      {/* ── STEP 3: CARNES ── */}
+      {/* ── STEP 3: AÇOUGUE ── */}
       {step === 3 && (
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-lg font-bold mb-1">Monte seu Kit de Carnes</h2>
-            <p className="text-sm text-gray-500">
-              Recomendado para {insumos.totalPessoas} pessoa{insumos.totalPessoas !== 1 ? 's' : ''}
-            </p>
-          </div>
-
-          {/* Kit tiers */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {KIT_TIERS.map(k => {
-              const isRecommended = k.key === bestKit.key
-              const isSelected = selectedKit === k.key
-              return (
-                <button
-                  key={k.key}
-                  onClick={() => { setSelectedKit(k.key); setCustomExpanded(false) }}
-                  className={
-                    'text-left rounded-2xl p-5 border-2 transition-all hover:-translate-y-0.5 ' +
-                    (isSelected
-                      ? k.cor + ' bg-gray-900'
-                      : 'border-gray-800 bg-gray-900 hover:border-gray-700')
-                  }
-                >
-                  {isRecommended && (
-                    <span className={'text-xs font-bold px-2 py-0.5 rounded-full mb-2 inline-block ' + k.badgeCor}>
-                      Recomendado
-                    </span>
-                  )}
-                  <p className="font-bold text-white">{k.nome}</p>
-                  <p className="text-xs text-gray-500 mb-2">
-                    {k.minPessoas}–{k.maxPessoas < 999 ? k.maxPessoas : '30+'} pessoas
-                  </p>
-                  <p className="text-orange-400 font-bold">
-                    {k.preco > 0 ? 'R$ ' + k.preco.toFixed(2) : 'Sob consulta'}
-                  </p>
-                  {isSelected && (
-                    <p className="text-green-400 text-xs mt-2 font-medium">✓ Selecionado</p>
-                  )}
-                </button>
-              )
-            })}
-          </div>
-
-          {/* Personalizar */}
-          <button
-            onClick={() => { setSelectedKit('custom'); setCustomExpanded(v => !v) }}
-            className={
-              'w-full text-left rounded-2xl p-5 border-2 transition-all ' +
-              (selectedKit === 'custom'
-                ? 'border-orange-500 bg-orange-500/5'
-                : 'border-dashed border-gray-700 hover:border-orange-500/50 bg-gray-900')
-            }
-          >
-            <p className="font-bold text-white">✎ Personalizar cortes manualmente</p>
-            <p className="text-xs text-gray-500">Monte item por item com preços estimados</p>
-            {selectedKit === 'custom' && customItemsCost > 0 && (
-              <p className="text-orange-400 font-bold text-sm mt-1">Total: R$ {customItemsCost.toFixed(2)}</p>
-            )}
-          </button>
-
-          {customExpanded && (
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-6">
-              {categorias.map(cat => (
-                <div key={cat}>
-                  <p className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wide">{cat}</p>
-                  <div className="space-y-3">
-                    {CORTES.filter(c => c.categoria === cat).map(c => {
-                      const qty = customQty[c.id] || 0
-                      return (
-                        <div key={c.id} className="flex items-center justify-between gap-3">
-                          <div className="flex-1">
-                            <p className="text-sm font-medium text-white">{c.nome}</p>
-                            <p className="text-xs text-orange-400">R$ {c.preco.toFixed(2)}/{c.unit}</p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <button
-                              onClick={() => setCustomQty(p => ({ ...p, [c.id]: Math.max(0, (p[c.id] || 0) - 0.5) }))}
-                              className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full text-white font-bold"
-                            >−</button>
-                            <span className="w-10 text-center text-sm font-bold">{qty || '0'}</span>
-                            <button
-                              onClick={() => setCustomQty(p => ({ ...p, [c.id]: +(((p[c.id] || 0) + 0.5).toFixed(1)) }))}
-                              className="w-8 h-8 bg-orange-500 hover:bg-orange-600 rounded-full text-white font-bold"
-                            >+</button>
-                            {qty > 0 && (
-                              <span className="text-xs text-orange-400 w-16 text-right">
-                                R$ {(qty * c.preco).toFixed(2)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Acompanhamentos toggle */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-            <label className="flex items-center gap-3 cursor-pointer mb-0">
-              <button
-                type="button"
-                onClick={() => setAcompanhamentos(v => !v)}
-                className={'relative w-12 h-6 rounded-full transition-colors shrink-0 ' + (acompanhamentos ? 'bg-orange-500' : 'bg-gray-700')}
-              >
-                <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (acompanhamentos ? 'translate-x-6' : 'translate-x-0')} />
-              </button>
-              <div>
-                <p className="text-sm font-medium text-white">Grillmaster prepara acompanhamentos no local?</p>
-                <p className="text-xs text-gray-500">Liste os ingredientes que você vai providenciar</p>
-              </div>
-            </label>
-            {acompanhamentos && (
-              <textarea
-                value={acompanhamentosText}
-                onChange={e => setAcompanhamentosText(e.target.value)}
-                placeholder="Ex: vinagrete pronto, pão de alho congelado, farofa..."
-                className="w-full bg-gray-800 rounded-xl px-4 py-3 text-white h-24 resize-none mt-4 text-sm placeholder-gray-600"
-              />
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* ── STEP 4: AÇOUGUE ── */}
-      {step === 4 && (
         <div className="space-y-4">
           <div>
             <h2 className="text-lg font-bold mb-1">Escolha o Açougue</h2>
             <p className="text-sm text-gray-500">
-              O Grillmaster retirará os insumos neste açougue no dia do evento
+              O Grillmaster retirará os insumos neste açougue. Você verá os preços reais dos
+              produtos na próxima etapa.
             </p>
           </div>
 
-          {/* Pular */}
           <button
-            onClick={() => { setSelectedBoutiqueId(''); setStep(5); window.scrollTo({ top: 0, behavior: 'smooth' }) }}
+            onClick={() => {
+              setSelectedBoutiqueId('')
+              setStep(4)
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
             className="text-xs text-gray-500 hover:text-gray-300 underline underline-offset-2"
           >
             Continuar sem açougue parceiro
           </button>
 
           {boutiques.length === 0 && (
-            <p className="text-gray-500 text-center py-10">Nenhum açougue disponível no momento.</p>
+            <p className="text-gray-500 text-center py-10">
+              Nenhum açougue disponível no momento.
+            </p>
           )}
 
           <div className="space-y-3">
@@ -700,12 +592,23 @@ function GuidedOrderForm() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <p className="font-bold text-white">{b.name}</p>
-                        <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (b.open ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
+                        <span
+                          className={
+                            'text-xs px-2 py-0.5 rounded-full font-medium ' +
+                            (b.open
+                              ? 'bg-green-500/20 text-green-400'
+                              : 'bg-red-500/20 text-red-400')
+                          }
+                        >
                           {b.open ? 'Aberto' : 'Fechado'}
                         </span>
-                        {selected && <span className="text-xs text-green-400 font-medium">✓ Selecionado</span>}
+                        {selected && (
+                          <span className="text-xs text-green-400 font-medium">✓ Selecionado</span>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-400 mt-0.5">{b.city}, {b.state}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {b.city}, {b.state}
+                      </p>
                       {b.description && (
                         <p className="text-xs text-gray-500 mt-2 line-clamp-2">{b.description}</p>
                       )}
@@ -724,6 +627,175 @@ function GuidedOrderForm() {
         </div>
       )}
 
+      {/* ── STEP 4: CARNES ── */}
+      {step === 4 && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-bold mb-1">Escolha os Cortes</h2>
+            <p className="text-sm text-gray-500">
+              {selectedBoutique
+                ? 'Preços reais do ' + selectedBoutique.name
+                : 'Nenhum açougue selecionado — você pode voltar e escolher'}
+            </p>
+          </div>
+
+          {productsLoading && (
+            <p className="text-gray-400 text-center py-10">Carregando produtos do açougue...</p>
+          )}
+
+          {!productsLoading && selectedBoutiqueId && boutiqueProducts.length === 0 && (
+            <div className="bg-gray-900 border border-yellow-500/30 rounded-2xl p-6 text-center">
+              <p className="text-yellow-400 font-medium mb-1">
+                Açougue sem produtos cadastrados
+              </p>
+              <p className="text-sm text-gray-400">
+                Este açougue ainda está cadastrando seus produtos. Escolha outro ou entre em
+                contato.
+              </p>
+              <button
+                onClick={() => {
+                  setStep(3)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                className="mt-4 text-sm text-orange-400 hover:text-orange-300 underline"
+              >
+                Voltar e escolher outro açougue
+              </button>
+            </div>
+          )}
+
+          {!productsLoading && !selectedBoutiqueId && (
+            <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 text-center">
+              <p className="text-gray-400 mb-3">
+                Você optou por não vincular um açougue a este pedido.
+              </p>
+              <button
+                onClick={() => {
+                  setStep(3)
+                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                }}
+                className="text-sm text-orange-400 hover:text-orange-300 underline"
+              >
+                Selecionar açougue
+              </button>
+            </div>
+          )}
+
+          {!productsLoading && boutiqueProducts.length > 0 && (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-6">
+              {categorias.map(cat => (
+                <div key={cat}>
+                  <p className="text-sm font-bold text-gray-400 mb-3 uppercase tracking-wide">
+                    {CATEGORY_LABELS[cat] || cat}
+                  </p>
+                  <div className="space-y-3">
+                    {boutiqueProducts
+                      .filter(p => p.category === cat)
+                      .map(p => {
+                        const qty = selectedQty[p.id] || 0
+                        return (
+                          <div
+                            key={p.id}
+                            className="flex items-center justify-between gap-3"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-white">{p.name}</p>
+                              <p className="text-xs text-orange-400">
+                                R$ {p.price.toFixed(2)}/{p.unit}
+                                <span className="text-gray-500 ml-1">
+                                  ({selectedBoutique?.name})
+                                </span>
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedQty(prev => ({
+                                    ...prev,
+                                    [p.id]: Math.max(0, +((prev[p.id] || 0) - 0.5).toFixed(1)),
+                                  }))
+                                }
+                                className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full text-white font-bold"
+                              >
+                                −
+                              </button>
+                              <span className="w-10 text-center text-sm font-bold">
+                                {qty || '0'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedQty(prev => ({
+                                    ...prev,
+                                    [p.id]: +((prev[p.id] || 0) + 0.5).toFixed(1),
+                                  }))
+                                }
+                                className="w-8 h-8 bg-orange-500 hover:bg-orange-600 rounded-full text-white font-bold"
+                              >
+                                +
+                              </button>
+                              {qty > 0 && (
+                                <span className="text-xs text-orange-400 w-16 text-right">
+                                  R$ {(qty * p.price).toFixed(2)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                </div>
+              ))}
+
+              {productsCost > 0 && (
+                <div className="border-t border-gray-700 pt-4 flex justify-between items-center">
+                  <span className="text-sm text-gray-400">Subtotal cortes</span>
+                  <span className="font-bold text-orange-400">R$ {productsCost.toFixed(2)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Acompanhamentos toggle */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setAcompanhamentos(v => !v)}
+                className={
+                  'relative w-12 h-6 rounded-full transition-colors shrink-0 ' +
+                  (acompanhamentos ? 'bg-orange-500' : 'bg-gray-700')
+                }
+              >
+                <span
+                  className={
+                    'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' +
+                    (acompanhamentos ? 'translate-x-6' : 'translate-x-0')
+                  }
+                />
+              </button>
+              <div>
+                <p className="text-sm font-medium text-white">
+                  Grillmaster prepara acompanhamentos no local?
+                </p>
+                <p className="text-xs text-gray-500">
+                  Liste os ingredientes que você vai providenciar
+                </p>
+              </div>
+            </div>
+            {acompanhamentos && (
+              <textarea
+                value={acompanhamentosText}
+                onChange={e => setAcompanhamentosText(e.target.value)}
+                placeholder="Ex: vinagrete pronto, pão de alho congelado, farofa..."
+                className="w-full bg-gray-800 rounded-xl px-4 py-3 text-white h-24 resize-none mt-4 text-sm placeholder-gray-600"
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       {/* ── STEP 5: CONFIRMAR ── */}
       {step === 5 && (
         <div className="space-y-4">
@@ -733,58 +805,106 @@ function GuidedOrderForm() {
           </div>
 
           <div className="space-y-3">
-            {/* Grillmaster */}
             {selectedGm && (
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 border border-orange-500/30 flex items-center justify-center bg-gray-800">
-                  {['jota', 'albuquerque'].some(k => (selectedGm.user?.name || '').toLowerCase().includes(k)) ? (
-                    <Image src="/jota.jpg" alt={selectedGm.user.name} width={48} height={48} className="object-cover w-full h-full" />
+                  {['jota', 'albuquerque'].some(k =>
+                    (selectedGm.user?.name || '').toLowerCase().includes(k)
+                  ) ? (
+                    <Image
+                      src="/jota.jpg"
+                      alt={selectedGm.user.name}
+                      width={48}
+                      height={48}
+                      className="object-cover w-full h-full"
+                    />
                   ) : (
-                    <span className="font-bold text-orange-400 text-sm">{getInitials(selectedGm.user.name)}</span>
+                    <span className="font-bold text-orange-400 text-sm">
+                      {getInitials(selectedGm.user.name)}
+                    </span>
                   )}
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-white">{selectedGm.user.name}</p>
-                  <p className="text-xs text-gray-400">{selectedGm.city} • {eventHours}h de serviço</p>
+                  <p className="text-xs text-gray-400">
+                    {selectedGm.city} &middot; {eventHours}h de serviço
+                  </p>
                 </div>
                 <p className="text-orange-400 font-bold">R$ {grillmasterCost.toFixed(2)}</p>
               </div>
             )}
 
-            {/* Evento */}
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-              <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Evento</p>
+              <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
+                Evento
+              </p>
               <div className="grid grid-cols-2 gap-2 text-sm">
-                <div><p className="text-gray-500">Data</p><p className="text-white">{eventDate ? new Date(eventDate + 'T12:00').toLocaleDateString('pt-BR') : '—'}</p></div>
-                <div><p className="text-gray-500">Horário</p><p className="text-white">{eventTime || '—'}</p></div>
-                <div className="col-span-2"><p className="text-gray-500">Endereço</p><p className="text-white">{eventAddress || '—'}</p></div>
-              </div>
-            </div>
-
-            {/* Convidados */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-              <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">Convidados</p>
-              <div className="flex gap-4 text-sm">
-                <div><p className="text-gray-500">Homens</p><p className="text-white font-bold">{homens}</p></div>
-                <div><p className="text-gray-500">Mulheres</p><p className="text-white font-bold">{mulheres}</p></div>
-                <div><p className="text-gray-500">Crianças</p><p className="text-white font-bold">{criancas}</p></div>
-                <div><p className="text-gray-500">Total</p><p className="text-orange-400 font-bold">{insumos.totalPessoas}</p></div>
-              </div>
-            </div>
-
-            {/* Kit */}
-            {selectedKit && (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Kit Selecionado</p>
-                  <p className="text-white font-semibold">{selectedKitTier?.nome ?? 'Personalizado'}</p>
+                  <p className="text-gray-500">Data</p>
+                  <p className="text-white">
+                    {eventDate
+                      ? new Date(eventDate + 'T12:00').toLocaleDateString('pt-BR')
+                      : '—'}
+                  </p>
                 </div>
-                {kitCost > 0 && <p className="text-orange-400 font-bold">R$ {kitCost.toFixed(2)}</p>}
+                <div>
+                  <p className="text-gray-500">Horário</p>
+                  <p className="text-white">{eventTime || '—'}</p>
+                </div>
+                <div className="col-span-2">
+                  <p className="text-gray-500">Endereço</p>
+                  <p className="text-white">{eventAddress || '—'}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+              <p className="text-xs text-gray-500 mb-2 font-medium uppercase tracking-wide">
+                Convidados
+              </p>
+              <div className="flex gap-4 text-sm">
+                <div>
+                  <p className="text-gray-500">Homens</p>
+                  <p className="text-white font-bold">{homens}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Mulheres</p>
+                  <p className="text-white font-bold">{mulheres}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Crianças</p>
+                  <p className="text-white font-bold">{criancas}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500">Total</p>
+                  <p className="text-orange-400 font-bold">{insumos.totalPessoas}</p>
+                </div>
+              </div>
+            </div>
+
+            {selectedBoutique && boutiqueProducts.some(p => (selectedQty[p.id] || 0) > 0) && (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+                <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wide">
+                  Cortes — {selectedBoutique.name}
+                </p>
+                <div className="space-y-2">
+                  {boutiqueProducts
+                    .filter(p => (selectedQty[p.id] || 0) > 0)
+                    .map(p => (
+                      <div key={p.id} className="flex justify-between text-sm">
+                        <span className="text-gray-300">
+                          {p.name} &times; {selectedQty[p.id]}{p.unit}
+                        </span>
+                        <span className="text-orange-400">
+                          R$ {(selectedQty[p.id] * p.price).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                </div>
               </div>
             )}
 
-            {/* Açougue */}
-            {selectedBoutique && (
+            {selectedBoutique && !boutiqueProducts.some(p => (selectedQty[p.id] || 0) > 0) && (
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex items-center gap-3">
                 <div className="flex-1">
                   <p className="text-xs text-gray-500 uppercase tracking-wide">Açougue Parceiro</p>
@@ -794,32 +914,40 @@ function GuidedOrderForm() {
               </div>
             )}
 
-            {/* Total */}
             <div className="bg-gray-900 border border-orange-500/20 rounded-2xl p-5">
               <div className="space-y-2 mb-4 text-sm">
                 <div className="flex justify-between text-gray-400">
                   <span>Mão de obra (Grillmaster {eventHours}h)</span>
                   <span>R$ {grillmasterCost.toFixed(2)}</span>
                 </div>
-                {kitCost > 0 && (
+                {productsCost > 0 && (
                   <div className="flex justify-between text-gray-400">
-                    <span>Insumos ({selectedKitTier?.nome ?? 'Personalizados'})</span>
-                    <span>R$ {kitCost.toFixed(2)}</span>
+                    <span>
+                      Insumos
+                      {selectedBoutique ? ' — ' + selectedBoutique.name : ''}
+                    </span>
+                    <span>R$ {productsCost.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="border-t border-gray-700 pt-2 flex justify-between items-center">
                   <span className="font-bold text-white">Total estimado</span>
-                  <span className="text-2xl font-black text-orange-400">R$ {totalEstimate.toFixed(2)}</span>
+                  <span className="text-2xl font-black text-orange-400">
+                    R$ {totalEstimate.toFixed(2)}
+                  </span>
                 </div>
               </div>
 
               <div className="bg-gray-800/50 rounded-xl p-3 text-xs text-gray-500 space-y-1">
                 <p>✓ Preço final confirmado após contato com o Grillmaster</p>
                 <p>✓ Sem custos ocultos — você aprova antes de pagar</p>
+                {selectedBoutique && (
+                  <p>
+                    ✓ Preços dos insumos fornecidos pelo {selectedBoutique.name}
+                  </p>
+                )}
               </div>
             </div>
 
-            {/* Termos */}
             <label className="flex items-start gap-3 cursor-pointer bg-gray-900 border border-gray-800 rounded-xl p-4">
               <input
                 type="checkbox"
@@ -828,7 +956,9 @@ function GuidedOrderForm() {
                 className="accent-orange-500 w-4 h-4 mt-0.5 shrink-0"
               />
               <span className="text-sm text-gray-400">
-                Li e aceito os <span className="text-orange-400">termos do serviço</span> e entendo que o preço final será confirmado pelo Grillmaster antes do evento.
+                Li e aceito os{' '}
+                <span className="text-orange-400">termos do serviço</span> e entendo que o
+                preço final será confirmado pelo Grillmaster antes do evento.
               </span>
             </label>
           </div>
@@ -861,11 +991,13 @@ function GuidedOrderForm() {
 
 export default function MenuNovoPage() {
   return (
-    <Suspense fallback={
-      <div className="flex justify-center items-center min-h-64 text-gray-400">
-        Carregando...
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center min-h-64 text-gray-400">
+          Carregando...
+        </div>
+      }
+    >
       <GuidedOrderForm />
     </Suspense>
   )

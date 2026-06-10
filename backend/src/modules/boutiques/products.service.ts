@@ -8,6 +8,7 @@ export const createProductSchema = z.object({
   unit: z.string().default('kg'),
   category: z.enum(['CARNE', 'SAL_TEMPERO', 'CARVAO', 'ACOMPANHAMENTO', 'BEBIDA', 'OUTRO']).default('CARNE'),
   available: z.boolean().default(true),
+  stockQuantity: z.number().int().min(0).nullable().optional(),
   imageUrl: z.string().optional(),
 })
 

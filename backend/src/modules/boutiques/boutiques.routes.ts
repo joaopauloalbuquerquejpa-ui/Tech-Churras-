@@ -4,6 +4,7 @@ import {
   createBoutiqueHandler,
   listBoutiquesHandler,
   getBoutiqueByIdHandler,
+  getBoutiqueProductsHandler,
   updateBoutiqueHandler,
   getMyBoutiqueHandler,
   getKitsByBoutiqueHandler,
@@ -20,6 +21,7 @@ export async function boutiqueRoutes(app: FastifyInstance) {
   app.get('/boutiques', listBoutiquesHandler)
   app.get('/boutiques/my', { preHandler: [authenticate] }, getMyBoutiqueHandler)
   app.get('/boutiques/:id', getBoutiqueByIdHandler)
+  app.get('/boutiques/:id/products', getBoutiqueProductsHandler)
   app.post('/boutiques', { preHandler: [authenticate] }, createBoutiqueHandler)
   app.patch('/boutiques', { preHandler: [authenticate] }, updateBoutiqueHandler)
 

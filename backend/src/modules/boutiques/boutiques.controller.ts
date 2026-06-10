@@ -48,6 +48,16 @@ export async function getBoutiqueByIdHandler(req: FastifyRequest, reply: Fastify
   }
 }
 
+export async function getBoutiqueProductsHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { id } = req.params as { id: string }
+    const boutique = await getBoutiqueById(id)
+    return reply.send(boutique.products)
+  } catch (err: any) {
+    return reply.status(404).send({ error: err.message })
+  }
+}
+
 export async function getMyBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const userId = (req as any).user.id

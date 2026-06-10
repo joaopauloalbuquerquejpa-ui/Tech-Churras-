@@ -17,6 +17,7 @@ interface Product {
   unit: string
   category: string
   available: boolean
+  stockQuantity?: number | null
 }
 
 interface Boutique {
@@ -32,13 +33,29 @@ interface Boutique {
 const CATEGORIES: Record<string, string> = {
   CARNE: 'Carne',
   SAL_TEMPERO: 'Sal e Tempero',
-  CARVAO: 'Carvao',
+  CARVAO: 'Carvão',
   ACOMPANHAMENTO: 'Acompanhamento',
   BEBIDA: 'Bebida',
   OUTRO: 'Outro',
 }
 
-const emptyForm = { name: '', description: '', price: 0, unit: 'kg', category: 'CARNE', available: true }
+const emptyForm = {
+  name: '',
+  description: '',
+  price: 0,
+  unit: 'kg',
+  category: 'CARNE',
+  available: true,
+  stockQuantity: '' as string | number,
+}
+
+function priceLabel(unit: string) {
+  if (unit === 'kg') return 'Preço por kg (R$)'
+  if (unit === 'un' || unit === 'unidade') return 'Preço por unidade (R$)'
+  if (unit === 'pote') return 'Preço por pote (R$)'
+  if (unit === 'litro' || unit === 'L') return 'Preço por litro (R$)'
+  return `Preço por ${unit} (R$)`
+}
 
 export default function BoutiqueDashboardPage() {
   const [boutique, setBoutique] = useState<Boutique | null>(null)
@@ -49,7 +66,9 @@ export default function BoutiqueDashboardPage() {
   const [form, setForm] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
 
-  useEffect(() => { fetchBoutique() }, [])
+  useEffect(() => {
+    fetchBoutique()
+  }, [])
 
   async function fetchBoutique() {
     try {
@@ -76,28 +95,41 @@ export default function BoutiqueDashboardPage() {
   }
 
   async function submitProduct() {
-    if (!form.name || form.price <= 0) { alert('Preencha nome e preco'); return }
+    if (!form.name || form.price <= 0) { alert('Preencha nome e preço'); return }
     setSubmitting(true)
+    const payload = {
+      name: form.name,
+      description: form.description || undefined,
+      price: form.price,
+      unit: form.unit,
+      category: form.category,
+      available: form.available,
+      stockQuantity: form.stockQuantity !== '' ? Number(form.stockQuantity) : null,
+    }
     try {
       if (editingId) {
         const res = await fetch(BASE + '/boutiques/products/' + editingId, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         })
         if (res.ok) {
           const updated = await res.json()
-          setBoutique(prev => prev ? { ...prev, products: prev.products.map(p => p.id === updated.id ? updated : p) } : null)
+          setBoutique(prev =>
+            prev ? { ...prev, products: prev.products.map(p => p.id === updated.id ? updated : p) } : null
+          )
         }
       } else {
         const res = await fetch(BASE + '/boutiques/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
-          body: JSON.stringify(form),
+          body: JSON.stringify(payload),
         })
         if (res.ok) {
           const created = await res.json()
-          setBoutique(prev => prev ? { ...prev, products: [...prev.products, created] } : null)
+          setBoutique(prev =>
+            prev ? { ...prev, products: [...prev.products, created] } : null
+          )
         }
       }
       cancelForm()
@@ -113,7 +145,9 @@ export default function BoutiqueDashboardPage() {
     })
     if (res.ok) {
       const updated = await res.json()
-      setBoutique(prev => prev ? { ...prev, products: prev.products.map(p => p.id === id ? updated : p) } : null)
+      setBoutique(prev =>
+        prev ? { ...prev, products: prev.products.map(p => p.id === id ? updated : p) } : null
+      )
     }
   }
 
@@ -124,13 +158,23 @@ export default function BoutiqueDashboardPage() {
       headers: { Authorization: 'Bearer ' + getToken() },
     })
     if (res.ok) {
-      setBoutique(prev => prev ? { ...prev, products: prev.products.filter(p => p.id !== id) } : null)
+      setBoutique(prev =>
+        prev ? { ...prev, products: prev.products.filter(p => p.id !== id) } : null
+      )
     }
   }
 
   function startEdit(p: Product) {
     setEditingId(p.id)
-    setForm({ name: p.name, description: p.description || '', price: p.price, unit: p.unit, category: p.category, available: p.available })
+    setForm({
+      name: p.name,
+      description: p.description || '',
+      price: p.price,
+      unit: p.unit,
+      category: p.category,
+      available: p.available,
+      stockQuantity: p.stockQuantity ?? '',
+    })
     setShowForm(true)
   }
 
@@ -146,9 +190,12 @@ export default function BoutiqueDashboardPage() {
     return (
       <div className="max-w-xl mx-auto p-6">
         <div className="bg-gray-900 rounded-xl p-8 text-center">
-          <p className="text-gray-400 mb-4">Voce nao tem um acougue cadastrado.</p>
-          <Link href="/boutiques/new" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg inline-block font-medium">
-            Cadastrar acougue
+          <p className="text-gray-400 mb-4">Você não tem um açougue cadastrado.</p>
+          <Link
+            href="/boutiques/new"
+            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg inline-block font-medium"
+          >
+            Cadastrar açougue
           </Link>
         </div>
       </div>
@@ -158,25 +205,54 @@ export default function BoutiqueDashboardPage() {
   if (!boutique) return null
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">{boutique.name}</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{boutique.city}, {boutique.state}</p>
-          <span className={"text-xs px-2 py-0.5 rounded-full mt-2 inline-block " + (boutique.approved ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400')}>
-            {boutique.approved ? 'Aprovado' : 'Aguardando aprovacao'}
+          <p className="text-sm text-gray-400 mt-0.5">
+            {boutique.city}, {boutique.state}
+          </p>
+          <span
+            className={
+              'text-xs px-2 py-0.5 rounded-full mt-2 inline-block ' +
+              (boutique.approved
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-yellow-500/20 text-yellow-400')
+            }
+          >
+            {boutique.approved ? 'Aprovado' : 'Aguardando aprovação'}
           </span>
         </div>
         <button
           onClick={toggleOpen}
-          className={"px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors " + (boutique.open ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-700 hover:bg-gray-600 text-gray-300')}
+          className={
+            'px-5 py-2.5 rounded-lg font-semibold text-sm transition-colors ' +
+            (boutique.open
+              ? 'bg-green-500 hover:bg-green-600 text-white'
+              : 'bg-gray-700 hover:bg-gray-600 text-gray-300')
+          }
         >
           {boutique.open ? 'Loja aberta — fechar' : 'Loja fechada — abrir'}
         </button>
       </div>
 
+      {/* Instructional banner */}
+      <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-6">
+        <p className="text-sm text-orange-300 font-medium mb-0.5">
+          Mantenha seus preços sempre atualizados
+        </p>
+        <p className="text-xs text-orange-400/80">
+          Eles aparecem diretamente para os clientes no momento do pedido — valores desatualizados
+          geram expectativas erradas e cancelamentos.
+        </p>
+      </div>
+
+      {/* Products header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold">Produtos ({boutique.products.length})</h2>
+        <h2 className="text-lg font-semibold">
+          Produtos ({boutique.products.length})
+        </h2>
         <button
           onClick={() => { cancelForm(); setShowForm(true) }}
           className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
@@ -185,9 +261,12 @@ export default function BoutiqueDashboardPage() {
         </button>
       </div>
 
+      {/* Form */}
       {showForm && (
         <div className="bg-gray-900 rounded-xl p-5 mb-4 border border-orange-500/30">
-          <h3 className="font-semibold mb-4">{editingId ? 'Editar produto' : 'Novo produto'}</h3>
+          <h3 className="font-semibold mb-4">
+            {editingId ? 'Editar produto' : 'Novo produto'}
+          </h3>
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="col-span-2">
               <label className="block text-xs text-gray-400 mb-1">Nome *</label>
@@ -196,19 +275,33 @@ export default function BoutiqueDashboardPage() {
                 value={form.name}
                 onChange={e => setForm({ ...form, name: e.target.value })}
                 className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+                placeholder="Ex: Picanha, Fraldinha, Carvão..."
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-xs text-gray-400 mb-1">Descricao</label>
+              <label className="block text-xs text-gray-400 mb-1">Descrição</label>
               <input
                 type="text"
                 value={form.description}
                 onChange={e => setForm({ ...form, description: e.target.value })}
                 className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+                placeholder="Opcional — detalhes do corte ou produto"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Preco (R$) *</label>
+              <label className="block text-xs text-gray-400 mb-1">Unidade</label>
+              <input
+                type="text"
+                value={form.unit}
+                onChange={e => setForm({ ...form, unit: e.target.value })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+                placeholder="kg, un, pote..."
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">
+                {priceLabel(form.unit)} *
+              </label>
               <input
                 type="number"
                 min={0}
@@ -219,33 +312,54 @@ export default function BoutiqueDashboardPage() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-400 mb-1">Unidade</label>
-              <input
-                type="text"
-                value={form.unit}
-                onChange={e => setForm({ ...form, unit: e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
-              />
-            </div>
-            <div>
               <label className="block text-xs text-gray-400 mb-1">Categoria</label>
               <select
                 value={form.category}
                 onChange={e => setForm({ ...form, category: e.target.value })}
                 className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
               >
-                {Object.entries(CATEGORIES).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                {Object.entries(CATEGORIES).map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
               </select>
             </div>
-            <div className="flex items-center gap-2 pt-5">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1">
+                Estoque (opcional)
+              </label>
               <input
-                type="checkbox"
-                id="prod-avail"
-                checked={form.available}
-                onChange={e => setForm({ ...form, available: e.target.checked })}
-                className="accent-orange-500 w-4 h-4"
+                type="number"
+                min={0}
+                step={1}
+                value={form.stockQuantity}
+                onChange={e =>
+                  setForm({ ...form, stockQuantity: e.target.value === '' ? '' : +e.target.value })
+                }
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+                placeholder="Qtd. em estoque"
               />
-              <label htmlFor="prod-avail" className="text-sm text-gray-300">Disponivel</label>
+            </div>
+            <div className="col-span-2">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, available: !f.available }))}
+                  className={
+                    'relative w-11 h-6 rounded-full transition-colors shrink-0 ' +
+                    (form.available ? 'bg-orange-500' : 'bg-gray-700')
+                  }
+                >
+                  <span
+                    className={
+                      'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' +
+                      (form.available ? 'translate-x-5' : 'translate-x-0')
+                    }
+                  />
+                </button>
+                <span className="text-sm text-gray-300">
+                  {form.available ? 'Disponível para pedidos' : 'Indisponível'}
+                </span>
+              </label>
             </div>
           </div>
           <div className="flex gap-2">
@@ -254,7 +368,7 @@ export default function BoutiqueDashboardPage() {
               disabled={submitting}
               className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium"
             >
-              {submitting ? 'Salvando...' : (editingId ? 'Salvar' : 'Adicionar')}
+              {submitting ? 'Salvando...' : editingId ? 'Salvar' : 'Adicionar'}
             </button>
             <button
               onClick={cancelForm}
@@ -268,28 +382,51 @@ export default function BoutiqueDashboardPage() {
 
       {boutique.products.length === 0 && !showForm && (
         <div className="bg-gray-900 rounded-xl p-8 text-center text-gray-400">
-          <p>Nenhum produto cadastrado ainda.</p>
+          <p className="mb-2">Nenhum produto cadastrado ainda.</p>
+          <p className="text-xs text-gray-500">
+            Adicione seus cortes e produtos para que apareçam no momento do pedido dos clientes.
+          </p>
         </div>
       )}
 
       <div className="space-y-2">
         {boutique.products.map(p => (
-          <div key={p.id} className="bg-gray-900 rounded-xl px-5 py-4 flex items-center justify-between">
+          <div
+            key={p.id}
+            className="bg-gray-900 rounded-xl px-5 py-4 flex items-center justify-between gap-3"
+          >
             <div className="flex items-center gap-3 min-w-0">
-              <span className={"w-2 h-2 rounded-full shrink-0 " + (p.available ? 'bg-green-400' : 'bg-gray-500')} />
+              {/* Availability toggle */}
+              <button
+                type="button"
+                onClick={() => toggleProduct(p.id)}
+                title={p.available ? 'Clique para desativar' : 'Clique para ativar'}
+                className={
+                  'relative w-10 h-5 rounded-full transition-colors shrink-0 ' +
+                  (p.available ? 'bg-green-500' : 'bg-gray-600')
+                }
+              >
+                <span
+                  className={
+                    'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ' +
+                    (p.available ? 'translate-x-5' : 'translate-x-0')
+                  }
+                />
+              </button>
               <div className="min-w-0">
                 <p className="font-medium truncate">{p.name}</p>
-                <p className="text-xs text-gray-400">{CATEGORIES[p.category] || p.category} &middot; {p.unit}</p>
+                <p className="text-xs text-gray-400">
+                  {CATEGORIES[p.category] || p.category} &middot; {p.unit}
+                  {p.stockQuantity != null && (
+                    <span className="ml-2 text-gray-500">estoque: {p.stockQuantity}</span>
+                  )}
+                </p>
               </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0 ml-4">
-              <span className="text-orange-400 font-semibold">R$ {p.price.toFixed(2)}</span>
-              <button
-                onClick={() => toggleProduct(p.id)}
-                className="text-xs text-gray-400 hover:text-white border border-gray-700 px-2 py-1 rounded"
-              >
-                {p.available ? 'Desativar' : 'Ativar'}
-              </button>
+            <div className="flex items-center gap-3 shrink-0 ml-2">
+              <span className="text-orange-400 font-semibold text-sm">
+                R$ {p.price.toFixed(2)}/{p.unit}
+              </span>
               <button
                 onClick={() => startEdit(p)}
                 className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded"

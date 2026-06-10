@@ -117,17 +117,18 @@ model KitChurrasco {
 }
 
 model Product {
-  id          String          @id @default(uuid())
-  boutiqueId  String
-  name        String
-  description String?
-  price       Float
-  unit        String          @default("kg")
-  category    ProductCategory @default(CARNE)
-  available   Boolean         @default(true)
-  imageUrl    String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id            String          @id @default(uuid())
+  boutiqueId    String
+  name          String
+  description   String?
+  price         Float
+  unit          String          @default("kg")
+  category      ProductCategory @default(CARNE)
+  available     Boolean         @default(true)
+  stockQuantity Int?
+  imageUrl      String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
 
   boutique   Boutique    @relation(fields: [boutiqueId], references: [id])
   orderItems OrderItem[]
