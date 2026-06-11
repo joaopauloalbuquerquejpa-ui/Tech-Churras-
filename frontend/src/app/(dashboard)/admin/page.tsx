@@ -35,6 +35,10 @@ interface PendingGrillmaster {
   state: string
   experience: number
   isChancelado: boolean
+  photoUrl?: string
+  galleryUrls?: string[]
+  instagram?: string
+  churrascoStyle?: string
   user: { name: string; email: string }
 }
 
@@ -44,6 +48,9 @@ interface PendingBoutique {
   description?: string
   city: string
   state: string
+  logoUrl?: string
+  facadeUrl?: string
+  galleryUrls?: string[]
   user: { name: string; email: string }
 }
 
@@ -269,10 +276,27 @@ export default function AdminPage() {
                         </div>
                         <p className="text-xs text-gray-400 mb-1">{g.user.email}</p>
                         <p className="text-sm text-gray-300 line-clamp-2">{g.bio}</p>
-                        <div className="flex gap-3 mt-2 text-xs text-gray-400">
+                        <div className="flex gap-3 mt-2 text-xs text-gray-400 flex-wrap">
                           <span>{g.city}, {g.state}</span>
                           <span>{g.experience} anos exp.</span>
+                          {g.churrascoStyle && <span className="text-orange-400">{g.churrascoStyle}</span>}
+                          {g.instagram && <span className="text-pink-400">@{g.instagram}</span>}
                         </div>
+                        {/* Photo mini-grid */}
+                        {(g.photoUrl || (g.galleryUrls && g.galleryUrls.length > 0)) && (
+                          <div className="flex gap-1.5 mt-2">
+                            {g.photoUrl && (
+                              <a href={g.photoUrl} target="_blank" rel="noopener noreferrer">
+                                <img src={g.photoUrl} alt="foto" className="w-10 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                              </a>
+                            )}
+                            {(g.galleryUrls ?? []).slice(0, 4).map((url, i) => (
+                              <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                <img src={url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                              </a>
+                            ))}
+                          </div>
+                        )}
                       </div>
                       <div className="flex gap-2 shrink-0">
                         <button
@@ -336,6 +360,26 @@ export default function AdminPage() {
                       <p className="text-xs text-gray-400 mb-1">{b.user.name} &middot; {b.user.email}</p>
                       {b.description && <p className="text-sm text-gray-300 line-clamp-2">{b.description}</p>}
                       <p className="text-xs text-gray-400 mt-1">{b.city}, {b.state}</p>
+                      {/* Photo mini-grid */}
+                      {(b.logoUrl || b.facadeUrl || (b.galleryUrls && b.galleryUrls.length > 0)) && (
+                        <div className="flex gap-1.5 mt-2">
+                          {b.logoUrl && (
+                            <a href={b.logoUrl} target="_blank" rel="noopener noreferrer">
+                              <img src={b.logoUrl} alt="logo" className="w-10 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                            </a>
+                          )}
+                          {b.facadeUrl && (
+                            <a href={b.facadeUrl} target="_blank" rel="noopener noreferrer">
+                              <img src={b.facadeUrl} alt="fachada" className="w-16 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                            </a>
+                          )}
+                          {(b.galleryUrls ?? []).slice(0, 3).map((url, i) => (
+                            <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                              <img src={url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                            </a>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="flex gap-2 shrink-0">
                       <button

@@ -25,6 +25,12 @@ interface Grillmaster {
   isChancelado: boolean
   specialties?: string
   photoUrl?: string
+  galleryUrls?: string[]
+  instagram?: string
+  churrascoStyle?: string
+  bringsEquipment?: boolean
+  minGuests?: number
+  maxGuests?: number
   user: { name: string; email: string }
 }
 
@@ -73,6 +79,7 @@ export default function GrillmasterProfilePage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -119,15 +126,17 @@ export default function GrillmasterProfilePage() {
 
   const name = gm.user?.name ?? 'Churrasqueiro'
   const isFounder = ['jota', 'albuquerque', 'joao paulo', 'joao'].some(k => name.toLowerCase().includes(k))
+  const heroPhoto = isFounder ? '/jota.jpg' : (gm.photoUrl ?? null)
   const specialties = gm.specialties
     ? gm.specialties.split(',').map(s => s.trim()).filter(Boolean)
     : []
   const specColors = [
-    ['bg-orange-500/15 text-orange-400 border border-orange-500/30', ''],
-    ['bg-amber-500/15 text-amber-400 border border-amber-500/30', ''],
-    ['bg-red-500/15 text-red-400 border border-red-500/30', ''],
-    ['bg-yellow-500/15 text-yellow-400 border border-yellow-500/30', ''],
+    'bg-orange-500/15 text-orange-400 border border-orange-500/30',
+    'bg-amber-500/15 text-amber-400 border border-amber-500/30',
+    'bg-red-500/15 text-red-400 border border-red-500/30',
+    'bg-yellow-500/15 text-yellow-400 border border-yellow-500/30',
   ]
+  const gallery = gm.galleryUrls ?? []
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -137,56 +146,48 @@ export default function GrillmasterProfilePage() {
         <span className="text-gray-300">{name}</span>
       </div>
 
-      {/* Hero */}
-      <div className="bg-gray-900 rounded-2xl overflow-hidden mb-5">
-        <div className="h-1.5 bg-orange-500" />
-        <div className="p-6 flex flex-col sm:flex-row gap-5">
-          <div className="shrink-0">
-            {isFounder || gm.photoUrl ? (
-              <Image
-                src={isFounder ? '/jota.jpg' : gm.photoUrl!}
-                alt={name}
-                width={96}
-                height={96}
-                className="w-24 h-24 rounded-full object-cover ring-2 ring-orange-500"
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-full bg-orange-700 flex items-center justify-center text-white text-3xl font-bold ring-2 ring-orange-500">
-                {name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
-              </div>
-            )}
+      {/* Hero — full-width photo with overlay */}
+      <div className="relative rounded-2xl overflow-hidden mb-5 h-64 sm:h-80">
+        {heroPhoto ? (
+          <img src={heroPhoto} alt={name} className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-orange-900/50 to-gray-900 flex items-center justify-center">
+            <span className="text-8xl font-black text-white/20">{name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}</span>
           </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-2 mb-1.5">
-              <h1 className="text-2xl font-bold text-white">{name}</h1>
-              <HeartButton id={gm.id} />
-              {gm.isChancelado && (
-                <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">
-                  CHANCELADO
+        {/* Top badges */}
+        <div className="absolute top-4 left-4 flex gap-2">
+          {gm.isChancelado && (
+            <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">CHANCELADO</span>
+          )}
+          {gm.churrascoStyle && (
+            <span className="bg-orange-500/80 text-white text-xs px-2 py-0.5 rounded-full">{gm.churrascoStyle}</span>
+          )}
+        </div>
+        <div className="absolute top-4 right-4">
+          <HeartButton id={gm.id} />
+        </div>
+
+        {/* Bottom info overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">{name}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <Stars n={gm.rating ?? 0} size="text-sm" />
+                <span className="text-sm text-gray-300">{(gm.rating ?? 0).toFixed(1)} ({gm.totalOrders ?? 0} eventos)</span>
+                <span className="text-xs text-gray-400">{gm.city}, {gm.state}</span>
+                <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (gm.available ? 'bg-green-500/80 text-white' : 'bg-gray-700/80 text-gray-400')}>
+                  {gm.available ? 'Disponivel' : 'Ocupado'}
                 </span>
-              )}
-              <span className={
-                'text-xs px-2 py-0.5 rounded-full font-medium ' +
-                (gm.available ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400')
-              }>
-                {gm.available ? 'Disponivel' : 'Ocupado'}
-              </span>
+              </div>
             </div>
-            <p className="text-sm text-gray-400 mb-2">{gm.city}, {gm.state}</p>
-            <div className="flex items-center gap-2">
-              <Stars n={gm.rating ?? 0} />
-              <span className="text-sm text-gray-400">
-                {(gm.rating ?? 0).toFixed(1)} — {gm.totalOrders ?? 0} evento{gm.totalOrders !== 1 ? 's' : ''}
-              </span>
+            <div className="shrink-0 sm:text-right">
+              <p className="text-xs text-gray-400">por hora</p>
+              <p className="text-2xl font-bold text-orange-400">R$ {(gm.pricePerHour ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
             </div>
-          </div>
-
-          <div className="shrink-0 sm:text-right">
-            <p className="text-xs text-gray-500 mb-0.5">por hora</p>
-            <p className="text-3xl font-bold text-orange-400">
-              R$ {(gm.pricePerHour ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </p>
           </div>
         </div>
       </div>
@@ -198,6 +199,21 @@ export default function GrillmasterProfilePage() {
           <p className="text-gray-300 text-sm leading-relaxed">
             {gm.bio || 'Especialista em grelhados e churrasco artesanal.'}
           </p>
+          {/* Extra badges */}
+          <div className="flex flex-wrap gap-2 mt-4">
+            {gm.bringsEquipment && (
+              <span className="bg-blue-500/15 text-blue-400 border border-blue-500/30 text-xs px-2 py-1 rounded-full">Leva equipamento</span>
+            )}
+            {gm.minGuests != null && gm.maxGuests != null && (
+              <span className="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded-full">{gm.minGuests}–{gm.maxGuests} convidados</span>
+            )}
+            {gm.instagram && (
+              <a href={`https://instagram.com/${gm.instagram}`} target="_blank" rel="noopener noreferrer"
+                className="bg-pink-500/15 text-pink-400 border border-pink-500/30 text-xs px-2 py-1 rounded-full hover:bg-pink-500/25 transition-colors">
+                @{gm.instagram}
+              </a>
+            )}
+          </div>
         </div>
         <div className="bg-gray-900 rounded-xl p-5">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Dados</h2>
@@ -223,11 +239,39 @@ export default function GrillmasterProfilePage() {
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Especialidades</h2>
           <div className="flex flex-wrap gap-2">
             {specialties.map((s, i) => (
-              <span key={i} className={'text-xs font-medium px-3 py-1 rounded-full ' + specColors[i % 4][0]}>
+              <span key={i} className={'text-xs font-medium px-3 py-1 rounded-full ' + specColors[i % 4]}>
                 {s}
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Gallery */}
+      {gallery.length > 0 && (
+        <div className="bg-gray-900 rounded-xl p-5 mb-5">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Portfolio</h2>
+          <div className="grid grid-cols-3 gap-2">
+            {gallery.map((url, i) => (
+              <div key={i} onClick={() => setLightboxIdx(i)} className="aspect-square rounded-lg overflow-hidden cursor-pointer hover:opacity-80 transition-opacity">
+                <img src={url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxIdx !== null && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center" onClick={() => setLightboxIdx(null)}>
+          <button className="absolute top-4 right-4 text-white text-2xl hover:text-orange-400" onClick={() => setLightboxIdx(null)}>&#215;</button>
+          <button className="absolute left-4 text-white text-3xl hover:text-orange-400 disabled:opacity-30"
+            disabled={lightboxIdx === 0}
+            onClick={e => { e.stopPropagation(); setLightboxIdx(i => i! - 1) }}>&#8249;</button>
+          <img src={gallery[lightboxIdx]} alt="" className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain" onClick={e => e.stopPropagation()} />
+          <button className="absolute right-4 text-white text-3xl hover:text-orange-400 disabled:opacity-30"
+            disabled={lightboxIdx === gallery.length - 1}
+            onClick={e => { e.stopPropagation(); setLightboxIdx(i => i! + 1) }}>&#8250;</button>
         </div>
       )}
 

@@ -63,8 +63,14 @@ model Grillmaster {
   totalOrders  Int      @default(0)
   isChancelado Boolean  @default(false)
   specialties  String?  @default("")
-  photoUrl     String?
-  pixKey       String?
+  photoUrl        String?
+  galleryUrls     String[]
+  instagram       String?
+  churrascoStyle  String?
+  bringsEquipment Boolean  @default(false)
+  minGuests       Int?
+  maxGuests       Int?
+  pixKey          String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -100,9 +106,15 @@ model Boutique {
   open           Boolean  @default(true)
   monthlyFee     Float    @default(369.00)
   commissionRate Float    @default(0.03)
-  pixKey         String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  pixKey           String?
+  logoUrl          String?
+  facadeUrl        String?
+  galleryUrls      String[]
+  instagram        String?
+  openingHours     String?
+  deliveryOrPickup String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   user     User           @relation(fields: [userId], references: [id])
   products Product[]

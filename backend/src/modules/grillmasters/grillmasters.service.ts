@@ -7,6 +7,15 @@ export const createGrillmasterSchema = z.object({
   pricePerHour: z.number().positive(),
   city: z.string().min(2),
   state: z.string().min(2),
+  specialties: z.string().optional(),
+  phone: z.string().optional(),
+  photoUrl: z.string().optional(),
+  galleryUrls: z.array(z.string()).optional(),
+  instagram: z.string().optional(),
+  churrascoStyle: z.string().optional(),
+  bringsEquipment: z.boolean().optional(),
+  minGuests: z.number().int().optional(),
+  maxGuests: z.number().int().optional(),
 })
 
 export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>

@@ -16,6 +16,10 @@ interface Grillmaster {
   rating: number
   totalOrders: number
   approved: boolean
+  isChancelado: boolean
+  specialties: string
+  photoUrl: string | null
+  churrascoStyle: string | null
   user: {
     name: string
     email: string
@@ -294,53 +298,61 @@ export default function GrillmastersPage() {
             const name = g.user?.name ?? 'Churrasqueiro'
             const avatarBg = getAvatarColor(name)
             const isFounder = ['jota', 'albuquerque', 'joao paulo', 'joão paulo'].some(k => name.toLowerCase().includes(k))
+            const hasPhoto = g.photoUrl || isFounder
             return (
-              <div key={g.id} className="bg-gray-900 rounded-xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-150">
-                <div className={'h-1.5 ' + (g.available ? 'bg-orange-500' : 'bg-gray-600')} />
-                <div className="p-5">
-                  <div className="flex gap-3 mb-3">
-                    <div
-                      className="w-14 h-14 rounded-full shrink-0 overflow-hidden flex items-center justify-center text-white font-bold text-lg"
-                      style={isFounder ? undefined : { background: avatarBg }}
-                    >
-                      {isFounder
-                        ? <Image src="/jota.jpg" alt={name} width={56} height={56} className="object-cover w-full h-full" />
-                        : getInitials(name)
-                      }
+              <div key={g.id} className="bg-gray-900 rounded-xl overflow-hidden hover:scale-[1.02] hover:border-orange-500/30 border border-transparent hover:shadow-lg transition-all duration-200">
+                {/* Photo area */}
+                <div className="relative h-36 overflow-hidden">
+                  {hasPhoto ? (
+                    <img
+                      src={isFounder ? '/jota.jpg' : g.photoUrl!}
+                      alt={name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${avatarBg}66, #111827)` }}>
+                      <span className="text-4xl font-black text-white/40">{getInitials(name)}</span>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <Link href={'/grillmasters/' + g.id} className="font-bold text-white leading-tight hover:text-orange-400 transition-colors">
-                          {name}
-                        </Link>
-                        <div className="flex items-center gap-1 shrink-0">
-                          <HeartButton targetType="GRILLMASTER" targetId={g.id} />
-                          <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (g.available ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400')}>
-                            {g.available ? 'Disponivel' : 'Ocupado'}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-yellow-400 text-sm">{renderStars(g.rating ?? 0)}</span>
-                        <span className="text-xs text-gray-400">{(g.rating ?? 0).toFixed(1)} ({g.totalOrders ?? 0})</span>
-                      </div>
-                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
+                  {/* Badges overlay */}
+                  <div className="absolute top-2 left-2 flex gap-1.5">
+                    {g.isChancelado && (
+                      <span className="bg-yellow-500/90 text-black text-xs font-bold px-2 py-0.5 rounded-full">Chancelado</span>
+                    )}
+                    {g.churrascoStyle && (
+                      <span className="bg-orange-500/80 text-white text-xs px-2 py-0.5 rounded-full">{g.churrascoStyle}</span>
+                    )}
+                  </div>
+                  <div className="absolute top-2 right-2 flex items-center gap-1">
+                    <HeartButton targetType="GRILLMASTER" targetId={g.id} />
+                    <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (g.available ? 'bg-green-500/80 text-white' : 'bg-gray-700/80 text-gray-400')}>
+                      {g.available ? 'Disponivel' : 'Ocupado'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <Link href={'/grillmasters/' + g.id} className="font-bold text-white leading-tight hover:text-orange-400 transition-colors">
+                      {name}
+                    </Link>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-yellow-400 text-sm">{renderStars(g.rating ?? 0)}</span>
+                    <span className="text-xs text-gray-400">{(g.rating ?? 0).toFixed(1)} ({g.totalOrders ?? 0} pedidos)</span>
                   </div>
 
                   <p className="text-sm text-gray-400 line-clamp-2 mb-3">
                     {g.bio || 'Especialista em grelhados e churrasco artesanal.'}
                   </p>
 
-                  <div className="flex flex-wrap gap-2 mb-4 text-xs">
-                    <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full">
-                      {g.city}, {g.state}
-                    </span>
-                    <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full">
-                      {g.experience} {g.experience === 1 ? 'ano' : 'anos'} exp.
-                    </span>
+                  <div className="flex flex-wrap gap-1.5 mb-3 text-xs">
+                    <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full">{g.city}, {g.state}</span>
+                    <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full">{g.experience} {g.experience === 1 ? 'ano' : 'anos'} exp.</span>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-gray-700 pt-3">
+                  <div className="flex items-center justify-between border-t border-gray-700/50 pt-3">
                     <div>
                       <span className="text-xs text-gray-500 block">por hora</span>
                       <span className="text-lg font-bold text-orange-400">

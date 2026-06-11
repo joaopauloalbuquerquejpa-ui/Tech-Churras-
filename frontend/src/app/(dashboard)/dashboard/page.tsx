@@ -55,6 +55,18 @@ interface Order {
   boutique?: { name: string }
 }
 
+interface FeaturedGM {
+  id: string
+  pricePerHour: number
+  rating: number
+  photoUrl?: string
+  churrascoStyle?: string
+  isChancelado?: boolean
+  city: string
+  state: string
+  user: { name: string }
+}
+
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendente',
   CONFIRMED: 'Confirmado',
@@ -77,6 +89,7 @@ export default function DashboardPage() {
   const [rawStats, setRawStats] = useState({ orders: 0, grillmasters: 0, boutiques: 0 })
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
   const [points, setPoints] = useState<number | null>(null)
+  const [featuredGMs, setFeaturedGMs] = useState<FeaturedGM[]>([])
   const statsRef = useRef<HTMLDivElement>(null)
   const statsVisible = useInView(statsRef)
   const ordersRef = useRef<HTMLDivElement>(null)
@@ -107,6 +120,7 @@ export default function DashboardPage() {
       .then(d => {
         const arr = Array.isArray(d) ? d : d.grillmasters ?? []
         setRawStats(prev => ({ ...prev, grillmasters: arr.length }))
+        setFeaturedGMs(arr.slice(0, 6))
       })
       .catch(() => {})
     fetch(BASE + '/boutiques', { headers: h })
@@ -192,12 +206,12 @@ export default function DashboardPage() {
         {[
           { href: '/orders',      label: 'Meus Pedidos',   value: ordersCount    },
           { href: '/grillmasters', label: 'Churrasqueiros', value: gmCount        },
-          { href: '/boutiques',   label: 'Açougues',        value: boutiquesCount },
+          { href: '/boutiques',   label: 'Acougues',        value: boutiquesCount },
         ].map((s, i) => (
           <Link
             key={s.href}
             href={s.href}
-            className="bg-gray-900 p-6 rounded-xl border border-gray-800 hover:border-orange-500/30 transition-all group hover:-translate-y-0.5 animate-slideInFromRight"
+            className="glass-card p-6 hover:border-orange-500/30 transition-all group hover:-translate-y-0.5 animate-slideInFromRight"
             style={{ animationDelay: `${i * 0.12}s`, opacity: 0 }}
           >
             <p className="text-gray-500 text-sm">{s.label}</p>
@@ -208,11 +222,50 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* ── Featured Grillmasters carousel ── */}
+      {featuredGMs.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-lg">Churrasqueiros em Destaque</h3>
+            <Link href="/grillmasters" className="text-xs text-orange-400 hover:text-orange-300">Ver todos</Link>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-none" style={{ scrollbarWidth: 'none' }}>
+            {featuredGMs.map(gm => {
+              const name = gm.user?.name ?? 'Churrasqueiro'
+              const isFounder = ['jota', 'albuquerque', 'joao paulo'].some(k => name.toLowerCase().includes(k))
+              const photo = isFounder ? '/jota.jpg' : gm.photoUrl
+              return (
+                <Link
+                  key={gm.id}
+                  href={'/grillmasters/' + gm.id}
+                  className="shrink-0 w-36 glass-card overflow-hidden hover:border-orange-500/30 transition-all hover:scale-[1.03]"
+                >
+                  <div className="h-24 overflow-hidden">
+                    {photo ? (
+                      <img src={photo} alt={name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-orange-900/40 to-gray-900 flex items-center justify-center">
+                        <span className="text-2xl font-black text-white/30">{name.split(' ').map(n => n[0]).join('').slice(0, 2)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-2">
+                    <p className="text-xs font-semibold text-white truncate">{name.split(' ')[0]}</p>
+                    <p className="text-xs text-orange-400 font-bold">R$ {(gm.pricePerHour ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}/h</p>
+                    {gm.isChancelado && <span className="text-xs text-yellow-400">Chancelado</span>}
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
       {/* ── Pontos ── */}
       {points !== null && (
         <Link
           href="/perfil/pontos"
-          className="block bg-gray-900 border border-orange-500/20 hover:border-orange-500/40 rounded-xl p-5 mb-8 transition-all hover:-translate-y-0.5"
+          className="block glass-card-orange p-5 mb-8 transition-all hover:-translate-y-0.5 hover:border-orange-500/30"
         >
           <div className="flex items-center justify-between">
             <div>

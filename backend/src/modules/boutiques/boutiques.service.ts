@@ -12,6 +12,12 @@ export const createBoutiqueSchema = z.object({
   longitude: z.number().optional(),
   monthlyFee: z.number().optional(),
   commissionRate: z.number().optional(),
+  logoUrl: z.string().optional(),
+  facadeUrl: z.string().optional(),
+  galleryUrls: z.array(z.string()).optional(),
+  instagram: z.string().optional(),
+  openingHours: z.string().optional(),
+  deliveryOrPickup: z.string().optional(),
 })
 
 export const updateBoutiqueSchema = z.object({
@@ -24,6 +30,12 @@ export const updateBoutiqueSchema = z.object({
   open: z.boolean().optional(),
   monthlyFee: z.number().optional(),
   commissionRate: z.number().optional(),
+  logoUrl: z.string().optional(),
+  facadeUrl: z.string().optional(),
+  galleryUrls: z.array(z.string()).optional(),
+  instagram: z.string().optional(),
+  openingHours: z.string().optional(),
+  deliveryOrPickup: z.string().optional(),
 })
 
 export const createKitSchema = z.object({

@@ -12,6 +12,11 @@ interface Boutique {
   phone: string
   rating: number
   open: boolean
+  logoUrl: string | null
+  facadeUrl: string | null
+  instagram: string | null
+  openingHours: string | null
+  deliveryOrPickup: string | null
 }
 
 function HeartButton({ targetType, targetId }: { targetType: string; targetId: string }) {
@@ -157,21 +162,62 @@ export default function BoutiquesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(boutique => (
-          <div key={boutique.id} className="bg-gray-900 rounded-xl p-5 hover:bg-gray-800 transition">
-            <div className="flex items-start justify-between mb-3">
-              <h2 className="font-bold text-lg leading-tight">{boutique.name}</h2>
-              <div className="flex items-center gap-1 shrink-0">
+          <div key={boutique.id} className="bg-gray-900 rounded-xl overflow-hidden hover:scale-[1.02] hover:border-orange-500/30 border border-transparent hover:shadow-lg transition-all duration-200">
+            {/* Facade cover */}
+            <div className="relative h-32 overflow-hidden">
+              {boutique.facadeUrl ? (
+                <img src={boutique.facadeUrl} alt={boutique.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-red-900/40 to-gray-900 flex items-center justify-center">
+                  <span className="text-gray-600 text-4xl font-black">{boutique.name[0]}</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent" />
+              {/* Delivery badge */}
+              {boutique.deliveryOrPickup && (
+                <div className="absolute bottom-2 left-2">
+                  <span className="bg-orange-500/80 text-white text-xs px-2 py-0.5 rounded-full">{boutique.deliveryOrPickup}</span>
+                </div>
+              )}
+              <div className="absolute top-2 right-2 flex items-center gap-1">
                 <HeartButton targetType="BOUTIQUE" targetId={boutique.id} />
-                <span className={"text-xs px-2 py-1 rounded-full font-medium " + (boutique.open ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400')}>
+                <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (boutique.open ? 'bg-green-500/80 text-white' : 'bg-red-500/80 text-white')}>
                   {boutique.open ? 'Aberto' : 'Fechado'}
                 </span>
               </div>
             </div>
-            {boutique.description && <p className="text-gray-400 text-sm mb-3">{boutique.description}</p>}
-            <div className="text-sm text-gray-400 space-y-1">
-              {boutique.city && <p>{boutique.city}{boutique.state ? ', ' + boutique.state : ''}</p>}
-              {boutique.phone && <p>{boutique.phone}</p>}
-              {boutique.rating > 0 && <p>Avaliacao: {boutique.rating.toFixed(1)}</p>}
+
+            {/* Logo overlapping */}
+            <div className="px-4 -mt-6 mb-2 flex items-end gap-3">
+              {boutique.logoUrl ? (
+                <img src={boutique.logoUrl} alt="logo" className="w-12 h-12 rounded-xl object-cover border-2 border-gray-900 shrink-0" />
+              ) : (
+                <div className="w-12 h-12 rounded-xl bg-red-900/40 border-2 border-gray-900 flex items-center justify-center shrink-0">
+                  <span className="text-red-400 font-bold text-lg">{boutique.name[0]}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="px-4 pb-4">
+              <h2 className="font-bold text-white text-base leading-tight mb-1">{boutique.name}</h2>
+              <div className="flex items-center gap-2 mb-2">
+                {boutique.rating > 0 && (
+                  <span className="text-xs text-yellow-400">{'★'.repeat(Math.round(boutique.rating))} {boutique.rating.toFixed(1)}</span>
+                )}
+                <span className="text-xs text-gray-500">{boutique.city}, {boutique.state}</span>
+              </div>
+              {boutique.description && (
+                <p className="text-sm text-gray-400 line-clamp-2 mb-3">{boutique.description}</p>
+              )}
+              {boutique.openingHours && (
+                <p className="text-xs text-gray-500 mb-3">{boutique.openingHours}</p>
+              )}
+              <Link
+                href={'/boutiques/' + boutique.id}
+                className="block w-full text-center bg-gray-800 hover:bg-orange-500 text-gray-300 hover:text-white text-sm font-medium py-2 rounded-lg transition-colors"
+              >
+                Ver acougue
+              </Link>
             </div>
           </div>
         ))}

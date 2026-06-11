@@ -20,6 +20,7 @@ import { addressesRoutes } from './modules/addresses/addresses.routes'
 import { cronRoutes } from './modules/cron/cron.routes'
 import { pointsRoutes } from './modules/points/points.routes'
 import { publicRoutes } from './modules/public/public.routes'
+import { uploadRoutes } from './modules/upload/upload.routes'
 
 dotenv.config()
 
@@ -55,6 +56,7 @@ app.register(addressesRoutes)
 app.register(cronRoutes)
 app.register(pointsRoutes)
 app.register(publicRoutes)
+app.register(uploadRoutes)
 
 // Health check
 app.get('/health', async () => {
