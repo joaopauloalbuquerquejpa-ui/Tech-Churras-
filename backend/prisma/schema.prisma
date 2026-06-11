@@ -64,7 +64,7 @@ model Grillmaster {
   isChancelado Boolean  @default(false)
   specialties  String?  @default("")
   photoUrl        String?
-  galleryUrls     String[]
+  galleryUrls     String[] @default([])
   instagram       String?
   churrascoStyle  String?
   bringsEquipment Boolean  @default(false)
@@ -109,7 +109,7 @@ model Boutique {
   pixKey           String?
   logoUrl          String?
   facadeUrl        String?
-  galleryUrls      String[]
+  galleryUrls      String[] @default([])
   instagram        String?
   openingHours     String?
   deliveryOrPickup String?
@@ -302,7 +302,7 @@ model Review {
   boutiqueComment String?
   customerRating  Int?
   customerComment String?
-  photos          String[]
+  photos          String[] @default([])
   createdAt       DateTime @default(now())
 
   order       Order        @relation(fields: [orderId], references: [id])
