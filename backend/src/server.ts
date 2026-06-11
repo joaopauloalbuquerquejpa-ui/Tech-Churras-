@@ -13,6 +13,7 @@ import { adminRoutes } from './modules/admin/admin.routes'
 import { reviewsRoutes } from './modules/reviews/reviews.routes'
 import { favoritesRoutes } from './modules/favorites/favorites.routes'
 import { couponsRoutes } from './modules/coupons/coupons.routes'
+import { messagesRoutes } from './modules/messages/messages.routes'
 
 dotenv.config()
 
@@ -41,6 +42,7 @@ app.register(grillmastersRoutes)
 app.register(reviewsRoutes)
 app.register(favoritesRoutes)
 app.register(couponsRoutes)
+app.register(messagesRoutes)
 
 // Health check
 app.get('/health', async () => {

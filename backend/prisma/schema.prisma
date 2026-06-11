@@ -36,14 +36,16 @@ model User {
   email     String   @unique
   password  String
   phone     String?
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
+  role          Role     @default(CUSTOMER)
+  averageRating Float?
+  createdAt     DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   orders          Order[]  @relation("CustomerOrders")
   grillmaster     Grillmaster?
   boutique        Boutique?
-  customerReviews Review[] @relation("CustomerReviews")
+  customerReviews Review[]  @relation("CustomerReviews")
+  sentMessages    Message[] @relation("SentMessages")
 }
 
 model Grillmaster {
@@ -152,6 +154,7 @@ model Order {
   totalPrice     Float       @default(0)
   couponCode     String?
   discountAmount Float?      @default(0)
+  statusDetail   String?
   notes          String?
   paymentId      String?
   paymentStatus  String?
@@ -164,6 +167,7 @@ model Order {
   boutique    Boutique?    @relation(fields: [boutiqueId], references: [id])
   items       OrderItem[]
   review      Review?
+  messages    Message[]
 }
 
 model OrderItem {
@@ -217,16 +221,30 @@ model Coupon {
   createdAt     DateTime  @default(now())
 }
 
+model Message {
+  id        String   @id @default(cuid())
+  orderId   String
+  senderId  String
+  content   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  order  Order @relation(fields: [orderId], references: [id])
+  sender User  @relation("SentMessages", fields: [senderId], references: [id])
+}
+
 model Review {
   id              String   @id @default(uuid())
   orderId         String   @unique
   customerId      String
   grillmasterId   String?
   boutiqueId      String?
-  grillRating     Int
+  grillRating     Int?
   boutiqueRating  Int?
   grillComment    String?
   boutiqueComment String?
+  customerRating  Int?
+  customerComment String?
   createdAt       DateTime @default(now())
 
   order       Order        @relation(fields: [orderId], references: [id])

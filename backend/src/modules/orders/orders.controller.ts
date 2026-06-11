@@ -1,5 +1,5 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
-import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus } from './orders.service'
+import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail } from './orders.service'
 
 export async function createOrderHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -24,12 +24,26 @@ export async function listOrdersHandler(req: FastifyRequest, reply: FastifyReply
 
 export async function getOrderHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const customerId = (req.user as any).id
+    const userId = (req.user as any).id
+    const role = (req.user as any).role ?? 'CUSTOMER'
     const { id } = req.params as { id: string }
-    const order = await getOrderById(id, customerId)
+    const order = await getOrderById(id, userId, role)
     return reply.send(order)
   } catch (err: any) {
     return reply.status(404).send({ error: err.message })
+  }
+}
+
+export async function updateStatusDetailHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const role = (req.user as any).role ?? 'CUSTOMER'
+    const { id } = req.params as { id: string }
+    const { statusDetail } = req.body as { statusDetail: string }
+    const order = await updateOrderStatusDetail(id, statusDetail, userId, role)
+    return reply.send(order)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
   }
 }
 

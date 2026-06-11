@@ -16,7 +16,8 @@ interface Order {
   guestCount: number
   grillmaster?: { user?: { name: string } }
   boutique?: { name: string }
-  review?: { id: string } | null
+  review?: { id: string; grillRating?: number | null } | null
+  _unreadMessages?: number
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -80,12 +81,20 @@ export default function OrdersPage() {
             : '—'
           const gmName = order.grillmaster?.user?.name || 'Nao selecionado'
           const isCompleted = order.status === 'COMPLETED'
-          const hasReview = !!order.review
+          const hasReview = order.review?.grillRating != null
+          const unread = order._unreadMessages ?? 0
 
           return (
             <div key={order.id} className="bg-gray-900 rounded-2xl p-5 border border-gray-800 hover:border-orange-500/30 transition-colors">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-gray-500 font-mono">#{order.id.slice(0, 8)}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 font-mono">#{order.id.slice(0, 8)}</span>
+                  {unread > 0 && (
+                    <span className="bg-orange-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none">
+                      {unread > 9 ? '9+' : unread}
+                    </span>
+                  )}
+                </div>
                 <div className="flex items-center gap-2">
                   {isCompleted && (
                     hasReview ? (
