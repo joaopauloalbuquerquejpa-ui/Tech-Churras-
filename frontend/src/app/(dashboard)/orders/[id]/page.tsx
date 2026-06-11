@@ -2,6 +2,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
+
+const OrderMap = dynamic(() => import('./OrderMap'), { ssr: false })
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -83,6 +86,8 @@ interface OrderDetail {
   boutique?: { name: string }
   review?: { id: string; customerRating?: number | null } | null
   customer?: { id: string; name: string; averageRating?: number | null }
+  grillmasterLat?: number | null
+  grillmasterLng?: number | null
 }
 
 function getAuth() {
@@ -115,12 +120,15 @@ export default function OrderDetailPage() {
   const [msgInput, setMsgInput] = useState('')
   const [sending, setSending] = useState(false)
   const [advancing, setAdvancing] = useState(false)
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const authRef = useRef<ReturnType<typeof getAuth>>({ token: null, user: null })
 
   useEffect(() => {
-    authRef.current = getAuth()
-    if (!authRef.current.token) { router.push('/login'); return }
+    const auth = getAuth()
+    authRef.current = auth
+    setCurrentUser(auth.user)
+    if (!auth.token) { router.push('/login'); return }
     fetchOrder()
     fetchMessages()
     markRead()
@@ -149,6 +157,32 @@ export default function OrderDetailPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
+
+  useEffect(() => {
+    if (order?.statusDetail !== 'Churrasqueiro a caminho') return
+    const interval = setInterval(fetchOrder, 10000)
+    return () => clearInterval(interval)
+  }, [order?.statusDetail])
+
+  useEffect(() => {
+    if (!order || !currentUser) return
+    const isGM = currentUser.role === 'GRILLMASTER' && order.grillmaster?.user?.id === currentUser.id
+    if (!isGM || order.statusDetail !== 'Churrasqueiro a caminho') return
+    if (!navigator.geolocation) return
+    const watchId = navigator.geolocation.watchPosition(
+      pos => {
+        const { token } = authRef.current
+        fetch(`${BASE}/orders/${id}/location`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        }).catch(() => {})
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 5000 }
+    )
+    return () => navigator.geolocation.clearWatch(watchId)
+  }, [order?.statusDetail, currentUser])
 
   async function fetchOrder() {
     const { token } = authRef.current
@@ -301,6 +335,18 @@ export default function OrderDetailPage() {
                   : NEXT_MAIN_LABEL[nextAction.value] ?? 'Avançar'}
             </button>
           )}
+        </div>
+      )}
+
+      {/* Map when grillmaster is on the way */}
+      {order.statusDetail === 'Churrasqueiro a caminho' && (
+        <div className="mb-5">
+          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Rastreamento</p>
+          <OrderMap
+            eventAddress={order.eventAddress}
+            grillmasterLat={order.grillmasterLat}
+            grillmasterLng={order.grillmasterLng}
+          />
         </div>
       )}
 

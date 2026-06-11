@@ -154,8 +154,11 @@ model Order {
   totalPrice     Float       @default(0)
   couponCode     String?
   discountAmount Float?      @default(0)
-  statusDetail   String?
-  notes          String?
+  statusDetail          String?
+  grillmasterLat        Float?
+  grillmasterLng        Float?
+  grillmasterLastUpdate DateTime?
+  notes                 String?
   paymentId      String?
   paymentStatus  String?
   paidAt         DateTime?

@@ -1,8 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { useAuthStore } from '@/store/authStore'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useCartStore } from '@/store/cart'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -40,6 +40,9 @@ export default function OrdersPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [repeatLoading, setRepeatLoading] = useState<string | null>(null)
+  const [repeatWarning, setRepeatWarning] = useState('')
+  const cartStore = useCartStore()
 
   useEffect(() => { fetchOrders() }, [])
 
@@ -57,6 +60,37 @@ export default function OrdersPage() {
     finally { setLoading(false) }
   }
 
+  async function handleRepeat(orderId: string) {
+    setRepeatLoading(orderId)
+    setRepeatWarning('')
+    try {
+      const raw = localStorage.getItem('auth-storage')
+      const t = raw ? JSON.parse(raw)?.state?.token : null
+      const res = await fetch(`${BASE}/orders/${orderId}/repeat-data`, {
+        headers: { Authorization: 'Bearer ' + t },
+      })
+      if (!res.ok) { setRepeatWarning('Nao foi possivel repetir este pedido.'); return }
+      const data = await res.json()
+      if (data.grillmasterId) cartStore.setGrillmasterId(data.grillmasterId)
+      if (data.boutiqueId) cartStore.setBoutiqueId(data.boutiqueId)
+      if (data.items?.length) {
+        const qty: Record<string, number> = {}
+        for (const item of data.items) qty[item.productId] = item.quantity
+        cartStore.setSelectedQty(qty)
+      }
+      if (data.unavailableProductIds?.length) {
+        setRepeatWarning(`${data.unavailableProductIds.length} produto(s) indisponivel(is) foram removidos do carrinho.`)
+        setTimeout(() => router.push('/menu/novo'), 2000)
+      } else {
+        router.push('/menu/novo')
+      }
+    } catch {
+      setRepeatWarning('Erro ao repetir pedido.')
+    } finally {
+      setRepeatLoading(null)
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -65,6 +99,11 @@ export default function OrdersPage() {
           Novo Pedido
         </Link>
       </div>
+      {repeatWarning && (
+        <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm rounded-xl px-4 py-3">
+          {repeatWarning}
+        </div>
+      )}
       {loading && <p className="text-gray-400">Carregando...</p>}
       {!loading && orders.length === 0 && (
         <div className="text-center py-16 text-gray-400">
@@ -147,6 +186,17 @@ export default function OrdersPage() {
                   >
                     Pagar agora
                   </Link>
+                </div>
+              )}
+              {isCompleted && (
+                <div className="mt-3 pt-3 border-t border-gray-800">
+                  <button
+                    onClick={() => handleRepeat(order.id)}
+                    disabled={repeatLoading === order.id}
+                    className="text-xs bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                  >
+                    {repeatLoading === order.id ? 'Carregando...' : 'Pedir novamente'}
+                  </button>
                 </div>
               )}
             </div>

@@ -21,15 +21,40 @@ export async function createGrillmaster(userId: string, data: CreateGrillmasterI
   })
 }
 
-export async function listGrillmasters(city?: string) {
-  return prisma.grillmaster.findMany({
-    where: {
-      available: true,
-      ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
-    },
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: { rating: 'desc' },
-  })
+export async function listGrillmasters(params: {
+  city?: string
+  minPrice?: number
+  maxPrice?: number
+  minRating?: number
+  specialty?: string
+  sortBy?: string
+  available?: boolean
+  page?: number
+  limit?: number
+} = {}) {
+  const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9 } = params
+  const where: any = {}
+  if (available) where.available = true
+  if (city) where.city = { contains: city, mode: 'insensitive' }
+  if (minPrice != null) where.pricePerHour = { ...where.pricePerHour, gte: minPrice }
+  if (maxPrice != null) where.pricePerHour = { ...where.pricePerHour, lte: maxPrice }
+  if (minRating != null) where.rating = { gte: minRating }
+  if (specialty) where.specialties = { contains: specialty, mode: 'insensitive' }
+  let orderBy: any = [{ rating: 'desc' }]
+  if (sortBy === 'price_asc') orderBy = [{ pricePerHour: 'asc' }]
+  else if (sortBy === 'price_desc') orderBy = [{ pricePerHour: 'desc' }]
+  const skip = (page - 1) * limit
+  const [grillmasters, total] = await Promise.all([
+    prisma.grillmaster.findMany({
+      where,
+      include: { user: { select: { name: true, email: true } } },
+      orderBy,
+      skip,
+      take: limit,
+    }),
+    prisma.grillmaster.count({ where }),
+  ])
+  return { grillmasters, total, page, limit, totalPages: Math.ceil(total / limit) }
 }
 
 export async function getGrillmasterById(id: string) {

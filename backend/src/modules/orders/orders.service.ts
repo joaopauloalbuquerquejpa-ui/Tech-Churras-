@@ -182,6 +182,45 @@ export async function updateOrderStatus(id: string, status: string) {
   return updated
 }
 
+export async function updateOrderLocation(id: string, lat: number, lng: number, userId: string) {
+  const gm = await prisma.grillmaster.findUnique({ where: { userId } })
+  if (!gm) throw new Error('Nao autorizado')
+  const order = await prisma.order.findFirst({ where: { id, grillmasterId: gm.id } })
+  if (!order) throw new Error('Pedido nao encontrado')
+  return prisma.order.update({
+    where: { id },
+    data: { grillmasterLat: lat, grillmasterLng: lng, grillmasterLastUpdate: new Date() },
+    select: { id: true, grillmasterLat: true, grillmasterLng: true, grillmasterLastUpdate: true },
+  })
+}
+
+export async function getRepeatData(id: string, userId: string, role: string) {
+  const whereClause = role === 'ADMIN' ? { id } : { id, customerId: userId }
+  const order = await prisma.order.findFirst({
+    where: whereClause,
+    include: { items: { include: { product: { select: { id: true, available: true } } } } },
+  })
+  if (!order) throw new Error('Pedido nao encontrado')
+  if (order.status !== 'COMPLETED') throw new Error('So e possivel repetir pedidos concluidos')
+  const unavailableProductIds: string[] = []
+  const items: { productId: string; quantity: number }[] = []
+  for (const item of order.items) {
+    if (!item.product || !item.product.available) {
+      unavailableProductIds.push(item.productId)
+    } else {
+      items.push({ productId: item.productId, quantity: Number(item.quantity) })
+    }
+  }
+  return {
+    grillmasterId: order.grillmasterId,
+    boutiqueId: order.boutiqueId,
+    guestCount: order.guestCount,
+    eventHours: order.eventHours,
+    items,
+    unavailableProductIds,
+  }
+}
+
 export async function getOrderById(id: string, userId: string, role: string = 'CUSTOMER') {
   let whereClause: Record<string, any> = { id, customerId: userId }
   if (role === 'ADMIN') {

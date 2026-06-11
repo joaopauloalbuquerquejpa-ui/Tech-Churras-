@@ -33,27 +33,44 @@ function HeartButton({ targetType, targetId }: { targetType: string; targetId: s
   )
 }
 
+const BASE = 'https://tech-churras-production.up.railway.app'
+
 export default function BoutiquesPage() {
   const [boutiques, setBoutiques] = useState<Boutique[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [cityFilter, setCityFilter] = useState('')
+  const [minRating, setMinRating] = useState('')
+  const [sortBy, setSortBy] = useState('rating_desc')
 
-  useEffect(() => {
-    const raw = localStorage.getItem('auth-storage')
-    const t = raw ? JSON.parse(raw)?.state?.token : null
-    fetch('https://tech-churras-production.up.railway.app/boutiques', {
-      headers: { Authorization: 'Bearer ' + t }
-    })
-      .then(r => r.json())
-      .then(data => setBoutiques(Array.isArray(data) ? data : data.boutiques || []))
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }, [])
+  useEffect(() => { fetchBoutiques() }, [])
+
+  async function fetchBoutiques() {
+    setLoading(true)
+    try {
+      const raw = localStorage.getItem('auth-storage')
+      const t = raw ? JSON.parse(raw)?.state?.token : null
+      const params = new URLSearchParams({ sortBy })
+      if (cityFilter.trim()) params.set('city', cityFilter.trim())
+      if (minRating) params.set('minRating', minRating)
+      const res = await fetch(`${BASE}/boutiques?${params}`, {
+        headers: { Authorization: 'Bearer ' + t },
+      })
+      const data = await res.json()
+      setBoutiques(Array.isArray(data) ? data : data.boutiques || [])
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }
 
   const filtered = boutiques.filter(b =>
     b.name?.toLowerCase().includes(search.toLowerCase()) ||
     b.city?.toLowerCase().includes(search.toLowerCase())
   )
+
+  function clearFilters() {
+    setCityFilter(''); setMinRating(''); setSortBy('rating_desc'); setSearch('')
+    setTimeout(fetchBoutiques, 0)
+  }
 
   return (
     <div>
@@ -67,14 +84,64 @@ export default function BoutiquesPage() {
         </Link>
       </div>
 
-      <div className="mb-6">
-        <input
-          type="text"
-          placeholder="Buscar por nome ou cidade..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white placeholder-gray-500"
-        />
+      <div className="bg-gray-900 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
+        <div className="flex-1 min-w-40">
+          <label className="block text-xs text-gray-400 mb-1">Buscar por nome</label>
+          <input
+            type="text"
+            placeholder="Nome do acougue..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+          />
+        </div>
+        <div className="min-w-36">
+          <label className="block text-xs text-gray-400 mb-1">Cidade</label>
+          <input
+            type="text"
+            placeholder="Sao Paulo..."
+            value={cityFilter}
+            onChange={e => setCityFilter(e.target.value)}
+            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+          />
+        </div>
+        <div className="min-w-36">
+          <label className="block text-xs text-gray-400 mb-1">Avaliacao minima</label>
+          <select
+            value={minRating}
+            onChange={e => setMinRating(e.target.value)}
+            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+          >
+            <option value="">Qualquer</option>
+            <option value="4">4+ estrelas</option>
+            <option value="3">3+ estrelas</option>
+            <option value="2">2+ estrelas</option>
+          </select>
+        </div>
+        <div className="min-w-40">
+          <label className="block text-xs text-gray-400 mb-1">Ordenar por</label>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+          >
+            <option value="rating_desc">Melhor avaliacao</option>
+          </select>
+        </div>
+        <div className="flex gap-2 pb-0.5">
+          <button
+            onClick={() => fetchBoutiques()}
+            className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium"
+          >
+            Aplicar
+          </button>
+          <button
+            onClick={clearFilters}
+            className="border border-gray-600 hover:border-gray-500 text-gray-400 hover:text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          >
+            Limpar
+          </button>
+        </div>
       </div>
 
       {loading && <p className="text-gray-400">Carregando...</p>}
@@ -82,6 +149,9 @@ export default function BoutiquesPage() {
       {!loading && filtered.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <p className="text-lg">Nenhuma boutique encontrada.</p>
+          <button onClick={clearFilters} className="mt-4 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg text-sm">
+            Limpar filtros
+          </button>
         </div>
       )}
 

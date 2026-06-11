@@ -48,14 +48,16 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
   })
 }
 
-export async function listBoutiques(city?: string) {
+export async function listBoutiques(params: { city?: string; minRating?: number; sortBy?: string } = {}) {
+  const { city, minRating, sortBy } = params
+  const where: any = { approved: true }
+  if (city) where.city = { contains: city, mode: 'insensitive' }
+  if (minRating != null) where.rating = { gte: minRating }
+  const orderBy: any = sortBy === 'rating_desc' ? { rating: 'desc' } : { rating: 'desc' }
   return prisma.boutique.findMany({
-    where: {
-      approved: true,
-      ...(city ? { city: { contains: city, mode: 'insensitive' } } : {}),
-    },
+    where,
     include: { user: { select: { name: true, email: true } } },
-    orderBy: { rating: 'desc' },
+    orderBy,
   })
 }
 

@@ -208,6 +208,8 @@ function GuidedOrderForm() {
       setAcompanhamentosText(c.eventData.acompanhamentosText || '')
     }
     if (c.couponCode) setCouponInput(c.couponCode)
+    const initialStep = parseInt(searchParams.get('step') || '1', 10)
+    if (initialStep > 1 && initialStep <= 5) setStep(initialStep)
     cartLoaded.current = true
   }, [])
 

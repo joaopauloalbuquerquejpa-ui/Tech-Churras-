@@ -21,9 +21,19 @@ export async function createGrillmasterHandler(req: FastifyRequest, reply: Fasti
 
 export async function listGrillmastersHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const { city } = req.query as { city?: string }
-    const grillmasters = await listGrillmasters(city)
-    return reply.send(grillmasters)
+    const q = req.query as Record<string, string>
+    const result = await listGrillmasters({
+      city: q.city || undefined,
+      minPrice: q.minPrice ? Number(q.minPrice) : undefined,
+      maxPrice: q.maxPrice ? Number(q.maxPrice) : undefined,
+      minRating: q.minRating ? Number(q.minRating) : undefined,
+      specialty: q.specialty || undefined,
+      sortBy: q.sortBy || undefined,
+      available: q.available !== 'false',
+      page: q.page ? Number(q.page) : 1,
+      limit: q.limit ? Number(q.limit) : 9,
+    })
+    return reply.send(result)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

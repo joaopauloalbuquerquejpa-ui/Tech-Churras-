@@ -49,9 +49,14 @@ export default function GrillmastersPage() {
   const [search, setSearch] = useState('')
   const [cityFilter, setCityFilter] = useState('')
   const [availableOnly, setAvailableOnly] = useState(false)
-  const [sortBy, setSortBy] = useState<'rating' | 'pricePerHour' | 'experience'>('rating')
+  const [sortBy, setSortBy] = useState('rating_desc')
+  const [minPrice, setMinPrice] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
+  const [minRating, setMinRating] = useState('')
+  const [specialty, setSpecialty] = useState('')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
+  const [total, setTotal] = useState(0)
 
   useEffect(() => { fetchGrillmasters() }, [page, availableOnly, sortBy])
 
@@ -64,12 +69,17 @@ export default function GrillmastersPage() {
       const params = new URLSearchParams({ page: String(page), limit: '9', sortBy })
       if (availableOnly) params.set('available', 'true')
       if (cityFilter.trim()) params.set('city', cityFilter.trim())
+      if (minPrice) params.set('minPrice', minPrice)
+      if (maxPrice) params.set('maxPrice', maxPrice)
+      if (minRating) params.set('minRating', minRating)
+      if (specialty.trim()) params.set('specialty', specialty.trim())
       const res = await fetch(`https://tech-churras-production.up.railway.app/grillmasters?${params}`, {
         headers: { Authorization: 'Bearer ' + t }
       })
       const data = await res.json()
       setGrillmasters(Array.isArray(data) ? data : data.grillmasters ?? [])
       setTotalPages(data.totalPages ?? 1)
+      setTotal(data.total ?? (Array.isArray(data) ? data.length : (data.grillmasters ?? []).length))
     } catch {
       setError('Nao foi possivel carregar os churrasqueiros. Tente novamente.')
     } finally {
@@ -113,56 +123,123 @@ export default function GrillmastersPage() {
         </Link>
       </div>
 
-      <div className="bg-gray-900 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
-        <div className="flex-1 min-w-48">
-          <label className="block text-xs text-gray-400 mb-1">Buscar</label>
-          <div className="flex gap-2">
+      <div className="bg-gray-900 rounded-xl p-4 mb-6 space-y-3">
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="flex-1 min-w-48">
+            <label className="block text-xs text-gray-400 mb-1">Buscar por nome</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Nome..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+              />
+              <button
+                onClick={() => { setPage(1); fetchGrillmasters() }}
+                className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-3 py-2 text-sm"
+              >
+                Buscar
+              </button>
+            </div>
+          </div>
+          <div className="min-w-36">
+            <label className="block text-xs text-gray-400 mb-1">Cidade</label>
             <input
               type="text"
-              placeholder="Nome ou bio..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+              placeholder="Sao Paulo..."
+              value={cityFilter}
+              onChange={e => setCityFilter(e.target.value)}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
             />
+          </div>
+          <div className="min-w-36">
+            <label className="block text-xs text-gray-400 mb-1">Especialidade</label>
+            <input
+              type="text"
+              placeholder="Carne, peixe..."
+              value={specialty}
+              onChange={e => setSpecialty(e.target.value)}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+            />
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-3 items-end">
+          <div className="min-w-28">
+            <label className="block text-xs text-gray-400 mb-1">Preco min (R$/h)</label>
+            <input
+              type="number"
+              placeholder="0"
+              value={minPrice}
+              onChange={e => setMinPrice(e.target.value)}
+              min={0}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+            />
+          </div>
+          <div className="min-w-28">
+            <label className="block text-xs text-gray-400 mb-1">Preco max (R$/h)</label>
+            <input
+              type="number"
+              placeholder="Sem limite"
+              value={maxPrice}
+              onChange={e => setMaxPrice(e.target.value)}
+              min={0}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+            />
+          </div>
+          <div className="min-w-36">
+            <label className="block text-xs text-gray-400 mb-1">Avaliacao minima</label>
+            <select
+              value={minRating}
+              onChange={e => setMinRating(e.target.value)}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+            >
+              <option value="">Qualquer</option>
+              <option value="4">4+ estrelas</option>
+              <option value="3">3+ estrelas</option>
+              <option value="2">2+ estrelas</option>
+            </select>
+          </div>
+          <div className="min-w-40">
+            <label className="block text-xs text-gray-400 mb-1">Ordenar por</label>
+            <select
+              value={sortBy}
+              onChange={e => { setSortBy(e.target.value); setPage(1) }}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+            >
+              <option value="rating_desc">Melhor avaliacao</option>
+              <option value="price_asc">Menor preco</option>
+              <option value="price_desc">Maior preco</option>
+            </select>
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer pb-1">
+            <input
+              type="checkbox"
+              checked={availableOnly}
+              onChange={e => { setAvailableOnly(e.target.checked); setPage(1) }}
+              className="accent-orange-500 w-4 h-4"
+            />
+            <span className="text-sm text-gray-300">Apenas disponiveis</span>
+          </label>
+          <div className="flex gap-2 pb-0.5">
             <button
               onClick={() => { setPage(1); fetchGrillmasters() }}
-              className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-3 py-2 text-sm"
+              className="bg-orange-500 hover:bg-orange-600 text-white rounded-lg px-4 py-2 text-sm font-medium"
             >
-              Buscar
+              Aplicar
+            </button>
+            <button
+              onClick={() => {
+                setSearch(''); setCityFilter(''); setSpecialty(''); setMinPrice(''); setMaxPrice('')
+                setMinRating(''); setAvailableOnly(false); setSortBy('rating_desc'); setPage(1)
+                setTimeout(fetchGrillmasters, 0)
+              }}
+              className="border border-gray-600 hover:border-gray-500 text-gray-400 hover:text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            >
+              Limpar
             </button>
           </div>
         </div>
-        <div className="min-w-36">
-          <label className="block text-xs text-gray-400 mb-1">Cidade</label>
-          <input
-            type="text"
-            placeholder="Sao Paulo..."
-            value={cityFilter}
-            onChange={e => { setCityFilter(e.target.value); setPage(1) }}
-            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
-          />
-        </div>
-        <div className="min-w-40">
-          <label className="block text-xs text-gray-400 mb-1">Ordenar por</label>
-          <select
-            value={sortBy}
-            onChange={e => { setSortBy(e.target.value as typeof sortBy); setPage(1) }}
-            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
-          >
-            <option value="rating">Melhor avaliacao</option>
-            <option value="pricePerHour">Menor preco</option>
-            <option value="experience">Mais experiente</option>
-          </select>
-        </div>
-        <label className="flex items-center gap-2 cursor-pointer pb-1">
-          <input
-            type="checkbox"
-            checked={availableOnly}
-            onChange={e => { setAvailableOnly(e.target.checked); setPage(1) }}
-            className="accent-orange-500 w-4 h-4"
-          />
-          <span className="text-sm text-gray-300">Apenas disponiveis</span>
-        </label>
       </div>
 
       {error && (
@@ -191,7 +268,7 @@ export default function GrillmastersPage() {
 
       {!loading && !error && (
         <p className="text-xs text-gray-500 mb-4">
-          {filtered.length} churrasqueiro{filtered.length !== 1 ? 's' : ''} encontrado{filtered.length !== 1 ? 's' : ''}
+          {total} churrasqueiro{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
         </p>
       )}
 
@@ -199,7 +276,11 @@ export default function GrillmastersPage() {
         <div className="text-center py-16 bg-gray-900 rounded-xl text-gray-400">
           <p className="text-lg mb-4">Nenhum churrasqueiro encontrado.</p>
           <button
-            onClick={() => { setSearch(''); setCityFilter(''); setAvailableOnly(false); setPage(1); fetchGrillmasters() }}
+            onClick={() => {
+              setSearch(''); setCityFilter(''); setSpecialty(''); setMinPrice(''); setMaxPrice('')
+              setMinRating(''); setAvailableOnly(false); setSortBy('rating_desc'); setPage(1)
+              setTimeout(fetchGrillmasters, 0)
+            }}
             className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg text-sm"
           >
             Limpar filtros

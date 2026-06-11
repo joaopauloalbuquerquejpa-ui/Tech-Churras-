@@ -1,5 +1,5 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
-import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail } from './orders.service'
+import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData } from './orders.service'
 
 export async function createOrderHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -53,6 +53,30 @@ export async function updateOrderStatusHandler(req: FastifyRequest, reply: Fasti
     const { status } = req.body as { status: string }
     const order = await updateOrderStatus(id, status)
     return reply.send(order)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function updateLocationHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const { id } = req.params as { id: string }
+    const { lat, lng } = req.body as { lat: number; lng: number }
+    const result = await updateOrderLocation(id, lat, lng, userId)
+    return reply.send(result)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getRepeatDataHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const role = (req.user as any).role ?? 'CUSTOMER'
+    const { id } = req.params as { id: string }
+    const data = await getRepeatData(id, userId, role)
+    return reply.send(data)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

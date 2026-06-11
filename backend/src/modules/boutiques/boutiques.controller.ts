@@ -33,9 +33,17 @@ export async function createBoutiqueHandler(req: FastifyRequest, reply: FastifyR
 }
 
 export async function listBoutiquesHandler(req: FastifyRequest, reply: FastifyReply) {
-  const { city } = req.query as { city?: string }
-  const boutiques = await listBoutiques(city)
-  return reply.send(boutiques)
+  try {
+    const q = req.query as Record<string, string>
+    const boutiques = await listBoutiques({
+      city: q.city || undefined,
+      minRating: q.minRating ? Number(q.minRating) : undefined,
+      sortBy: q.sortBy || undefined,
+    })
+    return reply.send(boutiques)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
 }
 
 export async function getBoutiqueByIdHandler(req: FastifyRequest, reply: FastifyReply) {
