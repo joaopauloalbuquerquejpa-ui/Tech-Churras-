@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 
@@ -40,6 +40,10 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [photoFiles, setPhotoFiles] = useState<File[]>([])
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([])
+  const [uploadProgress, setUploadProgress] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     grillRating: 0,
     boutiqueRating: 0,
@@ -61,15 +65,56 @@ export default function ReviewPage() {
       .finally(() => setLoading(false))
   }, [orderId, router])
 
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []).slice(0, 3 - photoFiles.length)
+    if (!files.length) return
+    const newFiles = [...photoFiles, ...files].slice(0, 3)
+    setPhotoFiles(newFiles)
+    const previews = newFiles.map(f => URL.createObjectURL(f))
+    setPhotoPreviews(previews)
+  }
+
+  function removePhoto(index: number) {
+    const newFiles = photoFiles.filter((_, i) => i !== index)
+    const newPreviews = photoPreviews.filter((_, i) => i !== index)
+    setPhotoFiles(newFiles)
+    setPhotoPreviews(newPreviews)
+  }
+
+  async function uploadPhotos(): Promise<string[]> {
+    const urls: string[] = []
+    for (let i = 0; i < photoFiles.length; i++) {
+      setUploadProgress(`Enviando foto ${i + 1}/${photoFiles.length}...`)
+      const fd = new FormData()
+      fd.append('file', photoFiles[i])
+      const res = await fetch(BASE + '/reviews/upload-photo', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken() },
+        body: fd,
+      })
+      if (res.ok) {
+        const { url } = await res.json()
+        urls.push(url)
+      }
+    }
+    setUploadProgress('')
+    return urls
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (form.grillRating === 0) { alert('Avalie o churrasqueiro'); return }
     setSubmitting(true)
     try {
+      let photoUrls: string[] = []
+      if (photoFiles.length > 0) {
+        photoUrls = await uploadPhotos()
+      }
       const body: any = {
         orderId,
         grillRating: form.grillRating,
         grillComment: form.grillComment || undefined,
+        photos: photoUrls,
       }
       if (order?.boutiqueId && form.boutiqueRating > 0) {
         body.boutiqueRating = form.boutiqueRating
@@ -154,12 +199,60 @@ export default function ReviewPage() {
           </div>
         )}
 
+        {/* Photo upload */}
+        <div className="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+          <h2 className="font-semibold text-base mb-3 text-white">Fotos do churrasco (opcional)</h2>
+          <p className="text-xs text-gray-500 mb-4">Adicione ate 3 fotos do seu evento</p>
+
+          {photoPreviews.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              {photoPreviews.map((src, i) => (
+                <div key={i} className="relative aspect-square rounded-xl overflow-hidden">
+                  <img src={src} alt="" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    className="absolute top-1 right-1 w-6 h-6 bg-black/70 hover:bg-red-600 text-white text-xs rounded-full flex items-center justify-center transition-colors"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {photoFiles.length < 3 && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-gray-700 hover:border-orange-500/50 rounded-xl py-4 text-gray-500 hover:text-gray-300 text-sm transition-colors flex flex-col items-center gap-1"
+              >
+                <span className="text-2xl">📷</span>
+                <span>Adicionar foto ({photoFiles.length}/3)</span>
+              </button>
+            </>
+          )}
+        </div>
+
+        {uploadProgress && (
+          <p className="text-sm text-orange-400 text-center">{uploadProgress}</p>
+        )}
+
         <button
           type="submit"
           disabled={submitting || form.grillRating === 0}
           className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-colors"
         >
-          {submitting ? 'Enviando...' : 'Enviar Avaliacao'}
+          {submitting ? (uploadProgress || 'Enviando...') : 'Enviar Avaliacao'}
         </button>
       </form>
     </div>

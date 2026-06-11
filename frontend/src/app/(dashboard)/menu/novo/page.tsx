@@ -45,6 +45,7 @@ interface Product {
   unit: string
   category: string
   available: boolean
+  stockQuantity?: number | null
 }
 
 interface CouponResult {
@@ -912,7 +913,19 @@ function GuidedOrderForm() {
                             className="flex items-center justify-between gap-3"
                           >
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-white">{p.name}</p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-medium text-white">{p.name}</p>
+                                {p.stockQuantity === 0 && (
+                                  <span className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-medium">
+                                    Esgotado
+                                  </span>
+                                )}
+                                {p.stockQuantity != null && p.stockQuantity > 0 && p.stockQuantity <= 5 && (
+                                  <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full font-medium">
+                                    Ultimas unidades
+                                  </span>
+                                )}
+                              </div>
                               <p className="text-xs text-orange-400">
                                 R$ {p.price.toFixed(2)}/{p.unit}
                                 <span className="text-gray-500 ml-1">
@@ -938,13 +951,14 @@ function GuidedOrderForm() {
                               </span>
                               <button
                                 type="button"
+                                disabled={p.stockQuantity === 0}
                                 onClick={() =>
                                   setSelectedQty(prev => ({
                                     ...prev,
                                     [p.id]: +((prev[p.id] || 0) + 0.5).toFixed(1),
                                   }))
                                 }
-                                className="w-8 h-8 bg-orange-500 hover:bg-orange-600 rounded-full text-white font-bold"
+                                className="w-8 h-8 bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-full text-white font-bold"
                               >
                                 +
                               </button>

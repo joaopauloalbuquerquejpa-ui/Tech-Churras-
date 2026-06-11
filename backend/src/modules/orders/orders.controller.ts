@@ -1,5 +1,5 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
-import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder } from './orders.service'
+import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken } from './orders.service'
 
 export async function createOrderHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -89,6 +89,18 @@ export async function getRepeatDataHandler(req: FastifyRequest, reply: FastifyRe
     const role = (req.user as any).role ?? 'CUSTOMER'
     const { id } = req.params as { id: string }
     const data = await getRepeatData(id, userId, role)
+    return reply.send(data)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function shareOrderHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const role = (req.user as any).role ?? 'CUSTOMER'
+    const { id } = req.params as { id: string }
+    const data = await generateShareToken(id, userId, role)
     return reply.send(data)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })

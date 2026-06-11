@@ -7,6 +7,7 @@ export async function createReview(data: {
   boutiqueRating?: number
   grillComment?: string
   boutiqueComment?: string
+  photos?: string[]
 }) {
   const order = await prisma.order.findUnique({
     where: { id: data.orderId },
@@ -26,6 +27,7 @@ export async function createReview(data: {
         boutiqueRating: data.boutiqueRating ?? undefined,
         grillComment: data.grillComment ?? undefined,
         boutiqueComment: data.boutiqueComment ?? undefined,
+        photos: data.photos ?? [],
       },
     })
   } else {
@@ -39,6 +41,7 @@ export async function createReview(data: {
         boutiqueRating: data.boutiqueRating ?? undefined,
         grillComment: data.grillComment ?? undefined,
         boutiqueComment: data.boutiqueComment ?? undefined,
+        photos: data.photos ?? [],
       },
     })
   }

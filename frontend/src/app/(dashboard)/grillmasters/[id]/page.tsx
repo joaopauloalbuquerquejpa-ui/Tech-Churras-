@@ -32,6 +32,7 @@ interface Review {
   id: string
   grillRating: number
   grillComment?: string
+  photos?: string[]
   createdAt: string
   customer: { name: string }
 }
@@ -256,6 +257,15 @@ export default function GrillmasterProfilePage() {
                 </div>
                 {r.grillComment && (
                   <p className="text-sm text-gray-400 mt-1">{r.grillComment}</p>
+                )}
+                {r.photos && r.photos.length > 0 && (
+                  <div className="flex gap-2 mt-2 flex-wrap">
+                    {r.photos.map((url, i) => (
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                        <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover hover:opacity-80 transition-opacity" />
+                      </a>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}

@@ -92,6 +92,7 @@ interface OrderDetail {
   cancellationReason?: string | null
   cancellationFee?: number | null
   refundAmount?: number | null
+  publicShareToken?: string | null
 }
 
 function getAuth() {
@@ -128,6 +129,8 @@ export default function OrderDetailPage() {
   const [cancelReason, setCancelReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null)
+  const [shareLoading, setShareLoading] = useState(false)
+  const [shareToast, setShareToast] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const authRef = useRef<ReturnType<typeof getAuth>>({ token: null, user: null })
 
@@ -308,6 +311,27 @@ export default function OrderDetailPage() {
       }
     } finally {
       setCancelling(false)
+    }
+  }
+
+  async function handleShare() {
+    if (!order || shareLoading) return
+    setShareLoading(true)
+    try {
+      const { token } = authRef.current
+      const res = await fetch(`${BASE}/orders/${id}/share`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + token },
+      })
+      if (res.ok) {
+        const { token: shareToken } = await res.json()
+        const url = `https://www.techchurras.com.br/acompanhar/${shareToken}`
+        await navigator.clipboard.writeText(url)
+        setShareToast('Link copiado!')
+        setTimeout(() => setShareToast(''), 3000)
+      }
+    } finally {
+      setShareLoading(false)
     }
   }
 
@@ -626,6 +650,26 @@ export default function OrderDetailPage() {
           &#9733; Avaliar churrasqueiro
         </Link>
       )}
+
+      {/* Share button */}
+      <div className="mb-4 relative">
+        <button
+          onClick={handleShare}
+          disabled={shareLoading}
+          className="w-full border border-gray-700 hover:border-gray-500 text-gray-300 hover:text-white font-medium py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" />
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" /><line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+          </svg>
+          {shareLoading ? 'Gerando link...' : 'Compartilhar pedido'}
+        </button>
+        {shareToast && (
+          <div className="absolute top-full mt-1 left-1/2 -translate-x-1/2 bg-green-600 text-white text-xs px-4 py-2 rounded-lg whitespace-nowrap shadow-lg z-10">
+            {shareToast}
+          </div>
+        )}
+      </div>
 
       {/* Cancel button */}
       {canCancel && (

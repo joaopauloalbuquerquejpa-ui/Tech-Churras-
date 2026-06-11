@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma'
 import { z } from 'zod'
+import crypto from 'crypto'
 import { validateCoupon } from '../coupons/coupons.service'
 import { sendPushToUser } from '../push/push.service'
 
@@ -191,6 +192,16 @@ export async function updateOrderStatus(id: string, status: string) {
     prisma.grillmaster.findUnique({ where: { id: updated.grillmasterId } }).then(gm => {
       if (gm) sendPushToUser(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch(() => {})
     }).catch(() => {})
+
+    if (updated.paymentStatus === 'PAID') {
+      const pts = Math.floor(updated.totalPrice / 10)
+      if (pts > 0) {
+        prisma.user.update({
+          where: { id: updated.customerId },
+          data: { points: { increment: pts } },
+        }).catch(() => {})
+      }
+    }
   }
   if (status === 'CONFIRMED' && updated.customer.phone) {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
@@ -258,6 +269,17 @@ export async function updateOrderLocation(id: string, lat: number, lng: number, 
     data: { grillmasterLat: lat, grillmasterLng: lng, grillmasterLastUpdate: new Date() },
     select: { id: true, grillmasterLat: true, grillmasterLng: true, grillmasterLastUpdate: true },
   })
+}
+
+export async function generateShareToken(id: string, userId: string, role: string) {
+  let whereClause: Record<string, any> = { id, customerId: userId }
+  if (role === 'ADMIN') whereClause = { id }
+  const order = await prisma.order.findFirst({ where: whereClause })
+  if (!order) throw new Error('Pedido nao encontrado')
+  if (order.publicShareToken) return { token: order.publicShareToken }
+  const token = crypto.randomBytes(12).toString('hex')
+  await prisma.order.update({ where: { id }, data: { publicShareToken: token } })
+  return { token }
 }
 
 export async function getRepeatData(id: string, userId: string, role: string) {

@@ -2,6 +2,7 @@
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import cookie from '@fastify/cookie'
+import multipart from '@fastify/multipart'
 import dotenv from 'dotenv'
 import { authRoutes } from './modules/auth/auth.routes'
 import { grillmastersRoutes } from './modules/grillmasters/grillmasters.routes'
@@ -16,12 +17,16 @@ import { couponsRoutes } from './modules/coupons/coupons.routes'
 import { messagesRoutes } from './modules/messages/messages.routes'
 import { pushRoutes } from './modules/push/push.routes'
 import { addressesRoutes } from './modules/addresses/addresses.routes'
+import { cronRoutes } from './modules/cron/cron.routes'
+import { pointsRoutes } from './modules/points/points.routes'
+import { publicRoutes } from './modules/public/public.routes'
 
 dotenv.config()
 
 const app = Fastify({ logger: true })
 
 // Plugins
+app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } })
 app.register(cors, {
   origin: true,
   credentials: true,
@@ -47,6 +52,9 @@ app.register(couponsRoutes)
 app.register(messagesRoutes)
 app.register(pushRoutes)
 app.register(addressesRoutes)
+app.register(cronRoutes)
+app.register(pointsRoutes)
+app.register(publicRoutes)
 
 // Health check
 app.get('/health', async () => {

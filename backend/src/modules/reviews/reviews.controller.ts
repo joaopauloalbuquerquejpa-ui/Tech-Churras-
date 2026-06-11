@@ -4,8 +4,8 @@ import { createReview, listGrillmasterReviews, listBoutiqueReviews, createCustom
 export async function createReviewHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const customerId = (req.user as any).id
-    const { orderId, grillRating, boutiqueRating, grillComment, boutiqueComment } = req.body as any
-    const review = await createReview({ orderId, customerId, grillRating, boutiqueRating, grillComment, boutiqueComment })
+    const { orderId, grillRating, boutiqueRating, grillComment, boutiqueComment, photos } = req.body as any
+    const review = await createReview({ orderId, customerId, grillRating, boutiqueRating, grillComment, boutiqueComment, photos })
     return reply.status(201).send(review)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })

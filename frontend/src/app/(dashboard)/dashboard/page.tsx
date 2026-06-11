@@ -76,6 +76,7 @@ export default function DashboardPage() {
   const { user } = useAuthStore()
   const [rawStats, setRawStats] = useState({ orders: 0, grillmasters: 0, boutiques: 0 })
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
+  const [points, setPoints] = useState<number | null>(null)
   const statsRef = useRef<HTMLDivElement>(null)
   const statsVisible = useInView(statsRef)
   const ordersRef = useRef<HTMLDivElement>(null)
@@ -114,6 +115,10 @@ export default function DashboardPage() {
         const arr = Array.isArray(d) ? d : d.boutiques ?? []
         setRawStats(prev => ({ ...prev, boutiques: arr.length }))
       })
+      .catch(() => {})
+    fetch(BASE + '/points/balance', { headers: h })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setPoints(d.points) })
       .catch(() => {})
   }, [])
 
@@ -202,6 +207,27 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* ── Pontos ── */}
+      {points !== null && (
+        <Link
+          href="/perfil/pontos"
+          className="block bg-gray-900 border border-orange-500/20 hover:border-orange-500/40 rounded-xl p-5 mb-8 transition-all hover:-translate-y-0.5"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Seus Pontos</p>
+              <p className="text-2xl font-bold text-orange-400">{points} pts</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {points >= 100
+                  ? `Resgate R$ ${Math.floor(points / 100) * 10},00 em desconto`
+                  : `Faltam ${100 - (points % 100)} pts para o proximo resgate`}
+              </p>
+            </div>
+            <div className="text-3xl">🏆</div>
+          </div>
+        </Link>
+      )}
 
       {/* ── Pedidos recentes ── */}
       {recentOrders.length > 0 && (

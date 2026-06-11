@@ -8,6 +8,7 @@ import {
   updateLocationHandler,
   getRepeatDataHandler,
   cancelOrderHandler,
+  shareOrderHandler,
 } from './orders.controller'
 
 export async function ordersRoutes(app: FastifyInstance) {
@@ -19,4 +20,5 @@ export async function ordersRoutes(app: FastifyInstance) {
   app.patch('/orders/:id/location', { preHandler: [app.authenticate] }, updateLocationHandler)
   app.patch('/orders/:id/cancel', { preHandler: [app.authenticate] }, cancelOrderHandler)
   app.get('/orders/:id/repeat-data', { preHandler: [app.authenticate] }, getRepeatDataHandler)
+  app.post('/orders/:id/share', { preHandler: [app.authenticate] }, shareOrderHandler)
 }
