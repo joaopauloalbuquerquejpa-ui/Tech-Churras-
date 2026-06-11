@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 
 const geistSans = Geist({
@@ -13,6 +14,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
+  manifest: '/manifest.json',
   metadataBase: new URL('https://www.techchurras.com.br'),
   title: {
     default: 'Tech Churras — O Churrasqueiro dos Famosos',
@@ -44,8 +46,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='pt-BR'>
+      <head>
+        <meta name="theme-color" content="#f97316" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="TechChurras" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} h-full`}>
         {children}
+        <Script id="sw-register" strategy="afterInteractive">
+          {`if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function(){}); }`}
+        </Script>
       </body>
     </html>
   )

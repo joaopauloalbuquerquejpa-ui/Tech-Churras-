@@ -6,6 +6,25 @@ import { useCartStore } from '@/store/cart'
 import { useFavoritesStore } from '@/store/favorites'
 import Link from 'next/link'
 import NotificationBell from '@/components/NotificationBell'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
+
+function PushBanner() {
+  const { permission, subscribed, supported, subscribe } = usePushNotifications()
+  if (!supported || permission === 'denied' || permission === 'granted' || subscribed) return null
+  return (
+    <div className="bg-orange-500/10 border-b border-orange-500/20 px-6 py-2.5 flex items-center justify-between gap-4">
+      <p className="text-sm text-orange-200">
+        Receba atualizacoes dos seus pedidos em tempo real.
+      </p>
+      <button
+        onClick={subscribe}
+        className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+      >
+        Ativar notificacoes
+      </button>
+    </div>
+  )
+}
 
 function CartIcon({ count }: { count: number }) {
   return (
@@ -61,6 +80,7 @@ export default function DashboardLayout({
 
   return (
     <div className='min-h-screen bg-gray-950 text-white'>
+      <PushBanner />
       <nav className='bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between'>
         <div className='flex items-center gap-6'>
           <h1 className='text-xl font-bold text-orange-500'>Tech Churras</h1>

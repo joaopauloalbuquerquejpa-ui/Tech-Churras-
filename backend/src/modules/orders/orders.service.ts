@@ -1,6 +1,7 @@
 import { prisma } from '../../config/prisma'
 import { z } from 'zod'
 import { validateCoupon } from '../coupons/coupons.service'
+import { sendPushToUser } from '../push/push.service'
 
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
@@ -149,7 +150,16 @@ export async function updateOrderStatusDetail(id: string, statusDetail: string, 
     }
   }
   if (!authorized) throw new Error('Nao autorizado')
-  return prisma.order.update({ where: { id }, data: { statusDetail } })
+  const updated = await prisma.order.update({ where: { id }, data: { statusDetail } })
+  if (statusDetail === 'Churrasqueiro a caminho') {
+    sendPushToUser(
+      updated.customerId,
+      'Churrasqueiro a caminho!',
+      'Seu churrasqueiro esta se deslocando ao local do evento.',
+      `/orders/${id}`
+    ).catch(() => {})
+  }
+  return updated
 }
 
 export async function updateOrderStatus(id: string, status: string) {
@@ -169,6 +179,19 @@ export async function updateOrderStatus(id: string, status: string) {
       grillmaster: { include: { user: { select: { name: true } } } },
     },
   })
+  if (status === 'CONFIRMED') {
+    sendPushToUser(
+      updated.customerId,
+      'Pedido confirmado!',
+      `Seu churrasco foi confirmado para ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updated.eventDate)}.`,
+      `/orders/${updated.id}`
+    ).catch(() => {})
+  }
+  if (status === 'COMPLETED' && updated.grillmasterId) {
+    prisma.grillmaster.findUnique({ where: { id: updated.grillmasterId } }).then(gm => {
+      if (gm) sendPushToUser(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch(() => {})
+    }).catch(() => {})
+  }
   if (status === 'CONFIRMED' && updated.customer.phone) {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
     sendWhatsAppConfirmation(

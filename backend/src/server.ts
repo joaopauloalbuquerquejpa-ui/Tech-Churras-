@@ -14,6 +14,7 @@ import { reviewsRoutes } from './modules/reviews/reviews.routes'
 import { favoritesRoutes } from './modules/favorites/favorites.routes'
 import { couponsRoutes } from './modules/coupons/coupons.routes'
 import { messagesRoutes } from './modules/messages/messages.routes'
+import { pushRoutes } from './modules/push/push.routes'
 
 dotenv.config()
 
@@ -43,6 +44,7 @@ app.register(reviewsRoutes)
 app.register(favoritesRoutes)
 app.register(couponsRoutes)
 app.register(messagesRoutes)
+app.register(pushRoutes)
 
 // Health check
 app.get('/health', async () => {

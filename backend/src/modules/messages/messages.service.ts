@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma'
+import { sendPushToUser } from '../push/push.service'
 
 export async function getMessages(orderId: string, userId: string) {
   const order = await prisma.order.findFirst({
@@ -29,10 +30,22 @@ export async function sendMessage(orderId: string, senderId: string, content: st
     },
   })
   if (!order) throw new Error('Pedido nao encontrado ou acesso negado')
-  return (prisma as any).message.create({
+  const msg = await (prisma as any).message.create({
     data: { orderId, senderId, content },
     include: { sender: { select: { id: true, name: true, role: true } } },
   })
+  // Notify recipient
+  const recipientId = order.customerId === senderId
+    ? null // need grillmaster userId
+    : order.customerId
+  if (recipientId) {
+    sendPushToUser(recipientId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch(() => {})
+  } else if (order.grillmasterId) {
+    prisma.grillmaster.findUnique({ where: { id: order.grillmasterId } }).then(gm => {
+      if (gm) sendPushToUser(gm.userId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch(() => {})
+    }).catch(() => {})
+  }
+  return msg
 }
 
 export async function markMessagesRead(orderId: string, userId: string) {
