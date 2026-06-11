@@ -158,6 +158,10 @@ model Order {
   grillmasterLat        Float?
   grillmasterLng        Float?
   grillmasterLastUpdate DateTime?
+  cancelledBy           String?
+  cancellationReason    String?
+  cancellationFee       Float?
+  refundAmount          Float?
   notes                 String?
   paymentId      String?
   paymentStatus  String?

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { register } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
 
@@ -11,11 +12,16 @@ export default function RegisterPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!acceptedTerms) {
+      setError('Voce precisa aceitar os Termos de Uso e a Politica de Privacidade para continuar.')
+      return
+    }
     setLoading(true)
     setError('')
     try {
@@ -76,10 +82,30 @@ export default function RegisterPage() {
               required
             />
           </div>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={acceptedTerms}
+              onChange={e => setAcceptedTerms(e.target.checked)}
+              className="mt-0.5 w-4 h-4 accent-orange-500 shrink-0"
+            />
+            <span className="text-gray-400 text-sm leading-relaxed">
+              Li e aceito os{' '}
+              <Link href="/termos-de-uso" target="_blank" className="text-orange-400 hover:underline">
+                Termos de Uso
+              </Link>{' '}
+              e a{' '}
+              <Link href="/politica-de-privacidade" target="_blank" className="text-orange-400 hover:underline">
+                Politica de Privacidade
+              </Link>{' '}
+              da Tech Churras.
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition disabled:opacity-50"
+            disabled={loading || !acceptedTerms}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Criando conta...' : 'Criar conta'}
           </button>

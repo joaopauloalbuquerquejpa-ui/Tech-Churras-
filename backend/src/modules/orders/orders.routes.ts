@@ -7,6 +7,7 @@ import {
   updateStatusDetailHandler,
   updateLocationHandler,
   getRepeatDataHandler,
+  cancelOrderHandler,
 } from './orders.controller'
 
 export async function ordersRoutes(app: FastifyInstance) {
@@ -16,5 +17,6 @@ export async function ordersRoutes(app: FastifyInstance) {
   app.patch('/orders/:id/status', { preHandler: [app.authenticate] }, updateOrderStatusHandler)
   app.patch('/orders/:id/status-detail', { preHandler: [app.authenticate] }, updateStatusDetailHandler)
   app.patch('/orders/:id/location', { preHandler: [app.authenticate] }, updateLocationHandler)
+  app.patch('/orders/:id/cancel', { preHandler: [app.authenticate] }, cancelOrderHandler)
   app.get('/orders/:id/repeat-data', { preHandler: [app.authenticate] }, getRepeatDataHandler)
 }

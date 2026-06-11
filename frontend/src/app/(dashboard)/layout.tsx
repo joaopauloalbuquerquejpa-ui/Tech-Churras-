@@ -87,6 +87,13 @@ export default function DashboardLayout({
         </div>
       </nav>
       <main className='p-6'>{children}</main>
+      <footer className='border-t border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600'>
+        <span>© 2026 Tech Churras</span>
+        <div className='flex gap-5'>
+          <a href='/termos-de-uso' target='_blank' className='hover:text-gray-400 transition-colors'>Termos de Uso</a>
+          <a href='/politica-de-privacidade' target='_blank' className='hover:text-gray-400 transition-colors'>Politica de Privacidade</a>
+        </div>
+      </footer>
     </div>
   )
 }

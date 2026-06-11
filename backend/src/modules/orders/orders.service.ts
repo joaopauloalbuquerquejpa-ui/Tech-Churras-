@@ -182,6 +182,49 @@ export async function updateOrderStatus(id: string, status: string) {
   return updated
 }
 
+export async function cancelOrder(id: string, userId: string, role: string, reason: string) {
+  let whereClause: Record<string, any>
+  if (role === 'ADMIN') {
+    whereClause = { id }
+  } else if (role === 'GRILLMASTER') {
+    const gm = await prisma.grillmaster.findUnique({ where: { userId } })
+    if (!gm) throw new Error('Churrasqueiro nao encontrado')
+    whereClause = { id, grillmasterId: gm.id }
+  } else {
+    whereClause = { id, customerId: userId }
+  }
+
+  const order = await prisma.order.findFirst({ where: whereClause })
+  if (!order) throw new Error('Pedido nao encontrado')
+  if (['IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(order.status)) {
+    throw new Error('Nao e possivel cancelar um pedido em andamento, concluido ou ja cancelado')
+  }
+
+  let cancellationFee = 0
+  if (order.status === 'CONFIRMED') {
+    const hoursUntil = (order.eventDate.getTime() - Date.now()) / (1000 * 60 * 60)
+    if (hoursUntil < 24) {
+      cancellationFee = order.totalPrice * 0.5
+    } else if (hoursUntil < 48) {
+      cancellationFee = order.totalPrice * 0.3
+    }
+  }
+
+  const refundAmount = order.paymentStatus === 'PAID' ? order.totalPrice - cancellationFee : null
+  const cancelledBy = role === 'ADMIN' ? 'ADMIN' : role === 'GRILLMASTER' ? 'GRILLMASTER' : 'CUSTOMER'
+
+  return prisma.order.update({
+    where: { id },
+    data: {
+      status: 'CANCELLED',
+      cancelledBy,
+      cancellationReason: reason || null,
+      cancellationFee: cancellationFee > 0 ? cancellationFee : null,
+      refundAmount: refundAmount !== null ? refundAmount : undefined,
+    },
+  })
+}
+
 export async function updateOrderLocation(id: string, lat: number, lng: number, userId: string) {
   const gm = await prisma.grillmaster.findUnique({ where: { userId } })
   if (!gm) throw new Error('Nao autorizado')

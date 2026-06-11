@@ -88,6 +88,10 @@ interface OrderDetail {
   customer?: { id: string; name: string; averageRating?: number | null }
   grillmasterLat?: number | null
   grillmasterLng?: number | null
+  cancelledBy?: string | null
+  cancellationReason?: string | null
+  cancellationFee?: number | null
+  refundAmount?: number | null
 }
 
 function getAuth() {
@@ -120,6 +124,9 @@ export default function OrderDetailPage() {
   const [msgInput, setMsgInput] = useState('')
   const [sending, setSending] = useState(false)
   const [advancing, setAdvancing] = useState(false)
+  const [cancelModalOpen, setCancelModalOpen] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelling, setCancelling] = useState(false)
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const authRef = useRef<ReturnType<typeof getAuth>>({ token: null, user: null })
@@ -261,6 +268,49 @@ export default function OrderDetailPage() {
     }
   }
 
+  function computeFeePreview(o: OrderDetail): { fee: number; label: string; isFree: boolean } {
+    if (o.status === 'PENDING') return { fee: 0, label: 'Cancelamento gratuito (pedido ainda nao confirmado).', isFree: true }
+    if (o.status !== 'CONFIRMED') return { fee: 0, label: '', isFree: true }
+    const hours = (new Date(o.eventDate).getTime() - Date.now()) / (1000 * 60 * 60)
+    if (hours < 24) {
+      const fee = o.totalPrice * 0.5
+      return { fee, label: `Faltam menos de 24h para o evento. Multa de 50% = R$ ${fee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`, isFree: false }
+    }
+    if (hours < 48) {
+      const fee = o.totalPrice * 0.3
+      return { fee, label: `Faltam entre 24h e 48h para o evento. Multa de 30% = R$ ${fee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`, isFree: false }
+    }
+    return { fee: 0, label: 'Faltam mais de 48h para o evento. Cancelamento gratuito.', isFree: true }
+  }
+
+  async function handleCancel() {
+    if (!order || cancelling) return
+    setCancelling(true)
+    const { token } = authRef.current
+    try {
+      const res = await fetch(`${BASE}/orders/${id}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ reason: cancelReason }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setOrder(prev => prev ? {
+          ...prev,
+          status: updated.status,
+          cancelledBy: updated.cancelledBy,
+          cancellationReason: updated.cancellationReason,
+          cancellationFee: updated.cancellationFee,
+          refundAmount: updated.refundAmount,
+        } : prev)
+        setCancelModalOpen(false)
+        setCancelReason('')
+      }
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   if (loading) return <p className="text-gray-400 p-6">Carregando...</p>
   if (!order) return <p className="text-gray-400 p-6">Pedido nao encontrado.</p>
 
@@ -268,6 +318,8 @@ export default function OrderDetailPage() {
   const isGrillmaster = user?.role === 'GRILLMASTER'
   const isOrderGrillmaster = isGrillmaster && order.grillmaster?.user?.id === user?.id
   const nextAction = isOrderGrillmaster ? getNextAction(order.status, order.statusDetail) : null
+  const canCancel = ['PENDING', 'CONFIRMED'].includes(order.status)
+  const feePreview = canCancel ? computeFeePreview(order) : null
 
   const gmCost = order.grillmaster?.pricePerHour
     ? order.grillmaster.pricePerHour * order.eventHours
@@ -334,6 +386,35 @@ export default function OrderDetailPage() {
                   ? 'Avançar: ' + nextAction.value
                   : NEXT_MAIN_LABEL[nextAction.value] ?? 'Avançar'}
             </button>
+          )}
+        </div>
+      )}
+
+      {/* Cancellation info */}
+      {order.status === 'CANCELLED' && (
+        <div className="bg-red-950/40 rounded-2xl p-5 mb-5 border border-red-800/50">
+          <p className="text-xs text-red-400 uppercase tracking-wide mb-2 font-semibold">Pedido Cancelado</p>
+          {order.cancelledBy && (
+            <p className="text-sm text-gray-300 mb-1">
+              Cancelado por: <span className="text-white font-medium">
+                {order.cancelledBy === 'CUSTOMER' ? 'Cliente' : order.cancelledBy === 'GRILLMASTER' ? 'Churrasqueiro' : 'Administracao'}
+              </span>
+            </p>
+          )}
+          {order.cancellationReason && (
+            <p className="text-sm text-gray-300 mb-1">
+              Motivo: <span className="text-gray-200">{order.cancellationReason}</span>
+            </p>
+          )}
+          {order.cancellationFee != null && order.cancellationFee > 0 && (
+            <p className="text-sm text-red-400 mt-2 font-semibold">
+              Multa: R$ {order.cancellationFee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+          )}
+          {order.refundAmount != null && (
+            <p className="text-sm text-green-400">
+              Reembolso: R$ {order.refundAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
           )}
         </div>
       )}
@@ -540,10 +621,67 @@ export default function OrderDetailPage() {
       {!isGrillmaster && order.status === 'COMPLETED' && !order.review?.id && (
         <Link
           href={`/orders/${id}/review`}
-          className="block text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition-colors"
+          className="block text-center bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl transition-colors mb-4"
         >
           &#9733; Avaliar churrasqueiro
         </Link>
+      )}
+
+      {/* Cancel button */}
+      {canCancel && (
+        <button
+          onClick={() => setCancelModalOpen(true)}
+          className="w-full border border-red-800/60 hover:border-red-600 text-red-400 hover:text-red-300 font-medium py-2.5 rounded-xl text-sm transition-colors"
+        >
+          Cancelar pedido
+        </button>
+      )}
+
+      {/* Cancel modal */}
+      {cancelModalOpen && feePreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+          <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md border border-gray-700 shadow-2xl">
+            <h2 className="text-lg font-bold mb-1">Cancelar pedido</h2>
+            <p className="text-xs text-gray-500 mb-4">#{order.id.slice(0, 8)}</p>
+
+            <div className={[
+              'rounded-xl p-4 mb-5 text-sm',
+              feePreview.isFree
+                ? 'bg-green-500/10 border border-green-500/30 text-green-300'
+                : 'bg-red-500/10 border border-red-500/30 text-red-300',
+            ].join(' ')}>
+              {feePreview.label}
+            </div>
+
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">
+              Motivo do cancelamento (opcional)
+            </label>
+            <textarea
+              value={cancelReason}
+              onChange={e => setCancelReason(e.target.value)}
+              placeholder="Descreva o motivo..."
+              rows={3}
+              className="w-full bg-gray-800 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-red-500 resize-none mb-5"
+            />
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleCancel}
+                disabled={cancelling}
+                className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl text-sm transition-colors"
+              >
+                {cancelling ? 'Cancelando...' : 'Confirmar cancelamento'}
+              </button>
+              <button
+                onClick={() => { setCancelModalOpen(false); setCancelReason('') }}
+                disabled={cancelling}
+                className="px-5 py-3 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 text-sm transition-colors"
+              >
+                Voltar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

@@ -1,5 +1,5 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
-import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData } from './orders.service'
+import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder } from './orders.service'
 
 export async function createOrderHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -65,6 +65,19 @@ export async function updateLocationHandler(req: FastifyRequest, reply: FastifyR
     const { lat, lng } = req.body as { lat: number; lng: number }
     const result = await updateOrderLocation(id, lat, lng, userId)
     return reply.send(result)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function cancelOrderHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const role = (req.user as any).role ?? 'CUSTOMER'
+    const { id } = req.params as { id: string }
+    const { reason } = (req.body as any) ?? {}
+    const order = await cancelOrder(id, userId, role, reason ?? '')
+    return reply.send(order)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }
