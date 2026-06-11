@@ -237,6 +237,21 @@ model PushSubscription {
   createdAt DateTime @default(now())
 }
 
+model Address {
+  id           String   @id @default(cuid())
+  userId       String
+  label        String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String
+  isDefault    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+}
+
 model Message {
   id        String   @id @default(cuid())
   orderId   String

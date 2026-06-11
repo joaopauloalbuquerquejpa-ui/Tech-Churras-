@@ -172,6 +172,12 @@ function GuidedOrderForm() {
   const [homens, setHomens] = useState(5)
   const [mulheres, setMulheres] = useState(3)
   const [criancas, setCriancas] = useState(2)
+  const [savedAddresses, setSavedAddresses] = useState<{
+    id: string; label: string; street: string; number: string
+    complement?: string; neighborhood: string; city: string; state: string; zipCode: string; isDefault: boolean
+  }[]>([])
+  const [saveNewAddress, setSaveNewAddress] = useState(false)
+  const [newAddressLabel, setNewAddressLabel] = useState('Casa')
 
   // Step 3
   const [selectedBoutiqueId, setSelectedBoutiqueId] = useState('')
@@ -230,6 +236,10 @@ function GuidedOrderForm() {
       .then(r => r.json())
       .then(d => setBoutiques(Array.isArray(d) ? d : d.boutiques ?? []))
       .catch(() => {})
+    fetch(BASE + '/addresses', { headers: h })
+      .then(r => r.json())
+      .then(d => { if (Array.isArray(d)) setSavedAddresses(d) })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -275,6 +285,39 @@ function GuidedOrderForm() {
           .filter(Boolean)
           .join(', ')
       )
+    } catch {}
+  }
+
+  function applyAddress(id: string) {
+    if (id === '') return
+    const addr = savedAddresses.find(a => a.id === id)
+    if (!addr) return
+    const parts = [addr.street + ', ' + addr.number]
+    if (addr.complement) parts[0] += ', ' + addr.complement
+    if (addr.neighborhood) parts.push(addr.neighborhood)
+    parts.push(addr.city + ' - ' + addr.state)
+    setEventAddress(parts.join(', '))
+    setEventCep(addr.zipCode)
+  }
+
+  async function maybeSaveAddress() {
+    if (!saveNewAddress || !eventAddress.trim() || !newAddressLabel.trim()) return
+    try {
+      const parts = eventAddress.split(',').map(s => s.trim())
+      await fetch(BASE + '/addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify({
+          label: newAddressLabel,
+          street: parts[0] || eventAddress,
+          number: parts[1] || 's/n',
+          complement: parts[2] || '',
+          neighborhood: parts[3] || '',
+          city: parts[4]?.split('-')[0]?.trim() || '',
+          state: parts[4]?.split('-')[1]?.trim() || '',
+          zipCode: eventCep,
+        }),
+      })
     } catch {}
   }
 
@@ -390,6 +433,7 @@ function GuidedOrderForm() {
 
   async function handleSubmit() {
     setSubmitting(true)
+    await maybeSaveAddress()
     try {
       const orderItems = boutiqueProducts
         .filter(p => (selectedQty[p.id] || 0) > 0)
@@ -577,6 +621,25 @@ function GuidedOrderForm() {
               </div>
             </div>
 
+            {savedAddresses.length > 0 && (
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Usar endereço salvo</label>
+                <select
+                  defaultValue=""
+                  onChange={e => applyAddress(e.target.value)}
+                  className="w-full bg-gray-800 rounded-xl px-4 py-3 text-white text-sm"
+                >
+                  <option value="">— Novo endereço —</option>
+                  {savedAddresses.map(a => (
+                    <option key={a.id} value={a.id}>
+                      {a.label} — {a.street}, {a.number}, {a.city}
+                      {a.isDefault ? ' (Padrão)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div>
               <label className="text-sm text-gray-400 mb-1 block">
                 CEP (auto-preenche o endereço)
@@ -605,6 +668,28 @@ function GuidedOrderForm() {
                 className="w-full bg-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-500"
               />
             </div>
+
+            {savedAddresses.length === 0 && (
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={saveNewAddress}
+                    onChange={e => setSaveNewAddress(e.target.checked)}
+                    className="w-4 h-4 accent-orange-500"
+                  />
+                  <span className="text-sm text-gray-400">Salvar este endereço para próximas vezes</span>
+                </label>
+                {saveNewAddress && (
+                  <input
+                    value={newAddressLabel}
+                    onChange={e => setNewAddressLabel(e.target.value)}
+                    placeholder="Rótulo: Casa, Trabalho, Sítio..."
+                    className="w-full bg-gray-800 rounded-xl px-4 py-2.5 text-white placeholder-gray-500 text-sm"
+                  />
+                )}
+              </div>
+            )}
 
             <div>
               <div className="flex items-center justify-between mb-2">

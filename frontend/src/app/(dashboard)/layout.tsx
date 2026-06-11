@@ -73,6 +73,8 @@ export default function DashboardLayout({
     { href: '/boutiques', label: 'Acougues' },
     { href: '/orders', label: 'Pedidos' },
     { href: '/favoritos', label: 'Favoritos' },
+    { href: '/perfil/enderecos', label: 'Enderecos' },
+    { href: '/ajuda', label: 'Ajuda' },
     ...(user?.role === 'GRILLMASTER' ? [{ href: '/grillmasters/dashboard', label: 'Meu Dashboard' }] : []),
     { href: '/admin', label: 'Admin' },
     { href: '/founder', label: 'Fundador' },
@@ -110,6 +112,7 @@ export default function DashboardLayout({
       <footer className='border-t border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600'>
         <span>© 2026 Tech Churras</span>
         <div className='flex gap-5'>
+          <a href='/ajuda' className='hover:text-gray-400 transition-colors'>Ajuda</a>
           <a href='/termos-de-uso' target='_blank' className='hover:text-gray-400 transition-colors'>Termos de Uso</a>
           <a href='/politica-de-privacidade' target='_blank' className='hover:text-gray-400 transition-colors'>Politica de Privacidade</a>
         </div>
