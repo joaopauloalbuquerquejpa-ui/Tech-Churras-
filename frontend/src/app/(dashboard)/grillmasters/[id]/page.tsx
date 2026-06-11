@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useFavoritesStore } from '@/store/favorites'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -40,6 +41,27 @@ function Stars({ n, size = 'text-base' }: { n: number; size?: string }) {
     <span className={size + ' text-yellow-400 leading-none'}>
       {Array.from({ length: 5 }, (_, i) => i < Math.floor(n) ? '★' : '☆').join('')}
     </span>
+  )
+}
+
+function HeartButton({ id }: { id: string }) {
+  const isFavorited = useFavoritesStore((s) => s.isFavorited('GRILLMASTER', id))
+  const toggle = useFavoritesStore((s) => s.toggle)
+  return (
+    <button
+      onClick={() => toggle('GRILLMASTER', id)}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-700 hover:bg-gray-800 transition-colors text-sm"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+        fill={isFavorited ? '#f97316' : 'none'}
+        stroke={isFavorited ? '#f97316' : '#9ca3af'}
+        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+      <span className={isFavorited ? 'text-orange-400' : 'text-gray-400'}>
+        {isFavorited ? 'Favoritado' : 'Favoritar'}
+      </span>
+    </button>
   )
 }
 
@@ -137,6 +159,7 @@ export default function GrillmasterProfilePage() {
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
               <h1 className="text-2xl font-bold text-white">{name}</h1>
+              <HeartButton id={gm.id} />
               {gm.isChancelado && (
                 <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-bold px-2 py-0.5 rounded-full tracking-wide">
                   CHANCELADO

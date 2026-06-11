@@ -140,22 +140,24 @@ model Product {
 }
 
 model Order {
-  id            String      @id @default(uuid())
-  customerId    String
-  grillmasterId String?
-  boutiqueId    String?
-  status        OrderStatus @default(PENDING)
-  eventDate     DateTime
-  eventAddress  String
-  eventHours    Int         @default(4)
-  guestCount    Int
-  totalPrice    Float       @default(0)
-  notes         String?
-  paymentId     String?
-  paymentStatus String?
-  paidAt        DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id             String      @id @default(uuid())
+  customerId     String
+  grillmasterId  String?
+  boutiqueId     String?
+  status         OrderStatus @default(PENDING)
+  eventDate      DateTime
+  eventAddress   String
+  eventHours     Int         @default(4)
+  guestCount     Int
+  totalPrice     Float       @default(0)
+  couponCode     String?
+  discountAmount Float?      @default(0)
+  notes          String?
+  paymentId      String?
+  paymentStatus  String?
+  paidAt         DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 
   customer    User         @relation("CustomerOrders", fields: [customerId], references: [id])
   grillmaster Grillmaster? @relation(fields: [grillmasterId], references: [id])
@@ -190,6 +192,29 @@ model Payout {
   pixKey      String?
   notes       String?
   createdAt   DateTime  @default(now())
+}
+
+model Favorite {
+  id         String   @id @default(cuid())
+  userId     String
+  targetType String
+  targetId   String
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, targetType, targetId])
+}
+
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  discountType  String
+  discountValue Float
+  minOrderValue Float?
+  maxUses       Int?
+  usedCount     Int       @default(0)
+  validUntil    DateTime?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
 }
 
 model Review {

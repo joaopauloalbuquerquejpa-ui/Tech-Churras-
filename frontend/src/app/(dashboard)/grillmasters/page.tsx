@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useFavoritesStore } from '@/store/favorites'
 
 interface Grillmaster {
   id: string
@@ -19,6 +20,25 @@ interface Grillmaster {
     name: string
     email: string
   }
+}
+
+function HeartButton({ targetType, targetId }: { targetType: string; targetId: string }) {
+  const isFavorited = useFavoritesStore((s) => s.isFavorited(targetType, targetId))
+  const toggle = useFavoritesStore((s) => s.toggle)
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); toggle(targetType, targetId) }}
+      className="p-1.5 rounded-full hover:bg-gray-700 transition-colors shrink-0"
+      aria-label={isFavorited ? 'Remover favorito' : 'Adicionar favorito'}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+        fill={isFavorited ? '#f97316' : 'none'}
+        stroke={isFavorited ? '#f97316' : '#6b7280'}
+        strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    </button>
+  )
 }
 
 export default function GrillmastersPage() {
@@ -210,11 +230,14 @@ export default function GrillmastersPage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <Link href={'/grillmasters/' + g.id} className="font-bold text-white leading-tight hover:text-orange-400 transition-colors">
-                        {name}
-                      </Link>
-                        <span className={'text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ' + (g.available ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400')}>
-                          {g.available ? 'Disponivel' : 'Ocupado'}
-                        </span>
+                          {name}
+                        </Link>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <HeartButton targetType="GRILLMASTER" targetId={g.id} />
+                          <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (g.available ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400')}>
+                            {g.available ? 'Disponivel' : 'Ocupado'}
+                          </span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-yellow-400 text-sm">{renderStars(g.rating ?? 0)}</span>

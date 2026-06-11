@@ -1,7 +1,8 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
+import { useCartStore } from '@/store/cart'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -44,6 +45,13 @@ interface Product {
   unit: string
   category: string
   available: boolean
+}
+
+interface CouponResult {
+  valid: boolean
+  reason?: string
+  discountAmount?: number
+  coupon?: { code: string; discountType: string; discountValue: number }
 }
 
 const STEPS = ['Grillmaster', 'Seu Evento', 'Açougue', 'Carnes', 'Confirmar']
@@ -142,6 +150,8 @@ function Counter({ value, onChange }: { value: number; onChange: (v: number) => 
 function GuidedOrderForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const cart = useCartStore()
+  const cartLoaded = useRef(false)
 
   const [step, setStep] = useState(1)
   const [grillmasters, setGrillmasters] = useState<Grillmaster[]>([])
@@ -174,12 +184,40 @@ function GuidedOrderForm() {
   // Step 5
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [couponInput, setCouponInput] = useState('')
+  const [couponResult, setCouponResult] = useState<CouponResult | null>(null)
+  const [couponLoading, setCouponLoading] = useState(false)
 
+  // Load from cart on mount (one-time)
+  useEffect(() => {
+    const c = useCartStore.getState()
+    const urlGm = searchParams.get('grillmasterId')
+    if (!urlGm && c.grillmasterId) setSelectedGrillmasterId(c.grillmasterId)
+    if (c.boutiqueId) setSelectedBoutiqueId(c.boutiqueId)
+    if (Object.keys(c.selectedQty).length > 0) setSelectedQty(c.selectedQty)
+    if (c.eventData.date) {
+      setEventDate(c.eventData.date)
+      setEventTime(c.eventData.time || '12:00')
+      setEventAddress(c.eventData.address || '')
+      setEventCep(c.eventData.cep || '')
+      setEventHours(c.eventData.hours || 4)
+      setHomens(c.eventData.homens || 5)
+      setMulheres(c.eventData.mulheres || 3)
+      setCriancas(c.eventData.criancas || 2)
+      setAcompanhamentos(c.eventData.acompanhamentos || false)
+      setAcompanhamentosText(c.eventData.acompanhamentosText || '')
+    }
+    if (c.couponCode) setCouponInput(c.couponCode)
+    cartLoaded.current = true
+  }, [])
+
+  // URL param takes precedence over cart
   useEffect(() => {
     const paramId = searchParams.get('grillmasterId')
     if (paramId) setSelectedGrillmasterId(paramId)
   }, [searchParams])
 
+  // Fetch grillmasters and boutiques
   useEffect(() => {
     const h = { Authorization: 'Bearer ' + getToken() }
     fetch(BASE + '/grillmasters', { headers: h })
@@ -203,6 +241,26 @@ function GuidedOrderForm() {
       .finally(() => setProductsLoading(false))
   }, [selectedBoutiqueId])
 
+  function syncToCart() {
+    if (!cartLoaded.current) return
+    cart.setGrillmasterId(selectedGrillmasterId)
+    cart.setBoutiqueId(selectedBoutiqueId)
+    cart.setSelectedQty(selectedQty)
+    cart.setEventData({
+      date: eventDate,
+      time: eventTime,
+      address: eventAddress,
+      cep: eventCep,
+      hours: eventHours,
+      homens,
+      mulheres,
+      criancas,
+      acompanhamentos,
+      acompanhamentosText,
+    })
+    cart.setCouponCode(couponInput)
+  }
+
   async function fetchCep(cep: string) {
     if (cep.length !== 8) return
     try {
@@ -218,6 +276,55 @@ function GuidedOrderForm() {
     } catch {}
   }
 
+  async function applyCoupon() {
+    if (!couponInput.trim()) return
+    setCouponLoading(true)
+    setCouponResult(null)
+    try {
+      const res = await fetch(BASE + '/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponInput.trim(), orderValue: totalEstimate }),
+      })
+      const data = await res.json()
+      setCouponResult(data)
+      if (data.valid) cart.setCouponCode(couponInput.trim().toUpperCase())
+    } catch {
+      setCouponResult({ valid: false, reason: 'Erro ao validar cupom.' })
+    } finally {
+      setCouponLoading(false)
+    }
+  }
+
+  function clearCoupon() {
+    setCouponInput('')
+    setCouponResult(null)
+    cart.setCouponCode('')
+  }
+
+  function handleClearCart() {
+    if (!confirm('Limpar carrinho? Todas as selecoes serao perdidas.')) return
+    cart.clearCart()
+    setSelectedGrillmasterId('')
+    setSelectedBoutiqueId('')
+    setSelectedQty({})
+    setEventDate('')
+    setEventTime('12:00')
+    setEventAddress('')
+    setEventCep('')
+    setEventHours(4)
+    setHomens(5)
+    setMulheres(3)
+    setCriancas(2)
+    setAcompanhamentos(false)
+    setAcompanhamentosText('')
+    setCouponInput('')
+    setCouponResult(null)
+    setTermsAccepted(false)
+    setStep(1)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const insumos = calculateInsumos(homens, mulheres, criancas)
   const selectedGm = grillmasters.find(g => g.id === selectedGrillmasterId)
   const selectedBoutique = boutiques.find(b => b.id === selectedBoutiqueId)
@@ -228,6 +335,8 @@ function GuidedOrderForm() {
   }, 0)
 
   const totalEstimate = grillmasterCost + productsCost
+  const discountAmount = couponResult?.valid ? (couponResult.discountAmount ?? 0) : 0
+  const totalWithDiscount = Math.max(0, totalEstimate - discountAmount)
 
   const filteredGrillmasters = grillmasters.filter(
     g => !citySearch || g.city.toLowerCase().includes(citySearch.toLowerCase())
@@ -254,11 +363,13 @@ function GuidedOrderForm() {
   function nextStep() {
     if (!validate()) return
     if (step === 5) { handleSubmit(); return }
+    syncToCart()
     setStep(s => s + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   function prevStep() {
+    syncToCart()
     setStep(s => s - 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -282,22 +393,26 @@ function GuidedOrderForm() {
         .filter(p => (selectedQty[p.id] || 0) > 0)
         .map(p => ({ productId: p.id, quantity: selectedQty[p.id] }))
 
+      const body: Record<string, unknown> = {
+        grillmasterId: selectedGrillmasterId,
+        boutiqueId: selectedBoutiqueId || undefined,
+        eventDate: new Date(eventDate + 'T' + (eventTime || '12:00')).toISOString(),
+        eventAddress,
+        eventHours,
+        guestCount: insumos.totalPessoas || 1,
+        notes: buildNotes(),
+        items: orderItems.length > 0 ? orderItems : undefined,
+      }
+      if (couponResult?.valid && couponInput) body.couponCode = couponInput.trim().toUpperCase()
+
       const res = await fetch(BASE + '/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
-        body: JSON.stringify({
-          grillmasterId: selectedGrillmasterId,
-          boutiqueId: selectedBoutiqueId || undefined,
-          eventDate: new Date(eventDate + 'T' + (eventTime || '12:00')).toISOString(),
-          eventAddress,
-          eventHours,
-          guestCount: insumos.totalPessoas || 1,
-          notes: buildNotes(),
-          items: orderItems.length > 0 ? orderItems : undefined,
-        }),
+        body: JSON.stringify(body),
       })
       if (res.ok) {
         const order = await res.json()
+        cart.clearCart()
         router.push('/orders/' + order.id + '/payment')
       } else {
         const err = await res.json()
@@ -810,9 +925,17 @@ function GuidedOrderForm() {
       {/* ── STEP 5: CONFIRMAR ── */}
       {step === 5 && (
         <div className="space-y-4">
-          <div>
-            <h2 className="text-lg font-bold mb-1">Confirme seu Pedido</h2>
-            <p className="text-sm text-gray-500">Revise os detalhes antes de finalizar</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-bold mb-1">Confirme seu Pedido</h2>
+              <p className="text-sm text-gray-500">Revise os detalhes antes de finalizar</p>
+            </div>
+            <button
+              onClick={handleClearCart}
+              className="text-xs text-gray-500 hover:text-red-400 border border-gray-700 hover:border-red-500/40 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Limpar carrinho
+            </button>
           </div>
 
           <div className="space-y-3">
@@ -925,6 +1048,51 @@ function GuidedOrderForm() {
               </div>
             )}
 
+            {/* Cupom */}
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+              <p className="text-xs text-gray-500 mb-3 font-medium uppercase tracking-wide">
+                Cupom de Desconto
+              </p>
+              {couponResult?.valid ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-sm font-bold text-orange-400">{couponResult.coupon?.code ?? couponInput.toUpperCase()}</span>
+                    <span className="text-xs text-green-400">
+                      — {couponResult.coupon?.discountType === 'PERCENT'
+                        ? `${couponResult.coupon.discountValue}% de desconto`
+                        : `R$ ${couponResult.coupon?.discountValue?.toFixed(2)} de desconto`}
+                    </span>
+                  </div>
+                  <button onClick={clearCoupon} className="text-xs text-gray-500 hover:text-red-400 transition-colors">
+                    Remover
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponResult(null) }}
+                      placeholder="BEMVINDO10"
+                      className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 font-mono uppercase"
+                    />
+                    <button
+                      onClick={applyCoupon}
+                      disabled={couponLoading || !couponInput.trim()}
+                      className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                    >
+                      {couponLoading ? '...' : 'Aplicar'}
+                    </button>
+                  </div>
+                  {couponResult && !couponResult.valid && (
+                    <p className="text-xs text-red-400">{couponResult.reason}</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Total */}
             <div className="bg-gray-900 border border-orange-500/20 rounded-2xl p-5">
               <div className="space-y-2 mb-4 text-sm">
                 <div className="flex justify-between text-gray-400">
@@ -940,11 +1108,22 @@ function GuidedOrderForm() {
                     <span>R$ {productsCost.toFixed(2)}</span>
                   </div>
                 )}
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-400">
+                    <span>Desconto ({couponResult?.coupon?.code ?? couponInput.toUpperCase()})</span>
+                    <span>− R$ {discountAmount.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="border-t border-gray-700 pt-2 flex justify-between items-center">
                   <span className="font-bold text-white">Total estimado</span>
-                  <span className="text-2xl font-black text-orange-400">
-                    R$ {totalEstimate.toFixed(2)}
-                  </span>
+                  <div className="text-right">
+                    {discountAmount > 0 && (
+                      <p className="text-xs text-gray-500 line-through">R$ {totalEstimate.toFixed(2)}</p>
+                    )}
+                    <span className="text-2xl font-black text-orange-400">
+                      R$ {totalWithDiscount.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               </div>
 

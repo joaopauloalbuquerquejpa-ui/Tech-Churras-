@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma'
 import { z } from 'zod'
+import { validateCoupon } from '../coupons/coupons.service'
 
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
@@ -9,6 +10,7 @@ export const createOrderSchema = z.object({
   eventHours: z.number().int().min(1).default(4),
   guestCount: z.number().int().min(1),
   notes: z.string().optional(),
+  couponCode: z.string().optional(),
   items: z.array(z.object({
     productId: z.string(),
     quantity: z.number().positive(),
@@ -18,7 +20,7 @@ export const createOrderSchema = z.object({
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
 export async function createOrder(customerId: string, data: CreateOrderInput) {
-  const { items, ...orderData } = data
+  const { items, couponCode, ...orderData } = data
 
   // Fetch real prices from DB — never trust client-supplied prices
   let itemsWithPrice: { productId: string; quantity: number; unitPrice: number }[] = []
@@ -39,17 +41,41 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     ? await prisma.grillmaster.findUnique({ where: { id: data.grillmasterId } })
     : null
   const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) : 0
-  const totalPrice = itemsTotal + grillmasterCost
+  const subtotal = itemsTotal + grillmasterCost
 
-  return prisma.order.create({
+  let discountAmount = 0
+  let appliedCouponCode: string | undefined
+
+  if (couponCode) {
+    const result = await validateCoupon(couponCode, subtotal)
+    if (result.valid && result.coupon) {
+      discountAmount = result.discountAmount!
+      appliedCouponCode = result.coupon.code
+    }
+  }
+
+  const totalPrice = Math.max(0, subtotal - discountAmount)
+
+  const order = await prisma.order.create({
     data: {
       customerId,
       ...orderData,
       totalPrice,
+      couponCode: appliedCouponCode,
+      discountAmount,
       items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
     },
     include: { items: true, grillmaster: { include: { user: true } }, boutique: true },
   })
+
+  if (appliedCouponCode) {
+    await prisma.coupon.update({
+      where: { code: appliedCouponCode },
+      data: { usedCount: { increment: 1 } },
+    })
+  }
+
+  return order
 }
 
 export async function listOrders(customerId: string) {

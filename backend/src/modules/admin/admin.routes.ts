@@ -19,6 +19,7 @@ import {
   generatePayoutsHandler,
   markPayoutPaidHandler,
 } from './payouts/payouts.controller'
+import { listCoupons, createCoupon, toggleCoupon } from '../coupons/coupons.service'
 
 export async function adminRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.authenticate)
@@ -45,4 +46,14 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get('/admin/payouts/summary', getPayoutsSummaryHandler)
   app.post('/admin/payouts/generate', generatePayoutsHandler)
   app.patch('/admin/payouts/:id/mark-paid', markPayoutPaidHandler)
+
+  app.get('/admin/coupons', async () => listCoupons())
+  app.post('/admin/coupons', async (req) => {
+    const { code, discountType, discountValue, minOrderValue, maxUses, validUntil } = req.body as any
+    return createCoupon({ code, discountType, discountValue, minOrderValue, maxUses, validUntil })
+  })
+  app.patch('/admin/coupons/:id', async (req) => {
+    const { active } = req.body as any
+    return toggleCoupon((req.params as any).id, Boolean(active))
+  })
 }

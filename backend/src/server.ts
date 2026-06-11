@@ -11,6 +11,8 @@ import { ordersRoutes } from './modules/orders/orders.routes'
 import { paymentsRoutes } from './modules/payments/payments.routes'
 import { adminRoutes } from './modules/admin/admin.routes'
 import { reviewsRoutes } from './modules/reviews/reviews.routes'
+import { favoritesRoutes } from './modules/favorites/favorites.routes'
+import { couponsRoutes } from './modules/coupons/coupons.routes'
 
 dotenv.config()
 
@@ -37,6 +39,8 @@ app.register(paymentsRoutes)
 app.register(adminRoutes)
 app.register(grillmastersRoutes)
 app.register(reviewsRoutes)
+app.register(favoritesRoutes)
+app.register(couponsRoutes)
 
 // Health check
 app.get('/health', async () => {
