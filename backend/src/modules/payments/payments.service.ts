@@ -20,6 +20,7 @@ export async function createPreference(orderId: string, customerId: string) {
     include: { grillmaster: { include: { user: true } }, boutique: true },
   })
   if (!order) throw new Error('Pedido nao encontrado')
+  if (!order.totalPrice || order.totalPrice <= 0) throw new Error('Pedido sem valor - nada a pagar')
 
   const gmName = order.grillmaster?.user?.name ?? 'Grillmaster'
   const title = `Churrasco - ${gmName} - Pedido #${order.id.slice(0, 8)}`
@@ -69,7 +70,12 @@ export async function handleMPWebhook(payload: any) {
 
   const { payment: paymentClient } = getClients()
 
-  const payment = await paymentClient.get({ id: paymentId })
+  let payment: any
+  try {
+    payment = await paymentClient.get({ id: paymentId })
+  } catch {
+    return { received: true }
+  }
 
   if (payment.status === 'approved') {
     const orderId = payment.external_reference
