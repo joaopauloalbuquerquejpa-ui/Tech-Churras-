@@ -206,8 +206,15 @@ export default function OrderDetailPage() {
 
   async function fetchMessages() {
     const { token } = authRef.current
-    const res = await fetch(`${BASE}/orders/${id}/messages`, { headers: { Authorization: 'Bearer ' + token } })
-    if (res.ok) setMessages(await res.json())
+    try {
+      const res = await fetch(`${BASE}/orders/${id}/messages`, { headers: { Authorization: 'Bearer ' + token } })
+      if (res.ok) {
+        const data = await res.json()
+        if (Array.isArray(data)) setMessages(data)
+      }
+    } catch {
+      // falha silenciosa — chat fica vazio, page nao quebra
+    }
   }
 
   async function markRead() {
