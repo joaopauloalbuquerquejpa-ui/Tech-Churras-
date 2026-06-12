@@ -261,6 +261,28 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* ── Assistente IA ── */}
+      <Link
+        href="/menu/assistente"
+        className="block mb-8 border border-amber-500/30 hover:border-amber-500/60 rounded-2xl p-5 bg-gradient-to-r from-amber-950/20 to-gray-900 transition-all hover:-translate-y-0.5 group"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 shrink-0 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-xl shadow-md shadow-orange-500/20">
+            🤖
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <p className="font-bold text-white text-sm">Assistente de IA</p>
+              <span className="text-xs px-1.5 py-0.5 rounded-full bg-amber-500 text-black font-bold">NOVO</span>
+            </div>
+            <p className="text-gray-500 text-xs truncate">
+              Planejamento inteligente de carnes, quantidades e acompanhamentos
+            </p>
+          </div>
+          <span className="text-gray-600 group-hover:text-orange-400 transition-colors shrink-0">→</span>
+        </div>
+      </Link>
+
       {/* ── Pontos ── */}
       {points !== null && (
         <Link

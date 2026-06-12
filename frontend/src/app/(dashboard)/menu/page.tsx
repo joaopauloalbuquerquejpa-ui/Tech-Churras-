@@ -309,6 +309,28 @@ export default function MenuPage() {
           })}
         </div>
 
+        {/* Assistente de IA */}
+        <Link
+          href="/menu/assistente"
+          className="block border-2 border-amber-500/40 hover:border-amber-500 rounded-2xl p-6 mb-4 transition-all hover:-translate-y-0.5 bg-gradient-to-r from-amber-950/30 to-gray-900 group"
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 shrink-0 rounded-xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center text-2xl shadow-lg shadow-orange-500/20">
+              🤖
+            </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="font-bold text-white">Assistente de Planejamento IA</h3>
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500 text-black font-bold">NOVO</span>
+              </div>
+              <p className="text-gray-400 text-sm">
+                Diga quantos convidados e o estilo — a IA calcula tudo e monta seu carrinho.
+              </p>
+            </div>
+            <span className="text-gray-500 group-hover:text-orange-400 transition-colors text-lg shrink-0">→</span>
+          </div>
+        </Link>
+
         {/* Kit Personalizado */}
         <div
           className="border-2 border-dashed rounded-2xl p-8 text-center transition-all hover:-translate-y-0.5 bg-orange-500/5 group"

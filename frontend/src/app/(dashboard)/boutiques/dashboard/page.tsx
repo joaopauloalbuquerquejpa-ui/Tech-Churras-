@@ -263,7 +263,7 @@ export default function BoutiqueDashboardPage() {
               <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(v: number) => 'R$' + v} />
               <Tooltip
                 contentStyle={{ background: '#111', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
-                formatter={(v: number) => ['R$ ' + v.toFixed(2), 'Faturamento']}
+                formatter={(v) => ['R$ ' + Number(v).toFixed(2), 'Faturamento']}
               />
               <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fill="url(#revenueGrad)" />
             </AreaChart>
