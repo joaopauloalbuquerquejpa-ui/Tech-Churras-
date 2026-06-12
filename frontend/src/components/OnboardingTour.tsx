@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import type { Props as JoyrideProps, EventData } from 'react-joyride'
-import { Joyride as JoyrideNamed } from 'react-joyride'
 
 const Joyride = dynamic(
   () => import('react-joyride').then(m => ({ default: m.Joyride })),
