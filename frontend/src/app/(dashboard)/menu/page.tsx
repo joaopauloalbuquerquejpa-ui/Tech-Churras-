@@ -237,25 +237,6 @@ export default function MenuPage() {
         </div>
       </section>
 
-      {/* ── AI Banner ── */}
-      <section className="mb-10 px-2">
-        <Link
-          href="/menu/assistente"
-          className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-orange-500/15 via-orange-600/10 to-transparent border border-orange-500/30 hover:border-orange-500/60 rounded-2xl px-6 py-5 transition-all group hover:-translate-y-0.5"
-        >
-          <div className="flex items-center gap-4">
-            <span className="text-3xl group-hover:scale-110 transition-transform">✨</span>
-            <div>
-              <p className="font-bold text-white">Novo: Monte seu churrasco com IA</p>
-              <p className="text-sm text-gray-400">Descreva seu evento e nossa IA sugere churrasqueiro, açougue e quantidades</p>
-            </div>
-          </div>
-          <span className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-2 rounded-xl transition-colors whitespace-nowrap">
-            Experimentar →
-          </span>
-        </Link>
-      </section>
-
       {/* ── KITS ── */}
       <section id="kits" className="mb-16 px-2">
         <h2 className="text-2xl font-bold text-center mb-2">Escolha Seu Kit</h2>

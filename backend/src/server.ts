@@ -22,7 +22,6 @@ import { pointsRoutes } from './modules/points/points.routes'
 import { publicRoutes } from './modules/public/public.routes'
 import { uploadRoutes } from './modules/upload/upload.routes'
 import { calculatorRoutes } from './modules/calculator/calculator.routes'
-import { aiRoutes } from './modules/ai/ai.routes'
 
 dotenv.config()
 
@@ -60,7 +59,6 @@ app.register(pointsRoutes)
 app.register(publicRoutes)
 app.register(uploadRoutes)
 app.register(calculatorRoutes)
-app.register(aiRoutes)
 
 // Health check
 app.get('/health', async () => {
