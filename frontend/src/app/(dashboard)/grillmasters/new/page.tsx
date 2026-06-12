@@ -35,7 +35,7 @@ export default function NewGrillmasterPage() {
     city: '',
     state: '',
     specialties: '',
-    phone: '',
+
     instagram: '',
     churrascoStyle: '',
     bringsEquipment: false,
@@ -238,13 +238,6 @@ export default function NewGrillmasterPage() {
             <input type="text" value={form.specialties}
               onChange={e => setForm({ ...form, specialties: e.target.value })}
               placeholder="Picanha, costela, frango..."
-              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
-          </div>
-          <div>
-            <label className="block text-sm text-gray-400 mb-1">Telefone</label>
-            <input type="tel" value={form.phone}
-              onChange={e => setForm({ ...form, phone: e.target.value })}
-              placeholder="(11) 99999-9999"
               className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
           </div>
         </div>

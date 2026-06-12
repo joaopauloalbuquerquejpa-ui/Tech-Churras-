@@ -8,7 +8,6 @@ export const createGrillmasterSchema = z.object({
   city: z.string().min(2),
   state: z.string().min(2),
   specialties: z.string().optional(),
-  phone: z.string().optional(),
   photoUrl: z.string().optional(),
   galleryUrls: z.array(z.string()).optional(),
   instagram: z.string().optional(),
