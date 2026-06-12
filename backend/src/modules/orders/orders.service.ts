@@ -163,7 +163,16 @@ export async function updateOrderStatusDetail(id: string, statusDetail: string, 
   return updated
 }
 
-export async function updateOrderStatus(id: string, status: string) {
+export async function updateOrderStatus(id: string, status: string, userId?: string, role?: string) {
+  if (userId && role !== 'ADMIN') {
+    const existing = await prisma.order.findUnique({
+      where: { id },
+      include: { grillmaster: { select: { userId: true } } },
+    })
+    if (!existing) throw new Error('Pedido nao encontrado')
+    const isAssignedGM = existing.grillmaster?.userId === userId
+    if (!isAssignedGM) throw new Error('Sem permissao para alterar este pedido')
+  }
   const statusDetailMap: Partial<Record<string, string>> = {
     CONFIRMED: 'Pedido confirmado',
     IN_PROGRESS: 'Churrasqueiro chegou',

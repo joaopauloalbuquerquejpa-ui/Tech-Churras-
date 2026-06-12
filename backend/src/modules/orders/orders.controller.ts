@@ -49,9 +49,11 @@ export async function updateStatusDetailHandler(req: FastifyRequest, reply: Fast
 
 export async function updateOrderStatusHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
+    const userId = (req.user as any).id
+    const role = (req.user as any).role ?? 'CUSTOMER'
     const { id } = req.params as { id: string }
     const { status } = req.body as { status: string }
-    const order = await updateOrderStatus(id, status)
+    const order = await updateOrderStatus(id, status, userId, role)
     return reply.send(order)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })

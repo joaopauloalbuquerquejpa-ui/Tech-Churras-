@@ -31,11 +31,13 @@ const STATUS_SUBSTATES: Record<string, string[]> = {
 }
 
 const NEXT_MAIN_STATUS: Record<string, string> = {
+  PENDING: 'CONFIRMED',
   CONFIRMED: 'IN_PROGRESS',
   IN_PROGRESS: 'COMPLETED',
 }
 
 const NEXT_MAIN_LABEL: Record<string, string> = {
+  CONFIRMED: 'Confirmar pedido',
   IN_PROGRESS: 'Iniciar servico',
   COMPLETED: 'Concluir pedido',
 }

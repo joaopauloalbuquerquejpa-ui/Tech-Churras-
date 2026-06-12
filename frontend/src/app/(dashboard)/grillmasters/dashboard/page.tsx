@@ -172,7 +172,7 @@ export default function GrillmasterDashboardPage() {
         ) : (
           <div className="divide-y divide-gray-800">
             {orders.slice(0, 20).map(o => (
-              <div key={o.id} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
+              <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
                     <p className="text-sm font-medium text-white truncate">{o.customer?.name ?? 'Cliente'}</p>
@@ -191,7 +191,7 @@ export default function GrillmasterDashboardPage() {
                   <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice)}</p>
                   <p className="text-xs text-gray-600 font-mono">#{o.id.slice(0, 8)}</p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         )}
