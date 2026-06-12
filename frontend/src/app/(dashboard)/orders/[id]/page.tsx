@@ -407,20 +407,21 @@ export default function OrderDetailPage() {
             })}
           </div>
 
-          {isOrderGrillmaster && nextAction && (
-            <button
-              onClick={advanceStatus}
-              disabled={advancing}
-              className="mt-2 w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
-            >
-              {advancing
-                ? 'Aguarde...'
-                : nextAction.type === 'substate'
-                  ? 'Avançar: ' + nextAction.value
-                  : NEXT_MAIN_LABEL[nextAction.value] ?? 'Avançar'}
-            </button>
-          )}
         </div>
+      )}
+
+      {isOrderGrillmaster && nextAction && (
+        <button
+          onClick={advanceStatus}
+          disabled={advancing}
+          className="mb-5 w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl text-sm transition-colors"
+        >
+          {advancing
+            ? 'Aguarde...'
+            : nextAction.type === 'substate'
+              ? 'Avançar: ' + nextAction.value
+              : NEXT_MAIN_LABEL[nextAction.value] ?? 'Avançar'}
+        </button>
       )}
 
       {/* Cancellation info */}
