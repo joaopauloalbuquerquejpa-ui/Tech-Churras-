@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { register } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
 
 export default function RegisterPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { setUser, setToken } = useAuthStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -15,6 +16,12 @@ export default function RegisterPage() {
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [referralCode, setReferralCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    const ref = searchParams.get('ref')
+    if (ref) setReferralCode(ref.toUpperCase())
+  }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -25,7 +32,7 @@ export default function RegisterPage() {
     setLoading(true)
     setError('')
     try {
-      const data = await register(name, email, password)
+      const data = await register(name, email, password, referralCode ?? undefined)
       setUser(data.user)
       setToken(data.token)
       router.push('/dashboard')
@@ -40,7 +47,14 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
       <div className="bg-gray-900 p-8 rounded-2xl shadow-xl w-full max-w-md">
         <h1 className="text-3xl font-bold text-orange-500 mb-2">🔥 Tech Churras</h1>
-        <p className="text-gray-400 mb-6">Crie sua conta</p>
+        {referralCode ? (
+          <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-4 py-3 mb-5">
+            <p className="text-orange-300 font-semibold text-sm">🎉 Você foi indicado!</p>
+            <p className="text-orange-400/80 text-xs mt-0.5">15% de desconto no primeiro churrasco já aplicado.</p>
+          </div>
+        ) : (
+          <p className="text-gray-400 mb-6">Crie sua conta</p>
+        )}
 
         {error && (
           <div className="bg-red-500/10 border border-red-500 text-red-400 px-4 py-3 rounded-lg mb-4">

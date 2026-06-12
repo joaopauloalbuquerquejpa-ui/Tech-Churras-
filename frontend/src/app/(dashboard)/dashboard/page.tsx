@@ -222,6 +222,21 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* ── AI Banner ── */}
+      <Link
+        href="/menu/assistente"
+        className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gradient-to-r from-orange-500/15 via-orange-600/10 to-transparent border border-orange-500/30 hover:border-orange-500/60 rounded-2xl px-6 py-4 mb-8 transition-all group hover:-translate-y-0.5"
+      >
+        <div className="flex items-center gap-3">
+          <span className="text-2xl group-hover:scale-110 transition-transform">✨</span>
+          <div>
+            <p className="font-bold text-white text-sm">Novo: Monte seu churrasco com IA</p>
+            <p className="text-xs text-gray-400">Descreva seu evento e a IA sugere churrasqueiro, açougue e quantidades ideais</p>
+          </div>
+        </div>
+        <span className="shrink-0 text-orange-400 text-sm font-bold group-hover:translate-x-1 transition-transform">Experimentar →</span>
+      </Link>
+
       {/* ── Featured Grillmasters carousel ── */}
       {featuredGMs.length > 0 && (
         <div className="mb-8">

@@ -73,6 +73,36 @@ function calculateInsumos(homens: number, mulheres: number, criancas: number) {
   return { totalCarne, totalCarvao, totalPessoas }
 }
 
+const MEAT_BREAKDOWN = [
+  { label: 'Carne Bovina Nobre', productCategory: 'CARNE', pct: 0.40, color: 'text-orange-400' },
+  { label: 'Porco e Linguiça',   productCategory: 'CARNE', pct: 0.25, color: 'text-red-400' },
+  { label: 'Frango',             productCategory: 'CARNE', pct: 0.20, color: 'text-yellow-400' },
+  { label: 'Acompanhamentos',    productCategory: 'ACOMPANHAMENTO', pct: 0.15, color: 'text-green-400' },
+]
+
+function calcMeatBreakdown(men: number, women: number, children: number) {
+  const totalKg = (men * 400 + women * 300 + children * 150) / 1000
+  return {
+    totalKg: +totalKg.toFixed(2),
+    items: MEAT_BREAKDOWN.map(b => ({ ...b, kg: +(totalKg * b.pct).toFixed(2) })),
+  }
+}
+
+function buildSuggestedQty(products: Product[], men: number, women: number, children: number): Record<string, number> {
+  const totalKg = (men * 400 + women * 300 + children * 150) / 1000
+  const qty: Record<string, number> = {}
+
+  for (const b of MEAT_BREAKDOWN) {
+    const catProducts = products.filter(p => p.category === b.productCategory && p.available)
+    if (catProducts.length === 0) continue
+    const kgPerProduct = +(totalKg * b.pct / catProducts.length).toFixed(1)
+    for (const p of catProducts) {
+      qty[p.id] = Math.max(0.5, Math.round(kgPerProduct * 2) / 2)
+    }
+  }
+  return qty
+}
+
 function renderStars(rating: number) {
   const full = Math.floor(rating)
   return Array.from({ length: 5 }, (_, i) => (i < full ? '★' : '☆')).join('')
@@ -735,27 +765,42 @@ function GuidedOrderForm() {
               ))}
             </div>
 
-            {insumos.totalPessoas > 0 && (
-              <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 grid grid-cols-3 gap-3 text-center">
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Carne estimada</p>
-                  <p className="font-bold text-white">
-                    {(insumos.totalCarne / 1000).toFixed(1)} kg
-                  </p>
+            {insumos.totalPessoas > 0 && (() => {
+              const breakdown = calcMeatBreakdown(homens, mulheres, criancas)
+              return (
+                <div className="bg-gray-800 border border-orange-500/30 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <p className="text-sm font-bold text-white">Sugestão de quantidade de carne</p>
+                    <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-medium">
+                      {insumos.totalPessoas} convidados · {breakdown.totalKg} kg total
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500">Baseado em médias de mercado para churrasco brasileiro</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {breakdown.items.map(item => (
+                      <div key={item.label} className="bg-gray-900/60 rounded-lg px-3 py-2">
+                        <p className="text-xs text-gray-400">{item.label}</p>
+                        <p className={'text-sm font-bold ' + item.color}>{item.kg} kg</p>
+                        <div className="mt-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-orange-500/50 rounded-full" style={{ width: (item.pct * 100) + '%' }} />
+                        </div>
+                        <p className="text-xs text-gray-600 mt-0.5">{Math.round(item.pct * 100)}%</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-gray-700">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Carvão</p>
+                      <p className="font-bold text-white text-sm">{insumos.totalCarvao} {insumos.totalCarvao === 1 ? 'saco' : 'sacos'}</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-500">Total pessoas</p>
+                      <p className="font-bold text-orange-400 text-sm">{insumos.totalPessoas}</p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Carvão</p>
-                  <p className="font-bold text-white">
-                    {insumos.totalCarvao}{' '}
-                    {insumos.totalCarvao === 1 ? 'saco' : 'sacos'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 mb-1">Total pessoas</p>
-                  <p className="font-bold text-orange-400">{insumos.totalPessoas}</p>
-                </div>
-              </div>
-            )}
+              )
+            })()}
           </div>
         </div>
       )}
@@ -891,6 +936,24 @@ function GuidedOrderForm() {
                 className="text-sm text-orange-400 hover:text-orange-300 underline"
               >
                 Selecionar açougue
+              </button>
+            </div>
+          )}
+
+          {!productsLoading && boutiqueProducts.length > 0 && insumos.totalPessoas > 0 && (
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-orange-300">Calculadora de carne</p>
+                <p className="text-xs text-orange-400/70">
+                  Para {insumos.totalPessoas} convidados sugerimos {calcMeatBreakdown(homens, mulheres, criancas).totalKg} kg no total
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedQty(buildSuggestedQty(boutiqueProducts, homens, mulheres, criancas))}
+                className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+              >
+                Aplicar sugestão
               </button>
             </div>
           )}

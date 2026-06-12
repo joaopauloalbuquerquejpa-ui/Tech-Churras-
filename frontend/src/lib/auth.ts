@@ -6,8 +6,8 @@ export async function login(email: string, password: string) {
   return data
 }
 
-export async function register(name: string, email: string, password: string) {
-  const { data } = await api.post('/auth/register', { name, email, password })
+export async function register(name: string, email: string, password: string, referralCode?: string) {
+  const { data } = await api.post('/auth/register', { name, email, password, ...(referralCode ? { referralCode } : {}) })
   localStorage.setItem('token', data.token)
   return data
 }

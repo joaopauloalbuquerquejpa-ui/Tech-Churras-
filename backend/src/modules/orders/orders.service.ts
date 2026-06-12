@@ -77,6 +77,13 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     })
   }
 
+  // Notify boutique owner when a new order involves their boutique
+  if (order.boutiqueId) {
+    prisma.boutique.findUnique({ where: { id: order.boutiqueId } }).then(b => {
+      if (b) sendPushToUser(b.userId, 'Novo pedido no seu açougue!', 'Um novo pedido foi criado envolvendo seu açougue.', '/boutiques/dashboard').catch(() => {})
+    }).catch(() => {})
+  }
+
   return order
 }
 

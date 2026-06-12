@@ -12,6 +12,8 @@ import {
   updateKit,
   deleteKit,
   createKitSchema,
+  getBoutiqueDashboardStats,
+  getBoutiqueDemandForecast,
 } from './boutiques.service'
 import {
   createProduct,
@@ -171,6 +173,27 @@ export async function toggleProductHandler(req: FastifyRequest, reply: FastifyRe
     const { productId } = req.params as { productId: string }
     const product = await toggleProduct(productId, userId)
     return reply.send(product)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+
+export async function getBoutiqueDashboardStatsHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const stats = await getBoutiqueDashboardStats(userId)
+    return reply.send(stats)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getBoutiqueDemandForecastHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const forecast = await getBoutiqueDemandForecast(userId)
+    return reply.send(forecast)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

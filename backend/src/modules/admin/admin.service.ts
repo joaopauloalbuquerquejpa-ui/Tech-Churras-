@@ -56,8 +56,36 @@ export async function listPendingBoutiques() {
   })
 }
 
+function generateReferralCode(name: string): string {
+  const prefix = name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'ACOU'
+  const suffix = String(Math.floor(1000 + Math.random() * 9000))
+  return prefix + suffix
+}
+
 export async function approveBoutique(boutiqueId: string) {
-  return prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true } })
+  const boutique = await prisma.boutique.findUnique({ where: { id: boutiqueId } })
+  if (!boutique) throw new Error('Acougue nao encontrado')
+  let referralCode = boutique.referralCode
+  if (!referralCode) {
+    let code = generateReferralCode(boutique.name)
+    const existing = await prisma.boutique.findUnique({ where: { referralCode: code } })
+    if (existing) code = generateReferralCode(boutique.name)
+    referralCode = code
+  }
+  return prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true, referralCode } })
+}
+
+export async function getBoutiqueReferralStats(boutiqueId: string) {
+  const [referred, converted] = await Promise.all([
+    prisma.user.count({ where: { referredByBoutiqueId: boutiqueId } }),
+    prisma.user.count({
+      where: {
+        referredByBoutiqueId: boutiqueId,
+        orders: { some: { paymentStatus: 'PAID' } },
+      },
+    }),
+  ])
+  return { boutiqueId, referred, converted }
 }
 
 export async function rejectBoutique(boutiqueId: string) {

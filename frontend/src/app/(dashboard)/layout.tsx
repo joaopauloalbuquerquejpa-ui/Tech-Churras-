@@ -6,6 +6,7 @@ import { useCartStore } from '@/store/cart'
 import { useFavoritesStore } from '@/store/favorites'
 import Link from 'next/link'
 import NotificationBell from '@/components/NotificationBell'
+import OnboardingTour from '@/components/OnboardingTour'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 function PushBanner() {
@@ -67,17 +68,18 @@ export default function DashboardLayout({
   }
 
   const links = [
-    { href: '/dashboard', label: 'Dashboard' },
-    { href: '/menu', label: 'Menu' },
-    { href: '/grillmasters', label: 'Churrasqueiros' },
-    { href: '/boutiques', label: 'Acougues' },
-    { href: '/orders', label: 'Pedidos' },
-    { href: '/favoritos', label: 'Favoritos' },
-    { href: '/perfil/enderecos', label: 'Enderecos' },
-    { href: '/ajuda', label: 'Ajuda' },
-    ...(user?.role === 'GRILLMASTER' ? [{ href: '/grillmasters/dashboard', label: 'Meu Dashboard' }] : []),
-    { href: '/admin', label: 'Admin' },
-    { href: '/founder', label: 'Fundador' },
+    { href: '/dashboard', label: 'Dashboard', tour: 'dashboard-link' },
+    { href: '/menu', label: 'Menu', tour: 'menu-link' },
+    { href: '/grillmasters', label: 'Churrasqueiros', tour: 'grillmasters-link' },
+    { href: '/boutiques', label: 'Acougues', tour: 'boutiques-link' },
+    { href: '/orders', label: 'Pedidos', tour: 'orders-link' },
+    { href: '/favoritos', label: 'Favoritos', tour: 'favoritos-link' },
+    { href: '/perfil/enderecos', label: 'Enderecos', tour: '' },
+    { href: '/ajuda', label: 'Ajuda', tour: '' },
+    ...(user?.role === 'GRILLMASTER' ? [{ href: '/grillmasters/dashboard', label: 'Meu Dashboard', tour: 'dashboard-gm-link' }] : []),
+    ...(user?.role === 'BOUTIQUE' ? [{ href: '/boutiques/dashboard', label: 'Meu Acougue', tour: 'boutique-dashboard-link' }] : []),
+    { href: '/admin', label: 'Admin', tour: '' },
+    { href: '/founder', label: 'Fundador', tour: '' },
   ]
 
   return (
@@ -89,6 +91,7 @@ export default function DashboardLayout({
           <div className='hidden md:flex items-center gap-1'>
             {links.map(link => (
               <Link key={link.href} href={link.href}
+                {...(link.tour ? { 'data-tour': link.tour } : {})}
                 className={'px-3 py-1.5 rounded-lg text-sm font-medium transition ' +
                   (pathname === link.href || pathname.startsWith(link.href + '/')
                     ? 'bg-orange-500 text-white'
@@ -108,10 +111,12 @@ export default function DashboardLayout({
           </button>
         </div>
       </nav>
+      {user && <OnboardingTour userId={user.id} role={user.role} />}
       <main className='p-6'>{children}</main>
       <footer className='border-t border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600'>
         <span>© 2026 Tech Churras</span>
         <div className='flex gap-5'>
+          <a href='/galeria' className='hover:text-gray-400 transition-colors'>Galeria</a>
           <a href='/ajuda' className='hover:text-gray-400 transition-colors'>Ajuda</a>
           <a href='/termos-de-uso' target='_blank' className='hover:text-gray-400 transition-colors'>Termos de Uso</a>
           <a href='/politica-de-privacidade' target='_blank' className='hover:text-gray-400 transition-colors'>Politica de Privacidade</a>

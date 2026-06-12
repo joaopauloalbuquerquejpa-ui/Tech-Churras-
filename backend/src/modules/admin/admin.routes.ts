@@ -20,6 +20,7 @@ import {
   markPayoutPaidHandler,
 } from './payouts/payouts.controller'
 import { listCoupons, createCoupon, toggleCoupon } from '../coupons/coupons.service'
+import { getBoutiqueReferralStats } from './admin.service'
 
 export async function adminRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.authenticate)
@@ -38,6 +39,13 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get('/admin/boutiques/pending', listPendingBoutiquesHandler)
   app.patch('/admin/boutiques/:boutiqueId/approve', approveBoutiqueHandler)
   app.patch('/admin/boutiques/:boutiqueId/reject', rejectBoutiqueHandler)
+  app.get('/admin/boutiques/:boutiqueId/referrals', async (req, reply) => {
+    try {
+      return reply.send(await getBoutiqueReferralStats((req.params as any).boutiqueId))
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
 
   app.get('/admin/orders', listAllOrdersHandler)
   app.patch('/admin/orders/:orderId/mark-paid', markOrderPaidHandler)

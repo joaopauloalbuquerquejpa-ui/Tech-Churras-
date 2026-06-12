@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma'
+import { sendPushToUser } from '../push/push.service'
 import { z } from 'zod'
 
 export const createBoutiqueSchema = z.object({
@@ -122,6 +123,113 @@ export async function updateKit(kitId: string, userId: string, data: Partial<Cre
   const kit = await prisma.kitChurrasco.findFirst({ where: { id: kitId, boutiqueId: boutique.id } })
   if (!kit) throw new Error('Kit nao encontrado')
   return prisma.kitChurrasco.update({ where: { id: kitId }, data })
+}
+
+export async function getBoutiqueDashboardStats(userId: string) {
+  const boutique = await prisma.boutique.findUnique({ where: { userId } })
+  if (!boutique) throw new Error('Acougue nao encontrado')
+
+  const now = new Date()
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+  const [completedOrders, pendingOrdersCount, recentOrders, referralCount] = await Promise.all([
+    prisma.order.findMany({
+      where: { boutiqueId: boutique.id, status: 'COMPLETED', paymentStatus: 'PAID', createdAt: { gte: thirtyDaysAgo } },
+      select: { totalPrice: true, createdAt: true },
+    }),
+    prisma.order.count({
+      where: { boutiqueId: boutique.id, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
+    }),
+    prisma.order.findMany({
+      where: { boutiqueId: boutique.id },
+      include: { customer: { select: { name: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    }),
+    prisma.user.count({ where: { referredByBoutiqueId: boutique.id } }),
+  ])
+
+  const totalRevenue30days = completedOrders.reduce((s, o) => s + o.totalPrice, 0)
+
+  const revenueMap: Record<string, number> = {}
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(thirtyDaysAgo.getTime() + i * 24 * 60 * 60 * 1000)
+    revenueMap[d.toISOString().slice(0, 10)] = 0
+  }
+  completedOrders.forEach(o => {
+    const k = o.createdAt.toISOString().slice(0, 10)
+    if (k in revenueMap) revenueMap[k] += o.totalPrice
+  })
+
+  return {
+    totalRevenue30days,
+    totalOrders30days: completedOrders.length,
+    revenueByDay: Object.entries(revenueMap).map(([date, revenue]) => ({ date, revenue })),
+    pendingOrdersCount,
+    recentOrders: recentOrders.map(o => ({
+      id: o.id,
+      customerName: (o.customer as any).name,
+      totalPrice: o.totalPrice,
+      status: o.status,
+      eventDate: o.eventDate,
+    })),
+    referralCode: boutique.referralCode,
+    referralCount,
+  }
+}
+
+export async function getBoutiqueDemandForecast(userId: string) {
+  const boutique = await prisma.boutique.findUnique({ where: { userId } })
+  if (!boutique) throw new Error('Acougue nao encontrado')
+
+  const now = new Date()
+  const fourteenDaysLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000)
+
+  const orders = await prisma.order.findMany({
+    where: {
+      boutiqueId: boutique.id,
+      status: { in: ['CONFIRMED', 'PENDING'] },
+      paymentStatus: 'PAID',
+      eventDate: { gte: now, lte: fourteenDaysLater },
+    },
+    include: {
+      items: { include: { product: true } },
+    },
+    orderBy: { eventDate: 'asc' },
+  })
+
+  const categoryMap: Record<string, {
+    totalQuantityNeeded: number
+    unit: string
+    nextEventDate: Date
+    orderIdSet: Set<string>
+  }> = {}
+
+  for (const order of orders) {
+    for (const item of order.items) {
+      const cat = item.product.category as string
+      if (!categoryMap[cat]) {
+        categoryMap[cat] = {
+          totalQuantityNeeded: 0,
+          unit: item.product.unit,
+          nextEventDate: order.eventDate,
+          orderIdSet: new Set(),
+        }
+      }
+      categoryMap[cat].totalQuantityNeeded += item.quantity
+      categoryMap[cat].orderIdSet.add(order.id)
+    }
+  }
+
+  return Object.entries(categoryMap)
+    .map(([category, data]) => ({
+      category,
+      totalQuantityNeeded: +data.totalQuantityNeeded.toFixed(2),
+      unit: data.unit,
+      eventsCount: data.orderIdSet.size,
+      nextEventDate: data.nextEventDate,
+    }))
+    .sort((a, b) => new Date(a.nextEventDate).getTime() - new Date(b.nextEventDate).getTime())
 }
 
 export async function deleteKit(kitId: string, userId: string) {

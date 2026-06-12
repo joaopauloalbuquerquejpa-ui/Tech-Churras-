@@ -39,6 +39,9 @@ model User {
   role          Role     @default(CUSTOMER)
   averageRating Float?
   points        Int      @default(0)
+  onboardingCompleted  Boolean  @default(false)
+  referredByBoutiqueId String?
+  firstOrderCouponUsed Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -113,6 +116,7 @@ model Boutique {
   instagram        String?
   openingHours     String?
   deliveryOrPickup String?
+  referralCode     String?  @unique
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

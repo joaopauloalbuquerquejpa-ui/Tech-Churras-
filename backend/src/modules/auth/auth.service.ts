@@ -8,6 +8,7 @@ export const registerSchema = z.object({
   password: z.string().min(6),
   phone: z.string().optional(),
   role: z.enum(['CUSTOMER', 'GRILLMASTER', 'BOUTIQUE']).default('CUSTOMER'),
+  referralCode: z.string().optional(),
 })
 
 export const loginSchema = z.object({
@@ -19,15 +20,16 @@ export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 
 export async function registerUser(data: RegisterInput) {
-  const existing = await prisma.user.findUnique({
-    where: { email: data.email },
-  })
-
-  if (existing) {
-    throw new Error('Email já cadastrado')
-  }
+  const existing = await prisma.user.findUnique({ where: { email: data.email } })
+  if (existing) throw new Error('Email já cadastrado')
 
   const hashedPassword = await bcrypt.hash(data.password, 10)
+
+  let referredByBoutiqueId: string | undefined
+  if (data.referralCode) {
+    const boutique = await prisma.boutique.findUnique({ where: { referralCode: data.referralCode.toUpperCase() } })
+    if (boutique) referredByBoutiqueId = boutique.id
+  }
 
   const user = await prisma.user.create({
     data: {
@@ -36,15 +38,17 @@ export async function registerUser(data: RegisterInput) {
       password: hashedPassword,
       phone: data.phone,
       role: data.role,
+      referredByBoutiqueId,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      createdAt: true,
-    },
+    select: { id: true, name: true, email: true, role: true, onboardingCompleted: true, createdAt: true },
   })
+
+  if (referredByBoutiqueId) {
+    const couponCode = 'BEMVINDO-' + user.id.slice(0, 6).toUpperCase()
+    await prisma.coupon.create({
+      data: { code: couponCode, discountType: 'PERCENT', discountValue: 15, maxUses: 1, active: true },
+    }).catch(() => {})
+  }
 
   return user
 }
@@ -69,5 +73,10 @@ export async function loginUser(data: LoginInput) {
     name: user.name,
     email: user.email,
     role: user.role,
+    onboardingCompleted: user.onboardingCompleted,
   }
+}
+
+export async function markOnboardingCompleted(userId: string) {
+  return prisma.user.update({ where: { id: userId }, data: { onboardingCompleted: true } })
 }
