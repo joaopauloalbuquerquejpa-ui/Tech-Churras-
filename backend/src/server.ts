@@ -23,6 +23,7 @@ import { publicRoutes } from './modules/public/public.routes'
 import { uploadRoutes } from './modules/upload/upload.routes'
 import { calculatorRoutes } from './modules/calculator/calculator.routes'
 import { aiRoutes } from './modules/ai/ai.routes'
+import { contractsRoutes } from './modules/contracts/contracts.routes'
 
 dotenv.config()
 
@@ -61,6 +62,7 @@ app.register(publicRoutes)
 app.register(uploadRoutes)
 app.register(calculatorRoutes)
 app.register(aiRoutes)
+app.register(contractsRoutes)
 
 // Health check
 app.get('/health', async () => {
