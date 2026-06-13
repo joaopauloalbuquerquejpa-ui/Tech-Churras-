@@ -40,7 +40,7 @@ function RegisterForm() {
       setToken(data.token)
       router.push('/dashboard')
     } catch (err: any) {
-      setError('Erro ao criar conta. Tente novamente.')
+      setError(err?.response?.data?.error || 'Erro ao criar conta. Tente novamente.')
     } finally {
       setLoading(false)
     }
