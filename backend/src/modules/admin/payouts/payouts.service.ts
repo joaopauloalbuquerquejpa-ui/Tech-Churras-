@@ -72,13 +72,14 @@ export async function getPayoutsSummary() {
 
 export async function generatePayouts() {
   const { monday, sunday } = getWeekBounds()
-  const COMMISSION = 15
+  const COMMISSION = 7
 
   const orders = await prisma.order.findMany({
     where: { status: 'COMPLETED', paymentStatus: 'PAID' },
     include: {
-      grillmaster: { select: { id: true, pixKey: true } },
+      grillmaster: { select: { id: true, pixKey: true, pricePerHour: true } },
       boutique: { select: { id: true, pixKey: true } },
+      items: { select: { unitPrice: true, quantity: true } },
     },
   })
 
@@ -99,31 +100,43 @@ export async function generatePayouts() {
   }[] = []
 
   for (const order of orders) {
+    // Mão de obra do churrasqueiro = pricePerHour × eventHours
     if (order.grillmasterId && !existingSet.has(`${order.id}:GRILLMASTER`)) {
-      toCreate.push({
-        type: 'GRILLMASTER',
-        recipientId: order.grillmasterId,
-        orderId: order.id,
-        grossAmount: order.totalPrice,
-        commission: COMMISSION,
-        amount: +(order.totalPrice * 0.85).toFixed(2),
-        weekStart: monday,
-        weekEnd: sunday,
-        pixKey: order.grillmaster?.pixKey ?? null,
-      })
+      const laborGross = order.grillmaster
+        ? +(order.grillmaster.pricePerHour * order.eventHours).toFixed(2)
+        : 0
+      if (laborGross > 0) {
+        toCreate.push({
+          type: 'GRILLMASTER',
+          recipientId: order.grillmasterId,
+          orderId: order.id,
+          grossAmount: laborGross,
+          commission: COMMISSION,
+          amount: +(laborGross * 0.93).toFixed(2),
+          weekStart: monday,
+          weekEnd: sunday,
+          pixKey: order.grillmaster?.pixKey ?? null,
+        })
+      }
     }
+    // Produtos do açougue = soma dos OrderItems
     if (order.boutiqueId && !existingSet.has(`${order.id}:BOUTIQUE`)) {
-      toCreate.push({
-        type: 'BOUTIQUE',
-        recipientId: order.boutiqueId,
-        orderId: order.id,
-        grossAmount: order.totalPrice,
-        commission: COMMISSION,
-        amount: +(order.totalPrice * 0.85).toFixed(2),
-        weekStart: monday,
-        weekEnd: sunday,
-        pixKey: order.boutique?.pixKey ?? null,
-      })
+      const productsGross = +order.items
+        .reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
+        .toFixed(2)
+      if (productsGross > 0) {
+        toCreate.push({
+          type: 'BOUTIQUE',
+          recipientId: order.boutiqueId,
+          orderId: order.id,
+          grossAmount: productsGross,
+          commission: COMMISSION,
+          amount: +(productsGross * 0.93).toFixed(2),
+          weekStart: monday,
+          weekEnd: sunday,
+          pixKey: order.boutique?.pixKey ?? null,
+        })
+      }
     }
   }
 

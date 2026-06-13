@@ -96,11 +96,11 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
     },
     {
       q: 'Qual é o custo para entrar na plataforma?',
-      a: 'Zero. Não há mensalidade, taxa de adesão ou qualquer custo fixo. A Tech Churras cobra apenas 15% sobre o valor de cada pedido concluído — ou seja, você só paga quando você ganha.',
+      a: 'Zero. Não há mensalidade, taxa de adesão ou qualquer custo fixo. A Tech Churras cobra apenas 7% sobre o valor da sua mão de obra em cada evento realizado — ou seja, você só paga quando você ganha.',
     },
     {
       q: 'Como funciona o pagamento?',
-      a: 'Toda sexta-feira processamos os pedidos da semana anterior. O valor líquido (93% do total) cai diretamente no seu PIX até as 18h. Você cadastra a chave PIX no seu perfil e nunca precisa cobrar nada.',
+      a: 'Toda sexta-feira processamos os pedidos da semana anterior. O valor líquido (93% da sua mão de obra) cai diretamente no seu PIX até as 18h. Você cadastra a chave PIX no seu perfil e nunca precisa cobrar nada.',
     },
     {
       q: 'Posso recusar pedidos?',
@@ -345,6 +345,9 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                 </p>
                 <p className="text-sm text-green-400/80 mt-3">
                   🎉 <strong>{eventosMes} evento{eventosMes > 1 ? 's' : ''}/mês</strong> a <strong>R$ {(ticketLiquido).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> líquido cada.
+                </p>
+                <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                  💡 Sem custo fixo — você só repassa os 7% quando realiza um evento. Mês sem evento = zero custo.
                 </p>
               </div>
 
