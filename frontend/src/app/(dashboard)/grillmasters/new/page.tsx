@@ -135,8 +135,8 @@ export default function NewGrillmasterPage() {
           </div>
           <h2 className="text-xl font-bold mb-2">Perfil enviado!</h2>
           <p className="text-gray-400 mb-6">Aguarde a aprovacao do administrador para aparecer na listagem.</p>
-          <Link href="/grillmasters" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg inline-block font-medium">
-            Ver churrasqueiros
+          <Link href="/grillmasters/dashboard" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg inline-block font-medium">
+            Ir para meu painel
           </Link>
         </div>
       </div>

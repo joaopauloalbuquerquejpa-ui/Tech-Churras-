@@ -67,7 +67,7 @@ export default function DashboardLayout({
     router.push('/login')
   }
 
-  const links = [
+  const customerLinks = [
     { href: '/dashboard', label: 'Dashboard', tour: 'dashboard-link' },
     { href: '/menu', label: 'Menu', tour: 'menu-link' },
     { href: '/grillmasters', label: 'Churrasqueiros', tour: 'grillmasters-link' },
@@ -76,11 +76,26 @@ export default function DashboardLayout({
     { href: '/favoritos', label: 'Favoritos', tour: 'favoritos-link' },
     { href: '/perfil/enderecos', label: 'Enderecos', tour: '' },
     { href: '/ajuda', label: 'Ajuda', tour: '' },
-    ...(user?.role === 'GRILLMASTER' ? [{ href: '/grillmasters/dashboard', label: 'Meu Dashboard', tour: 'dashboard-gm-link' }] : []),
-    ...(user?.role === 'BOUTIQUE' ? [{ href: '/boutiques/dashboard', label: 'Meu Acougue', tour: 'boutique-dashboard-link' }] : []),
+  ]
+  const boutiqueLinks = [
+    { href: '/boutiques/dashboard', label: 'Meu Acougue', tour: 'boutique-dashboard-link' },
+    { href: '/ajuda', label: 'Ajuda', tour: '' },
+  ]
+  const grillmasterLinks = [
+    { href: '/grillmasters/dashboard', label: 'Meu Dashboard', tour: 'dashboard-gm-link' },
+    { href: '/ajuda', label: 'Ajuda', tour: '' },
+  ]
+  const adminLinks = [
+    { href: '/dashboard', label: 'Dashboard', tour: 'dashboard-link' },
     { href: '/admin', label: 'Admin', tour: '' },
     { href: '/founder', label: 'Fundador', tour: '' },
+    { href: '/ajuda', label: 'Ajuda', tour: '' },
   ]
+  const links =
+    user?.role === 'BOUTIQUE' ? boutiqueLinks :
+    user?.role === 'GRILLMASTER' ? grillmasterLinks :
+    user?.role === 'ADMIN' ? adminLinks :
+    customerLinks
 
   return (
     <div className='min-h-screen bg-gray-950 text-white'>

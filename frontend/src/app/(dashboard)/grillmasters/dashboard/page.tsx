@@ -17,6 +17,8 @@ interface Order {
   paymentStatus?: string
   totalPrice: number
   eventDate: string
+  eventAddress: string
+  eventHours: number
   guestCount: number
   createdAt: string
   customer: { name: string; email: string }
@@ -31,10 +33,15 @@ interface GrillmasterProfile {
   city: string
   state: string
   isChancelado: boolean
+  available: boolean
 }
 
 function fmt(n: number) {
   return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -62,6 +69,8 @@ export default function GrillmasterDashboardPage() {
   const [contractText, setContractText] = useState('')
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [togglingAvail, setTogglingAvail] = useState(false)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
 
   useEffect(() => {
     if (!user) return
@@ -95,6 +104,49 @@ export default function GrillmasterDashboardPage() {
     }
   }
 
+  async function handleToggleAvailability() {
+    if (!profile) return
+    setTogglingAvail(true)
+    try {
+      const res = await fetch(`${BASE}/grillmasters`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify({ available: !profile.available }),
+      })
+      if (res.ok) setProfile(p => p ? { ...p, available: !p.available } : null)
+    } finally {
+      setTogglingAvail(false)
+    }
+  }
+
+  async function handleAccept(orderId: string) {
+    setActionLoading(orderId + '-accept')
+    try {
+      const res = await fetch(`${BASE}/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify({ status: 'CONFIRMED' }),
+      })
+      if (res.ok) setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CONFIRMED' } : o))
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  async function handleReject(orderId: string) {
+    setActionLoading(orderId + '-reject')
+    try {
+      const res = await fetch(`${BASE}/orders/${orderId}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify({ reason: 'Churrasqueiro recusou o evento' }),
+      })
+      if (res.ok) setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o))
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto animate-pulse space-y-4">
@@ -124,6 +176,12 @@ export default function GrillmasterDashboardPage() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfYear = new Date(now.getFullYear(), 0, 1)
 
+  const pendingOrders = orders.filter(o => o.status === 'PENDING')
+  const upcomingOrders = orders
+    .filter(o => (o.status === 'CONFIRMED' || o.status === 'IN_PROGRESS') && new Date(o.eventDate) >= now)
+    .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())
+  const historyOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED')
+
   const completedOrders = orders.filter(o => o.status === 'COMPLETED')
   const thisMonthOrders = completedOrders.filter(o => new Date(o.eventDate) >= startOfMonth)
   const thisYearOrders = completedOrders.filter(o => new Date(o.eventDate) >= startOfYear)
@@ -134,12 +192,13 @@ export default function GrillmasterDashboardPage() {
   const cards = [
     { label: 'Ganhos este mes', value: 'R$ ' + fmt(earnedThisMonth), sub: thisMonthOrders.length + ' pedido(s)', color: 'text-orange-400' },
     { label: 'Ganhos este ano', value: 'R$ ' + fmt(earnedThisYear), sub: thisYearOrders.length + ' pedido(s)', color: 'text-green-400' },
-    { label: 'Pedidos concluidos', value: String(thisMonthOrders.length), sub: 'este mes', color: 'text-blue-400' },
+    { label: 'Proximos eventos', value: String(upcomingOrders.length), sub: 'confirmados', color: 'text-blue-400' },
     { label: 'Avaliacao media', value: (profile?.rating ?? 0).toFixed(1) + ' / 5', sub: profile?.totalOrders + ' total', color: 'text-yellow-400' },
   ]
 
   return (
     <div className="max-w-4xl mx-auto">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-1">
@@ -160,6 +219,78 @@ export default function GrillmasterDashboardPage() {
         </Link>
       </div>
 
+      {/* Disponibilidade toggle */}
+      <div className={`rounded-xl border px-5 py-4 mb-6 flex items-center justify-between gap-4 ${
+        profile?.available
+          ? 'bg-green-500/10 border-green-500/30'
+          : 'bg-gray-900 border-gray-800'
+      }`}>
+        <div>
+          <p className={`font-semibold text-sm ${profile?.available ? 'text-green-300' : 'text-gray-300'}`}>
+            {profile?.available ? 'Disponivel para novos eventos' : 'Indisponivel no momento'}
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {profile?.available
+              ? 'Clientes podem te encontrar e enviar pedidos.'
+              : 'Voce nao aparece nas buscas de clientes.'}
+          </p>
+        </div>
+        <button
+          onClick={handleToggleAvailability}
+          disabled={togglingAvail}
+          className={`relative w-14 h-7 rounded-full transition-colors shrink-0 disabled:opacity-60 ${profile?.available ? 'bg-green-500' : 'bg-gray-700'}`}
+        >
+          <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${profile?.available ? 'translate-x-8' : 'translate-x-1'}`} />
+        </button>
+      </div>
+
+      {/* Novos Eventos (PENDING) */}
+      {pendingOrders.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="inline-block w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+            <h2 className="font-semibold text-orange-300">Novos Eventos — aguardando sua resposta ({pendingOrders.length})</h2>
+          </div>
+          <div className="space-y-3">
+            {pendingOrders.map(o => (
+              <div key={o.id} className="bg-gray-900 border border-orange-500/30 rounded-xl p-4">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="min-w-0">
+                    <p className="font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
+                    <p className="text-sm text-gray-400 mt-0.5">{fmtDate(o.eventDate)}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {o.eventAddress} · {o.guestCount} convidado{o.guestCount !== 1 ? 's' : ''} · {o.eventHours}h
+                      {o.boutique ? ` · Acougue: ${o.boutique.name}` : ''}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-lg font-black text-orange-400">R$ {fmt(o.totalPrice)}</p>
+                    <p className="text-xs text-gray-600 font-mono">#{o.id.slice(0, 8)}</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleAccept(o.id)}
+                    disabled={actionLoading === o.id + '-accept' || actionLoading === o.id + '-reject'}
+                    className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+                  >
+                    {actionLoading === o.id + '-accept' ? 'Aceitando...' : 'Aceitar evento'}
+                  </button>
+                  <button
+                    onClick={() => handleReject(o.id)}
+                    disabled={actionLoading === o.id + '-accept' || actionLoading === o.id + '-reject'}
+                    className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-gray-300 text-sm font-semibold py-2 rounded-lg transition-colors"
+                  >
+                    {actionLoading === o.id + '-reject' ? 'Recusando...' : 'Recusar'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Stats cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {cards.map(c => (
           <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
@@ -170,10 +301,47 @@ export default function GrillmasterDashboardPage() {
         ))}
       </div>
 
-      {/* Aviso de revisão jurídica */}
+      {/* Agenda — próximos eventos confirmados */}
+      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
+        <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+          <h2 className="font-semibold text-sm">Agenda — Proximos Eventos</h2>
+          <span className="text-xs text-gray-500">{upcomingOrders.length} confirmado{upcomingOrders.length !== 1 ? 's' : ''}</span>
+        </div>
+        {upcomingOrders.length === 0 ? (
+          <div className="p-6 text-center text-gray-500 text-sm">Nenhum evento confirmado na agenda.</div>
+        ) : (
+          <div className="divide-y divide-gray-800">
+            {upcomingOrders.map(o => {
+              const daysUntil = Math.ceil((new Date(o.eventDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+              return (
+                <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className={`shrink-0 text-center px-2 py-1 rounded-lg ${daysUntil <= 1 ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
+                      <p className={`text-xl font-black leading-none ${daysUntil <= 1 ? 'text-orange-400' : 'text-blue-400'}`}>{daysUntil <= 0 ? 'Hj' : daysUntil === 1 ? '1d' : daysUntil + 'd'}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{fmtDate(o.eventDate)} · {o.guestCount} convidados · {o.eventHours}h</p>
+                      <p className="text-xs text-gray-500 truncate">{o.eventAddress}</p>
+                    </div>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice)}</p>
+                    <span className={'text-xs px-2 py-0.5 rounded-full ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
+                      {STATUS_LABEL[o.status] ?? o.status}
+                    </span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Aviso jurídico */}
       <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3 mb-4">
         <p className="text-xs text-yellow-300">
-          ⚠️ <strong>Contratos em revisão jurídica</strong> — os termos de parceria podem ser atualizados antes do lançamento oficial da plataforma.
+          ⚠️ <strong>Contratos em revisao juridica</strong> — os termos de parceria podem ser atualizados antes do lancamento oficial da plataforma.
         </p>
       </div>
 
@@ -193,7 +361,7 @@ export default function GrillmasterDashboardPage() {
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-500 text-xs">Vigência</p>
+                <p className="text-gray-500 text-xs">Vigencia</p>
                 <p className="text-white font-medium">{contract.durationMonths} meses</p>
               </div>
               <div>
@@ -229,12 +397,12 @@ export default function GrillmasterDashboardPage() {
             <div className="flex items-center justify-between p-5 border-b border-gray-800">
               <div>
                 <span className="font-bold text-orange-400">Contrato de Parceria</span>
-                <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">MINUTA — REV. JURÍDICA PENDENTE</span>
+                <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">MINUTA — REV. JURIDICA PENDENTE</span>
               </div>
               <button onClick={() => setShowContractText(false)} className="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
             </div>
             <div className="p-4 bg-yellow-500/10 border-b border-yellow-500/20">
-              <p className="text-xs text-yellow-300">Este contrato está em fase de revisão jurídica e pode ser atualizado antes do lançamento oficial.</p>
+              <p className="text-xs text-yellow-300">Este contrato esta em fase de revisao juridica e pode ser atualizado antes do lancamento oficial.</p>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
               <pre className="font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{contractText}</pre>
@@ -243,18 +411,19 @@ export default function GrillmasterDashboardPage() {
         </div>
       )}
 
+      {/* Histórico */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="font-semibold">Pedidos recentes</h2>
-          <span className="text-xs text-gray-500">{orders.length} total</span>
+          <h2 className="font-semibold text-sm">Historico</h2>
+          <span className="text-xs text-gray-500">{historyOrders.length} pedido(s)</span>
         </div>
-        {orders.length === 0 ? (
+        {historyOrders.length === 0 ? (
           <div className="p-8 text-center text-gray-500 text-sm">
-            Voce ainda nao recebeu pedidos.
+            Nenhum historico ainda.
           </div>
         ) : (
           <div className="divide-y divide-gray-800">
-            {orders.slice(0, 20).map(o => (
+            {historyOrders.slice(0, 20).map(o => (
               <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
