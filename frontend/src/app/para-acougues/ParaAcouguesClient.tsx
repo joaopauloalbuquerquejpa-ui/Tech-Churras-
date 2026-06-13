@@ -5,7 +5,7 @@ import Link from 'next/link'
 
 const MENSALIDADE = 369
 const COMISSAO_RATE = 0.07
-const WHATSAPP = 'https://wa.me/5511999999999?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
+const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
 
 // ── Animated number counter ──────────────────────────────────────────
 function AnimatedNumber({ value, prefix = '', suffix = '', decimals = 0 }: {
