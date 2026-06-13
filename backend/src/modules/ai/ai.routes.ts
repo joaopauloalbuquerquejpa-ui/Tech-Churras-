@@ -1,6 +1,10 @@
 import { FastifyInstance } from 'fastify'
 import Anthropic from '@anthropic-ai/sdk'
+import { createClient } from '@supabase/supabase-js'
 import { authenticate } from '../../middlewares/auth.middleware'
+
+// Rate limit: max 10 req/min por usuário
+const suggestRateLimits = new Map<string, { count: number; resetAt: number }>()
 
 const SYSTEM_PROMPT = `Você é o Grillmaster Inteligente do Tech Churras — especialista em churrasco brasileiro com 20 anos de experiência.
 
@@ -97,5 +101,95 @@ export async function aiRoutes(app: FastifyInstance) {
     }
 
     return reply.send({ plan, meta: { totalPessoas, style, hours } })
+  })
+
+  // ── POST /ai/suggest-product ─────────────────────────────────────────
+  app.post('/ai/suggest-product', { preHandler: [authenticate] }, async (request, reply) => {
+    const userId = (request as any).user?.userId as string
+
+    // Rate limiting
+    const now = Date.now()
+    const rl = suggestRateLimits.get(userId)
+    if (rl && now < rl.resetAt) {
+      if (rl.count >= 10) return reply.status(429).send({ error: 'Muitas requisições. Aguarde 1 minuto.' })
+      rl.count++
+    } else {
+      suggestRateLimits.set(userId, { count: 1, resetAt: now + 60_000 })
+    }
+
+    try {
+      const data = await request.file()
+      if (!data) return reply.status(400).send({ error: 'Nenhuma imagem enviada' })
+
+      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
+      if (!ALLOWED.includes(data.mimetype)) {
+        return reply.status(400).send({ error: 'Formato inválido. Use JPG, PNG ou WebP.' })
+      }
+
+      const buffer = await data.toBuffer()
+      if (buffer.byteLength > 5 * 1024 * 1024) {
+        return reply.status(400).send({ error: 'Imagem muito grande. Máximo 5MB.' })
+      }
+
+      // Upload para Supabase (para usar como imageUrl do produto)
+      let imageUrl: string | undefined
+      const supabaseUrl = process.env.SUPABASE_URL
+      const supabaseKey = process.env.SUPABASE_SERVICE_KEY
+      if (supabaseUrl && supabaseKey) {
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        const ext = (data.filename?.split('.').pop() || 'jpg').toLowerCase()
+        const fileName = `product-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const { error: uploadErr } = await supabase.storage
+          .from('partner-images')
+          .upload(fileName, buffer, { contentType: data.mimetype, upsert: false })
+        if (!uploadErr) {
+          const { data: { publicUrl } } = supabase.storage.from('partner-images').getPublicUrl(fileName)
+          imageUrl = publicUrl
+        }
+      }
+
+      // Chama Claude Vision
+      const base64 = buffer.toString('base64')
+      const mediaType = data.mimetype as 'image/jpeg' | 'image/png' | 'image/webp'
+
+      const message = await client.messages.create({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 },
+            },
+            {
+              type: 'text',
+              text: `Você é especialista em produtos de açougue brasileiro. Analise esta imagem e identifique o produto.
+Responda SOMENTE com JSON válido, sem markdown, sem texto extra:
+{"name":"nome comercial do corte ou produto","category":"CARNE|SAL_TEMPERO|CARVAO|ACOMPANHAMENTO|BEBIDA|OUTRO","description":"descrição comercial curta e atrativa em 1-2 frases","suggestedUnit":"kg|un|L","confidence":"alta|media|baixa"}
+Regras:
+- name: nome popular brasileiro (ex: Picanha, Fraldinha, Linguiça Artesanal)
+- category: use EXATAMENTE um dos valores listados
+- description: focada em venda, mencionando características do produto
+- Se não reconhecer com confiança, retorne campos name/description vazios mas mantenha JSON válido`,
+            }
+          ],
+        }],
+      })
+
+      const rawText = message.content[0].type === 'text' ? message.content[0].text : ''
+      const defaults = { name: '', category: 'CARNE', description: '', suggestedUnit: 'kg', confidence: 'baixa' }
+
+      try {
+        const cleaned = rawText.replace(/```json\s*/g, '').replace(/```/g, '').trim()
+        const match = cleaned.match(/\{[\s\S]*\}/)
+        const parsed = match ? JSON.parse(match[0]) : {}
+        return reply.send({ ...defaults, ...parsed, imageUrl })
+      } catch {
+        return reply.send({ ...defaults, imageUrl })
+      }
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Falha ao analisar imagem', details: err.message })
+    }
   })
 }

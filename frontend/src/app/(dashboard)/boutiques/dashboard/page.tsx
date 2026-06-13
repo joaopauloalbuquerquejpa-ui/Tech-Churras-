@@ -4,6 +4,26 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react'
 
+// Comprime imagem via canvas antes do upload (máx 800px, qualidade 0.75)
+async function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const MAX = 800
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(b => resolve(b ?? file), 'image/jpeg', 0.75)
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
+  })
+}
+
 const BASE = 'https://tech-churras-production.up.railway.app'
 const SITE_URL = 'https://www.techchurras.com.br'
 
@@ -76,6 +96,12 @@ export default function BoutiqueDashboardPage() {
   const [copied, setCopied] = useState(false)
   const qrRef = useRef<HTMLDivElement>(null)
 
+  // ── Photo flow state ──────────────────────────────────────────────────
+  const [photoState, setPhotoState] = useState<'idle' | 'analyzing' | 'done' | 'error'>('idle')
+  const [photoError, setPhotoError] = useState('')
+  const [photoCount, setPhotoCount] = useState(0)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => { fetchAll() }, [])
 
   async function fetchAll() {
@@ -140,8 +166,10 @@ export default function BoutiqueDashboardPage() {
         if (res.ok) {
           const created = await res.json()
           setBoutique(prev => prev ? { ...prev, products: [...prev.products, created] } : null)
+          if (photoState === 'done') setPhotoCount(c => c + 1)
         }
       }
+      setPhotoState('idle')
       cancelForm()
     } finally { setSubmitting(false) }
   }
@@ -171,6 +199,56 @@ export default function BoutiqueDashboardPage() {
   }
 
   function cancelForm() { setShowForm(false); setEditingId(null); setForm(emptyForm) }
+
+  async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!photoInputRef.current) return
+    photoInputRef.current.value = ''
+    if (!file) return
+
+    setPhotoState('analyzing')
+    setPhotoError('')
+    cancelForm()
+
+    try {
+      const compressed = await compressImage(file)
+      const fd = new FormData()
+      fd.append('file', compressed, 'produto.jpg')
+
+      const res = await fetch(BASE + '/ai/suggest-product', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken() },
+        body: fd,
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error((err as any).error || 'Erro ao analisar imagem')
+      }
+
+      const suggestion = await res.json()
+
+      // Pré-preenche o formulário com as sugestões da IA
+      setForm({
+        name: suggestion.name || '',
+        description: suggestion.description || '',
+        price: 0,
+        unit: suggestion.suggestedUnit || 'kg',
+        category: suggestion.category || 'CARNE',
+        available: true,
+        stockQuantity: '',
+      })
+      setPhotoState('done')
+      setShowForm(true)
+      setEditingId(null)
+    } catch (err: any) {
+      setPhotoState('error')
+      setPhotoError(err.message || 'Falha ao analisar imagem')
+      // Fallback: abre formulário vazio
+      setForm(emptyForm)
+      setShowForm(true)
+    }
+  }
 
   function copyReferralLink() {
     if (!stats?.referralCode) return
@@ -382,12 +460,47 @@ export default function BoutiqueDashboardPage() {
         <p className="text-xs text-orange-400/80">Eles aparecem diretamente para os clientes no momento do pedido.</p>
       </div>
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Produtos ({boutique.products.length})</h2>
-        <button onClick={() => { cancelForm(); setShowForm(true) }} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-          + Adicionar produto
-        </button>
+      {/* Hidden file input for photo flow */}
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={handlePhotoSelect}
+      />
+
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <h2 className="text-lg font-semibold">Produtos ({boutique.products.length}){photoCount > 0 && <span className="ml-2 text-xs text-green-400 font-normal">{photoCount} adicionado{photoCount > 1 ? 's' : ''} nesta sessão</span>}</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => photoInputRef.current?.click()}
+            disabled={photoState === 'analyzing'}
+            className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            {photoState === 'analyzing' ? (
+              <><span className="inline-block w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-300 rounded-full animate-spin" /> Analisando...</>
+            ) : (
+              <>📸 Adicionar por foto</>
+            )}
+          </button>
+          <button onClick={() => { cancelForm(); setShowForm(true) }} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+            + Adicionar produto
+          </button>
+        </div>
       </div>
+
+      {/* Photo flow feedback */}
+      {photoState === 'done' && (
+        <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-sm text-green-400">
+          ✅ IA identificou o produto — confira e ajuste os dados abaixo. <strong>Preencha o preço</strong> antes de salvar.
+        </div>
+      )}
+      {photoState === 'error' && (
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 text-sm text-yellow-400">
+          ⚠️ {photoError || 'Não foi possível identificar o produto'} — preencha manualmente.
+        </div>
+      )}
 
       {showForm && (
         <div className="bg-gray-900 rounded-xl p-5 border border-orange-500/30">
