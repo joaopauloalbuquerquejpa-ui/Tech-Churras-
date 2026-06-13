@@ -17,10 +17,13 @@ function RegisterForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [roleParam, setRoleParam] = useState<string | null>(null)
 
   useEffect(() => {
     const ref = searchParams.get('ref')
     if (ref) setReferralCode(ref.toUpperCase())
+    const role = searchParams.get('role')
+    if (role) setRoleParam(role.toUpperCase())
   }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -32,7 +35,7 @@ function RegisterForm() {
     setLoading(true)
     setError('')
     try {
-      const data = await register(name, email, password, referralCode ?? undefined)
+      const data = await register(name, email, password, referralCode ?? undefined, roleParam ?? undefined)
       setUser(data.user)
       setToken(data.token)
       router.push('/dashboard')
@@ -47,7 +50,17 @@ function RegisterForm() {
     <div className="min-h-screen bg-gray-950 flex items-center justify-center">
       <div className="bg-gray-900 p-8 rounded-2xl shadow-xl w-full max-w-md">
         <h1 className="text-3xl font-bold text-orange-500 mb-2">🔥 Tech Churras</h1>
-        {referralCode ? (
+        {roleParam === 'BOUTIQUE' ? (
+          <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-4 py-3 mb-5">
+            <p className="text-orange-300 font-semibold text-sm">🥩 Cadastro de Açougue Parceiro</p>
+            <p className="text-orange-400/80 text-xs mt-0.5">Sua conta já será criada como parceiro açougue.</p>
+          </div>
+        ) : roleParam === 'GRILLMASTER' ? (
+          <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-4 py-3 mb-5">
+            <p className="text-orange-300 font-semibold text-sm">🔥 Cadastro de Churrasqueiro Parceiro</p>
+            <p className="text-orange-400/80 text-xs mt-0.5">Sua conta já será criada como churrasqueiro parceiro.</p>
+          </div>
+        ) : referralCode ? (
           <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-4 py-3 mb-5">
             <p className="text-orange-300 font-semibold text-sm">🎉 Você foi indicado!</p>
             <p className="text-orange-400/80 text-xs mt-0.5">15% de desconto no primeiro churrasco já aplicado.</p>

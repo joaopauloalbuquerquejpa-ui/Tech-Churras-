@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { animate } from 'framer-motion'
 import Link from 'next/link'
 
-const COMISSAO_RATE = 0.15
+const COMISSAO_RATE = 0.07
 const WHATSAPP = 'https://wa.me/5511999999999?text=Ol%C3%A1%2C+quero+ser+churrasqueiro+parceiro+do+Tech+Churras'
 
 // ── Animated number counter ──────────────────────────────────────────
@@ -100,7 +100,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
     },
     {
       q: 'Como funciona o pagamento?',
-      a: 'Toda sexta-feira processamos os pedidos da semana anterior. O valor líquido (85% do total) cai diretamente no seu PIX até as 18h. Você cadastra a chave PIX no seu perfil e nunca precisa cobrar nada.',
+      a: 'Toda sexta-feira processamos os pedidos da semana anterior. O valor líquido (93% do total) cai diretamente no seu PIX até as 18h. Você cadastra a chave PIX no seu perfil e nunca precisa cobrar nada.',
     },
     {
       q: 'Posso recusar pedidos?',
@@ -164,12 +164,12 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                 </span>
               </h1>
               <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                Receba pedidos pelo app, gerencie sua agenda e ganhe 85% de cada evento direto no seu PIX toda semana. Sem mensalidade, sem burocracia.
+                Receba pedidos pelo app, gerencie sua agenda e ganhe 93% de cada evento direto no seu PIX toda semana. Sem mensalidade, sem burocracia.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/register"
+                  href="/register?role=grillmaster"
                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-8 py-4 rounded-xl text-base transition-all shadow-lg shadow-orange-500/25"
                 >
                   🔥 Quero ser churrasqueiro parceiro
@@ -187,7 +187,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
               <div className="flex flex-wrap gap-4 mt-6">
                 {[
                   '✅ Zero mensalidade',
-                  '✅ 85% de cada pedido',
+                  '✅ 93% de cada pedido',
                   '✅ PIX toda sexta',
                 ].map(t => (
                   <span key={t} className="text-xs text-gray-500">{t}</span>
@@ -207,7 +207,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                 {/* Stats row */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {[
-                    { label: 'Renda este mês', value: 'R$ 3.060', sub: '6 eventos realizados', color: 'text-green-400' },
+                    { label: 'Renda este mês', value: 'R$ 3.348', sub: '6 eventos realizados', color: 'text-green-400' },
                     { label: 'Avaliação média', value: '4,9 ★', sub: '23 avaliações recebidas', color: 'text-amber-400' },
                   ].map(s => (
                     <div key={s.label} className="bg-gray-800 rounded-xl p-3">
@@ -227,7 +227,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-green-400 font-semibold">Você recebe</p>
-                      <p className="text-lg font-black text-green-400">R$ 510</p>
+                      <p className="text-lg font-black text-green-400">R$ 558</p>
                     </div>
                   </div>
                 </div>
@@ -264,7 +264,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
               },
               {
                 n: '04', icon: '💸', title: 'Receba via PIX',
-                desc: '85% do valor cai no seu PIX toda sexta-feira, sem precisar cobrar ninguém.',
+                desc: '93% do valor cai no seu PIX toda sexta-feira, sem precisar cobrar ninguém.',
               },
             ].map((s, i) => (
               <div key={i} className="relative bg-gray-900 border border-gray-800 hover:border-orange-500/30 rounded-2xl p-6 transition-colors">
@@ -324,7 +324,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                   </span>
                 </p>
                 <p className="text-xs text-gray-600 flex gap-2">
-                  <span className="text-gray-500">Comissão plataforma (15%):</span>
+                  <span className="text-gray-500">Comissão plataforma (7%):</span>
                   <span className="text-red-400 font-medium">
                     − <AnimatedNumber value={comissao} prefix="R$ " decimals={2} />
                   </span>
@@ -393,14 +393,14 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
               },
               {
                 label: 'Comissão',
-                value: '15%',
+                value: '7%',
                 sub: 'Só quando você ganha',
                 icon: '📊',
                 color: 'border-amber-500/40',
               },
               {
                 label: 'Você recebe',
-                value: '85%',
+                value: '93%',
                 sub: 'De cada pedido concluído',
                 icon: '💸',
                 color: 'border-orange-500/40',
@@ -527,7 +527,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/register"
+                href="/register?role=grillmaster"
                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-10 py-4 rounded-xl text-lg transition-all shadow-xl shadow-orange-500/25"
               >
                 🔥 Quero ser churrasqueiro parceiro
@@ -541,7 +541,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
               </a>
             </div>
             <p className="text-sm text-gray-600 mt-6">
-              Zero mensalidade · 85% de cada pedido · PIX toda sexta
+              Zero mensalidade · 93% de cada pedido · PIX toda sexta
             </p>
           </div>
         </div>

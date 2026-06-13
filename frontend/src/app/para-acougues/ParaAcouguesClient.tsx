@@ -99,8 +99,8 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
       a: 'O repasse é feito semanalmente via PIX diretamente para o CNPJ ou CPF cadastrado, já com a comissão da plataforma descontada automaticamente.',
     },
     {
-      q: 'Posso cancelar quando quiser?',
-      a: 'Sim. Não há fidelidade mínima. Você pode cancelar a qualquer momento sem multa, com aviso prévio de 30 dias.',
+      q: 'Há contratos ou fidelidade mínima?',
+      a: 'Trabalhamos com contratos simples e sem burocracia. Fale com nosso time para mais detalhes sobre as condições de parceria.',
     },
     {
       q: 'Como funciona o repasse semanal?',
@@ -170,7 +170,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
-                  href="/register"
+                  href="/register?role=boutique"
                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-8 py-4 rounded-xl text-base transition-all shadow-lg shadow-orange-500/25"
                 >
                   🥩 Quero ser parceiro
@@ -188,8 +188,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               <div className="flex flex-wrap gap-4 mt-6">
                 {[
                   '✅ Sem taxa de adesão',
-                  '✅ Sem fidelidade',
-                  '✅ Cancela quando quiser',
+                  '✅ Sem contratos complexos',
                 ].map(t => (
                   <span key={t} className="text-xs text-gray-500">{t}</span>
                 ))}
@@ -334,17 +333,16 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   <AnimatedNumber value={liquido} prefix="R$ " decimals={2} />
                 </p>
 
-                {liquido > 0 ? (
-                  <p className="text-sm text-green-400/80 mt-3">
-                    🎉 Com apenas <strong>{breakeven} indicações/mês</strong>, a plataforma já se paga.
-                  </p>
-                ) : clientes === 0 ? (
+                {clientes === 0 ? (
                   <p className="text-sm text-gray-500 mt-3">
                     Arraste o slider para simular suas indicações.
                   </p>
                 ) : (
-                  <p className="text-sm text-amber-400/80 mt-3">
-                    Você precisa de pelo menos <strong>{breakeven} clientes</strong> para cobrir o custo mensal.
+                  <p className="text-sm text-green-400/80 mt-3">
+                    💡 Com o ticket médio de <strong>R$ {ticket}</strong>, apenas{' '}
+                    <strong><AnimatedNumber value={breakeven} /></strong>{' '}
+                    cliente{breakeven === 1 ? '' : 's'}/mês já cobre{breakeven === 1 ? '' : 'm'} a mensalidade.
+                    {liquido > 0 ? ' Tudo que vier além disso é lucro extra.' : ' Você ainda não atingiu o ponto de equilíbrio.'}
                   </p>
                 )}
               </div>
@@ -531,7 +529,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/register"
+                href="/register?role=boutique"
                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-10 py-4 rounded-xl text-lg transition-all shadow-xl shadow-orange-500/25"
               >
                 🥩 Quero ser parceiro
@@ -545,7 +543,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               </a>
             </div>
             <p className="text-sm text-gray-600 mt-6">
-              Sem taxa de adesão · Sem fidelidade · Cancele quando quiser
+              Sem taxa de adesão · Sem contratos complexos
             </p>
           </div>
         </div>
