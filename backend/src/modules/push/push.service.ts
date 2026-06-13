@@ -3,7 +3,7 @@ import { prisma } from '../../config/prisma'
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
-    'mailto:contato@techchurras.com.br',
+    'mailto:techchurras@gmail.com',
     process.env.VAPID_PUBLIC_KEY,
     process.env.VAPID_PRIVATE_KEY
   )

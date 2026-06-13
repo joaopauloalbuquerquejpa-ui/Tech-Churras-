@@ -26,6 +26,16 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://www.techchurras.com.br/para-acougues</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.techchurras.com.br/para-churrasqueiros</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.techchurras.com.br/login</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>

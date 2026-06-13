@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 
-const WHATSAPP = 'https://wa.me/5511999999999'
+const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1!%20Quero%20saber%20mais%20sobre%20o%20Tech%20Churras'
 
 const FAQ: Record<string, { q: string; a: string }[]> = {
   Clientes: [

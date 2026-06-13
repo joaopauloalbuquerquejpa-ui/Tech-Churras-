@@ -106,7 +106,7 @@ export default function PoliticaDePrivacidadePage() {
         <Li><strong className="text-white">Informacao:</strong> obter informacoes sobre entidades com as quais seus dados foram compartilhados.</Li>
       </ul>
       <P>
-        Para exercer seus direitos, entre em contato com nosso Encarregado de Dados (DPO) pelo e-mail <strong className="text-white">privacidade@techchurras.com.br</strong>. Respondemos em ate 15 dias.
+        Para exercer seus direitos, entre em contato com nosso Encarregado de Dados (DPO) pelo e-mail <strong className="text-white">techchurras@gmail.com</strong>. Respondemos em ate 15 dias.
       </P>
 
       <H2>7. Cookies e Armazenamento Local</H2>
@@ -140,8 +140,8 @@ export default function PoliticaDePrivacidadePage() {
       </P>
       <div className="bg-gray-900 rounded-xl p-4 mb-4 text-sm text-gray-300 space-y-1">
         <p><strong className="text-white">Tech Churras</strong></p>
-        <p>E-mail: <a href="mailto:privacidade@techchurras.com.br" className="text-orange-400 hover:underline">privacidade@techchurras.com.br</a></p>
-        <p>Contato geral: <a href="mailto:contato@techchurras.com.br" className="text-orange-400 hover:underline">contato@techchurras.com.br</a></p>
+        <p>E-mail: <a href="mailto:techchurras@gmail.com" className="text-orange-400 hover:underline">techchurras@gmail.com</a></p>
+        <p>Contato geral: <a href="mailto:techchurras@gmail.com" className="text-orange-400 hover:underline">techchurras@gmail.com</a></p>
         <p>Autoridade Nacional de Protecao de Dados (ANPD): <a href="https://www.gov.br/anpd" className="text-orange-400 hover:underline" target="_blank" rel="noopener noreferrer">www.gov.br/anpd</a></p>
       </div>
 
@@ -151,7 +151,7 @@ export default function PoliticaDePrivacidadePage() {
       </P>
 
       <div className="mt-12 pt-6 border-t border-gray-800 text-xs text-gray-600">
-        Tech Churras — privacidade@techchurras.com.br
+        Tech Churras — techchurras@gmail.com
       </div>
     </article>
   )

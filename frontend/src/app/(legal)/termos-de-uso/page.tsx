@@ -134,7 +134,7 @@ export default function TermosDeUsoPage() {
       </P>
 
       <div className="mt-12 pt-6 border-t border-gray-800 text-xs text-gray-600">
-        Tech Churras — contato@techchurras.com.br
+        Tech Churras — techchurras@gmail.com
       </div>
     </article>
   )
