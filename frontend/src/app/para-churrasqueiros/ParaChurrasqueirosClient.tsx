@@ -377,6 +377,102 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
         </div>
       </section>
 
+      {/* ── EXEMPLOS DE GANHOS ───────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 bg-gray-950/50">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-3">Cenários reais</p>
+            <h2 className="text-3xl sm:text-4xl font-black">Exemplos de ganhos</h2>
+            <p className="text-gray-400 mt-3 max-w-lg mx-auto">Veja quanto churrasqueiros em diferentes estágios podem ganhar por mês.</p>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-6">
+            {[
+              {
+                perfil: 'Churrasqueiro de fim de semana',
+                tag: 'Iniciante',
+                tagColor: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+                icon: '🌱',
+                detalhes: '4 eventos/mês · R$ 80/h · 4h por evento',
+                bruto: 1280,
+                comissao: 89.60,
+                liquido: 1190.40,
+                porEvento: 297.60,
+              },
+              {
+                perfil: 'Churrasqueiro regular',
+                tag: 'Intermediário',
+                tagColor: 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+                icon: '🔥',
+                detalhes: '8 eventos/mês · R$ 100/h · 5h por evento',
+                bruto: 4000,
+                comissao: 280,
+                liquido: 3720,
+                porEvento: 465,
+                destaque: true,
+              },
+              {
+                perfil: 'Churrasqueiro full-time',
+                tag: 'Profissional',
+                tagColor: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+                icon: '👑',
+                detalhes: '15 eventos/mês · R$ 150/h · 6h por evento',
+                bruto: 13500,
+                comissao: 945,
+                liquido: 12555,
+                porEvento: 837,
+              },
+            ].map((c, i) => (
+              <div
+                key={i}
+                className={`relative rounded-2xl p-6 border transition-colors ${
+                  c.destaque
+                    ? 'border-orange-500/40 bg-gradient-to-br from-orange-500/10 to-amber-500/5'
+                    : 'border-gray-800 bg-gray-900'
+                }`}
+              >
+                {c.destaque && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                    Mais popular
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">{c.icon}</span>
+                  <span className={`text-xs font-semibold border rounded-full px-2.5 py-0.5 ${c.tagColor}`}>{c.tag}</span>
+                </div>
+                <h3 className="font-bold text-white mb-1">{c.perfil}</h3>
+                <p className="text-xs text-gray-500 mb-5">{c.detalhes}</p>
+
+                <div className="space-y-2 text-sm mb-5">
+                  <div className="flex justify-between text-gray-400">
+                    <span>Receita bruta</span>
+                    <span className="text-white font-medium">R$ {c.bruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-500">
+                    <span>Comissão (7%)</span>
+                    <span className="text-red-400">− R$ {c.comissao.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-500">
+                    <span>Mensalidade</span>
+                    <span className="text-green-400">R$ 0,00</span>
+                  </div>
+                  <div className="border-t border-gray-700 pt-2 flex justify-between font-bold">
+                    <span className="text-white">Você recebe/mês</span>
+                    <span className="text-green-400 text-base">R$ {c.liquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 rounded-xl px-4 py-2.5 text-center">
+                  <p className="text-xs text-gray-500">Por evento</p>
+                  <p className="text-lg font-black text-amber-400">R$ {c.porEvento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-gray-600 text-center mt-6">* Valores estimados. Resultados reais dependem dos eventos confirmados e realizados.</p>
+        </div>
+      </section>
+
       {/* ── POR QUE A TECH CHURRAS ────────────────────────────────────── */}
       <section className="py-20 px-4 sm:px-6 bg-gray-950/50">
         <div className="max-w-5xl mx-auto">
