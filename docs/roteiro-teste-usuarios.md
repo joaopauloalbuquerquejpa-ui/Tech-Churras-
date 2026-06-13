@@ -35,6 +35,8 @@ Você vai testar o Tech Churras — um app que conecta churrasqueiros profission
 4. Clique em **"Criar conta"**
 5. Você deve ser redirecionado para o **Dashboard**
 
+> **Dica:** Se aparecer a mensagem "Email já cadastrado", use um endereço de e-mail diferente (ex: seunome+teste@gmail.com).
+
 - [ ] Funcionou como esperado
 - [ ] Funcionou com problema: _______________
 - [ ] Não funcionou: _______________
@@ -143,6 +145,8 @@ Você vai testar o Tech Churras — um app que conecta churrasqueiros profission
 3. Clique em **"Criar conta"**
 4. Você deve ver um aviso de **"Cadastro de Churrasqueiro Parceiro"**
 
+> **Dica:** Se aparecer "Email já cadastrado", use um e-mail diferente do que já usou em outros papéis.
+
 - [ ] Funcionou como esperado
 - [ ] Funcionou com problema: _______________
 - [ ] Não funcionou: _______________
@@ -212,6 +216,8 @@ Você vai testar o Tech Churras — um app que conecta churrasqueiros profission
 2. Preencha nome, e-mail e senha
 3. Clique em **"Criar conta"**
 4. Você deve ver um aviso de **"Cadastro de Açougue Parceiro"**
+
+> **Dica:** Use um e-mail diferente dos outros papéis. Se aparecer "Email já cadastrado", tente seunome+acougue@gmail.com.
 
 - [ ] Funcionou como esperado
 - [ ] Funcionou com problema: _______________
