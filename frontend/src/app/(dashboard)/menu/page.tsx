@@ -320,11 +320,11 @@ export default function MenuPage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-0.5">
-                <h3 className="font-bold text-white">Assistente de Planejamento IA</h3>
+                <h3 className="font-bold text-white">Tech Churras IA</h3>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500 text-black font-bold">NOVO</span>
               </div>
               <p className="text-gray-400 text-sm">
-                Diga quantos convidados e o estilo — a IA calcula tudo e monta seu carrinho.
+                Diga quantos convidados e o menu — a IA calcula tudo e monta seu carrinho.
               </p>
             </div>
             <span className="text-gray-500 group-hover:text-orange-400 transition-colors text-lg shrink-0">→</span>

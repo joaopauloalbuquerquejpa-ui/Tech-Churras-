@@ -27,7 +27,6 @@ interface AiPlan {
   estimatedCost: number
   items: AiItem[]
   tips: string[]
-  pairing: string
   schedule: string
 }
 
@@ -40,12 +39,9 @@ interface Product {
 }
 
 const STYLES = [
-  { value: 'tradicional', label: 'Tradicional', icon: '🔥' },
-  { value: 'gaucho',      label: 'Gaúcho',      icon: '🐄' },
-  { value: 'gourmet',     label: 'Gourmet',     icon: '⭐' },
-  { value: 'mineiro',     label: 'Mineiro',      icon: '🌽' },
-  { value: 'espetinho',   label: 'Espetinho',   icon: '🍢' },
-  { value: 'misto',       label: 'Misto',        icon: '🥩' },
+  { value: 'menu_tech_churras',       label: 'Menu Tech Churras',       icon: '🔥' },
+  { value: 'parrillada_tech_churras', label: 'Parrillada Tech Churras', icon: '🐄' },
+  { value: 'especialidade_jota',      label: 'Especialidade Jota',      icon: '⭐' },
 ]
 
 const PRIORITY_COLOR: Record<string, string> = {
@@ -85,7 +81,7 @@ const stagger: Variants = {
 export default function AssistentePage() {
   const { boutiqueId, selectedQty, setSelectedQty } = useCartStore()
 
-  const [style, setStyle]       = useState('tradicional')
+  const [style, setStyle]       = useState('menu_tech_churras')
   const [homens, setHomens]     = useState(8)
   const [mulheres, setMulheres] = useState(6)
   const [criancas, setCriancas] = useState(2)
@@ -183,8 +179,8 @@ export default function AssistentePage() {
             🤖
           </div>
           <div>
-            <h1 className="text-2xl font-black text-white">Assistente de Planejamento</h1>
-            <p className="text-gray-500 text-sm">Grillmaster Inteligente powered by IA</p>
+            <h1 className="text-2xl font-black text-white">Tech Churras IA</h1>
+            <p className="text-gray-500 text-sm">Planejamento de churrasco por Jota Grillmaster</p>
           </div>
         </div>
       </motion.div>
@@ -197,8 +193,8 @@ export default function AssistentePage() {
       >
         {/* Estilo */}
         <div className="mb-5">
-          <label className="block text-sm font-semibold text-gray-300 mb-3">Estilo do Churrasco</label>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          <label className="block text-sm font-semibold text-gray-300 mb-3">Menu Tech Churras</label>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {STYLES.map(s => (
               <button
                 key={s.value}
@@ -284,10 +280,10 @@ export default function AssistentePage() {
               <motion.span animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
                 className="inline-block"
               >⚙️</motion.span>
-              Consultando o Grillmaster...
+              Tech Churras IA calculando...
             </>
           ) : (
-            <>🤖 Planejar Meu Churrasco</>
+            <>🤖 Planejar com Tech Churras IA</>
           )}
         </button>
       </motion.form>
@@ -307,7 +303,7 @@ export default function AssistentePage() {
                 />
               ))}
             </div>
-            <p className="text-gray-400 text-sm">Calculando quantidades, selecionando cortes ideais...</p>
+            <p className="text-gray-400 text-sm">Tech Churras IA calculando quantidades e cortes ideais...</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -334,9 +330,6 @@ export default function AssistentePage() {
                     </span>
                     <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold">
                       ~R$ {plan.estimatedCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                    </span>
-                    <span className="px-3 py-1 rounded-full bg-gray-800 border border-gray-700 text-gray-400 text-xs">
-                      {plan.pairing}
                     </span>
                   </div>
                 </div>
