@@ -429,6 +429,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 '📦 Gestão de catálogo de produtos com preços',
                 '💸 Repasse semanal automático via PIX',
                 '📷 Página de perfil do açougue no app',
+                '🤖 Tech Churras IA — seus clientes planejam o evento com a IA antes de comprar, e o catálogo do seu açougue aparece automaticamente nas sugestões',
               ].map(item => (
                 <div key={item} className="flex items-start gap-3 text-sm text-gray-300">
                   <span className="shrink-0">{item.slice(0, 2)}</span>

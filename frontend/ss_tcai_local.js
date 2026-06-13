@@ -3,7 +3,7 @@ const { chromium } = require('@playwright/test')
 const path = require('path')
 const fs = require('fs')
 
-const BASE = 'http://localhost:3001'
+const BASE = 'http://localhost:3002'
 const API  = 'https://tech-churras-production.up.railway.app'
 const SS   = path.join(__dirname, 'screenshots', 'prod')
 fs.mkdirSync(SS, { recursive: true })

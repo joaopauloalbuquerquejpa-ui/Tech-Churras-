@@ -1,6 +1,6 @@
 # Roteiro de Teste com Usuários — Tech Churras
 
-**Versão:** 1.0 · **Data:** Junho 2026  
+**Versão:** 2.0 · **Data:** Junho 2026  
 **Para:** Testadores externos (não técnicos)  
 **Plataforma:** https://www.techchurras.com.br
 
@@ -52,19 +52,39 @@ Você vai testar o Tech Churras — um app que conecta churrasqueiros profission
 - [ ] Não funcionou: _______________
 - **Observações:** _______________
 
-### Passo 3 — Calculadora de carne
+### Passo 3 — Tech Churras IA: planejar o evento
 
 1. Clique em **"Menu"** no menu superior
-2. Procure a opção de calculadora ou assistente de IA
-3. Informe o número de convidados (ex: 10 pessoas)
-4. Veja a sugestão de quantidade de carne
+2. Clique em **"Tech Churras IA"** (card com ícone 🤖)
+3. Escolha o **Menu Tech Churras** e configure:
+   - 6 homens, 4 mulheres, 2 crianças
+   - 4 horas
+4. Clique em **"Planejar com Tech Churras IA"**
+5. Verifique a lista de compras gerada, as dicas do Grillmaster
+6. Role a página até a seção **"Como é Feito"** — confirme que aparecem 2-3 descrições de pratos
+7. Volte ao início e repita com a **Parrillada Tech Churras**
+8. Repita com a **Especialidade Jota Grillmaster**
+9. Confirme que cada menu traz itens e descrições diferentes e condizentes com o estilo
+
+- [ ] Os 3 menus geram resultados distintos
+- [ ] A seção "Como é Feito" aparece com descrições educativas
+- [ ] A linguagem é informativa, sem prometer execução específica
+- [ ] Funcionou com problema: _______________
+- [ ] Não funcionou: _______________
+- **Observações:** _______________
+
+### Passo 4 — Calculadora de carne
+
+1. Na página do Tech Churras IA, veja a sugestão de quantidade de carne gerada
+2. Tente adicionar os itens essenciais ao carrinho (botão 🛒)
+3. Verifique se o valor estimado total aparece no card de resumo
 
 - [ ] Funcionou como esperado
 - [ ] Funcionou com problema: _______________
 - [ ] Não funcionou: _______________
 - **Observações:** _______________
 
-### Passo 4 — Fazer um pedido
+### Passo 5 — Fazer um pedido
 
 1. Clique em **"Novo Pedido"** (ou no botão do dashboard)
 2. Escolha a data e horário do evento
@@ -83,25 +103,13 @@ Você vai testar o Tech Churras — um app que conecta churrasqueiros profission
 - [ ] Não funcionou: _______________
 - **Observações:** _______________
 
-### Passo 5 — Acompanhar o pedido
+### Passo 6 — Acompanhar o pedido
 
 1. Após o pedido, vá em **"Pedidos"** no menu
 2. Clique no pedido que você acabou de criar
 3. Veja a linha do tempo de status
 4. Veja o mapa com a localização do churrasqueiro (quando disponível)
 5. Use o **chat** para enviar uma mensagem ao churrasqueiro
-
-- [ ] Funcionou como esperado
-- [ ] Funcionou com problema: _______________
-- [ ] Não funcionou: _______________
-- **Observações:** _______________
-
-### Passo 6 — Assistente de IA
-
-1. Vá em **"Menu"** → **"Assistente de IA"**
-2. Descreva o seu evento (número de pessoas, estilo de churrasco)
-3. Veja o plano sugerido pela IA
-4. Tente adicionar itens sugeridos ao carrinho
 
 - [ ] Funcionou como esperado
 - [ ] Funcionou com problema: _______________
@@ -263,6 +271,17 @@ Você vai testar o Tech Churras — um app que conecta churrasqueiros profission
 - [ ] Não funcionou: _______________
 - **Observações:** _______________
 
+### Passo 6 — Placa de QR code para impressão
+
+1. No dashboard do açougue, localize o botão **"Imprimir Placa"** (ou acesse `/boutiques/dashboard/qrcode-impressao`)
+2. Verifique se a placa mostra o QR code do seu açougue corretamente
+3. Clique em **"Imprimir"** e confirme que a página de impressão aparece limpa (sem menus do app)
+
+- [ ] Funcionou como esperado
+- [ ] Funcionou com problema: _______________
+- [ ] Não funcionou: _______________
+- **Observações:** _______________
+
 ---
 
 ## Feedback Geral
@@ -282,4 +301,4 @@ Ao final dos testes, responda:
 Envie este documento preenchido para: **techchurras@gmail.com**  
 Ou fale diretamente no WhatsApp: **(11) 97059-3650**
 
-Obrigado por ajudar a melhorar o Tech Churras! 🔥
+Obrigado por ajudar a melhorar o Tech Churras!

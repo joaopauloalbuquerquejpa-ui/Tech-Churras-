@@ -527,6 +527,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                 '🥩 Integração com açougues parceiros — carne pronta para retirar',
                 '📷 Página de perfil pública com fotos e especialidades',
                 '🔔 Notificações de novos pedidos na sua área',
+                '🤖 Tech Churras IA — o cliente chega até você com o evento já planejado, aumentando a conversão do seu perfil',
               ].map(item => (
                 <div key={item} className="flex items-start gap-3 text-sm text-gray-300">
                   <span className="shrink-0">{item.slice(0, 2)}</span>
