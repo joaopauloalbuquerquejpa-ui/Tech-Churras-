@@ -21,6 +21,12 @@ interface AiItem {
   priority: 'essencial' | 'recomendado' | 'opcional'
 }
 
+interface HowItsMadeItem {
+  name: string
+  origin: string
+  description: string
+}
+
 interface AiPlan {
   intro: string
   totalKg: number
@@ -28,6 +34,7 @@ interface AiPlan {
   items: AiItem[]
   tips: string[]
   schedule: string
+  howItsMade?: HowItsMadeItem[]
 }
 
 interface Product {
@@ -428,6 +435,39 @@ export default function AssistentePage() {
                     </li>
                   ))}
                 </ul>
+              </motion.div>
+            )}
+
+            {/* ── Como é Feito ── */}
+            {/* Conteúdo educativo sobre a tradição de preparo dos itens estrela do menu.
+                Futuramente pode alimentar a galeria pública (/galeria) e seção de conteúdo/SEO do site. */}
+            {plan.howItsMade && plan.howItsMade.length > 0 && (
+              <motion.div variants={fadeUp}>
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
+                  📖 Como é Feito
+                </h3>
+                <div className="space-y-3">
+                  {plan.howItsMade.map((item, i) => (
+                    <motion.div key={i} variants={fadeUp}
+                      className="rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-950/20 via-gray-900 to-gray-900 p-5"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/20 flex items-center justify-center text-lg">
+                          🍖
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <span className="font-bold text-white text-sm">{item.name}</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-medium">
+                              {item.origin}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-300 leading-relaxed">{item.description}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
               </motion.div>
             )}
 

@@ -26,6 +26,13 @@ A experiência premium chancelada pessoalmente por Jota Albuquerque. Cortes nobr
 
 PREÇOS MÉDIOS SP 2026: Picanha R$90/kg, Costela R$46/kg, Fraldinha R$65/kg, Frango R$19/kg, Linguiça R$33/kg, Pão de alho R$13/un, Queijo coalho R$25/kg, Carvão R$30/5kg, Sal grosso R$9/kg, Wagyu R$200/kg, Tomahawk R$150/kg, T-bone R$120/kg
 
+SEÇÃO "COMO É FEITO" (howItsMade):
+Selecione 2-3 itens "estrela" do menu escolhido (os mais característicos e diferenciados) e descreva como são tradicionalmente preparados.
+- Itens sugeridos por menu: menu_tech_churras → picanha, linguiça toscana, pão de alho; parrillada_tech_churras → asado de tira, chimichurri, provoleta; especialidade_jota → picanha wagyu, tomahawk, costela maturada
+- "origin": origem/tradição em 2-4 palavras (ex: "Tradição gaúcha", "Parrilla argentina", "Churrasco uruguaio", "Especialidade Jota")
+- "description": 2-3 frases em tom EDUCATIVO e CONVIDATIVO. Descreva a técnica de cocção, tempero típico e contexto cultural. Use linguagem como "Tradicionalmente...", "Na culinária X, esse corte costuma ser...", "É assim que esse prato ganhou fama...". NUNCA use "No seu evento faremos..." ou promessas de execução específica.
+- Máximo 50 palavras por description
+
 REGRAS ESTRITAS DO JSON:
 - "category": EXATAMENTE um de: CARNE, ACOMPANHAMENTO, SAL_TEMPERO, CARVAO, BEBIDA, OUTRO
 - "priority": EXATAMENTE um de: essencial, recomendado, opcional
@@ -35,10 +42,11 @@ REGRAS ESTRITAS DO JSON:
 - "tips": exatamente 3 dicas, cada uma com máximo 10 palavras
 - "schedule": máximo 20 palavras
 - "intro": máximo 25 palavras
+- "howItsMade": exatamente 2-3 objetos
 - Responda SOMENTE com JSON válido, SEM markdown, SEM backticks, SEM qualquer texto fora do JSON
 
 Schema exato (copie estrutura):
-{"intro":"string","totalKg":0,"estimatedCost":0,"items":[{"category":"CARNE","name":"string","quantity":0,"unit":"kg","reason":"string","estimatedPrice":0,"priority":"essencial"}],"tips":["string"],"schedule":"string"}`
+{"intro":"string","totalKg":0,"estimatedCost":0,"items":[{"category":"CARNE","name":"string","quantity":0,"unit":"kg","reason":"string","estimatedPrice":0,"priority":"essencial"}],"tips":["string"],"schedule":"string","howItsMade":[{"name":"string","origin":"string","description":"string"}]}`
 
 // Normaliza category e priority para os enums esperados pelo frontend
 function normalizeItem(item: Record<string, unknown>): Record<string, unknown> {
