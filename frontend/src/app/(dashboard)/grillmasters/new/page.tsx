@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useState } from 'react'
 import Link from 'next/link'
+import ContractModal from '@/components/ContractModal'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -27,6 +28,8 @@ const STYLES = ['Gaucho', 'Mineiro', 'Espetinho', 'Vegano', 'Misto', 'Outro']
 export default function NewGrillmasterPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [showContract, setShowContract] = useState(false)
+  const [gmAddress, setGmAddress] = useState('')
   const [uploadError, setUploadError] = useState('')
   const [form, setForm] = useState({
     bio: '',
@@ -109,7 +112,9 @@ export default function NewGrillmasterPage() {
         body: JSON.stringify(body),
       })
       if (res.ok) {
-        setSuccess(true)
+        const created = await res.json()
+        setGmAddress([created.city, created.state].filter(Boolean).join(' — '))
+        setShowContract(true)
       } else {
         const err = await res.json()
         alert('Erro: ' + (err.error || 'ao cadastrar'))
@@ -135,6 +140,16 @@ export default function NewGrillmasterPage() {
           </Link>
         </div>
       </div>
+    )
+  }
+
+  if (showContract) {
+    return (
+      <ContractModal
+        partnerType="GRILLMASTER"
+        partnerAddress={gmAddress}
+        onAccepted={() => { setShowContract(false); setSuccess(true) }}
+      />
     )
   }
 

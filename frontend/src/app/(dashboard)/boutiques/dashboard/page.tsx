@@ -87,6 +87,9 @@ export default function BoutiqueDashboardPage() {
   const [boutique, setBoutique] = useState<Boutique | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [demand, setDemand] = useState<DemandItem[]>([])
+  const [contract, setContract] = useState<{ id: string; status: string; durationMonths: number; acceptedAt: string | null; generatedAt: string } | null>(null)
+  const [showContractText, setShowContractText] = useState(false)
+  const [contractText, setContractText] = useState('')
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -107,20 +110,23 @@ export default function BoutiqueDashboardPage() {
   async function fetchAll() {
     try {
       const h = { Authorization: 'Bearer ' + getToken() }
-      const [bRes, sRes, dRes] = await Promise.all([
+      const [bRes, sRes, dRes, cRes] = await Promise.all([
         fetch(BASE + '/boutiques/my', { headers: h }),
         fetch(BASE + '/boutiques/dashboard/stats', { headers: h }),
         fetch(BASE + '/boutiques/dashboard/demand-forecast', { headers: h }),
+        fetch(BASE + '/contracts/my', { headers: h }),
       ])
       if (!bRes.ok) { setNotFound(true); return }
-      const [b, s, d] = await Promise.all([
+      const [b, s, d, contracts] = await Promise.all([
         bRes.json(),
         sRes.ok ? sRes.json() : null,
         dRes.ok ? dRes.json() : [],
+        cRes.ok ? cRes.json() : [],
       ])
       setBoutique(b)
       if (s) setStats(s)
       if (Array.isArray(d)) setDemand(d)
+      if (Array.isArray(contracts) && contracts.length > 0) setContract(contracts[0])
     } catch {
       setNotFound(true)
     } finally {
@@ -322,6 +328,79 @@ export default function BoutiqueDashboardPage() {
               <p className={'text-xl font-black ' + c.color}>{c.value}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Contrato — aviso de revisão jurídica */}
+      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
+        <p className="text-xs text-yellow-300">
+          ⚠️ <strong>Contratos em revisão jurídica</strong> — os termos de parceria podem ser atualizados antes do lançamento oficial da plataforma.
+        </p>
+      </div>
+
+      {/* Card do contrato */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>
+          {contract && (
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+              contract.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
+            }`}>
+              {contract.status === 'ACCEPTED' ? 'Aceito' : 'Pendente de assinatura'}
+            </span>
+          )}
+        </div>
+        {contract ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-gray-500 text-xs">Vigência</p>
+                <p className="text-white font-medium">{contract.durationMonths} meses</p>
+              </div>
+              <div>
+                <p className="text-gray-500 text-xs">Gerado em</p>
+                <p className="text-white font-medium">{new Date(contract.generatedAt).toLocaleDateString('pt-BR')}</p>
+              </div>
+              {contract.acceptedAt && (
+                <div>
+                  <p className="text-gray-500 text-xs">Aceito em</p>
+                  <p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={async () => {
+                const res = await fetch(BASE + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
+                if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
+              }}
+              className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline"
+            >
+              Visualizar contrato
+            </button>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">Nenhum contrato gerado ainda. Complete o cadastro do açougue para gerar seu contrato.</p>
+        )}
+      </div>
+
+      {/* Modal de leitura do contrato */}
+      {showContractText && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-5 border-b border-gray-800">
+              <div>
+                <span className="font-bold text-orange-400">Contrato de Parceria</span>
+                <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">MINUTA — REV. JURÍDICA PENDENTE</span>
+              </div>
+              <button onClick={() => setShowContractText(false)} className="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+            </div>
+            <div className="p-4 bg-yellow-500/10 border-b border-yellow-500/20">
+              <p className="text-xs text-yellow-300">Este contrato está em fase de revisão jurídica e pode ser atualizado antes do lançamento oficial.</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              <pre className="font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{contractText}</pre>
+            </div>
+          </div>
         </div>
       )}
 

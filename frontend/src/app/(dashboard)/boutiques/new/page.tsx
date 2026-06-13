@@ -1,6 +1,7 @@
 'use client'
 import { useRef, useState } from 'react'
 import Link from 'next/link'
+import ContractModal from '@/components/ContractModal'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -25,6 +26,8 @@ async function uploadImage(file: File, token: string): Promise<string> {
 export default function NewBoutiquePage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [showContract, setShowContract] = useState(false)
+  const [boutiqueAddress, setBoutiqueAddress] = useState('')
   const [uploadError, setUploadError] = useState('')
   const [form, setForm] = useState({
     name: '',
@@ -112,7 +115,10 @@ export default function NewBoutiquePage() {
         body: JSON.stringify(body),
       })
       if (res.ok) {
-        setSuccess(true)
+        const created = await res.json()
+        const addr = [created.address, created.city, created.state].filter(Boolean).join(', ')
+        setBoutiqueAddress(addr)
+        setShowContract(true)
       } else {
         const err = await res.json()
         alert('Erro: ' + (err.error || 'ao cadastrar'))
@@ -138,6 +144,16 @@ export default function NewBoutiquePage() {
           </Link>
         </div>
       </div>
+    )
+  }
+
+  if (showContract) {
+    return (
+      <ContractModal
+        partnerType="BOUTIQUE"
+        partnerAddress={boutiqueAddress}
+        onAccepted={() => { setShowContract(false); setSuccess(true) }}
+      />
     )
   }
 

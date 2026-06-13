@@ -75,7 +75,21 @@ const STATUS_LABEL: Record<string, string> = {
   CANCELLED: 'Cancelado',
 }
 
-type Tab = 'stats' | 'orders' | 'pending'
+interface AdminContract {
+  id: string
+  partnerId: string
+  partnerType: string
+  partnerName: string
+  partnerEmail: string
+  partnerDocument: string
+  durationMonths: number
+  status: string
+  acceptedAt: string | null
+  generatedAt: string
+  contractText: string
+}
+
+type Tab = 'stats' | 'orders' | 'pending' | 'contracts'
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -83,6 +97,8 @@ export default function AdminPage() {
   const [pendingGrillmasters, setPendingGrillmasters] = useState<PendingGrillmaster[]>([])
   const [pendingBoutiques, setPendingBoutiques] = useState<PendingBoutique[]>([])
   const [gmApproveState, setGmApproveState] = useState<Record<string, GmApproveState>>({})
+  const [contracts, setContracts] = useState<AdminContract[]>([])
+  const [viewContract, setViewContract] = useState<AdminContract | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('stats')
 
@@ -93,7 +109,8 @@ export default function AdminPage() {
       fetch(BASE + '/admin/orders', { headers: h }).then(r => r.json()),
       fetch(BASE + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
       fetch(BASE + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
-    ]).then(([s, o, pg, pb]) => {
+      fetch(BASE + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
+    ]).then(([s, o, pg, pb, c]) => {
       setStats(s)
       setOrders(Array.isArray(o) ? o : o.orders || [])
       const gms: PendingGrillmaster[] = Array.isArray(pg) ? pg : []
@@ -102,6 +119,7 @@ export default function AdminPage() {
       gms.forEach(g => { init[g.id] = { isChancelado: false, pricePerHour: g.pricePerHour } })
       setGmApproveState(init)
       setPendingBoutiques(Array.isArray(pb) ? pb : [])
+      setContracts(Array.isArray(c) ? c : [])
     }).finally(() => setLoading(false))
   }, [])
 
@@ -165,6 +183,7 @@ export default function AdminPage() {
           { key: 'stats', label: 'Resumo' },
           { key: 'orders', label: 'Pedidos' },
           { key: 'pending', label: pendingCount > 0 ? 'Pendentes (' + pendingCount + ')' : 'Pendentes' },
+          { key: 'contracts', label: 'Contratos (' + contracts.length + ')' },
         ] as { key: Tab; label: string }[]).map(t => (
           <button
             key={t.key}
@@ -400,6 +419,69 @@ export default function AdminPage() {
               ))}
             </div>
           </div>
+        </div>
+      )}
+
+      {tab === 'contracts' && (
+        <div>
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3 mb-5">
+            <p className="text-xs text-yellow-300">
+              ⚠️ <strong>Contratos em fase de revisão jurídica</strong> — os aceites abaixo são registros de evidência eletrônica e não possuem validade jurídica plena até aprovação por advogado responsável.
+            </p>
+          </div>
+
+          {contracts.length === 0 ? (
+            <p className="text-gray-500 text-sm">Nenhum contrato gerado até o momento.</p>
+          ) : (
+            <div className="space-y-3">
+              {contracts.map(c => (
+                <div key={c.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium text-sm">{c.partnerName}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${c.partnerType === 'BOUTIQUE' ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                        {c.partnerType === 'BOUTIQUE' ? 'Açougue' : 'Churrasqueiro'}
+                      </span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${c.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                        {c.status === 'ACCEPTED' ? 'Aceito' : 'Pendente'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500">{c.partnerEmail} · {c.partnerDocument}</p>
+                    <p className="text-xs text-gray-600">
+                      Vigência: {c.durationMonths} meses · Gerado: {new Date(c.generatedAt).toLocaleDateString('pt-BR')}
+                      {c.acceptedAt && ` · Aceito: ${new Date(c.acceptedAt).toLocaleDateString('pt-BR')}`}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setViewContract(c)}
+                    className="shrink-0 text-xs text-orange-400 hover:text-orange-300 border border-orange-900 px-3 py-1.5 rounded-lg"
+                  >
+                    Ver
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {viewContract && (
+            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+              <div className="bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+                <div className="flex items-center justify-between p-5 border-b border-gray-800">
+                  <div>
+                    <span className="font-bold text-orange-400">{viewContract.partnerName}</span>
+                    <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">MINUTA — REV. JURÍDICA PENDENTE</span>
+                  </div>
+                  <button onClick={() => setViewContract(null)} className="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
+                </div>
+                <div className="p-4 bg-yellow-500/10 border-b border-yellow-500/20">
+                  <p className="text-xs text-yellow-300">Este contrato está em fase de revisão jurídica e pode ser atualizado antes do lançamento oficial.</p>
+                </div>
+                <div className="flex-1 overflow-y-auto p-5">
+                  <pre className="font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{viewContract.contractText}</pre>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
