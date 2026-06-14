@@ -1,5 +1,294 @@
-import { redirect } from "next/navigation";
+import type { Metadata } from 'next'
+import Link from 'next/link'
 
-export default function Home() {
-  redirect("/login");
+export const metadata: Metadata = {
+  title: 'Tech Churras — O Churrasqueiro dos Famosos',
+  description: 'Contrate churrasqueiros profissionais certificados e açougues premium para o seu evento. Acompanhe o churrasqueiro chegando em tempo real. Mais de 100 cidades no Brasil.',
+  keywords: ['churrasqueiro', 'contratar churrasqueiro', 'churrasco profissional', 'açougue premium', 'Tech Churras', 'churrasqueiro para eventos'],
+  openGraph: {
+    title: 'Tech Churras — O Churrasqueiro dos Famosos',
+    description: 'Churrasqueiros certificados e açougues premium. Contrate pelo app, acompanhe ao vivo.',
+    type: 'website',
+    images: [{ url: '/jota.jpg', width: 800, height: 800 }],
+  },
+}
+
+const API = 'https://tech-churras-production.up.railway.app'
+
+interface Grillmaster {
+  id: string
+  rating: number
+  pricePerHour: number
+  city: string
+  state: string
+  specialties?: string
+  photoUrl?: string
+  certifiedAt?: string
+  user: { name: string }
+}
+
+async function getFeaturedGrillmasters(): Promise<Grillmaster[]> {
+  try {
+    const res = await fetch(`${API}/grillmasters?available=true&limit=6`, {
+      next: { revalidate: 1800 },
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    const list: Grillmaster[] = Array.isArray(data) ? data : (data.grillmasters ?? [])
+    return list.sort((a, b) => b.rating - a.rating).slice(0, 6)
+  } catch {
+    return []
+  }
+}
+
+const HOW_IT_WORKS = [
+  {
+    step: '1',
+    icon: '📍',
+    title: 'Escolha seu churrasqueiro',
+    desc: 'Browse pelos churrasqueiros disponíveis na sua cidade. Leia avaliações, veja o portfólio e escolha o estilo certo para o seu evento.',
+  },
+  {
+    step: '2',
+    icon: '🛒',
+    title: 'Monte o kit completo',
+    desc: 'Nossa IA sugere os cortes e quantidades certas para o número de convidados. Selecione do açougue parceiro e tudo chega organizado.',
+  },
+  {
+    step: '3',
+    icon: '🔥',
+    title: 'Acompanhe ao vivo',
+    desc: 'No dia do evento, veja o churrasqueiro chegando no mapa em tempo real. Compartilhe o link com seus convidados via WhatsApp.',
+  },
+]
+
+const STATS = [
+  { value: '93%', label: 'vai para o churrasqueiro', detail: 'Taxa justa de plataforma' },
+  { value: '4.9', label: 'avaliação média', detail: 'Dos churrasqueiros cadastrados' },
+  { value: '0', label: 'taxa para o cliente', detail: 'Você paga só o churrasqueiro + carne' },
+]
+
+export default async function HomePage() {
+  const grillmasters = await getFeaturedGrillmasters()
+
+  return (
+    <div className="min-h-screen bg-gray-950 text-white">
+      {/* Nav */}
+      <nav className="border-b border-gray-900/50 px-4 py-4 flex items-center justify-between max-w-6xl mx-auto">
+        <span className="font-black text-orange-400 text-xl">🔥 Tech Churras</span>
+        <div className="flex items-center gap-4">
+          <Link href="/grillmasters" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Churrasqueiros</Link>
+          <Link href="/boutiques" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Açougues</Link>
+          <Link href="/churras-club" className="text-sm text-orange-400 hover:text-orange-300 transition-colors hidden sm:block font-semibold">🏆 Club</Link>
+          <Link href="/login" className="text-sm bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg transition-colors">Entrar</Link>
+          <Link href="/register" className="text-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-lg font-semibold transition-colors">Cadastrar</Link>
+        </div>
+      </nav>
+
+      {/* Hero */}
+      <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
+        <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 text-xs text-orange-400 font-semibold mb-8 uppercase tracking-wide">
+          <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
+          Plataforma de churrasqueiros premium
+        </div>
+        <h1 className="text-5xl md:text-7xl font-black leading-none mb-6">
+          O churrasco do seu{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-400 to-orange-600">
+            evento perfeito
+          </span>
+        </h1>
+        <p className="text-gray-400 text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+          Churrasqueiros profissionais certificados. Açougues premium selecionados. Acompanhe ao vivo no mapa. Pague só depois que ficar bom.
+        </p>
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <Link href="/grillmasters"
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-2xl text-lg transition-all hover:shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5">
+            Contratar churrasqueiro
+          </Link>
+          <Link href="/kit-perfeito"
+            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors border border-gray-700">
+            Montar kit com IA ✨
+          </Link>
+        </div>
+      </section>
+
+      {/* Stats */}
+      <section className="border-y border-gray-900 py-10">
+        <div className="max-w-4xl mx-auto px-4">
+          <div className="grid grid-cols-3 gap-8 text-center">
+            {STATS.map(s => (
+              <div key={s.label}>
+                <p className="text-4xl font-black text-orange-400 mb-1">{s.value}</p>
+                <p className="text-sm font-semibold text-white">{s.label}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{s.detail}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="max-w-5xl mx-auto px-4 py-20">
+        <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Como funciona</p>
+        <h2 className="text-3xl font-black text-center mb-12">Churrasco sem complicação</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {HOW_IT_WORKS.map(s => (
+            <div key={s.step} className="text-center">
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-3xl mx-auto mb-4">
+                {s.icon}
+              </div>
+              <div className="inline-flex items-center justify-center w-6 h-6 bg-orange-500 text-white text-xs font-black rounded-full mb-3">
+                {s.step}
+              </div>
+              <h3 className="font-bold text-white text-lg mb-2">{s.title}</h3>
+              <p className="text-gray-400 text-sm leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Featured Grillmasters */}
+      {grillmasters.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 pb-20">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-1">Destaques</p>
+              <h2 className="text-3xl font-black">Churrasqueiros disponíveis</h2>
+            </div>
+            <Link href="/grillmasters" className="text-sm text-orange-400 hover:text-orange-300 font-semibold transition-colors">
+              Ver todos →
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {grillmasters.map(gm => (
+              <Link key={gm.id} href={`/grillmasters/${gm.id}`}
+                className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-orange-500/40 hover:shadow-xl hover:shadow-orange-500/10 transition-all group">
+                <div className="h-44 bg-gray-800 relative overflow-hidden">
+                  {gm.photoUrl ? (
+                    <img src={gm.photoUrl} alt={gm.user.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-6xl">🔥</div>
+                  )}
+                  {gm.certifiedAt && (
+                    <div className="absolute top-3 right-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full">
+                      ✓ CERTIFICADO
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <h3 className="font-bold text-white">{gm.user.name}</h3>
+                    <span className="shrink-0 text-yellow-400 font-bold text-sm">★ {gm.rating.toFixed(1)}</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">{gm.city}, {gm.state}</p>
+                  {gm.specialties && <p className="text-xs text-gray-400 line-clamp-2 mb-3">{gm.specialties}</p>}
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-medium">Disponível</span>
+                    <span className="text-orange-400 font-bold text-sm">R$ {gm.pricePerHour.toFixed(0)}/h</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Kit Perfeito CTA */}
+      <section className="bg-gradient-to-br from-orange-600 to-red-700 py-16">
+        <div className="max-w-3xl mx-auto px-4 text-center">
+          <p className="text-orange-200 font-semibold text-sm uppercase tracking-wide mb-3">IA generativa</p>
+          <h2 className="text-3xl font-black mb-4">Kit Perfeito — calculado por IA</h2>
+          <p className="text-orange-100 text-lg mb-8 max-w-xl mx-auto">
+            Informe quantos convidados, a data e o estilo do evento. A IA monta o kit ideal: churrasqueiro, cortes, quantidades e tudo organizadinho.
+          </p>
+          <Link href="/kit-perfeito"
+            className="inline-block bg-white text-orange-600 hover:bg-orange-50 font-black px-8 py-4 rounded-2xl text-lg transition-colors">
+            Montar meu kit agora ✨
+          </Link>
+        </div>
+      </section>
+
+      {/* For Partners */}
+      <section className="max-w-5xl mx-auto px-4 py-20">
+        <p className="text-center text-sm text-gray-500 font-semibold uppercase tracking-wide mb-3">Para parceiros</p>
+        <h2 className="text-3xl font-black text-center mb-10">Cresça com a Tech Churras</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7">
+            <span className="text-4xl mb-4 block">👨‍🍳</span>
+            <h3 className="text-xl font-bold mb-2">Churrasqueiro parceiro</h3>
+            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              Receba pedidos pelo app, gerencie sua agenda e receba 93% de cada evento via PIX toda semana. Zero mensalidade. Treinamento certificado incluso.
+            </p>
+            <Link href="/para-churrasqueiros"
+              className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">
+              Quero ser churrasqueiro parceiro →
+            </Link>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7">
+            <span className="text-4xl mb-4 block">🥩</span>
+            <h3 className="text-xl font-bold mb-2">Açougue parceiro</h3>
+            <p className="text-gray-400 text-sm leading-relaxed mb-6">
+              Apareça para clientes que já querem contratar churrasco. Venda produtos integrados diretamente no app. Mensalidade reduzida + comissão por pedido.
+            </p>
+            <Link href="/para-acougues"
+              className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">
+              Quero ser açougue parceiro →
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Churras Club teaser */}
+      <section className="border-y border-gray-800 py-12">
+        <div className="max-w-2xl mx-auto px-4 text-center">
+          <h2 className="text-2xl font-black mb-2">🏆 Churras Club</h2>
+          <p className="text-gray-400 text-sm mb-5">
+            Faz churrasco todo mês? Assine por R$ 49/mês e economize 5% em cada pedido, acesso prioritário aos melhores churrasqueiros e suporte VIP.
+          </p>
+          <Link href="/churras-club"
+            className="inline-block bg-yellow-500 hover:bg-yellow-400 text-black font-black px-6 py-3 rounded-xl transition-colors">
+            Conhecer o Churras Club
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-gray-900 px-4 py-10">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <p className="font-black text-orange-400 mb-3">🔥 Tech Churras</p>
+            <p className="text-xs text-gray-600 leading-relaxed">O churrasqueiro dos famosos. Conectando clientes com profissionais certificados desde 2025.</p>
+          </div>
+          <div>
+            <p className="font-semibold text-sm mb-3 text-gray-300">Plataforma</p>
+            <div className="space-y-2 text-xs text-gray-500">
+              <Link href="/grillmasters" className="block hover:text-gray-300 transition-colors">Churrasqueiros</Link>
+              <Link href="/boutiques" className="block hover:text-gray-300 transition-colors">Açougues</Link>
+              <Link href="/kit-perfeito" className="block hover:text-gray-300 transition-colors">Kit Perfeito IA</Link>
+              <Link href="/churras-club" className="block hover:text-gray-300 transition-colors">Churras Club</Link>
+            </div>
+          </div>
+          <div>
+            <p className="font-semibold text-sm mb-3 text-gray-300">Parceiros</p>
+            <div className="space-y-2 text-xs text-gray-500">
+              <Link href="/para-churrasqueiros" className="block hover:text-gray-300 transition-colors">Seja churrasqueiro</Link>
+              <Link href="/para-acougues" className="block hover:text-gray-300 transition-colors">Seja açougue</Link>
+              <Link href="/register" className="block hover:text-gray-300 transition-colors">Criar conta</Link>
+            </div>
+          </div>
+          <div>
+            <p className="font-semibold text-sm mb-3 text-gray-300">Legal</p>
+            <div className="space-y-2 text-xs text-gray-500">
+              <Link href="/termos-de-uso" className="block hover:text-gray-300 transition-colors">Termos de uso</Link>
+              <Link href="/politica-de-privacidade" className="block hover:text-gray-300 transition-colors">Privacidade</Link>
+              <Link href="/ajuda" className="block hover:text-gray-300 transition-colors">Ajuda</Link>
+            </div>
+          </div>
+        </div>
+        <div className="border-t border-gray-900 pt-6 text-center text-xs text-gray-700">
+          © {new Date().getFullYear()} Tech Churras · CNPJ em registro · Feito com 🔥 no Brasil
+        </div>
+      </footer>
+    </div>
+  )
 }

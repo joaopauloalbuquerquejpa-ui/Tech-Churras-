@@ -82,6 +82,7 @@ export default function DashboardLayout({
     { href: '/grillmasters', label: 'Churrasqueiros', tour: 'grillmasters-link' },
     { href: '/boutiques', label: 'Acougues', tour: 'boutiques-link' },
     { href: '/kit-perfeito', label: 'Kit Perfeito', tour: '' },
+    { href: '/churras-club', label: '🏆 Club', tour: '' },
     { href: '/orders', label: 'Pedidos', tour: 'orders-link' },
     { href: '/favoritos', label: 'Favoritos', tour: 'favoritos-link' },
     { href: '/perfil/enderecos', label: 'Enderecos', tour: '' },
@@ -92,6 +93,7 @@ export default function DashboardLayout({
     { href: '/boutiques', label: 'Acougues', tour: '' },
     { href: '/grillmasters', label: 'Churrasqueiros', tour: '' },
     { href: '/kit-perfeito', label: 'Kit Perfeito', tour: '' },
+    { href: '/churras-club', label: '🏆 Club', tour: '' },
     { href: '/ajuda', label: 'Ajuda', tour: '' },
   ]
   const boutiqueLinks = [

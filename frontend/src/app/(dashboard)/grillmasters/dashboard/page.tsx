@@ -58,7 +58,7 @@ interface GrillmasterProfile {
   uniformSent: boolean
 }
 
-type Tab = 'eventos' | 'agenda' | 'perfil' | 'treinamento'
+type Tab = 'eventos' | 'agenda' | 'perfil' | 'treinamento' | 'financeiro'
 
 const TRAINING_MODULES = [
   {
@@ -301,6 +301,18 @@ export default function GrillmasterDashboardPage() {
   const startOfYear = new Date(now.getFullYear(), 0, 1)
   const earnedThisMonth = completedOrders.filter(o => new Date(o.eventDate) >= startOfMonth).reduce((s, o) => s + o.totalPrice * 0.93, 0)
   const earnedThisYear = completedOrders.filter(o => new Date(o.eventDate) >= startOfYear).reduce((s, o) => s + o.totalPrice * 0.93, 0)
+  const totalEarningsAllTime = completedOrders.reduce((s, o) => s + o.totalPrice * 0.93, 0)
+  const last6Months = Array.from({ length: 6 }).map((_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+    const dEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 0, 23, 59, 59)
+    const label = d.toLocaleDateString('pt-BR', { month: 'short' })
+    const monthEarnings = completedOrders
+      .filter(o => { const od = new Date(o.eventDate); return od >= d && od <= dEnd })
+      .reduce((s, o) => s + o.totalPrice * 0.93, 0)
+    const count = completedOrders.filter(o => { const od = new Date(o.eventDate); return od >= d && od <= dEnd }).length
+    return { label, earnings: monthEarnings, count }
+  })
+  const maxMonthEarning = Math.max(...last6Months.map(m => m.earnings), 1)
 
   // Calendar helpers
   const { year, month } = calMonth
@@ -342,7 +354,7 @@ export default function GrillmasterDashboardPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-900 p-1 rounded-xl overflow-x-auto">
-        {(['eventos', 'agenda', 'perfil', 'treinamento'] as Tab[]).map(t => (
+        {(['eventos', 'agenda', 'financeiro', 'perfil', 'treinamento'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 min-w-max py-2 px-4 rounded-lg text-sm font-semibold capitalize transition-colors relative ${
               tab === t ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'
@@ -869,6 +881,114 @@ export default function GrillmasterDashboardPage() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── ABA FINANCEIRO ── */}
+      {tab === 'financeiro' && (
+        <div className="space-y-6">
+          {/* Totals */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {[
+              { label: 'Total recebido (histórico)', value: 'R$ ' + fmt(totalEarningsAllTime), sub: completedOrders.length + ' eventos concluídos', color: 'text-green-400' },
+              { label: 'Este mês', value: 'R$ ' + fmt(earnedThisMonth), sub: 'líquido 93%', color: 'text-orange-400' },
+              { label: 'Este ano', value: 'R$ ' + fmt(earnedThisYear), sub: new Date().getFullYear().toString(), color: 'text-blue-400' },
+            ].map(c => (
+              <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1 leading-tight">{c.label}</p>
+                <p className={'text-2xl font-black ' + c.color}>{c.value}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{c.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* 6-month chart */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400 mb-5">Ganhos — Últimos 6 Meses</h2>
+            <div className="flex items-end gap-2 h-36">
+              {last6Months.map(m => (
+                <div key={m.label} className="flex-1 flex flex-col items-center gap-1.5">
+                  <span className="text-xs text-gray-400 font-semibold">
+                    {m.earnings > 0 ? 'R$' + (m.earnings >= 1000 ? Math.round(m.earnings / 1000) + 'k' : Math.round(m.earnings)) : ''}
+                  </span>
+                  <div
+                    className="w-full rounded-t-md transition-all"
+                    style={{
+                      height: `${Math.max((m.earnings / maxMonthEarning) * 100, m.earnings > 0 ? 4 : 2)}%`,
+                      background: m.earnings > 0 ? 'rgb(249 115 22)' : 'rgb(31 41 55)',
+                    }}
+                  />
+                  <span className="text-xs text-gray-500 capitalize">{m.label}</span>
+                  {m.count > 0 && <span className="text-[10px] text-gray-600">{m.count}ev</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Commission breakdown */}
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-5">
+            <h2 className="font-semibold text-sm text-orange-300 mb-3">Como funciona sua remuneração</h2>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-300">Valor total do evento</span>
+                <span className="font-bold text-white">100%</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-gray-400">Taxa de plataforma Tech Churras</span>
+                <span className="font-semibold text-red-400">− 7%</span>
+              </div>
+              <div className="h-px bg-gray-700 my-2" />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-green-300 font-semibold">Você recebe (via PIX)</span>
+                <span className="font-black text-green-400 text-lg">93%</span>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-3">Repasse realizado semanalmente após conclusão e avaliação do evento.</p>
+          </div>
+
+          {/* Completed orders list */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="font-semibold text-sm">Eventos Pagos</h2>
+              <span className="text-xs text-gray-500">{completedOrders.length} concluídos</span>
+            </div>
+            {completedOrders.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 text-sm">Nenhum evento concluído ainda.</div>
+            ) : (
+              <div className="divide-y divide-gray-800">
+                {completedOrders
+                  .sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime())
+                  .slice(0, 30)
+                  .map(o => {
+                    const net = o.totalPrice * 0.93
+                    const fee = o.totalPrice * 0.07
+                    return (
+                      <div key={o.id} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })} · {o.guestCount} convidados · {o.eventHours}h
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-sm font-bold text-green-400">+R$ {fmt(net)}</p>
+                          <p className="text-xs text-gray-600">bruto R$ {fmt(o.totalPrice)} / taxa R$ {fmt(fee)}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+              </div>
+            )}
+          </div>
+
+          {/* Next payout banner */}
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-5 py-4 flex items-center gap-4">
+            <div className="shrink-0 w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-xl">💰</div>
+            <div>
+              <p className="font-semibold text-green-300 text-sm">Próximo repasse</p>
+              <p className="text-xs text-gray-400 mt-0.5">Todo domingo os valores de eventos concluídos na semana são enviados ao seu PIX cadastrado.</p>
+            </div>
+          </div>
         </div>
       )}
 
