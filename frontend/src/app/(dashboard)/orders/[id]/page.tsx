@@ -545,9 +545,25 @@ export default function OrderDetailPage() {
 
         <div className="p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Data do Evento</p>
-          <p className="font-semibold">
+          <p className="font-semibold mb-2">
             {new Date(order.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
           </p>
+          {order.status !== 'CANCELLED' && (() => {
+            const start = new Date(order.eventDate)
+            const end = new Date(start.getTime() + (order.eventHours ?? 4) * 3600000)
+            const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+            const gmName = order.grillmaster?.user?.name ?? 'Churrasqueiro'
+            const gcUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Churrasco — Tech Churras')}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent(`Churrasqueiro: ${gmName}\nContratado via Tech Churras`)}&location=${encodeURIComponent(order.eventAddress)}`
+            return (
+              <a href={gcUrl} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                Adicionar ao Google Calendar
+              </a>
+            )
+          })()}
         </div>
 
         <div className="p-5">

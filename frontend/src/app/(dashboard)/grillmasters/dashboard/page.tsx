@@ -439,6 +439,24 @@ export default function GrillmasterDashboardPage() {
             {profile ? `${profile.city}, ${profile.state} — R$ ${fmt(profile.pricePerHour)}/h` : ''}
           </p>
         </div>
+        {profile && (
+          <div className="flex items-center gap-2 shrink-0">
+            <Link href={`/grillmasters/${profile.id}`} target="_blank"
+              className="text-xs text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 px-3 py-1.5 rounded-lg transition-colors">
+              Ver perfil público
+            </Link>
+            <button
+              onClick={() => {
+                const url = `https://www.techchurras.com.br/grillmasters/${profile.id}`
+                const msg = `🔥 Olá! Sou churrasqueiro parceiro Tech Churras.\n\nVeja meu perfil e contrate para o seu próximo evento:\n${url}`
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
+              }}
+              className="text-xs bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30 px-3 py-1.5 rounded-lg transition-colors font-semibold"
+            >
+              Compartilhar perfil
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -637,27 +655,86 @@ export default function GrillmasterDashboardPage() {
               <div className="divide-y divide-gray-800">
                 {upcomingOrders.map(o => {
                   const daysUntil = Math.ceil((new Date(o.eventDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                  const isToday = daysUntil <= 0
                   return (
-                    <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className={`shrink-0 text-center px-2 py-1 rounded-lg ${daysUntil <= 1 ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
-                          <p className={`text-xl font-black leading-none ${daysUntil <= 1 ? 'text-orange-400' : 'text-blue-400'}`}>
-                            {daysUntil <= 0 ? 'Hj' : daysUntil === 1 ? '1d' : daysUntil + 'd'}
-                          </p>
+                    <div key={o.id} className="px-5 py-4">
+                      <Link href={`/orders/${o.id}`} className="flex items-center justify-between gap-4 hover:opacity-80 transition-opacity">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className={`shrink-0 text-center px-2 py-1 rounded-lg ${isToday ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
+                            <p className={`text-xl font-black leading-none ${isToday ? 'text-orange-400' : 'text-blue-400'}`}>
+                              {daysUntil <= 0 ? 'Hj' : daysUntil === 1 ? '1d' : daysUntil + 'd'}
+                            </p>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
+                            <p className="text-xs text-gray-400 mt-0.5">{fmtDate(o.eventDate)} · {o.guestCount} convidados · {o.eventHours}h</p>
+                            <p className="text-xs text-gray-500 truncate">{o.eventAddress}</p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{fmtDate(o.eventDate)} · {o.guestCount} convidados · {o.eventHours}h</p>
-                          <p className="text-xs text-gray-500 truncate">{o.eventAddress}</p>
+                        <div className="shrink-0 text-right">
+                          <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice * 0.93)}</p>
+                          <span className={'text-xs px-2 py-0.5 rounded-full ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
+                            {STATUS_LABEL[o.status] ?? o.status}
+                          </span>
                         </div>
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice * 0.93)}</p>
-                        <span className={'text-xs px-2 py-0.5 rounded-full ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
-                          {STATUS_LABEL[o.status] ?? o.status}
-                        </span>
-                      </div>
-                    </Link>
+                      </Link>
+                      {/* Quick status buttons for today's events */}
+                      {isToday && (
+                        <div className="flex gap-2 mt-3 flex-wrap">
+                          {o.status === 'CONFIRMED' && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  setActionLoading(o.id + '-detail')
+                                  fetch(`${BASE}/orders/${o.id}/status-detail`, {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+                                    body: JSON.stringify({ statusDetail: 'Churrasqueiro a caminho' }),
+                                  }).then(() => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: 'CONFIRMED' } : x)))
+                                    .finally(() => setActionLoading(null))
+                                }}
+                                disabled={!!actionLoading}
+                                className="flex-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 text-xs font-semibold py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                🚗 A caminho
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setActionLoading(o.id + '-start')
+                                  fetch(`${BASE}/orders/${o.id}/status`, {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+                                    body: JSON.stringify({ status: 'IN_PROGRESS' }),
+                                  }).then(() => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: 'IN_PROGRESS' } : x)))
+                                    .finally(() => setActionLoading(null))
+                                }}
+                                disabled={!!actionLoading}
+                                className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-semibold py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                🔥 Iniciar evento
+                              </button>
+                            </>
+                          )}
+                          {o.status === 'IN_PROGRESS' && (
+                            <button
+                              onClick={() => {
+                                setActionLoading(o.id + '-complete')
+                                fetch(`${BASE}/orders/${o.id}/status`, {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+                                  body: JSON.stringify({ status: 'COMPLETED' }),
+                                }).then(() => setOrders(prev => prev.map(x => x.id === o.id ? { ...x, status: 'COMPLETED' } : x)))
+                                  .finally(() => setActionLoading(null))
+                              }}
+                              disabled={!!actionLoading}
+                              className="flex-1 bg-green-500/20 hover:bg-green-500/30 text-green-300 text-xs font-semibold py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              ✅ Finalizar evento
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   )
                 })}
               </div>
@@ -820,6 +897,47 @@ export default function GrillmasterDashboardPage() {
       {/* ── ABA PERFIL ── */}
       {tab === 'perfil' && (
         <div className="space-y-6">
+          {/* Profile completeness */}
+          {(() => {
+            const checks = [
+              { label: 'Foto de perfil', done: !!profileForm.photoUrl },
+              { label: 'Bio / apresentação', done: (profileForm.bio ?? '').length >= 30 },
+              { label: 'Especialidades', done: !!(profileForm.specialties) },
+              { label: 'Estilo de churrasco', done: !!(profileForm.churrascoStyle) },
+              { label: '3+ fotos na galeria', done: (profileForm.galleryUrls ?? []).length >= 3 },
+              { label: 'Instagram', done: !!(profileForm.instagram) },
+              { label: 'Vídeo de apresentação', done: !!(profileForm.videoUrl) },
+            ]
+            const done = checks.filter(c => c.done).length
+            const pct = Math.round((done / checks.length) * 100)
+            const color = pct >= 80 ? 'text-green-400' : pct >= 50 ? 'text-yellow-400' : 'text-orange-400'
+            const barColor = pct >= 80 ? 'bg-green-500' : pct >= 50 ? 'bg-yellow-500' : 'bg-orange-500'
+            return (
+              <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="font-semibold text-sm">Completude do Perfil</h2>
+                  <span className={`text-2xl font-black ${color}`}>{pct}%</span>
+                </div>
+                <div className="h-1.5 bg-gray-800 rounded-full mb-4">
+                  <div className={`h-1.5 rounded-full transition-all ${barColor}`} style={{ width: `${pct}%` }} />
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {checks.map(c => (
+                    <div key={c.label} className={`flex items-center gap-1.5 text-xs ${c.done ? 'text-gray-400' : 'text-gray-600'}`}>
+                      <span className={c.done ? 'text-green-400' : 'text-gray-700'}>
+                        {c.done ? '✓' : '○'}
+                      </span>
+                      {c.label}
+                    </div>
+                  ))}
+                </div>
+                {pct < 80 && (
+                  <p className="text-xs text-gray-600 mt-3">Perfis completos recebem 3x mais pedidos. Complete os itens acima para melhorar seu ranqueamento.</p>
+                )}
+              </div>
+            )
+          })()}
+
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-5">
             <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400">Perfil Profissional</h2>
 
