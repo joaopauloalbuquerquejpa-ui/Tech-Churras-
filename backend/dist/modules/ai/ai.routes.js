@@ -7,6 +7,9 @@ exports.aiRoutes = aiRoutes;
 const sdk_1 = __importDefault(require("@anthropic-ai/sdk"));
 const supabase_js_1 = require("@supabase/supabase-js");
 const auth_middleware_1 = require("../../middlewares/auth.middleware");
+const geo_1 = require("../../utils/geo");
+const boutiques_service_1 = require("../boutiques/boutiques.service");
+const grillmasters_service_1 = require("../grillmasters/grillmasters.service");
 // Rate limit: max 10 req/min por usuário
 const suggestRateLimits = new Map();
 const SYSTEM_PROMPT = `Você é a Tech Churras IA — especialista em churrasco brasileiro com 20 anos de experiência, chancelada por Jota Albuquerque (Jota Grillmaster).
@@ -186,6 +189,86 @@ Regras:
         catch (err) {
             return reply.status(500).send({ error: 'Falha ao analisar imagem', details: err.message });
         }
+    });
+    // ── POST /ai/geocode ─────────────────────────────────────────────────
+    app.post('/ai/geocode', async (request, reply) => {
+        const { address } = request.body;
+        if (!address)
+            return reply.status(400).send({ error: 'Endereco obrigatorio' });
+        const coords = await (0, geo_1.geocodeAddress)(address);
+        if (!coords)
+            return reply.status(404).send({ error: 'Endereco nao encontrado' });
+        return reply.send(coords);
+    });
+    // ── POST /ai/kit-perfeito ────────────────────────────────────────────
+    app.post('/ai/kit-perfeito', async (request, reply) => {
+        const { eventAddress, guests, occasion = 'churrasco', budget, eventDate } = request.body;
+        if (!eventAddress || !guests || guests < 1) {
+            return reply.status(400).send({ error: 'Informe endereco e numero de convidados' });
+        }
+        const coords = await (0, geo_1.geocodeAddress)(eventAddress);
+        if (!coords)
+            return reply.status(400).send({ error: 'Nao conseguimos localizar esse endereco. Tente ser mais especifico.' });
+        const [nearbyBoutiques, nearbyGrillmasters] = await Promise.all([
+            (0, boutiques_service_1.findNearbyBoutiques)(coords.lat, coords.lng, 15),
+            (0, grillmasters_service_1.findNearbyGrillmasters)(coords.lat, coords.lng, 20),
+        ]);
+        const boutiquesWithProducts = nearbyBoutiques.filter((b) => b.products.length > 0);
+        if (boutiquesWithProducts.length === 0 || nearbyGrillmasters.length === 0) {
+            return reply.status(404).send({
+                error: 'Ainda nao temos parceiros nessa regiao. Estamos expandindo!',
+                hasPartners: false,
+            });
+        }
+        const boutique = boutiquesWithProducts[0];
+        const grillmaster = nearbyGrillmasters[0];
+        const catalog = boutique.products.map((p) => {
+            const discountActive = p.discountPercent && (!p.discountValidUntil || new Date(p.discountValidUntil) > new Date());
+            const finalPrice = discountActive ? p.price * (1 - p.discountPercent / 100) : p.price;
+            return `[${p.id}] ${p.name} — R$${finalPrice.toFixed(2)}/${p.unit} (${p.category})`;
+        }).join('\n');
+        const kitPrompt = `Voce e o assistente de churrasco da Tech Churras. Monte o kit perfeito para este evento.
+
+DADOS DO EVENTO:
+- Convidados: ${guests} pessoas
+- Ocasiao: ${occasion}
+- Orcamento: ${budget ? `R$ ${budget}` : 'sem limite definido'}
+- Data: ${eventDate || 'a confirmar'}
+
+PRODUTOS DISPONIVEIS no acougue "${boutique.name}" (${boutique.distanceKm.toFixed(1)} km do evento):
+${catalog}
+
+CHURRASQUEIRO SELECIONADO: ${grillmaster.user.name} — R$${grillmaster.pricePerHour}/hora — avaliacao ${grillmaster.rating.toFixed(1)}/5
+
+REGRAS:
+- Use SOMENTE produtos da lista acima pelos IDs exatos
+- Calcule ~400g de carne por pessoa
+- Inclua sempre carne principal, carvao e ao menos um acompanhamento
+- Recomende 3-4h de churrasqueiro para ate 15 pessoas, 5-6h para mais
+- Responda SOMENTE JSON valido, sem markdown
+
+{"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"Kit ideal em 1 frase","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`;
+        const message = await client.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 1200,
+            messages: [{ role: 'user', content: kitPrompt }],
+        });
+        const rawText = message.content[0].type === 'text' ? message.content[0].text : '';
+        let kit;
+        try {
+            const cleaned = rawText.replace(/```json\s*/g, '').replace(/```/g, '').trim();
+            const match = cleaned.match(/\{[\s\S]*\}/);
+            kit = JSON.parse(match ? match[0] : cleaned);
+        }
+        catch {
+            return reply.status(500).send({ error: 'Falha ao montar kit', raw: rawText.slice(0, 300) });
+        }
+        return reply.send({
+            kit,
+            boutique: { id: boutique.id, name: boutique.name, distanceKm: boutique.distanceKm, logoUrl: boutique.logoUrl },
+            grillmaster: { id: grillmaster.id, name: grillmaster.user.name, rating: grillmaster.rating, distanceKm: grillmaster.distanceKm, photoUrl: grillmaster.photoUrl, pricePerHour: grillmaster.pricePerHour },
+            eventCoords: coords,
+        });
     });
 }
 //# sourceMappingURL=ai.routes.js.map

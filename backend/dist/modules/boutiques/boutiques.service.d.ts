@@ -66,10 +66,10 @@ export declare function createBoutique(userId: string, data: CreateBoutiqueInput
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;
@@ -83,6 +83,9 @@ export declare function listBoutiques(params?: {
     city?: string;
     minRating?: number;
     sortBy?: string;
+    lat?: number;
+    lng?: number;
+    radiusKm?: number;
 }): Promise<({
     user: {
         name: string;
@@ -102,10 +105,10 @@ export declare function listBoutiques(params?: {
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;
@@ -115,6 +118,50 @@ export declare function listBoutiques(params?: {
     deliveryOrPickup: string | null;
     referralCode: string | null;
 })[]>;
+export declare function findNearbyBoutiques(lat: number, lng: number, radiusKm?: number): Promise<{
+    distanceKm: number;
+    products: {
+        name: string;
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        boutiqueId: string;
+        available: boolean;
+        description: string | null;
+        price: number;
+        unit: string;
+        category: import("@prisma/client").$Enums.ProductCategory;
+        stockQuantity: number | null;
+        imageUrl: string | null;
+        discountPercent: number | null;
+        discountValidUntil: Date | null;
+    }[];
+    name: string;
+    id: string;
+    phone: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    address: string | null;
+    userId: string;
+    city: string;
+    state: string;
+    rating: number;
+    approved: boolean;
+    galleryUrls: string[];
+    instagram: string | null;
+    latitude: number | null;
+    longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
+    open: boolean;
+    monthlyFee: number;
+    commissionRate: number;
+    logoUrl: string | null;
+    facadeUrl: string | null;
+    openingHours: string | null;
+    deliveryOrPickup: string | null;
+    referralCode: string | null;
+}[]>;
 export declare function getBoutiqueById(id: string): Promise<{
     user: {
         name: string;
@@ -150,10 +197,10 @@ export declare function getBoutiqueById(id: string): Promise<{
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;
@@ -198,10 +245,10 @@ export declare function getMyBoutique(userId: string): Promise<{
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;
@@ -225,10 +272,10 @@ export declare function updateBoutique(userId: string, data: UpdateBoutiqueInput
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;

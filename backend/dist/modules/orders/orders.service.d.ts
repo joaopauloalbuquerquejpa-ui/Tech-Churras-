@@ -54,6 +54,8 @@ export declare function createOrder(customerId: string, data: CreateOrderInput):
         bringsEquipment: boolean;
         minGuests: number | null;
         maxGuests: number | null;
+        latitude: number | null;
+        longitude: number | null;
         pixKey: string | null;
         videoUrl: string | null;
         certificationCode: string | null;
@@ -76,10 +78,10 @@ export declare function createOrder(customerId: string, data: CreateOrderInput):
         approved: boolean;
         galleryUrls: string[];
         instagram: string | null;
-        pixKey: string | null;
-        description: string | null;
         latitude: number | null;
         longitude: number | null;
+        pixKey: string | null;
+        description: string | null;
         open: boolean;
         monthlyFee: number;
         commissionRate: number;
@@ -172,6 +174,8 @@ export declare function listOrders(customerId: string): Promise<{
         bringsEquipment: boolean;
         minGuests: number | null;
         maxGuests: number | null;
+        latitude: number | null;
+        longitude: number | null;
         pixKey: string | null;
         videoUrl: string | null;
         certificationCode: string | null;
@@ -194,10 +198,10 @@ export declare function listOrders(customerId: string): Promise<{
         approved: boolean;
         galleryUrls: string[];
         instagram: string | null;
-        pixKey: string | null;
-        description: string | null;
         latitude: number | null;
         longitude: number | null;
+        pixKey: string | null;
+        description: string | null;
         open: boolean;
         monthlyFee: number;
         commissionRate: number;
@@ -335,6 +339,8 @@ export declare function updateOrderStatus(id: string, status: string, userId?: s
         bringsEquipment: boolean;
         minGuests: number | null;
         maxGuests: number | null;
+        latitude: number | null;
+        longitude: number | null;
         pixKey: string | null;
         videoUrl: string | null;
         certificationCode: string | null;
@@ -474,6 +480,8 @@ export declare function getOrderById(id: string, userId: string, role?: string):
         bringsEquipment: boolean;
         minGuests: number | null;
         maxGuests: number | null;
+        latitude: number | null;
+        longitude: number | null;
         pixKey: string | null;
         videoUrl: string | null;
         certificationCode: string | null;
@@ -496,10 +504,10 @@ export declare function getOrderById(id: string, userId: string, role?: string):
         approved: boolean;
         galleryUrls: string[];
         instagram: string | null;
-        pixKey: string | null;
-        description: string | null;
         latitude: number | null;
         longitude: number | null;
+        pixKey: string | null;
+        description: string | null;
         open: boolean;
         monthlyFee: number;
         commissionRate: number;

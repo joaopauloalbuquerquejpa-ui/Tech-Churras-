@@ -55,12 +55,21 @@ export default function DashboardLayout({
   const itemCount = useCartStore((s) => s.itemCount())
   const loadFavorites = useFavoritesStore((s) => s.load)
 
+  const PROTECTED_PREFIXES = [
+    '/dashboard', '/orders', '/menu', '/perfil',
+    '/admin', '/founder', '/favoritos',
+    '/boutiques/dashboard', '/grillmasters/dashboard',
+  ]
+
   useEffect(() => {
     const raw = localStorage.getItem('auth-storage')
     const token = raw ? JSON.parse(raw)?.state?.token : null
-    if (!token) router.push('/login')
-    else loadFavorites()
-  }, [])
+    const isProtected = PROTECTED_PREFIXES.some(
+      p => pathname === p || pathname.startsWith(p + '/')
+    )
+    if (!token && isProtected) router.push('/login')
+    else if (token) loadFavorites()
+  }, [pathname])
 
   function handleLogout() {
     logout()
@@ -72,9 +81,17 @@ export default function DashboardLayout({
     { href: '/menu', label: 'Menu', tour: 'menu-link' },
     { href: '/grillmasters', label: 'Churrasqueiros', tour: 'grillmasters-link' },
     { href: '/boutiques', label: 'Acougues', tour: 'boutiques-link' },
+    { href: '/kit-perfeito', label: 'Kit Perfeito', tour: '' },
     { href: '/orders', label: 'Pedidos', tour: 'orders-link' },
     { href: '/favoritos', label: 'Favoritos', tour: 'favoritos-link' },
     { href: '/perfil/enderecos', label: 'Enderecos', tour: '' },
+    { href: '/ajuda', label: 'Ajuda', tour: '' },
+  ]
+
+  const publicLinks = [
+    { href: '/boutiques', label: 'Acougues', tour: '' },
+    { href: '/grillmasters', label: 'Churrasqueiros', tour: '' },
+    { href: '/kit-perfeito', label: 'Kit Perfeito', tour: '' },
     { href: '/ajuda', label: 'Ajuda', tour: '' },
   ]
   const boutiqueLinks = [
@@ -92,9 +109,10 @@ export default function DashboardLayout({
     { href: '/ajuda', label: 'Ajuda', tour: '' },
   ]
   const links =
-    user?.role === 'BOUTIQUE' ? boutiqueLinks :
-    user?.role === 'GRILLMASTER' ? grillmasterLinks :
-    user?.role === 'ADMIN' ? adminLinks :
+    !user ? publicLinks :
+    user.role === 'BOUTIQUE' ? boutiqueLinks :
+    user.role === 'GRILLMASTER' ? grillmasterLinks :
+    user.role === 'ADMIN' ? adminLinks :
     customerLinks
 
   return (
@@ -117,13 +135,18 @@ export default function DashboardLayout({
           </div>
         </div>
         <div className='flex items-center gap-3'>
-          <span className='text-gray-400 text-sm hidden md:block'>Ola, {user?.name || 'Usuario'}</span>
+          {user && <span className='text-gray-400 text-sm hidden md:block'>Ola, {user.name}</span>}
           <CartIcon count={itemCount} />
-          <NotificationBell />
-          <button onClick={handleLogout}
-            className='bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded text-sm'>
-            Sair
-          </button>
+          {user && <NotificationBell />}
+          {user ? (
+            <button onClick={handleLogout} className='bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded text-sm'>
+              Sair
+            </button>
+          ) : (
+            <Link href='/login' className='bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm font-medium'>
+              Entrar
+            </Link>
+          )}
         </div>
       </nav>
       {user && <OnboardingTour userId={user.id} role={user.role} />}

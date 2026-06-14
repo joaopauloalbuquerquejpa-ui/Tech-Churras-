@@ -48,6 +48,8 @@ export declare function listGrillmasters(): Promise<({
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -84,6 +86,8 @@ export declare function listPendingGrillmasters(): Promise<({
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -118,6 +122,8 @@ export declare function approveGrillmaster(grillmasterId: string, extras?: {
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -149,6 +155,8 @@ export declare function rejectGrillmaster(grillmasterId: string): Promise<{
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -176,10 +184,10 @@ export declare function listPendingBoutiques(): Promise<({
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;
@@ -203,10 +211,10 @@ export declare function approveBoutique(boutiqueId: string): Promise<{
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;
@@ -235,10 +243,10 @@ export declare function rejectBoutique(boutiqueId: string): Promise<{
     approved: boolean;
     galleryUrls: string[];
     instagram: string | null;
-    pixKey: string | null;
-    description: string | null;
     latitude: number | null;
     longitude: number | null;
+    pixKey: string | null;
+    description: string | null;
     open: boolean;
     monthlyFee: number;
     commissionRate: number;
@@ -280,6 +288,8 @@ export declare function listAllOrders(): Promise<({
         bringsEquipment: boolean;
         minGuests: number | null;
         maxGuests: number | null;
+        latitude: number | null;
+        longitude: number | null;
         pixKey: string | null;
         videoUrl: string | null;
         certificationCode: string | null;

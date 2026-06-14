@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createKitSchema = exports.updateBoutiqueSchema = exports.createBoutiqueSchema = void 0;
 exports.createBoutique = createBoutique;
 exports.listBoutiques = listBoutiques;
+exports.findNearbyBoutiques = findNearbyBoutiques;
 exports.getBoutiqueById = getBoutiqueById;
 exports.getMyBoutique = getMyBoutique;
 exports.updateBoutique = updateBoutique;
@@ -14,6 +15,7 @@ exports.getBoutiqueDemandForecast = getBoutiqueDemandForecast;
 exports.deleteKit = deleteKit;
 const prisma_1 = require("../../config/prisma");
 const zod_1 = require("zod");
+const geo_1 = require("../../utils/geo");
 exports.createBoutiqueSchema = zod_1.z.object({
     name: zod_1.z.string().min(2),
     description: zod_1.z.string().optional(),
@@ -63,24 +65,62 @@ async function createBoutique(userId, data) {
     const existing = await prisma_1.prisma.boutique.findUnique({ where: { userId } });
     if (existing)
         throw new Error('Perfil de acougue ja existe');
+    let latitude = data.latitude;
+    let longitude = data.longitude;
+    if ((!latitude || !longitude) && data.address && data.city) {
+        const coords = await (0, geo_1.geocodeAddress)(`${data.address}, ${data.city}, ${data.state}`);
+        if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+        }
+    }
     return prisma_1.prisma.boutique.create({
-        data: { userId, ...data },
+        data: { userId, ...data, latitude, longitude },
         include: { user: { select: { name: true, email: true } } },
     });
 }
 async function listBoutiques(params = {}) {
-    const { city, minRating, sortBy } = params;
+    const { city, minRating, sortBy, lat, lng, radiusKm = 15 } = params;
     const where = { approved: true };
     if (city)
         where.city = { contains: city, mode: 'insensitive' };
     if (minRating != null)
         where.rating = { gte: minRating };
     const orderBy = sortBy === 'rating_desc' ? { rating: 'desc' } : { rating: 'desc' };
-    return prisma_1.prisma.boutique.findMany({
+    const boutiques = await prisma_1.prisma.boutique.findMany({
         where,
         include: { user: { select: { name: true, email: true } } },
         orderBy,
     });
+    if (lat != null && lng != null) {
+        return boutiques
+            .map(b => ({
+            ...b,
+            distanceKm: b.latitude && b.longitude
+                ? (0, geo_1.haversineKm)(lat, lng, b.latitude, b.longitude)
+                : null,
+        }))
+            .filter(b => b.distanceKm == null || b.distanceKm <= radiusKm)
+            .sort((a, b) => {
+            if (a.distanceKm == null)
+                return 1;
+            if (b.distanceKm == null)
+                return -1;
+            return a.distanceKm - b.distanceKm;
+        });
+    }
+    return boutiques;
+}
+async function findNearbyBoutiques(lat, lng, radiusKm = 15) {
+    const all = await prisma_1.prisma.boutique.findMany({
+        where: { approved: true, open: true },
+        include: { products: { where: { available: true } } },
+    });
+    return all
+        .filter(b => b.latitude != null && b.longitude != null)
+        .map(b => ({ ...b, distanceKm: (0, geo_1.haversineKm)(lat, lng, b.latitude, b.longitude) }))
+        .filter(b => b.distanceKm <= radiusKm)
+        .sort((a, b) => a.distanceKm - b.distanceKm);
 }
 async function getBoutiqueById(id) {
     const boutique = await prisma_1.prisma.boutique.findUnique({

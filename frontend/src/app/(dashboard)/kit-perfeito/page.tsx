@@ -1,0 +1,342 @@
+'use client'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useCartStore } from '@/store/cart'
+
+const BASE = 'https://tech-churras-production.up.railway.app'
+
+const OCCASIONS = [
+  { value: 'churrasco em familia', label: 'Churrasco em Família' },
+  { value: 'aniversario', label: 'Aniversário' },
+  { value: 'confraternizacao empresarial', label: 'Confraternização' },
+  { value: 'casamento', label: 'Casamento/Noivado' },
+  { value: 'evento corporativo', label: 'Evento Corporativo' },
+  { value: 'outro', label: 'Outro' },
+]
+
+interface KitItem {
+  productId: string
+  productName: string
+  quantity: number
+  unit: string
+  unitPrice: number
+  totalPrice: number
+}
+
+interface KitResult {
+  kit: {
+    items: KitItem[]
+    grillmasterHours: number
+    summary: string
+    totalProducts: number
+    totalGrillmaster: number
+    totalKit: number
+  }
+  boutique: { id: string; name: string; distanceKm: number; logoUrl?: string }
+  grillmaster: { id: string; name: string; rating: number; distanceKm: number; photoUrl?: string; pricePerHour: number }
+  eventCoords: { lat: number; lng: number }
+}
+
+export default function KitPerfeitoPage() {
+  const router = useRouter()
+  const { setGrillmasterId, setBoutiqueId, setSelectedQty, setEventData } = useCartStore()
+
+  const [form, setForm] = useState({
+    eventAddress: '',
+    guests: 10,
+    occasion: 'churrasco em familia',
+    budget: '',
+  })
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<KitResult | null>(null)
+  const [error, setError] = useState('')
+  const [added, setAdded] = useState(false)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    setResult(null)
+
+    try {
+      const res = await fetch(`${BASE}/ai/kit-perfeito`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventAddress: form.eventAddress,
+          guests: Number(form.guests),
+          occasion: form.occasion,
+          budget: form.budget ? Number(form.budget) : undefined,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Erro ao montar kit')
+      }
+
+      const data: KitResult = await res.json()
+      setResult(data)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function addToCart() {
+    if (!result) return
+    setBoutiqueId(result.boutique.id)
+    setGrillmasterId(result.grillmaster.id)
+    const qty: Record<string, number> = {}
+    for (const item of result.kit.items) {
+      qty[item.productId] = item.quantity
+    }
+    setSelectedQty(qty)
+    setEventData({
+      address: form.eventAddress,
+      hours: result.kit.grillmasterHours,
+      homens: Math.round(form.guests * 0.5),
+      mulheres: Math.round(form.guests * 0.3),
+      criancas: Math.round(form.guests * 0.2),
+    })
+    setAdded(true)
+    setTimeout(() => router.push('/menu/novo'), 800)
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto">
+      {/* Header */}
+      <div className="text-center mb-8">
+        <div className="text-5xl mb-3">✨</div>
+        <h1 className="text-3xl font-black text-white mb-2">Kit Perfeito</h1>
+        <p className="text-gray-400 text-sm max-w-md mx-auto">
+          Nossa IA monta o churrasco ideal com açougues e churrasqueiros próximos ao seu evento — em segundos.
+        </p>
+      </div>
+
+      {/* Form */}
+      {!result && !loading && (
+        <form onSubmit={handleSubmit} className="bg-gray-900 rounded-2xl p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Endereço do evento
+            </label>
+            <input
+              type="text"
+              value={form.eventAddress}
+              onChange={e => setForm({ ...form, eventAddress: e.target.value })}
+              placeholder="Rua das Flores, 123, São Paulo, SP"
+              required
+              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 text-sm"
+            />
+            <p className="text-xs text-gray-600 mt-1">
+              Usamos o endereço do evento para encontrar parceiros próximos.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Convidados</label>
+              <input
+                type="number"
+                value={form.guests}
+                onChange={e => setForm({ ...form, guests: Number(e.target.value) })}
+                min={1}
+                max={500}
+                required
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Ocasião</label>
+              <select
+                value={form.occasion}
+                onChange={e => setForm({ ...form, occasion: e.target.value })}
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-orange-500 text-sm"
+              >
+                {OCCASIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Orçamento máximo <span className="text-gray-600 font-normal">(opcional)</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">R$</span>
+              <input
+                type="number"
+                value={form.budget}
+                onChange={e => setForm({ ...form, budget: e.target.value })}
+                placeholder="1000"
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-9 pr-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 text-sm"
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 rounded-xl transition-colors text-sm"
+          >
+            Montar Kit Perfeito com IA
+          </button>
+
+          <p className="text-xs text-gray-600 text-center">
+            Selecionamos produtos reais do catálogo dos nossos açougues parceiros.
+          </p>
+        </form>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-16">
+          <div className="relative inline-flex items-center justify-center w-20 h-20 mb-6">
+            <div className="absolute inset-0 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
+            <span className="text-3xl">🔥</span>
+          </div>
+          <p className="text-white font-bold mb-2">Montando seu kit perfeito...</p>
+          <p className="text-gray-500 text-sm">Verificando açougues e churrasqueiros próximos ao evento</p>
+        </div>
+      )}
+
+      {/* Result */}
+      {result && (
+        <div className="space-y-4">
+          {/* AI summary */}
+          <div className="bg-gradient-to-r from-orange-500/20 to-red-600/10 border border-orange-500/30 rounded-2xl p-5 flex items-start gap-3">
+            <span className="text-2xl shrink-0">✨</span>
+            <div>
+              <p className="text-xs font-semibold text-orange-400 uppercase tracking-widest mb-1">Kit montado pela IA</p>
+              <p className="text-sm text-gray-300">{result.kit.summary}</p>
+            </div>
+          </div>
+
+          {/* Boutique + products */}
+          <div className="bg-gray-900 rounded-2xl p-5">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Açougue selecionado</p>
+            <div className="flex items-center gap-3 mb-4">
+              {result.boutique.logoUrl ? (
+                <img src={result.boutique.logoUrl} alt="" className="w-10 h-10 rounded-xl object-cover border border-gray-700" />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-red-900/40 flex items-center justify-center text-xl">🥩</div>
+              )}
+              <div>
+                <p className="font-bold text-white">{result.boutique.name}</p>
+                <p className="text-xs text-gray-500">{result.boutique.distanceKm.toFixed(1)} km do evento</p>
+              </div>
+            </div>
+
+            <div className="space-y-0">
+              {result.kit.items.map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
+                  <div>
+                    <p className="text-sm text-white font-medium">{item.productName}</p>
+                    <p className="text-xs text-gray-500">
+                      {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
+                    </p>
+                  </div>
+                  <p className="text-sm font-bold text-orange-400 shrink-0 ml-3">
+                    R$ {item.totalPrice.toFixed(2)}
+                  </p>
+                </div>
+              ))}
+              <div className="flex items-center justify-between pt-3">
+                <p className="text-sm font-bold text-white">Subtotal produtos</p>
+                <p className="text-sm font-bold text-white">
+                  R$ {result.kit.totalProducts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Grillmaster */}
+          <div className="bg-gray-900 rounded-2xl p-5">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Churrasqueiro selecionado</p>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {result.grillmaster.photoUrl ? (
+                  <img src={result.grillmaster.photoUrl} alt="" className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-orange-900/40 flex items-center justify-center text-xl">👨‍🍳</div>
+                )}
+                <div>
+                  <p className="font-bold text-white">{result.grillmaster.name}</p>
+                  <p className="text-xs text-gray-500">
+                    ⭐ {result.grillmaster.rating.toFixed(1)} · {result.grillmaster.distanceKm.toFixed(1)} km do evento
+                  </p>
+                </div>
+              </div>
+              <div className="text-right shrink-0 ml-3">
+                <p className="text-xs text-gray-500">
+                  {result.kit.grillmasterHours}h × R$ {result.grillmaster.pricePerHour}
+                </p>
+                <p className="text-sm font-bold text-orange-400">
+                  R$ {result.kit.totalGrillmaster.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Total */}
+          <div className="bg-gray-900 rounded-2xl p-5">
+            <div className="space-y-2 mb-3">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-400">Produtos</p>
+                <p className="text-sm text-white">
+                  R$ {result.kit.totalProducts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-400">Churrasqueiro</p>
+                <p className="text-sm text-white">
+                  R$ {result.kit.totalGrillmaster.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center justify-between border-t border-gray-800 pt-3">
+              <p className="font-bold text-white">Total estimado</p>
+              <p className="text-2xl font-black text-orange-400">
+                R$ {result.kit.totalKit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+            <p className="text-xs text-gray-600 mt-2 text-center">
+              Valores aproximados baseados no catálogo atual
+            </p>
+          </div>
+
+          {/* CTA */}
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setResult(null); setError(''); setAdded(false) }}
+              className="flex-1 bg-gray-800 hover:bg-gray-700 text-white font-medium py-3.5 rounded-xl transition-colors text-sm"
+            >
+              Refazer
+            </button>
+            <button
+              onClick={addToCart}
+              disabled={added}
+              className={
+                'flex-1 font-bold py-3.5 rounded-xl transition-colors text-sm ' +
+                (added
+                  ? 'bg-green-600 text-white cursor-default'
+                  : 'bg-orange-500 hover:bg-orange-600 text-white')
+              }
+            >
+              {added ? '✓ Adicionado! Redirecionando...' : 'Montar este churrasco →'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

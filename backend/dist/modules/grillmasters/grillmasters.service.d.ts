@@ -45,6 +45,8 @@ export declare function createGrillmaster(userId: string, data: CreateGrillmaste
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -63,6 +65,9 @@ export declare function listGrillmasters(params?: {
     available?: boolean;
     page?: number;
     limit?: number;
+    lat?: number;
+    lng?: number;
+    radiusKm?: number;
 }): Promise<{
     grillmasters: ({
         user: {
@@ -92,6 +97,8 @@ export declare function listGrillmasters(params?: {
         bringsEquipment: boolean;
         minGuests: number | null;
         maxGuests: number | null;
+        latitude: number | null;
+        longitude: number | null;
         pixKey: string | null;
         videoUrl: string | null;
         certificationCode: string | null;
@@ -105,6 +112,43 @@ export declare function listGrillmasters(params?: {
     limit: number;
     totalPages: number;
 }>;
+export declare function findNearbyGrillmasters(lat: number, lng: number, radiusKm?: number): Promise<{
+    distanceKm: number;
+    user: {
+        name: string;
+    };
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    bio: string | null;
+    experience: number;
+    pricePerHour: number;
+    available: boolean;
+    city: string;
+    state: string;
+    rating: number;
+    approved: boolean;
+    totalOrders: number;
+    isChancelado: boolean;
+    specialties: string | null;
+    photoUrl: string | null;
+    galleryUrls: string[];
+    instagram: string | null;
+    churrascoStyle: string | null;
+    bringsEquipment: boolean;
+    minGuests: number | null;
+    maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
+    pixKey: string | null;
+    videoUrl: string | null;
+    certificationCode: string | null;
+    certifiedAt: Date | null;
+    trainingModules: number[];
+    uniformSent: boolean;
+    uniformSentAt: Date | null;
+}[]>;
 export declare function getGrillmasterById(id: string): Promise<{
     user: {
         name: string;
@@ -133,6 +177,8 @@ export declare function getGrillmasterById(id: string): Promise<{
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -164,6 +210,8 @@ export declare function updateGrillmaster(userId: string, data: Partial<CreateGr
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -196,6 +244,8 @@ export declare function getMyGrillmasterOrders(userId: string): Promise<{
         bringsEquipment: boolean;
         minGuests: number | null;
         maxGuests: number | null;
+        latitude: number | null;
+        longitude: number | null;
         pixKey: string | null;
         videoUrl: string | null;
         certificationCode: string | null;
@@ -305,6 +355,8 @@ export declare function completeTrainingModule(userId: string, moduleId: number)
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;
@@ -336,6 +388,8 @@ export declare function markUniformSent(grillmasterId: string): Promise<{
     bringsEquipment: boolean;
     minGuests: number | null;
     maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
     pixKey: string | null;
     videoUrl: string | null;
     certificationCode: string | null;

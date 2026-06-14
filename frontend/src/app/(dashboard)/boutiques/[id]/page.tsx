@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useFavoritesStore } from '@/store/favorites'
+import { useCartStore } from '@/store/cart'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -90,6 +91,8 @@ export default function BoutiqueProfilePage() {
   const [activeCategory, setActiveCategory] = useState<string>('TODOS')
   const [search, setSearch] = useState('')
 
+  const { selectedQty, setSelectedQty, setBoutiqueId, boutiqueId: cartBoutiqueId } = useCartStore()
+
   useEffect(() => {
     if (!id) return
     const token = getToken()
@@ -143,6 +146,44 @@ export default function BoutiqueProfilePage() {
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase())
     return matchCat && matchSearch
   })
+
+  const isMyBoutique = boutique != null && cartBoutiqueId === boutique.id
+
+  function addToCart(productId: string) {
+    if (!boutique) return
+    if (cartBoutiqueId && cartBoutiqueId !== boutique.id) {
+      setBoutiqueId(boutique.id)
+      setSelectedQty({ [productId]: 1 })
+    } else {
+      setBoutiqueId(boutique.id)
+      setSelectedQty({ ...selectedQty, [productId]: (selectedQty[productId] || 0) + 1 })
+    }
+  }
+
+  function removeFromCart(productId: string) {
+    const curr = selectedQty[productId] || 0
+    if (curr <= 1) {
+      const next = { ...selectedQty }
+      delete next[productId]
+      setSelectedQty(next)
+    } else {
+      setSelectedQty({ ...selectedQty, [productId]: curr - 1 })
+    }
+  }
+
+  const cartCount = isMyBoutique
+    ? Object.values(selectedQty).reduce((s, v) => s + v, 0)
+    : 0
+
+  const cartTotal = isMyBoutique
+    ? allProducts.reduce((sum, p) => {
+        const qty = selectedQty[p.id] || 0
+        if (!qty) return sum
+        const active = isDiscountActive(p)
+        const price = active ? discountedPrice(p.price, p.discountPercent!) : p.price
+        return sum + price * qty
+      }, 0)
+    : 0
 
   const productsByCategory = filteredProducts.reduce<Record<string, Product[]>>((acc, p) => {
     const cat = p.category || 'OUTRO'
@@ -294,7 +335,7 @@ export default function BoutiqueProfilePage() {
                         <p className="text-lg font-black text-orange-400">R$ {finalPrice.toFixed(2)}</p>
                       </div>
                       <button
-                        onClick={() => router.push('/menu/novo?boutiqueId=' + boutique.id)}
+                        onClick={() => { setBoutiqueId(boutique.id); router.push('/menu/novo') }}
                         className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
                       >
                         Pedir
@@ -408,12 +449,26 @@ export default function BoutiqueProfilePage() {
                                 </p>
                               </div>
                               {p.stockQuantity !== 0 && (
-                                <button
-                                  onClick={() => router.push('/menu/novo?boutiqueId=' + boutique.id)}
-                                  className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
-                                >
-                                  +
-                                </button>
+                                isMyBoutique && (selectedQty[p.id] || 0) > 0 ? (
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <button
+                                      onClick={() => removeFromCart(p.id)}
+                                      className="bg-gray-700 hover:bg-gray-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold text-base transition-colors"
+                                    >−</button>
+                                    <span className="text-white font-bold text-sm w-5 text-center">{selectedQty[p.id]}</span>
+                                    <button
+                                      onClick={() => addToCart(p.id)}
+                                      className="bg-orange-500 hover:bg-orange-600 text-white w-7 h-7 rounded-full flex items-center justify-center font-bold transition-colors"
+                                    >+</button>
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => addToCart(p.id)}
+                                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                  >
+                                    +
+                                  </button>
+                                )
                               )}
                             </div>
                           </div>
@@ -467,12 +522,28 @@ export default function BoutiqueProfilePage() {
           <p className="text-sm text-gray-400">Escolha produtos de {boutique.name} para o seu evento.</p>
         </div>
         <button
-          onClick={() => router.push('/menu/novo?boutiqueId=' + boutique.id)}
+          onClick={() => { setBoutiqueId(boutique.id); router.push('/menu/novo') }}
           className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-xl transition-colors whitespace-nowrap shrink-0"
         >
-          Montar pedido
+          {cartCount > 0 ? 'Ver carrinho' : 'Montar pedido'}
         </button>
       </div>
+
+      {/* Floating cart bar */}
+      {cartCount > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-orange-500 rounded-2xl px-6 py-3.5 flex items-center gap-6 shadow-2xl shadow-orange-500/30 min-w-72">
+          <div>
+            <p className="text-white font-bold text-sm">{cartCount} {cartCount === 1 ? 'item' : 'itens'}</p>
+            <p className="text-orange-200 text-xs">R$ {cartTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+          </div>
+          <button
+            onClick={() => router.push('/menu/novo')}
+            className="ml-auto bg-white text-orange-600 font-bold px-5 py-2 rounded-xl text-sm whitespace-nowrap"
+          >
+            Ver carrinho →
+          </button>
+        </div>
+      )}
     </div>
   )
 }

@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createGrillmasterSchema = void 0;
 exports.createGrillmaster = createGrillmaster;
 exports.listGrillmasters = listGrillmasters;
+exports.findNearbyGrillmasters = findNearbyGrillmasters;
 exports.getGrillmasterById = getGrillmasterById;
 exports.updateGrillmaster = updateGrillmaster;
 exports.getMyGrillmasterOrders = getMyGrillmasterOrders;
@@ -45,6 +46,7 @@ exports.completeTrainingModule = completeTrainingModule;
 exports.markUniformSent = markUniformSent;
 const prisma_1 = require("../../config/prisma");
 const zod_1 = require("zod");
+const geo_1 = require("../../utils/geo");
 exports.createGrillmasterSchema = zod_1.z.object({
     bio: zod_1.z.string().optional(),
     experience: zod_1.z.number().int().min(0).default(0),
@@ -65,14 +67,23 @@ exports.createGrillmasterSchema = zod_1.z.object({
 async function createGrillmaster(userId, data) {
     const existing = await prisma_1.prisma.grillmaster.findUnique({ where: { userId } });
     if (existing)
-        throw new Error('Perfil de churrasqueiro j� existe');
+        throw new Error('Perfil de churrasqueiro ja existe');
+    let latitude;
+    let longitude;
+    if (data.city && data.state) {
+        const coords = await (0, geo_1.geocodeAddress)(`${data.city}, ${data.state}`);
+        if (coords) {
+            latitude = coords.lat;
+            longitude = coords.lng;
+        }
+    }
     return prisma_1.prisma.grillmaster.create({
-        data: { userId, ...data },
+        data: { userId, ...data, latitude, longitude },
         include: { user: { select: { name: true, email: true } } },
     });
 }
 async function listGrillmasters(params = {}) {
-    const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9 } = params;
+    const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9, lat, lng, radiusKm = 20 } = params;
     const where = {};
     if (available)
         where.available = true;
@@ -102,7 +113,37 @@ async function listGrillmasters(params = {}) {
         }),
         prisma_1.prisma.grillmaster.count({ where }),
     ]);
+    // Se coordenadas fornecidas, calcula distância e filtra por raio
+    if (lat != null && lng != null) {
+        const withDist = grillmasters
+            .map(g => ({
+            ...g,
+            distanceKm: g.latitude && g.longitude
+                ? (0, geo_1.haversineKm)(lat, lng, g.latitude, g.longitude)
+                : null,
+        }))
+            .filter(g => g.distanceKm == null || g.distanceKm <= radiusKm)
+            .sort((a, b) => {
+            if (a.distanceKm == null)
+                return 1;
+            if (b.distanceKm == null)
+                return -1;
+            return a.distanceKm - b.distanceKm;
+        });
+        return { grillmasters: withDist, total: withDist.length, page, limit, totalPages: Math.ceil(withDist.length / limit) };
+    }
     return { grillmasters, total, page, limit, totalPages: Math.ceil(total / limit) };
+}
+async function findNearbyGrillmasters(lat, lng, radiusKm = 20) {
+    const all = await prisma_1.prisma.grillmaster.findMany({
+        where: { available: true, approved: true },
+        include: { user: { select: { name: true } } },
+    });
+    return all
+        .filter(g => g.latitude != null && g.longitude != null)
+        .map(g => ({ ...g, distanceKm: (0, geo_1.haversineKm)(lat, lng, g.latitude, g.longitude) }))
+        .filter(g => g.distanceKm <= radiusKm)
+        .sort((a, b) => a.distanceKm - b.distanceKm);
 }
 async function getGrillmasterById(id) {
     const grillmaster = await prisma_1.prisma.grillmaster.findUnique({
@@ -110,14 +151,11 @@ async function getGrillmasterById(id) {
         include: { user: { select: { name: true, email: true } } },
     });
     if (!grillmaster)
-        throw new Error('Churrasqueiro n�o encontrado');
+        throw new Error('Churrasqueiro nao encontrado');
     return grillmaster;
 }
 async function updateGrillmaster(userId, data) {
-    return prisma_1.prisma.grillmaster.update({
-        where: { userId },
-        data,
-    });
+    return prisma_1.prisma.grillmaster.update({ where: { userId }, data });
 }
 async function getMyGrillmasterOrders(userId) {
     const gm = await prisma_1.prisma.grillmaster.findUnique({ where: { userId } });

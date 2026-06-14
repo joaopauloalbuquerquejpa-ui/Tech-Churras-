@@ -1,6 +1,7 @@
 import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
 import { z } from 'zod'
+import { geocodeAddress, haversineKm } from '../../utils/geo'
 
 export const createBoutiqueSchema = z.object({
   name: z.string().min(2),
@@ -57,23 +58,64 @@ export type CreateKitInput = z.infer<typeof createKitSchema>
 export async function createBoutique(userId: string, data: CreateBoutiqueInput) {
   const existing = await prisma.boutique.findUnique({ where: { userId } })
   if (existing) throw new Error('Perfil de acougue ja existe')
+
+  let latitude = data.latitude
+  let longitude = data.longitude
+  if ((!latitude || !longitude) && data.address && data.city) {
+    const coords = await geocodeAddress(`${data.address}, ${data.city}, ${data.state}`)
+    if (coords) { latitude = coords.lat; longitude = coords.lng }
+  }
+
   return prisma.boutique.create({
-    data: { userId, ...data },
+    data: { userId, ...data, latitude, longitude },
     include: { user: { select: { name: true, email: true } } },
   })
 }
 
-export async function listBoutiques(params: { city?: string; minRating?: number; sortBy?: string } = {}) {
-  const { city, minRating, sortBy } = params
+export async function listBoutiques(params: {
+  city?: string; minRating?: number; sortBy?: string
+  lat?: number; lng?: number; radiusKm?: number
+} = {}) {
+  const { city, minRating, sortBy, lat, lng, radiusKm = 15 } = params
   const where: any = { approved: true }
   if (city) where.city = { contains: city, mode: 'insensitive' }
   if (minRating != null) where.rating = { gte: minRating }
   const orderBy: any = sortBy === 'rating_desc' ? { rating: 'desc' } : { rating: 'desc' }
-  return prisma.boutique.findMany({
+  const boutiques = await prisma.boutique.findMany({
     where,
     include: { user: { select: { name: true, email: true } } },
     orderBy,
   })
+
+  if (lat != null && lng != null) {
+    return boutiques
+      .map(b => ({
+        ...b,
+        distanceKm: b.latitude && b.longitude
+          ? haversineKm(lat, lng, b.latitude, b.longitude)
+          : null,
+      }))
+      .filter(b => b.distanceKm == null || b.distanceKm <= radiusKm)
+      .sort((a, b) => {
+        if (a.distanceKm == null) return 1
+        if (b.distanceKm == null) return -1
+        return a.distanceKm - b.distanceKm
+      })
+  }
+
+  return boutiques
+}
+
+export async function findNearbyBoutiques(lat: number, lng: number, radiusKm = 15) {
+  const all = await prisma.boutique.findMany({
+    where: { approved: true, open: true },
+    include: { products: { where: { available: true } } },
+  })
+  return all
+    .filter(b => b.latitude != null && b.longitude != null)
+    .map(b => ({ ...b, distanceKm: haversineKm(lat, lng, b.latitude!, b.longitude!) }))
+    .filter(b => b.distanceKm <= radiusKm)
+    .sort((a, b) => a.distanceKm - b.distanceKm)
 }
 
 export async function getBoutiqueById(id: string) {

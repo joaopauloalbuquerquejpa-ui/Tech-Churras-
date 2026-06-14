@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma'
 import { z } from 'zod'
+import { geocodeAddress, haversineKm } from '../../utils/geo'
 
 export const createGrillmasterSchema = z.object({
   bio: z.string().optional(),
@@ -23,10 +24,17 @@ export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>
 
 export async function createGrillmaster(userId: string, data: CreateGrillmasterInput) {
   const existing = await prisma.grillmaster.findUnique({ where: { userId } })
-  if (existing) throw new Error('Perfil de churrasqueiro j� existe')
+  if (existing) throw new Error('Perfil de churrasqueiro ja existe')
+
+  let latitude: number | undefined
+  let longitude: number | undefined
+  if (data.city && data.state) {
+    const coords = await geocodeAddress(`${data.city}, ${data.state}`)
+    if (coords) { latitude = coords.lat; longitude = coords.lng }
+  }
 
   return prisma.grillmaster.create({
-    data: { userId, ...data },
+    data: { userId, ...data, latitude, longitude },
     include: { user: { select: { name: true, email: true } } },
   })
 }
@@ -41,8 +49,11 @@ export async function listGrillmasters(params: {
   available?: boolean
   page?: number
   limit?: number
+  lat?: number
+  lng?: number
+  radiusKm?: number
 } = {}) {
-  const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9 } = params
+  const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9, lat, lng, radiusKm = 20 } = params
   const where: any = {}
   if (available) where.available = true
   if (city) where.city = { contains: city, mode: 'insensitive' }
@@ -50,9 +61,11 @@ export async function listGrillmasters(params: {
   if (maxPrice != null) where.pricePerHour = { ...where.pricePerHour, lte: maxPrice }
   if (minRating != null) where.rating = { gte: minRating }
   if (specialty) where.specialties = { contains: specialty, mode: 'insensitive' }
+
   let orderBy: any = [{ rating: 'desc' }]
   if (sortBy === 'price_asc') orderBy = [{ pricePerHour: 'asc' }]
   else if (sortBy === 'price_desc') orderBy = [{ pricePerHour: 'desc' }]
+
   const skip = (page - 1) * limit
   const [grillmasters, total] = await Promise.all([
     prisma.grillmaster.findMany({
@@ -64,7 +77,38 @@ export async function listGrillmasters(params: {
     }),
     prisma.grillmaster.count({ where }),
   ])
+
+  // Se coordenadas fornecidas, calcula distância e filtra por raio
+  if (lat != null && lng != null) {
+    const withDist = grillmasters
+      .map(g => ({
+        ...g,
+        distanceKm: g.latitude && g.longitude
+          ? haversineKm(lat, lng, g.latitude, g.longitude)
+          : null,
+      }))
+      .filter(g => g.distanceKm == null || g.distanceKm <= radiusKm)
+      .sort((a, b) => {
+        if (a.distanceKm == null) return 1
+        if (b.distanceKm == null) return -1
+        return a.distanceKm - b.distanceKm
+      })
+    return { grillmasters: withDist, total: withDist.length, page, limit, totalPages: Math.ceil(withDist.length / limit) }
+  }
+
   return { grillmasters, total, page, limit, totalPages: Math.ceil(total / limit) }
+}
+
+export async function findNearbyGrillmasters(lat: number, lng: number, radiusKm = 20) {
+  const all = await prisma.grillmaster.findMany({
+    where: { available: true, approved: true },
+    include: { user: { select: { name: true } } },
+  })
+  return all
+    .filter(g => g.latitude != null && g.longitude != null)
+    .map(g => ({ ...g, distanceKm: haversineKm(lat, lng, g.latitude!, g.longitude!) }))
+    .filter(g => g.distanceKm <= radiusKm)
+    .sort((a, b) => a.distanceKm - b.distanceKm)
 }
 
 export async function getGrillmasterById(id: string) {
@@ -72,15 +116,12 @@ export async function getGrillmasterById(id: string) {
     where: { id },
     include: { user: { select: { name: true, email: true } } },
   })
-  if (!grillmaster) throw new Error('Churrasqueiro n�o encontrado')
+  if (!grillmaster) throw new Error('Churrasqueiro nao encontrado')
   return grillmaster
 }
 
 export async function updateGrillmaster(userId: string, data: Partial<CreateGrillmasterInput>) {
-  return prisma.grillmaster.update({
-    where: { userId },
-    data,
-  })
+  return prisma.grillmaster.update({ where: { userId }, data })
 }
 
 export async function getMyGrillmasterOrders(userId: string) {

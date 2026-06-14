@@ -73,6 +73,8 @@ model Grillmaster {
   bringsEquipment Boolean  @default(false)
   minGuests       Int?
   maxGuests       Int?
+  latitude        Float?
+  longitude       Float?
   pixKey          String?
   videoUrl        String?
   certificationCode String? @unique
