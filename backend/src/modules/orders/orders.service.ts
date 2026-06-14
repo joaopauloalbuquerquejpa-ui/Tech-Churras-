@@ -298,6 +298,33 @@ export async function generateShareToken(id: string, userId: string, role: strin
   return { token }
 }
 
+export async function getOrderByPublicToken(token: string) {
+  const order = await prisma.order.findUnique({
+    where: { publicShareToken: token },
+    include: {
+      grillmaster: { select: { photoUrl: true, user: { select: { name: true } } } },
+      boutique: { select: { name: true } },
+    },
+  })
+  if (!order) throw new Error('Pedido nao encontrado')
+  const addrParts = order.eventAddress.split(',').map(s => s.trim())
+  const eventCity = addrParts.length > 1 ? addrParts.slice(-2).join(', ') : order.eventAddress
+  return {
+    status: order.status,
+    statusDetail: order.statusDetail,
+    eventDate: order.eventDate,
+    eventCity,
+    guestCount: order.guestCount,
+    grillmasterFirstName: order.grillmaster?.user?.name?.split(' ')[0] ?? null,
+    grillmasterPhotoUrl: (order.grillmaster as any)?.photoUrl ?? null,
+    boutiqueName: order.boutique?.name ?? null,
+    grillmasterLat: order.grillmasterLat,
+    grillmasterLng: order.grillmasterLng,
+    grillmasterLastUpdate: order.grillmasterLastUpdate,
+    eventAddress: order.eventAddress,
+  }
+}
+
 export async function getRepeatData(id: string, userId: string, role: string) {
   const whereClause = role === 'ADMIN' ? { id } : { id, customerId: userId }
   const order = await prisma.order.findFirst({

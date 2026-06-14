@@ -55,6 +55,27 @@ interface Order {
   boutique?: { name: string }
 }
 
+function useCountdown(target: string | null) {
+  const [t, setT] = useState({ days: 0, hours: 0, minutes: 0, past: false })
+  useEffect(() => {
+    if (!target) return
+    function tick() {
+      const diff = new Date(target!).getTime() - Date.now()
+      if (diff <= 0) { setT({ days: 0, hours: 0, minutes: 0, past: true }); return }
+      setT({
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff / 3600000) % 24),
+        minutes: Math.floor((diff / 60000) % 60),
+        past: false,
+      })
+    }
+    tick()
+    const id = setInterval(tick, 60000)
+    return () => clearInterval(id)
+  }, [target])
+  return t
+}
+
 interface FeaturedGM {
   id: string
   pricePerHour: number
@@ -88,8 +109,10 @@ export default function DashboardPage() {
   const { user } = useAuthStore()
   const [rawStats, setRawStats] = useState({ orders: 0, grillmasters: 0, boutiques: 0 })
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
+  const [nextEvent, setNextEvent] = useState<Order | null>(null)
   const [points, setPoints] = useState<number | null>(null)
   const [featuredGMs, setFeaturedGMs] = useState<FeaturedGM[]>([])
+  const countdown = useCountdown(nextEvent?.eventDate ?? null)
   const statsRef = useRef<HTMLDivElement>(null)
   const statsVisible = useInView(statsRef)
   const ordersRef = useRef<HTMLDivElement>(null)
@@ -113,6 +136,10 @@ export default function DashboardPage() {
         const arr: Order[] = Array.isArray(d) ? d : []
         setRawStats(prev => ({ ...prev, orders: arr.length }))
         setRecentOrders(arr.slice(0, 3))
+        const upcoming = arr
+          .filter(o => ['PENDING', 'CONFIRMED', 'IN_PROGRESS'].includes(o.status) && new Date(o.eventDate) > new Date())
+          .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())
+        if (upcoming.length > 0) setNextEvent(upcoming[0])
       })
       .catch(() => {})
     fetch(BASE + '/grillmasters', { headers: h })
@@ -200,6 +227,55 @@ export default function DashboardPage() {
           </span>
         </div>
       </section>
+
+      {/* ── Próximo churrasco ── */}
+      {nextEvent && !countdown.past && (
+        <Link
+          href={'/orders/' + nextEvent.id}
+          className="block mb-8 bg-gradient-to-r from-orange-900/30 to-red-900/10 border border-orange-500/40 rounded-2xl p-5 hover:border-orange-500/70 transition-all hover:-translate-y-0.5"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-xs font-bold text-orange-400 uppercase tracking-widest">Próximo churrasco</span>
+                <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (
+                  nextEvent.status === 'IN_PROGRESS' ? 'bg-orange-500 text-white animate-pulse' :
+                  nextEvent.status === 'CONFIRMED' ? 'bg-blue-500 text-white' :
+                  'bg-yellow-500 text-black'
+                )}>
+                  {STATUS_LABEL[nextEvent.status]}
+                </span>
+              </div>
+              <p className="font-bold text-white text-base truncate">
+                {nextEvent.grillmaster?.user?.name ?? 'Churrasqueiro'}{nextEvent.boutique ? ' · ' + nextEvent.boutique.name : ''}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {new Date(nextEvent.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </p>
+            </div>
+            {!countdown.past && (
+              <div className="shrink-0 text-right">
+                <div className="flex gap-2">
+                  {countdown.days > 0 && (
+                    <div className="bg-gray-900 rounded-lg px-2 py-1.5 min-w-[44px] text-center">
+                      <p className="text-lg font-black text-orange-400 tabular-nums">{countdown.days}</p>
+                      <p className="text-[9px] text-gray-500 uppercase">dias</p>
+                    </div>
+                  )}
+                  <div className="bg-gray-900 rounded-lg px-2 py-1.5 min-w-[44px] text-center">
+                    <p className="text-lg font-black text-orange-400 tabular-nums">{String(countdown.hours).padStart(2,'0')}</p>
+                    <p className="text-[9px] text-gray-500 uppercase">horas</p>
+                  </div>
+                  <div className="bg-gray-900 rounded-lg px-2 py-1.5 min-w-[44px] text-center">
+                    <p className="text-lg font-black text-orange-400 tabular-nums">{String(countdown.minutes).padStart(2,'0')}</p>
+                    <p className="text-[9px] text-gray-500 uppercase">min</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </Link>
+      )}
 
       {/* ── Stats com counter ── */}
       <div ref={statsRef} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">

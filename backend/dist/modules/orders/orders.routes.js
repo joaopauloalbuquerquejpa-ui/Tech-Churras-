@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ordersRoutes = ordersRoutes;
 const orders_controller_1 = require("./orders.controller");
 async function ordersRoutes(app) {
+    // rota publica — sem autenticacao, deve vir antes de /:id
+    app.get('/orders/public/:token', orders_controller_1.getOrderByPublicTokenHandler);
     app.post('/orders', { preHandler: [app.authenticate] }, orders_controller_1.createOrderHandler);
     app.get('/orders', { preHandler: [app.authenticate] }, orders_controller_1.listOrdersHandler);
     app.get('/orders/:id', { preHandler: [app.authenticate] }, orders_controller_1.getOrderHandler);

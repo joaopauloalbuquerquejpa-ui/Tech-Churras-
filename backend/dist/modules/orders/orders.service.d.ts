@@ -420,6 +420,20 @@ export declare function updateOrderLocation(id: string, lat: number, lng: number
 export declare function generateShareToken(id: string, userId: string, role: string): Promise<{
     token: string;
 }>;
+export declare function getOrderByPublicToken(token: string): Promise<{
+    status: import("@prisma/client").$Enums.OrderStatus;
+    statusDetail: string | null;
+    eventDate: Date;
+    eventCity: string;
+    guestCount: number;
+    grillmasterFirstName: string | null;
+    grillmasterPhotoUrl: any;
+    boutiqueName: string | null;
+    grillmasterLat: number | null;
+    grillmasterLng: number | null;
+    grillmasterLastUpdate: Date | null;
+    eventAddress: string;
+}>;
 export declare function getRepeatData(id: string, userId: string, role: string): Promise<{
     grillmasterId: string | null;
     boutiqueId: string | null;

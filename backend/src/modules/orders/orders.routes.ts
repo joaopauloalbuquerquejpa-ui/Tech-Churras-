@@ -9,9 +9,13 @@ import {
   getRepeatDataHandler,
   cancelOrderHandler,
   shareOrderHandler,
+  getOrderByPublicTokenHandler,
 } from './orders.controller'
 
 export async function ordersRoutes(app: FastifyInstance) {
+  // rota publica — sem autenticacao, deve vir antes de /:id
+  app.get('/orders/public/:token', getOrderByPublicTokenHandler)
+
   app.post('/orders', { preHandler: [app.authenticate] }, createOrderHandler)
   app.get('/orders', { preHandler: [app.authenticate] }, listOrdersHandler)
   app.get('/orders/:id', { preHandler: [app.authenticate] }, getOrderHandler)

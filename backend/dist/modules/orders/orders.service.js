@@ -11,6 +11,7 @@ exports.updateOrderStatus = updateOrderStatus;
 exports.cancelOrder = cancelOrder;
 exports.updateOrderLocation = updateOrderLocation;
 exports.generateShareToken = generateShareToken;
+exports.getOrderByPublicToken = getOrderByPublicToken;
 exports.getRepeatData = getRepeatData;
 exports.getOrderById = getOrderById;
 const prisma_1 = require("../../config/prisma");
@@ -279,6 +280,33 @@ async function generateShareToken(id, userId, role) {
     const token = crypto_1.default.randomBytes(12).toString('hex');
     await prisma_1.prisma.order.update({ where: { id }, data: { publicShareToken: token } });
     return { token };
+}
+async function getOrderByPublicToken(token) {
+    const order = await prisma_1.prisma.order.findUnique({
+        where: { publicShareToken: token },
+        include: {
+            grillmaster: { select: { photoUrl: true, user: { select: { name: true } } } },
+            boutique: { select: { name: true } },
+        },
+    });
+    if (!order)
+        throw new Error('Pedido nao encontrado');
+    const addrParts = order.eventAddress.split(',').map(s => s.trim());
+    const eventCity = addrParts.length > 1 ? addrParts.slice(-2).join(', ') : order.eventAddress;
+    return {
+        status: order.status,
+        statusDetail: order.statusDetail,
+        eventDate: order.eventDate,
+        eventCity,
+        guestCount: order.guestCount,
+        grillmasterFirstName: order.grillmaster?.user?.name?.split(' ')[0] ?? null,
+        grillmasterPhotoUrl: order.grillmaster?.photoUrl ?? null,
+        boutiqueName: order.boutique?.name ?? null,
+        grillmasterLat: order.grillmasterLat,
+        grillmasterLng: order.grillmasterLng,
+        grillmasterLastUpdate: order.grillmasterLastUpdate,
+        eventAddress: order.eventAddress,
+    };
 }
 async function getRepeatData(id, userId, role) {
     const whereClause = role === 'ADMIN' ? { id } : { id, customerId: userId };

@@ -31,6 +31,8 @@ interface Grillmaster {
   bringsEquipment?: boolean
   minGuests?: number
   maxGuests?: number
+  certificationCode?: string | null
+  certifiedAt?: string | null
   user: { name: string; email: string }
 }
 
@@ -158,8 +160,13 @@ export default function GrillmasterProfilePage() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
         {/* Top badges */}
-        <div className="absolute top-4 left-4 flex gap-2">
-          {gm.isChancelado && (
+        <div className="absolute top-4 left-4 flex flex-wrap gap-2">
+          {gm.certifiedAt && (
+            <span className="bg-yellow-400 text-black text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1">
+              ✓ Certificado Tech Churras
+            </span>
+          )}
+          {gm.isChancelado && !gm.certifiedAt && (
             <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">CHANCELADO</span>
           )}
           {gm.churrascoStyle && (
@@ -223,6 +230,7 @@ export default function GrillmasterProfilePage() {
               ['Eventos', String(gm.totalOrders ?? 0)],
               ['Avaliacao', `${(gm.rating ?? 0).toFixed(1)} / 5`],
               ['Cidade', gm.city],
+              ...(gm.certificationCode ? [['Certificado', gm.certificationCode]] : []),
             ].map(([label, val]) => (
               <div key={label} className="flex justify-between text-sm">
                 <span className="text-gray-500">{label}</span>

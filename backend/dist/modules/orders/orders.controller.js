@@ -8,6 +8,7 @@ exports.updateOrderStatusHandler = updateOrderStatusHandler;
 exports.updateLocationHandler = updateLocationHandler;
 exports.cancelOrderHandler = cancelOrderHandler;
 exports.getRepeatDataHandler = getRepeatDataHandler;
+exports.getOrderByPublicTokenHandler = getOrderByPublicTokenHandler;
 exports.shareOrderHandler = shareOrderHandler;
 const orders_service_1 = require("./orders.service");
 async function createOrderHandler(req, reply) {
@@ -104,6 +105,16 @@ async function getRepeatDataHandler(req, reply) {
     }
     catch (err) {
         return reply.status(400).send({ error: err.message });
+    }
+}
+async function getOrderByPublicTokenHandler(req, reply) {
+    try {
+        const { token } = req.params;
+        const data = await (0, orders_service_1.getOrderByPublicToken)(token);
+        return reply.send(data);
+    }
+    catch (err) {
+        return reply.status(404).send({ error: err.message });
     }
 }
 async function shareOrderHandler(req, reply) {

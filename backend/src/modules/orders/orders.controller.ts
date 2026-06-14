@@ -1,5 +1,5 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
-import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken } from './orders.service'
+import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken, getOrderByPublicToken } from './orders.service'
 
 export async function createOrderHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -94,6 +94,16 @@ export async function getRepeatDataHandler(req: FastifyRequest, reply: FastifyRe
     return reply.send(data)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getOrderByPublicTokenHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { token } = req.params as { token: string }
+    const data = await getOrderByPublicToken(token)
+    return reply.send(data)
+  } catch (err: any) {
+    return reply.status(404).send({ error: err.message })
   }
 }
 
