@@ -1,5 +1,6 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
 import { prisma } from '../../config/prisma'
+import { sendPushToUser } from '../push/push.service'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -88,8 +89,19 @@ export async function handleMPWebhook(payload: any) {
         paymentStatus: 'PAID',
         paidAt: new Date(),
         status: 'CONFIRMED',
+        statusDetail: 'Pedido confirmado',
       },
     })
+
+    // Notify GM of payment-confirmed order
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { grillmaster: { select: { userId: true } }, customer: { select: { name: true } } },
+    })
+    if (order?.grillmaster?.userId) {
+      const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
+      sendPushToUser(order.grillmaster.userId, '💳 Pagamento confirmado!', `${order.customer.name} pagou. Evento em ${date}. Confirme sua presença.`, '/grillmasters/dashboard').catch(() => {})
+    }
   }
 
   return { received: true }
