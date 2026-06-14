@@ -10,6 +10,8 @@ export const createProductSchema = z.object({
   available: z.boolean().default(true),
   stockQuantity: z.number().int().min(0).nullable().optional(),
   imageUrl: z.string().optional(),
+  discountPercent: z.number().min(0).max(100).nullable().optional(),
+  discountValidUntil: z.string().datetime({ offset: true }).nullable().optional(),
 })
 
 export type CreateProductInput = z.infer<typeof createProductSchema>

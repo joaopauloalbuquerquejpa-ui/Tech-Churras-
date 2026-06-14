@@ -43,6 +43,8 @@ export const createKitSchema = z.object({
   name: z.string().min(2),
   description: z.string(),
   price: z.number().positive(),
+  discountPrice: z.number().positive().nullable().optional(),
+  coverImageUrl: z.string().optional(),
   minGuests: z.number().int().positive(),
   maxGuests: z.number().int().positive(),
   items: z.string(),

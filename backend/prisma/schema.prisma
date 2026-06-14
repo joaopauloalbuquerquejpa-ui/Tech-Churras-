@@ -136,16 +136,18 @@ model Boutique {
 }
 
 model KitChurrasco {
-  id          String   @id @default(uuid())
-  boutiqueId  String
-  boutique    Boutique @relation(fields: [boutiqueId], references: [id])
-  name        String
-  description String
-  price       Float
-  minGuests   Int
-  maxGuests   Int
-  items       String
-  createdAt   DateTime @default(now())
+  id            String   @id @default(uuid())
+  boutiqueId    String
+  boutique      Boutique @relation(fields: [boutiqueId], references: [id])
+  name          String
+  description   String
+  price         Float
+  discountPrice Float?
+  coverImageUrl String?
+  minGuests     Int
+  maxGuests     Int
+  items         String
+  createdAt     DateTime @default(now())
 }
 
 model Product {
@@ -156,10 +158,12 @@ model Product {
   price         Float
   unit          String          @default("kg")
   category      ProductCategory @default(CARNE)
-  available     Boolean         @default(true)
-  stockQuantity Int?
-  imageUrl      String?
-  createdAt     DateTime        @default(now())
+  available          Boolean         @default(true)
+  stockQuantity      Int?
+  imageUrl           String?
+  discountPercent    Float?
+  discountValidUntil DateTime?
+  createdAt          DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
   boutique   Boutique    @relation(fields: [boutiqueId], references: [id])

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react'
 
-// Comprime imagem via canvas antes do upload (máx 800px, qualidade 0.75)
 async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve) => {
     const img = new Image()
@@ -39,9 +38,24 @@ function getToken() {
   return raw ? JSON.parse(raw)?.state?.token : null
 }
 
+async function uploadImageFile(file: File): Promise<string> {
+  const blob = await compressImage(file)
+  const fd = new FormData()
+  fd.append('file', blob, 'photo.jpg')
+  const res = await fetch(BASE + '/upload/image', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + getToken() },
+    body: fd,
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Erro ao fazer upload')
+  return data.url as string
+}
+
 interface Product {
   id: string; name: string; description?: string; price: number; unit: string
   category: string; available: boolean; stockQuantity?: number | null
+  imageUrl?: string | null; discountPercent?: number | null; discountValidUntil?: string | null
 }
 
 interface Boutique {
@@ -60,6 +74,16 @@ interface DemandItem {
   category: string; totalQuantityNeeded: number; unit: string; eventsCount: number; nextEventDate: string
 }
 
+interface KitItem {
+  productName: string; quantity: number; unit: string
+}
+
+interface Kit {
+  id: string; name: string; description: string; price: number
+  discountPrice?: number | null; coverImageUrl?: string | null
+  minGuests: number; maxGuests: number; items: string
+}
+
 const CATEGORIES: Record<string, string> = {
   CARNE: 'Carne', SAL_TEMPERO: 'Sal e Tempero', CARVAO: 'Carvão',
   ACOMPANHAMENTO: 'Acompanhamento', BEBIDA: 'Bebida', OUTRO: 'Outro',
@@ -75,7 +99,16 @@ const STATUS_COLOR: Record<string, string> = {
   COMPLETED: 'bg-green-500', CANCELLED: 'bg-red-500',
 }
 
-const emptyForm = { name: '', description: '', price: 0, unit: 'kg', category: 'CARNE', available: true, stockQuantity: '' as string | number }
+const emptyForm = {
+  name: '', description: '', price: 0, unit: 'kg', category: 'CARNE', available: true,
+  stockQuantity: '' as string | number, imageUrl: '',
+  discountEnabled: false, discountPercent: 0, discountValidUntil: '',
+}
+
+const emptyKitForm = {
+  name: '', description: '', minGuests: 10, maxGuests: 20,
+  price: 0, discountPrice: 0, coverImageUrl: '',
+}
 
 function priceLabel(unit: string) {
   if (unit === 'kg') return 'Preço por kg (R$)'
@@ -83,8 +116,19 @@ function priceLabel(unit: string) {
   return `Preço por ${unit} (R$)`
 }
 
+function isDiscountActive(p: Product) {
+  if (!p.discountPercent) return false
+  if (p.discountValidUntil && new Date(p.discountValidUntil) < new Date()) return false
+  return true
+}
+
+function discountedPrice(price: number, pct: number) {
+  return price * (1 - pct / 100)
+}
+
 export default function BoutiqueDashboardPage() {
   const [boutique, setBoutique] = useState<Boutique | null>(null)
+  const [kits, setKits] = useState<Kit[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [demand, setDemand] = useState<DemandItem[]>([])
   const [contract, setContract] = useState<{ id: string; status: string; durationMonths: number; acceptedAt: string | null; generatedAt: string } | null>(null)
@@ -97,13 +141,22 @@ export default function BoutiqueDashboardPage() {
   const [form, setForm] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const qrRef = useRef<HTMLDivElement>(null)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  const productPhotoRef = useRef<HTMLInputElement>(null)
 
-  // ── Photo flow state ──────────────────────────────────────────────────
   const [photoState, setPhotoState] = useState<'idle' | 'analyzing' | 'done' | 'error'>('idle')
   const [photoError, setPhotoError] = useState('')
   const [photoCount, setPhotoCount] = useState(0)
-  const photoInputRef = useRef<HTMLInputElement>(null)
+
+  const [showKitForm, setShowKitForm] = useState(false)
+  const [editingKitId, setEditingKitId] = useState<string | null>(null)
+  const [kitForm, setKitForm] = useState(emptyKitForm)
+  const [kitItems, setKitItems] = useState<KitItem[]>([])
+  const [submittingKit, setSubmittingKit] = useState(false)
+  const [uploadingKitPhoto, setUploadingKitPhoto] = useState(false)
+  const kitPhotoRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { fetchAll() }, [])
 
@@ -118,15 +171,15 @@ export default function BoutiqueDashboardPage() {
       ])
       if (!bRes.ok) { setNotFound(true); return }
       const [b, s, d, contracts] = await Promise.all([
-        bRes.json(),
-        sRes.ok ? sRes.json() : null,
-        dRes.ok ? dRes.json() : [],
-        cRes.ok ? cRes.json() : [],
+        bRes.json(), sRes.ok ? sRes.json() : null,
+        dRes.ok ? dRes.json() : [], cRes.ok ? cRes.json() : [],
       ])
       setBoutique(b)
       if (s) setStats(s)
       if (Array.isArray(d)) setDemand(d)
       if (Array.isArray(contracts) && contracts.length > 0) setContract(contracts[0])
+      const kRes = await fetch(BASE + '/boutiques/' + b.id + '/kits')
+      if (kRes.ok) setKits(await kRes.json())
     } catch {
       setNotFound(true)
     } finally {
@@ -151,6 +204,10 @@ export default function BoutiqueDashboardPage() {
       name: form.name, description: form.description || undefined, price: form.price,
       unit: form.unit, category: form.category, available: form.available,
       stockQuantity: form.stockQuantity !== '' ? Number(form.stockQuantity) : null,
+      imageUrl: form.imageUrl || undefined,
+      discountPercent: form.discountEnabled && form.discountPercent > 0 ? form.discountPercent : null,
+      discountValidUntil: form.discountEnabled && form.discountValidUntil
+        ? new Date(form.discountValidUntil + 'T23:59:59').toISOString() : null,
     }
     try {
       if (editingId) {
@@ -200,13 +257,20 @@ export default function BoutiqueDashboardPage() {
 
   function startEdit(p: Product) {
     setEditingId(p.id)
-    setForm({ name: p.name, description: p.description || '', price: p.price, unit: p.unit, category: p.category, available: p.available, stockQuantity: p.stockQuantity ?? '' })
+    setForm({
+      name: p.name, description: p.description || '', price: p.price, unit: p.unit,
+      category: p.category, available: p.available, stockQuantity: p.stockQuantity ?? '',
+      imageUrl: p.imageUrl || '',
+      discountEnabled: !!p.discountPercent,
+      discountPercent: p.discountPercent ?? 0,
+      discountValidUntil: p.discountValidUntil ? p.discountValidUntil.slice(0, 10) : '',
+    })
     setShowForm(true)
   }
 
   function cancelForm() { setShowForm(false); setEditingId(null); setForm(emptyForm) }
 
-  async function handlePhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleAiPhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!photoInputRef.current) return
     photoInputRef.current.value = ''
@@ -234,7 +298,6 @@ export default function BoutiqueDashboardPage() {
 
       const suggestion = await res.json()
 
-      // Pré-preenche o formulário com as sugestões da IA
       setForm({
         name: suggestion.name || '',
         description: suggestion.description || '',
@@ -243,6 +306,10 @@ export default function BoutiqueDashboardPage() {
         category: suggestion.category || 'CARNE',
         available: true,
         stockQuantity: '',
+        imageUrl: suggestion.imageUrl || '',
+        discountEnabled: false,
+        discountPercent: 0,
+        discountValidUntil: '',
       })
       setPhotoState('done')
       setShowForm(true)
@@ -250,11 +317,107 @@ export default function BoutiqueDashboardPage() {
     } catch (err: any) {
       setPhotoState('error')
       setPhotoError(err.message || 'Falha ao analisar imagem')
-      // Fallback: abre formulário vazio
       setForm(emptyForm)
       setShowForm(true)
     }
   }
+
+  async function handleProductPhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!productPhotoRef.current) return
+    productPhotoRef.current.value = ''
+    if (!file) return
+    setUploadingPhoto(true)
+    try {
+      const url = await uploadImageFile(file)
+      setForm(f => ({ ...f, imageUrl: url }))
+    } catch (err: any) {
+      alert('Erro ao fazer upload: ' + err.message)
+    } finally {
+      setUploadingPhoto(false)
+    }
+  }
+
+  async function handleKitPhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!kitPhotoRef.current) return
+    kitPhotoRef.current.value = ''
+    if (!file) return
+    setUploadingKitPhoto(true)
+    try {
+      const url = await uploadImageFile(file)
+      setKitForm(f => ({ ...f, coverImageUrl: url }))
+    } catch (err: any) {
+      alert('Erro ao fazer upload: ' + err.message)
+    } finally {
+      setUploadingKitPhoto(false)
+    }
+  }
+
+  async function submitKit() {
+    if (!kitForm.name || kitForm.price <= 0) { alert('Preencha nome e preço'); return }
+    setSubmittingKit(true)
+    const payload = {
+      name: kitForm.name,
+      description: kitForm.description,
+      price: kitForm.price,
+      discountPrice: kitForm.discountPrice > 0 ? kitForm.discountPrice : null,
+      coverImageUrl: kitForm.coverImageUrl || undefined,
+      minGuests: kitForm.minGuests,
+      maxGuests: kitForm.maxGuests,
+      items: JSON.stringify(kitItems.filter(i => i.productName.trim())),
+    }
+    try {
+      if (editingKitId) {
+        const res = await fetch(BASE + '/boutiques/kits/' + editingKitId, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+          body: JSON.stringify(payload),
+        })
+        if (res.ok) {
+          const updated = await res.json()
+          setKits(prev => prev.map(k => k.id === updated.id ? updated : k))
+        }
+      } else {
+        const res = await fetch(BASE + '/boutiques/kits', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+          body: JSON.stringify(payload),
+        })
+        if (res.ok) {
+          const created = await res.json()
+          setKits(prev => [...prev, created])
+        }
+      }
+      cancelKitForm()
+    } finally { setSubmittingKit(false) }
+  }
+
+  async function removeKit(id: string) {
+    if (!confirm('Remover pacote?')) return
+    const res = await fetch(BASE + '/boutiques/kits/' + id, {
+      method: 'DELETE', headers: { Authorization: 'Bearer ' + getToken() },
+    })
+    if (res.ok) setKits(prev => prev.filter(k => k.id !== id))
+  }
+
+  function startEditKit(k: Kit) {
+    setEditingKitId(k.id)
+    setKitForm({
+      name: k.name, description: k.description,
+      minGuests: k.minGuests, maxGuests: k.maxGuests,
+      price: k.price, discountPrice: k.discountPrice ?? 0, coverImageUrl: k.coverImageUrl ?? '',
+    })
+    try { setKitItems(JSON.parse(k.items) || []) } catch { setKitItems([]) }
+    setShowKitForm(true)
+  }
+
+  function cancelKitForm() { setShowKitForm(false); setEditingKitId(null); setKitForm(emptyKitForm); setKitItems([]) }
+  function addKitItem() { setKitItems(prev => [...prev, { productName: '', quantity: 1, unit: 'kg' }]) }
+  function updateKitItem(idx: number, field: keyof KitItem, value: string | number) {
+    setKitItems(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item))
+  }
+  function removeKitItem(idx: number) { setKitItems(prev => prev.filter((_, i) => i !== idx)) }
 
   function copyReferralLink() {
     if (!stats?.referralCode) return
@@ -288,6 +451,7 @@ export default function BoutiqueDashboardPage() {
 
   if (!boutique) return null
   const referralUrl = stats?.referralCode ? SITE_URL + '/r/' + stats.referralCode : ''
+  const activeDiscountCount = boutique.products.filter(isDiscountActive).length
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -305,7 +469,6 @@ export default function BoutiqueDashboardPage() {
         </button>
       </div>
 
-      {/* Pending badge */}
       {stats && stats.pendingOrdersCount > 0 && (
         <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-5 py-3 flex items-center gap-3">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse shrink-0" />
@@ -315,7 +478,6 @@ export default function BoutiqueDashboardPage() {
         </div>
       )}
 
-      {/* Stats cards */}
       {stats && (
         <div className="grid grid-cols-3 gap-4">
           {[
@@ -331,21 +493,17 @@ export default function BoutiqueDashboardPage() {
         </div>
       )}
 
-      {/* Contrato — aviso de revisão jurídica */}
       <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
         <p className="text-xs text-yellow-300">
           ⚠️ <strong>Contratos em revisão jurídica</strong> — os termos de parceria podem ser atualizados antes do lançamento oficial da plataforma.
         </p>
       </div>
 
-      {/* Card do contrato */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>
           {contract && (
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              contract.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-            }`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${contract.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
               {contract.status === 'ACCEPTED' ? 'Aceito' : 'Pendente de assinatura'}
             </span>
           )}
@@ -353,20 +511,9 @@ export default function BoutiqueDashboardPage() {
         {contract ? (
           <div className="space-y-2">
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-gray-500 text-xs">Vigência</p>
-                <p className="text-white font-medium">{contract.durationMonths} meses</p>
-              </div>
-              <div>
-                <p className="text-gray-500 text-xs">Gerado em</p>
-                <p className="text-white font-medium">{new Date(contract.generatedAt).toLocaleDateString('pt-BR')}</p>
-              </div>
-              {contract.acceptedAt && (
-                <div>
-                  <p className="text-gray-500 text-xs">Aceito em</p>
-                  <p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p>
-                </div>
-              )}
+              <div><p className="text-gray-500 text-xs">Vigência</p><p className="text-white font-medium">{contract.durationMonths} meses</p></div>
+              <div><p className="text-gray-500 text-xs">Gerado em</p><p className="text-white font-medium">{new Date(contract.generatedAt).toLocaleDateString('pt-BR')}</p></div>
+              {contract.acceptedAt && <div><p className="text-gray-500 text-xs">Aceito em</p><p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p></div>}
             </div>
             <button
               onClick={async () => {
@@ -374,16 +521,13 @@ export default function BoutiqueDashboardPage() {
                 if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
               }}
               className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline"
-            >
-              Visualizar contrato
-            </button>
+            >Visualizar contrato</button>
           </div>
         ) : (
-          <p className="text-sm text-gray-500">Nenhum contrato gerado ainda. Complete o cadastro do açougue para gerar seu contrato.</p>
+          <p className="text-sm text-gray-500">Nenhum contrato gerado ainda.</p>
         )}
       </div>
 
-      {/* Modal de leitura do contrato */}
       {showContractText && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
@@ -404,7 +548,6 @@ export default function BoutiqueDashboardPage() {
         </div>
       )}
 
-      {/* Revenue chart */}
       {stats && stats.revenueByDay.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
           <p className="text-sm font-semibold text-gray-300 mb-4">Faturamento — últimos 30 dias</p>
@@ -428,7 +571,6 @@ export default function BoutiqueDashboardPage() {
         </div>
       )}
 
-      {/* Demand forecast */}
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -449,9 +591,7 @@ export default function BoutiqueDashboardPage() {
                   <div className="flex items-center gap-3 min-w-0">
                     {urgent && <span className="text-orange-400 text-lg shrink-0">⚠️</span>}
                     <div className="min-w-0">
-                      <p className={'text-sm font-semibold ' + (urgent ? 'text-orange-300' : 'text-white')}>
-                        {CATEGORIES[item.category] || item.category}
-                      </p>
+                      <p className={'text-sm font-semibold ' + (urgent ? 'text-orange-300' : 'text-white')}>{CATEGORIES[item.category] || item.category}</p>
                       <p className="text-xs text-gray-500">
                         {item.eventsCount} {item.eventsCount === 1 ? 'evento confirmado' : 'eventos confirmados'} ·
                         próximo em {daysUntil <= 0 ? 'hoje' : daysUntil === 1 ? 'amanhã' : daysUntil + ' dias'}
@@ -459,9 +599,7 @@ export default function BoutiqueDashboardPage() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className={'text-base font-black ' + (urgent ? 'text-orange-400' : 'text-white')}>
-                      {item.totalQuantityNeeded}{item.unit}
-                    </p>
+                    <p className={'text-base font-black ' + (urgent ? 'text-orange-400' : 'text-white')}>{item.totalQuantityNeeded}{item.unit}</p>
                     <p className="text-xs text-gray-500">necessários</p>
                   </div>
                 </div>
@@ -471,7 +609,6 @@ export default function BoutiqueDashboardPage() {
         )}
       </div>
 
-      {/* Referral section */}
       {stats?.referralCode && (
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
           <div className="flex items-start justify-between gap-4 mb-4">
@@ -515,7 +652,6 @@ export default function BoutiqueDashboardPage() {
         </div>
       )}
 
-      {/* Recent orders */}
       {stats && stats.recentOrders.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
           <p className="text-sm font-semibold text-white mb-4">Pedidos Recentes</p>
@@ -538,24 +674,189 @@ export default function BoutiqueDashboardPage() {
         </div>
       )}
 
-      {/* Product management */}
+      {/* ── PACOTES DE CHURRASCO ─────────────────────────────────────────── */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-bold text-white">Pacotes de Churrasco</h2>
+            <p className="text-xs text-gray-500 mt-0.5">Monte kits completos com desconto para seus clientes</p>
+          </div>
+          <button
+            onClick={() => { cancelKitForm(); setShowKitForm(true) }}
+            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+          >
+            + Novo pacote
+          </button>
+        </div>
+
+        {showKitForm && (
+          <div className="bg-gray-800 rounded-xl p-4 mb-4 border border-orange-500/30">
+            <h3 className="font-semibold text-sm mb-3">{editingKitId ? 'Editar pacote' : 'Novo pacote'}</h3>
+
+            {/* Cover photo */}
+            <div className="mb-4">
+              {kitForm.coverImageUrl ? (
+                <div className="relative w-full h-32 rounded-xl overflow-hidden mb-2">
+                  <img src={kitForm.coverImageUrl} alt="capa" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setKitForm(f => ({ ...f, coverImageUrl: '' }))}
+                    className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black/80"
+                  >✕</button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => kitPhotoRef.current?.click()}
+                  disabled={uploadingKitPhoto}
+                  className="w-full h-20 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center gap-2 text-sm text-gray-400 hover:border-orange-500 hover:text-orange-400 transition-colors mb-2"
+                >
+                  {uploadingKitPhoto ? '⏳ Enviando...' : '📷 Foto de capa (opcional)'}
+                </button>
+              )}
+              <input ref={kitPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleKitPhotoUpload} />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              <div className="col-span-2">
+                <label className="block text-xs text-gray-400 mb-1">Nome do pacote *</label>
+                <input type="text" value={kitForm.name} onChange={e => setKitForm(f => ({ ...f, name: e.target.value }))}
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: Kit Família 10 pessoas" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs text-gray-400 mb-1">Descrição</label>
+                <input type="text" value={kitForm.description} onChange={e => setKitForm(f => ({ ...f, description: e.target.value }))}
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="O que está incluído..." />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Mín. pessoas</label>
+                <input type="number" min={1} value={kitForm.minGuests} onChange={e => setKitForm(f => ({ ...f, minGuests: +e.target.value }))}
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Máx. pessoas</label>
+                <input type="number" min={1} value={kitForm.maxGuests} onChange={e => setKitForm(f => ({ ...f, maxGuests: +e.target.value }))}
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Preço normal (R$) *</label>
+                <input type="number" min={0} step="0.01" value={kitForm.price} onChange={e => setKitForm(f => ({ ...f, price: +e.target.value }))}
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-400 mb-1">Preço com desconto (R$)</label>
+                <input type="number" min={0} step="0.01" value={kitForm.discountPrice || ''} onChange={e => setKitForm(f => ({ ...f, discountPrice: +e.target.value }))}
+                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="0 = sem desconto" />
+              </div>
+            </div>
+
+            {kitForm.price > 0 && kitForm.discountPrice > 0 && kitForm.discountPrice < kitForm.price && (
+              <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 mb-3 text-xs text-green-400">
+                Economia de <strong>R$ {(kitForm.price - kitForm.discountPrice).toFixed(2)}</strong> ({Math.round((1 - kitForm.discountPrice / kitForm.price) * 100)}% de desconto)
+              </div>
+            )}
+
+            {/* Kit items */}
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs text-gray-400">Itens do pacote</label>
+                <button type="button" onClick={addKitItem} className="text-xs text-orange-400 hover:text-orange-300">+ Adicionar item</button>
+              </div>
+              {kitItems.length === 0 && (
+                <p className="text-xs text-gray-600 py-2 text-center">Nenhum item adicionado</p>
+              )}
+              <div className="space-y-2">
+                {kitItems.map((item, idx) => (
+                  <div key={idx} className="flex gap-2 items-center">
+                    <input type="text" value={item.productName} onChange={e => updateKitItem(idx, 'productName', e.target.value)}
+                      className="flex-1 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="Nome do produto" />
+                    <input type="number" min={0.1} step="0.1" value={item.quantity} onChange={e => updateKitItem(idx, 'quantity', +e.target.value)}
+                      className="w-16 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" />
+                    <input type="text" value={item.unit} onChange={e => updateKitItem(idx, 'unit', e.target.value)}
+                      className="w-12 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="kg" />
+                    <button type="button" onClick={() => removeKitItem(idx)} className="text-red-400 hover:text-red-300 text-sm">✕</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button onClick={submitKit} disabled={submittingKit} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                {submittingKit ? 'Salvando...' : editingKitId ? 'Salvar' : 'Criar pacote'}
+              </button>
+              <button onClick={cancelKitForm} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancelar</button>
+            </div>
+          </div>
+        )}
+
+        {kits.length === 0 && !showKitForm ? (
+          <p className="text-gray-600 text-sm text-center py-4">Nenhum pacote criado. Monte seu primeiro kit!</p>
+        ) : (
+          <div className="space-y-3">
+            {kits.map(k => {
+              const saving = k.discountPrice && k.discountPrice < k.price ? k.price - k.discountPrice : 0
+              return (
+                <div key={k.id} className="bg-gray-800 rounded-xl overflow-hidden">
+                  <div className="flex items-start gap-3 p-4">
+                    {k.coverImageUrl ? (
+                      <img src={k.coverImageUrl} alt={k.name} className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-gray-700 flex items-center justify-center shrink-0 text-2xl">🍖</div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <p className="font-semibold text-white">{k.name}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{k.minGuests}–{k.maxGuests} pessoas</p>
+                          {k.description && <p className="text-xs text-gray-500 mt-1">{k.description}</p>}
+                        </div>
+                        <div className="text-right shrink-0">
+                          {saving > 0 ? (
+                            <>
+                              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold block mb-1">
+                                PACOTE — Economize R${saving.toFixed(2)}
+                              </span>
+                              <p className="text-xs text-gray-500 line-through">R$ {k.price.toFixed(2)}</p>
+                              <p className="text-sm font-bold text-orange-400">R$ {k.discountPrice!.toFixed(2)}</p>
+                            </>
+                          ) : (
+                            <p className="text-sm font-bold text-orange-400">R$ {k.price.toFixed(2)}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-700 px-4 py-2 flex gap-2 justify-end">
+                    <button onClick={() => startEditKit(k)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded">Editar</button>
+                    <button onClick={() => removeKit(k.id)} className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-2 py-1 rounded">Remover</button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ── PRODUTOS ─────────────────────────────────────────────────────── */}
       <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
         <p className="text-sm text-orange-300 font-medium mb-0.5">Mantenha seus preços sempre atualizados</p>
         <p className="text-xs text-orange-400/80">Eles aparecem diretamente para os clientes no momento do pedido.</p>
       </div>
 
-      {/* Hidden file input for photo flow */}
-      <input
-        ref={photoInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        className="hidden"
-        onChange={handlePhotoSelect}
-      />
+      {activeDiscountCount > 0 && (
+        <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-sm text-green-400">
+          <strong>{activeDiscountCount}</strong> {activeDiscountCount === 1 ? 'produto com desconto ativo' : 'produtos com desconto ativo'}
+        </div>
+      )}
+
+      <input ref={photoInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleAiPhotoSelect} />
+      <input ref={productPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProductPhotoUpload} />
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h2 className="text-lg font-semibold">Produtos ({boutique.products.length}){photoCount > 0 && <span className="ml-2 text-xs text-green-400 font-normal">{photoCount} adicionado{photoCount > 1 ? 's' : ''} nesta sessão</span>}</h2>
+        <h2 className="text-lg font-semibold">
+          Produtos ({boutique.products.length})
+          {photoCount > 0 && <span className="ml-2 text-xs text-green-400 font-normal">{photoCount} adicionado{photoCount > 1 ? 's' : ''} nesta sessão</span>}
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={() => photoInputRef.current?.click()}
@@ -564,9 +865,7 @@ export default function BoutiqueDashboardPage() {
           >
             {photoState === 'analyzing' ? (
               <><span className="inline-block w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-300 rounded-full animate-spin" /> Analisando...</>
-            ) : (
-              <>📸 Adicionar por foto</>
-            )}
+            ) : <>📸 Adicionar por foto</>}
           </button>
           <button onClick={() => { cancelForm(); setShowForm(true) }} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
             + Adicionar produto
@@ -574,7 +873,6 @@ export default function BoutiqueDashboardPage() {
         </div>
       </div>
 
-      {/* Photo flow feedback */}
       {photoState === 'done' && (
         <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-sm text-green-400">
           ✅ IA identificou o produto — confira e ajuste os dados abaixo. <strong>Preencha o preço</strong> antes de salvar.
@@ -589,40 +887,107 @@ export default function BoutiqueDashboardPage() {
       {showForm && (
         <div className="bg-gray-900 rounded-xl p-5 border border-orange-500/30">
           <h3 className="font-semibold mb-4">{editingId ? 'Editar produto' : 'Novo produto'}</h3>
+
+          {/* Product photo */}
+          <div className="mb-4">
+            {form.imageUrl ? (
+              <div className="relative w-24 h-24 rounded-xl overflow-hidden mb-2">
+                <img src={form.imageUrl} alt="produto" className="w-full h-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, imageUrl: '' }))}
+                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black/80"
+                >✕</button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => productPhotoRef.current?.click()}
+                disabled={uploadingPhoto}
+                className="flex items-center gap-2 text-xs text-gray-400 hover:text-orange-400 border border-dashed border-gray-600 hover:border-orange-500 rounded-lg px-3 py-2 transition-colors mb-2"
+              >
+                {uploadingPhoto ? '⏳ Enviando...' : '📷 Adicionar foto do produto (opcional)'}
+              </button>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-3 mb-4">
             <div className="col-span-2">
               <label className="block text-xs text-gray-400 mb-1">Nome *</label>
-              <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: Picanha, Fraldinha..." />
+              <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: Picanha, Fraldinha..." />
             </div>
             <div className="col-span-2">
               <label className="block text-xs text-gray-400 mb-1">Descrição</label>
-              <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Opcional" />
+              <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Opcional" />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">Unidade</label>
-              <input type="text" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })} className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="kg, un..." />
+              <input type="text" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="kg, un..." />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">{priceLabel(form.unit)} *</label>
-              <input type="number" min={0} step="0.01" value={form.price} onChange={e => setForm({ ...form, price: +e.target.value })} className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" />
+              <input type="number" min={0} step="0.01" value={form.price} onChange={e => setForm({ ...form, price: +e.target.value })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" />
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">Categoria</label>
-              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white">
+              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white">
                 {Object.entries(CATEGORIES).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
               </select>
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">Estoque (opcional)</label>
-              <input type="number" min={0} value={form.stockQuantity} onChange={e => setForm({ ...form, stockQuantity: e.target.value === '' ? '' : +e.target.value })} className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Qtd." />
+              <input type="number" min={0} value={form.stockQuantity}
+                onChange={e => setForm({ ...form, stockQuantity: e.target.value === '' ? '' : +e.target.value })}
+                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Qtd." />
             </div>
             <div className="col-span-2">
               <label className="flex items-center gap-3 cursor-pointer">
-                <button type="button" onClick={() => setForm(f => ({ ...f, available: !f.available }))} className={'relative w-11 h-6 rounded-full transition-colors shrink-0 ' + (form.available ? 'bg-orange-500' : 'bg-gray-700')}>
+                <button type="button" onClick={() => setForm(f => ({ ...f, available: !f.available }))}
+                  className={'relative w-11 h-6 rounded-full transition-colors shrink-0 ' + (form.available ? 'bg-orange-500' : 'bg-gray-700')}>
                   <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (form.available ? 'translate-x-5' : 'translate-x-0')} />
                 </button>
                 <span className="text-sm text-gray-300">{form.available ? 'Disponível para pedidos' : 'Indisponível'}</span>
               </label>
+            </div>
+
+            {/* Desconto */}
+            <div className="col-span-2 border-t border-gray-800 pt-3">
+              <label className="flex items-center gap-3 cursor-pointer mb-3">
+                <button type="button" onClick={() => setForm(f => ({ ...f, discountEnabled: !f.discountEnabled }))}
+                  className={'relative w-11 h-6 rounded-full transition-colors shrink-0 ' + (form.discountEnabled ? 'bg-green-500' : 'bg-gray-700')}>
+                  <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (form.discountEnabled ? 'translate-x-5' : 'translate-x-0')} />
+                </button>
+                <span className="text-sm text-gray-300 font-medium">Ativar desconto</span>
+              </label>
+              {form.discountEnabled && (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Percentual de desconto (%)</label>
+                    <input type="number" min={0} max={100} step={1} value={form.discountPercent}
+                      onChange={e => setForm(f => ({ ...f, discountPercent: +e.target.value }))}
+                      className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: 15" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Válido até (opcional)</label>
+                    <input type="date" value={form.discountValidUntil}
+                      onChange={e => setForm(f => ({ ...f, discountValidUntil: e.target.value }))}
+                      className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" />
+                  </div>
+                  {form.discountPercent > 0 && form.price > 0 && (
+                    <div className="col-span-2 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
+                      <p className="text-xs text-green-400">
+                        Preço com desconto: <strong>R$ {discountedPrice(form.price, form.discountPercent).toFixed(2)}</strong>/{form.unit}
+                        {' '}(de R$ {form.price.toFixed(2)})
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex gap-2">
@@ -642,24 +1007,55 @@ export default function BoutiqueDashboardPage() {
       )}
 
       <div className="space-y-2">
-        {boutique.products.map(p => (
-          <div key={p.id} className="bg-gray-900 rounded-xl px-5 py-4 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <button type="button" onClick={() => toggleProduct(p.id)} title={p.available ? 'Clique para desativar' : 'Clique para ativar'} className={'relative w-10 h-5 rounded-full transition-colors shrink-0 ' + (p.available ? 'bg-green-500' : 'bg-gray-600')}>
-                <span className={'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ' + (p.available ? 'translate-x-5' : 'translate-x-0')} />
-              </button>
-              <div className="min-w-0">
-                <p className="font-medium truncate">{p.name}</p>
-                <p className="text-xs text-gray-400">{CATEGORIES[p.category] || p.category} &middot; {p.unit}{p.stockQuantity != null && <span className="ml-2 text-gray-500">estoque: {p.stockQuantity}</span>}</p>
+        {boutique.products.map(p => {
+          const active = isDiscountActive(p)
+          return (
+            <div key={p.id} className="bg-gray-900 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                {p.imageUrl ? (
+                  <img src={p.imageUrl} alt={p.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 text-xl">🥩</div>
+                )}
+                <button type="button" onClick={() => toggleProduct(p.id)} title={p.available ? 'Clique para desativar' : 'Clique para ativar'}
+                  className={'relative w-10 h-5 rounded-full transition-colors shrink-0 ' + (p.available ? 'bg-green-500' : 'bg-gray-600')}>
+                  <span className={'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ' + (p.available ? 'translate-x-5' : 'translate-x-0')} />
+                </button>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium truncate">{p.name}</p>
+                    {active && (
+                      <span className="text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-bold shrink-0">
+                        {p.discountPercent}% OFF
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    {CATEGORIES[p.category] || p.category} · {p.unit}
+                    {p.stockQuantity != null && <span> · estoque: {p.stockQuantity}</span>}
+                    {active && p.discountValidUntil && (
+                      <span className="ml-1 text-orange-400"> · até {new Date(p.discountValidUntil).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0 ml-2">
+                <div className="text-right">
+                  {active ? (
+                    <>
+                      <p className="text-xs text-gray-500 line-through leading-none">R$ {p.price.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-orange-400">R$ {discountedPrice(p.price, p.discountPercent!).toFixed(2)}/{p.unit}</p>
+                    </>
+                  ) : (
+                    <span className="text-orange-400 font-semibold text-sm">R$ {p.price.toFixed(2)}/{p.unit}</span>
+                  )}
+                </div>
+                <button onClick={() => startEdit(p)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded">Editar</button>
+                <button onClick={() => removeProduct(p.id)} className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-2 py-1 rounded">Remover</button>
               </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0 ml-2">
-              <span className="text-orange-400 font-semibold text-sm">R$ {p.price.toFixed(2)}/{p.unit}</span>
-              <button onClick={() => startEdit(p)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded">Editar</button>
-              <button onClick={() => removeProduct(p.id)} className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-2 py-1 rounded">Remover</button>
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

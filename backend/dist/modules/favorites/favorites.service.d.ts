@@ -1,0 +1,81 @@
+export declare function addFavorite(userId: string, targetType: string, targetId: string): Promise<{
+    id: string;
+    createdAt: Date;
+    userId: string;
+    targetType: string;
+    targetId: string;
+}>;
+export declare function removeFavorite(userId: string, targetType: string, targetId: string): Promise<void>;
+export declare function listFavorites(userId: string): Promise<{
+    grillmasters: {
+        favoritedAt: Date | undefined;
+        user: {
+            name: string;
+        };
+        id: string;
+        createdAt: Date;
+        updatedAt: Date;
+        userId: string;
+        bio: string | null;
+        experience: number;
+        pricePerHour: number;
+        available: boolean;
+        city: string;
+        state: string;
+        rating: number;
+        approved: boolean;
+        totalOrders: number;
+        isChancelado: boolean;
+        specialties: string | null;
+        photoUrl: string | null;
+        galleryUrls: string[];
+        instagram: string | null;
+        churrascoStyle: string | null;
+        bringsEquipment: boolean;
+        minGuests: number | null;
+        maxGuests: number | null;
+        pixKey: string | null;
+        videoUrl: string | null;
+        certificationCode: string | null;
+        certifiedAt: Date | null;
+        trainingModules: number[];
+        uniformSent: boolean;
+        uniformSentAt: Date | null;
+    }[];
+    boutiques: {
+        favoritedAt: Date | undefined;
+        name: string;
+        id: string;
+        phone: string | null;
+        createdAt: Date;
+        updatedAt: Date;
+        address: string | null;
+        userId: string;
+        city: string;
+        state: string;
+        rating: number;
+        approved: boolean;
+        galleryUrls: string[];
+        instagram: string | null;
+        pixKey: string | null;
+        description: string | null;
+        latitude: number | null;
+        longitude: number | null;
+        open: boolean;
+        monthlyFee: number;
+        commissionRate: number;
+        logoUrl: string | null;
+        facadeUrl: string | null;
+        openingHours: string | null;
+        deliveryOrPickup: string | null;
+        referralCode: string | null;
+    }[];
+    raw: {
+        id: string;
+        createdAt: Date;
+        userId: string;
+        targetType: string;
+        targetId: string;
+    }[];
+}>;
+//# sourceMappingURL=favorites.service.d.ts.map

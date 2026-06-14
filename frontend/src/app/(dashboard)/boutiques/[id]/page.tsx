@@ -12,52 +12,51 @@ function getToken() {
 }
 
 interface Boutique {
-  id: string
-  name: string
-  description?: string
-  city: string
-  state: string
-  phone?: string
-  address?: string
-  rating: number
-  open: boolean
-  logoUrl?: string
-  facadeUrl?: string
-  galleryUrls?: string[]
-  instagram?: string
-  openingHours?: string
-  deliveryOrPickup?: string
+  id: string; name: string; description?: string; city: string; state: string
+  phone?: string; address?: string; rating: number; open: boolean
+  logoUrl?: string; facadeUrl?: string; galleryUrls?: string[]
+  instagram?: string; openingHours?: string; deliveryOrPickup?: string
   products?: Product[]
 }
 
 interface Product {
-  id: string
-  name: string
-  description?: string
-  price: number
-  unit: string
-  category: string
-  available: boolean
-  stockQuantity?: number
-  imageUrl?: string
+  id: string; name: string; description?: string; price: number; unit: string
+  category: string; available: boolean; stockQuantity?: number
+  imageUrl?: string; discountPercent?: number | null; discountValidUntil?: string | null
+}
+
+interface Kit {
+  id: string; name: string; description: string; price: number
+  discountPrice?: number | null; coverImageUrl?: string | null
+  minGuests: number; maxGuests: number; items: string
 }
 
 interface Review {
-  id: string
-  boutiqueRating: number
-  boutiqueComment?: string
-  photos?: string[]
-  createdAt: string
-  customer: { name: string }
+  id: string; boutiqueRating: number; boutiqueComment?: string
+  photos?: string[]; createdAt: string; customer: { name: string }
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  CARNE: 'Bovinos e Suinos',
-  SAL_TEMPERO: 'Sal e Temperos',
-  CARVAO: 'Carvao e Acessorios',
+  CARNE: 'Carnes',
+  SAL_TEMPERO: 'Temperos',
+  CARVAO: 'Carvão',
   ACOMPANHAMENTO: 'Acompanhamentos',
   BEBIDA: 'Bebidas',
   OUTRO: 'Outros',
+}
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  CARNE: '🥩', SAL_TEMPERO: '🧂', CARVAO: '🔥', ACOMPANHAMENTO: '🥗', BEBIDA: '🍺', OUTRO: '📦',
+}
+
+function isDiscountActive(p: Product) {
+  if (!p.discountPercent) return false
+  if (p.discountValidUntil && new Date(p.discountValidUntil) < new Date()) return false
+  return true
+}
+
+function discountedPrice(price: number, pct: number) {
+  return price * (1 - pct / 100)
 }
 
 function HeartButton({ id }: { id: string }) {
@@ -83,10 +82,13 @@ export default function BoutiqueProfilePage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
   const [boutique, setBoutique] = useState<Boutique | null>(null)
+  const [kits, setKits] = useState<Kit[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
+  const [activeCategory, setActiveCategory] = useState<string>('TODOS')
+  const [search, setSearch] = useState('')
 
   useEffect(() => {
     if (!id) return
@@ -99,10 +101,12 @@ export default function BoutiqueProfilePage() {
         return r.json()
       }),
       fetch(`${BASE}/reviews/boutique/${id}`).then(r => r.ok ? r.json() : []),
+      fetch(`${BASE}/boutiques/${id}/kits`).then(r => r.ok ? r.json() : []),
     ])
-      .then(([bData, revData]) => {
+      .then(([bData, revData, kitsData]) => {
         setBoutique(bData)
         setReviews(Array.isArray(revData) ? revData : [])
+        setKits(Array.isArray(kitsData) ? kitsData : [])
       })
       .catch(() => setError('Nao foi possivel carregar o acougue.'))
       .finally(() => setLoading(false))
@@ -130,9 +134,17 @@ export default function BoutiqueProfilePage() {
   }
 
   const gallery = boutique.galleryUrls ?? []
-  const products = boutique.products ?? []
+  const allProducts = (boutique.products ?? []).filter(p => p.available)
 
-  const productsByCategory = products.reduce<Record<string, Product[]>>((acc, p) => {
+  const availableCategories = [...new Set(allProducts.map(p => p.category))]
+
+  const filteredProducts = allProducts.filter(p => {
+    const matchCat = activeCategory === 'TODOS' || p.category === activeCategory
+    const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase())
+    return matchCat && matchSearch
+  })
+
+  const productsByCategory = filteredProducts.reduce<Record<string, Product[]>>((acc, p) => {
     const cat = p.category || 'OUTRO'
     if (!acc[cat]) acc[cat] = []
     acc[cat].push(p)
@@ -157,11 +169,7 @@ export default function BoutiqueProfilePage() {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
-        <div className="absolute top-4 right-4">
-          <HeartButton id={boutique.id} />
-        </div>
-
+        <div className="absolute top-4 right-4"><HeartButton id={boutique.id} /></div>
         <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end gap-4">
           {boutique.logoUrl ? (
             <img src={boutique.logoUrl} alt="logo" className="w-14 h-14 rounded-xl object-cover border-2 border-white/20 shrink-0" />
@@ -245,38 +253,178 @@ export default function BoutiqueProfilePage() {
         </div>
       )}
 
-      {/* Products by category */}
-      {Object.keys(productsByCategory).length > 0 && (
-        <div className="mb-5 space-y-4">
-          {Object.entries(productsByCategory).map(([cat, items]) => (
-            <div key={cat} className="bg-gray-900 rounded-xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-gray-800">
-                <h2 className="text-sm font-bold text-white">{CATEGORY_LABELS[cat] ?? cat}</h2>
-              </div>
-              <div className="divide-y divide-gray-800/50">
-                {items.map(p => (
-                  <div key={p.id} className="px-5 py-3 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {p.imageUrl && (
-                        <img src={p.imageUrl} alt={p.name} className="w-10 h-10 rounded-lg object-cover shrink-0" />
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-white truncate">{p.name}</p>
-                        {p.description && <p className="text-xs text-gray-500 truncate">{p.description}</p>}
-                        {p.stockQuantity != null && p.stockQuantity <= 5 && (
-                          <span className="text-xs text-orange-400">{p.stockQuantity === 0 ? 'Esgotado' : `Ultimas ${p.stockQuantity} unidades`}</span>
-                        )}
-                      </div>
+      {/* ── PACOTES DE CHURRASCO ─────────────────────────────────────────── */}
+      {kits.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Pacotes de Churrasco</h2>
+          <div className="flex gap-4 overflow-x-auto pb-2 -mx-1 px-1">
+            {kits.map(k => {
+              const saving = k.discountPrice && k.discountPrice < k.price ? k.price - k.discountPrice : 0
+              const finalPrice = k.discountPrice && k.discountPrice < k.price ? k.discountPrice : k.price
+              let kitItems: { productName: string; quantity: number; unit: string }[] = []
+              try { kitItems = JSON.parse(k.items) || [] } catch { kitItems = [] }
+              return (
+                <div key={k.id} className="bg-gray-900 border border-orange-500/30 rounded-2xl overflow-hidden shrink-0 w-72">
+                  {k.coverImageUrl ? (
+                    <div className="h-32 overflow-hidden">
+                      <img src={k.coverImageUrl} alt={k.name} className="w-full h-full object-cover" />
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-sm font-bold text-orange-400">R$ {p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-gray-500">/{p.unit}</p>
+                  ) : (
+                    <div className="h-32 bg-gradient-to-br from-orange-900/30 to-gray-900 flex items-center justify-center text-5xl">🍖</div>
+                  )}
+                  <div className="p-4">
+                    {saving > 0 && (
+                      <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold mb-2 inline-block">
+                        PACOTE — Economize R$ {saving.toFixed(2)}
+                      </span>
+                    )}
+                    <h3 className="font-bold text-white">{k.name}</h3>
+                    <p className="text-xs text-gray-400 mb-1">{k.minGuests}–{k.maxGuests} pessoas</p>
+                    {k.description && <p className="text-xs text-gray-500 mb-2">{k.description}</p>}
+                    {kitItems.length > 0 && (
+                      <div className="mb-3 space-y-0.5">
+                        {kitItems.map((item, i) => (
+                          <p key={i} className="text-xs text-gray-500">• {item.productName} — {item.quantity}{item.unit}</p>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex items-end justify-between mt-3">
+                      <div>
+                        {saving > 0 && <p className="text-xs text-gray-500 line-through">R$ {k.price.toFixed(2)}</p>}
+                        <p className="text-lg font-black text-orange-400">R$ {finalPrice.toFixed(2)}</p>
+                      </div>
+                      <button
+                        onClick={() => router.push('/menu/novo?boutiqueId=' + boutique.id)}
+                        className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
+                      >
+                        Pedir
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── PRODUTOS ─────────────────────────────────────────────────────── */}
+      {allProducts.length > 0 && (
+        <div className="mb-5">
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-3">Produtos</h2>
+
+          {/* Search */}
+          <div className="relative mb-3">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar produto..."
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-orange-500"
+            />
+          </div>
+
+          {/* Category filter */}
+          {availableCategories.length > 1 && (
+            <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+              <button
+                onClick={() => setActiveCategory('TODOS')}
+                className={'shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ' + (activeCategory === 'TODOS' ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
+              >
+                Todos
+              </button>
+              {availableCategories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  className={'shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ' + (activeCategory === cat ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
+                >
+                  <span>{CATEGORY_EMOJI[cat] || '🛒'}</span>
+                  {CATEGORY_LABELS[cat] || cat}
+                </button>
+              ))}
             </div>
-          ))}
+          )}
+
+          {/* Grid de produtos */}
+          {Object.keys(productsByCategory).length === 0 ? (
+            <p className="text-gray-500 text-sm text-center py-8">Nenhum produto encontrado</p>
+          ) : (
+            <div className="space-y-6">
+              {Object.entries(productsByCategory).map(([cat, items]) => (
+                <div key={cat}>
+                  {activeCategory === 'TODOS' && (
+                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                      <span>{CATEGORY_EMOJI[cat] || '🛒'}</span>
+                      {CATEGORY_LABELS[cat] || cat}
+                    </h3>
+                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {items.map(p => {
+                      const active = isDiscountActive(p)
+                      const finalPrice = active ? discountedPrice(p.price, p.discountPercent!) : p.price
+                      const lowStock = p.stockQuantity != null && p.stockQuantity <= 5
+                      return (
+                        <div key={p.id} className="bg-gray-900 rounded-2xl overflow-hidden border border-gray-800 hover:border-orange-500/40 transition-colors">
+                          {/* Foto */}
+                          <div className="relative aspect-square bg-gray-800">
+                            {p.imageUrl ? (
+                              <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-4xl bg-gradient-to-br from-gray-800 to-gray-900">
+                                {CATEGORY_EMOJI[p.category] || '🥩'}
+                              </div>
+                            )}
+                            {/* Badges */}
+                            <div className="absolute top-2 left-2 flex flex-col gap-1">
+                              {active && (
+                                <span className="bg-orange-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                                  {p.discountPercent}% OFF
+                                </span>
+                              )}
+                              {lowStock && (
+                                <span className="bg-red-500/90 text-white text-xs px-1.5 py-0.5 rounded-full">
+                                  {p.stockQuantity === 0 ? 'Esgotado' : `Últimas ${p.stockQuantity}`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          {/* Info */}
+                          <div className="p-3">
+                            <p className="text-sm font-semibold text-white leading-snug mb-0.5 line-clamp-2">{p.name}</p>
+                            <p className="text-xs text-gray-500 mb-2">/{p.unit}</p>
+                            <div className="flex items-end justify-between gap-1">
+                              <div>
+                                {active && (
+                                  <p className="text-xs text-gray-500 line-through leading-none">
+                                    R$ {p.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                  </p>
+                                )}
+                                <p className="text-base font-black text-orange-400 leading-tight">
+                                  R$ {finalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                </p>
+                              </div>
+                              {p.stockQuantity !== 0 && (
+                                <button
+                                  onClick={() => router.push('/menu/novo?boutiqueId=' + boutique.id)}
+                                  className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-colors"
+                                >
+                                  +
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
