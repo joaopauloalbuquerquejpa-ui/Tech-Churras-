@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
@@ -20,9 +20,16 @@ interface Order {
   eventAddress: string
   eventHours: number
   guestCount: number
+  notes?: string
   createdAt: string
   customer: { name: string; email: string }
   boutique?: { name: string }
+}
+
+interface ScheduleEntry {
+  id: string
+  date: string
+  available: boolean
 }
 
 interface GrillmasterProfile {
@@ -34,50 +41,104 @@ interface GrillmasterProfile {
   state: string
   isChancelado: boolean
   available: boolean
+  bio?: string
+  experience: number
+  specialties?: string
+  photoUrl?: string
+  galleryUrls: string[]
+  instagram?: string
+  videoUrl?: string
+  churrascoStyle?: string
+  bringsEquipment: boolean
+  minGuests?: number
+  maxGuests?: number
+  trainingModules: number[]
+  certificationCode?: string
+  certifiedAt?: string
+  uniformSent: boolean
 }
+
+type Tab = 'eventos' | 'agenda' | 'perfil' | 'treinamento'
+
+const TRAINING_MODULES = [
+  {
+    id: 1,
+    title: 'Apresentação Tech Churras',
+    desc: 'Nossos valores, missão e o que significa ser um churrasqueiro Tech Churras. Postura profissional, uniforme e pontualidade.',
+    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_1',
+  },
+  {
+    id: 2,
+    title: 'Padrão de Cortes e Técnicas',
+    desc: 'A qualidade dos cortes nobres que usamos, controle de temperatura, ponto certo da carne e preparo das guarnições.',
+    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_2',
+  },
+  {
+    id: 3,
+    title: 'Experiência do Cliente',
+    desc: 'Como chegamos no evento, como nos apresentamos ao anfitrião, como interagimos com os convidados e como finalizamos com excelência.',
+    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_3',
+  },
+  {
+    id: 4,
+    title: 'Uso da Plataforma',
+    desc: 'Como aceitar e recusar pedidos, usar o chat com o cliente, atualizar status do evento e reportar problemas.',
+    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_4',
+  },
+]
 
 function fmt(n: number) {
   return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
-
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  PENDING: 'Aguardando',
-  CONFIRMED: 'Confirmado',
-  IN_PROGRESS: 'Em andamento',
-  COMPLETED: 'Concluido',
-  CANCELLED: 'Cancelado',
+  PENDING: 'Aguardando', CONFIRMED: 'Confirmado', IN_PROGRESS: 'Em andamento',
+  COMPLETED: 'Concluido', CANCELLED: 'Cancelado',
 }
 const STATUS_CLASS: Record<string, string> = {
-  PENDING: 'bg-yellow-500/20 text-yellow-400',
-  CONFIRMED: 'bg-blue-500/20 text-blue-400',
-  IN_PROGRESS: 'bg-orange-500/20 text-orange-400',
-  COMPLETED: 'bg-green-500/20 text-green-400',
+  PENDING: 'bg-yellow-500/20 text-yellow-400', CONFIRMED: 'bg-blue-500/20 text-blue-400',
+  IN_PROGRESS: 'bg-orange-500/20 text-orange-400', COMPLETED: 'bg-green-500/20 text-green-400',
   CANCELLED: 'bg-gray-700 text-gray-400',
 }
 
 export default function GrillmasterDashboardPage() {
   const router = useRouter()
   const { user } = useAuthStore()
+
+  const [tab, setTab] = useState<Tab>('eventos')
   const [orders, setOrders] = useState<Order[]>([])
   const [profile, setProfile] = useState<GrillmasterProfile | null>(null)
   const [contract, setContract] = useState<{ id: string; status: string; durationMonths: number; acceptedAt: string | null; generatedAt: string } | null>(null)
-  const [showContractText, setShowContractText] = useState(false)
-  const [contractText, setContractText] = useState('')
+  const [schedule, setSchedule] = useState<ScheduleEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [togglingAvail, setTogglingAvail] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
 
+  // Profile form
+  const [profileForm, setProfileForm] = useState<Partial<GrillmasterProfile>>({})
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [profileMsg, setProfileMsg] = useState('')
+  const [galleryInput, setGalleryInput] = useState('')
+
+  // Calendar
+  const [calMonth, setCalMonth] = useState(() => {
+    const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }
+  })
+  const [togglingDate, setTogglingDate] = useState<string | null>(null)
+
+  // Training
+  const [checkedModules, setCheckedModules] = useState<Set<number>>(new Set())
+  const [certifying, setCertifying] = useState(false)
+  const [showContractText, setShowContractText] = useState(false)
+  const [contractText, setContractText] = useState('')
+
   useEffect(() => {
     if (!user) return
-    if (user.role !== 'GRILLMASTER') {
-      router.replace('/dashboard')
-      return
-    }
+    if (user.role !== 'GRILLMASTER') { router.replace('/dashboard'); return }
     load()
   }, [user])
 
@@ -85,18 +146,32 @@ export default function GrillmasterDashboardPage() {
     setLoading(true)
     try {
       const h = { Authorization: 'Bearer ' + getToken() }
-      const [res, cRes] = await Promise.all([
+      const [res, cRes, sRes] = await Promise.all([
         fetch(`${BASE}/grillmasters/me/orders`, { headers: h }),
         fetch(`${BASE}/contracts/my`, { headers: h }),
+        fetch(`${BASE}/grillmasters/schedule`, { headers: h }),
       ])
       if (!res.ok) { setNotFound(true); return }
       const data = await res.json()
-      setProfile(data.grillmaster ?? null)
+      const p = data.grillmaster ?? null
+      setProfile(p)
+      if (p) {
+        setProfileForm({
+          bio: p.bio ?? '', pricePerHour: p.pricePerHour, city: p.city, state: p.state,
+          specialties: p.specialties ?? '', churrascoStyle: p.churrascoStyle ?? '',
+          bringsEquipment: p.bringsEquipment, minGuests: p.minGuests, maxGuests: p.maxGuests,
+          instagram: p.instagram ?? '', videoUrl: p.videoUrl ?? '',
+          photoUrl: p.photoUrl ?? '', galleryUrls: p.galleryUrls ?? [],
+          experience: p.experience,
+        })
+        setCheckedModules(new Set(p.trainingModules))
+      }
       setOrders(Array.isArray(data.orders) ? data.orders : [])
       if (cRes.ok) {
         const contracts = await cRes.json()
         if (Array.isArray(contracts) && contracts.length > 0) setContract(contracts[0])
       }
+      if (sRes.ok) setSchedule(await sRes.json())
     } catch {
       setNotFound(true)
     } finally {
@@ -114,9 +189,7 @@ export default function GrillmasterDashboardPage() {
         body: JSON.stringify({ available: !profile.available }),
       })
       if (res.ok) setProfile(p => p ? { ...p, available: !p.available } : null)
-    } finally {
-      setTogglingAvail(false)
-    }
+    } finally { setTogglingAvail(false) }
   }
 
   async function handleAccept(orderId: string) {
@@ -128,9 +201,7 @@ export default function GrillmasterDashboardPage() {
         body: JSON.stringify({ status: 'CONFIRMED' }),
       })
       if (res.ok) setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CONFIRMED' } : o))
-    } finally {
-      setActionLoading(null)
-    }
+    } finally { setActionLoading(null) }
   }
 
   async function handleReject(orderId: string) {
@@ -142,20 +213,68 @@ export default function GrillmasterDashboardPage() {
         body: JSON.stringify({ reason: 'Churrasqueiro recusou o evento' }),
       })
       if (res.ok) setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'CANCELLED' } : o))
-    } finally {
-      setActionLoading(null)
-    }
+    } finally { setActionLoading(null) }
+  }
+
+  async function handleToggleScheduleDay(dateStr: string) {
+    setTogglingDate(dateStr)
+    try {
+      const res = await fetch(`${BASE}/grillmasters/schedule/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify({ date: dateStr }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setSchedule(prev => {
+          const idx = prev.findIndex(s => s.date.startsWith(dateStr))
+          if (idx >= 0) {
+            const next = [...prev]; next[idx] = updated; return next
+          }
+          return [...prev, updated]
+        })
+      }
+    } finally { setTogglingDate(null) }
+  }
+
+  async function handleSaveProfile() {
+    setSavingProfile(true); setProfileMsg('')
+    try {
+      const res = await fetch(`${BASE}/grillmasters`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify(profileForm),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setProfile(p => p ? { ...p, ...updated } : null)
+        setProfileMsg('Perfil salvo com sucesso!')
+      } else {
+        const d = await res.json()
+        setProfileMsg('Erro: ' + (d.error ?? 'tente novamente'))
+      }
+    } finally { setSavingProfile(false) }
+  }
+
+  async function handleCompleteTraining() {
+    if (checkedModules.size < 4) return
+    setCertifying(true)
+    try {
+      const h = { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() }
+      for (const id of [1, 2, 3, 4]) {
+        await fetch(`${BASE}/grillmasters/training/${id}/complete`, { method: 'POST', headers: h })
+      }
+      await load()
+    } finally { setCertifying(false) }
   }
 
   if (loading) {
     return (
       <div className="max-w-4xl mx-auto animate-pulse space-y-4">
+        <div className="h-10 bg-gray-900 rounded-xl w-64" />
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-24 bg-gray-900 rounded-xl" />
-          ))}
+          {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-24 bg-gray-900 rounded-xl" />)}
         </div>
-        <div className="h-64 bg-gray-900 rounded-xl" />
       </div>
     )
   }
@@ -164,8 +283,7 @@ export default function GrillmasterDashboardPage() {
     return (
       <div className="max-w-xl mx-auto text-center py-20">
         <p className="text-gray-400 mb-4">Voce nao tem um perfil de churrasqueiro cadastrado.</p>
-        <Link href="/grillmasters/new"
-          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm">
+        <Link href="/grillmasters/new" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm">
           Cadastrar como churrasqueiro
         </Link>
       </div>
@@ -173,236 +291,594 @@ export default function GrillmasterDashboardPage() {
   }
 
   const now = new Date()
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const startOfYear = new Date(now.getFullYear(), 0, 1)
-
   const pendingOrders = orders.filter(o => o.status === 'PENDING')
   const upcomingOrders = orders
     .filter(o => (o.status === 'CONFIRMED' || o.status === 'IN_PROGRESS') && new Date(o.eventDate) >= now)
     .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())
   const historyOrders = orders.filter(o => o.status === 'COMPLETED' || o.status === 'CANCELLED')
-
   const completedOrders = orders.filter(o => o.status === 'COMPLETED')
-  const thisMonthOrders = completedOrders.filter(o => new Date(o.eventDate) >= startOfMonth)
-  const thisYearOrders = completedOrders.filter(o => new Date(o.eventDate) >= startOfYear)
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const startOfYear = new Date(now.getFullYear(), 0, 1)
+  const earnedThisMonth = completedOrders.filter(o => new Date(o.eventDate) >= startOfMonth).reduce((s, o) => s + o.totalPrice * 0.93, 0)
+  const earnedThisYear = completedOrders.filter(o => new Date(o.eventDate) >= startOfYear).reduce((s, o) => s + o.totalPrice * 0.93, 0)
 
-  const earnedThisMonth = thisMonthOrders.reduce((s, o) => s + o.totalPrice, 0)
-  const earnedThisYear = thisYearOrders.reduce((s, o) => s + o.totalPrice, 0)
+  // Calendar helpers
+  const { year, month } = calMonth
+  const firstDay = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const scheduleMap: Record<string, boolean> = {}
+  schedule.forEach(s => {
+    const key = s.date.slice(0, 10)
+    scheduleMap[key] = s.available
+  })
+  const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 
-  const cards = [
-    { label: 'Ganhos este mes', value: 'R$ ' + fmt(earnedThisMonth), sub: thisMonthOrders.length + ' pedido(s)', color: 'text-orange-400' },
-    { label: 'Ganhos este ano', value: 'R$ ' + fmt(earnedThisYear), sub: thisYearOrders.length + ' pedido(s)', color: 'text-green-400' },
-    { label: 'Proximos eventos', value: String(upcomingOrders.length), sub: 'confirmados', color: 'text-blue-400' },
-    { label: 'Avaliacao media', value: (profile?.rating ?? 0).toFixed(1) + ' / 5', sub: profile?.totalOrders + ' total', color: 'text-yellow-400' },
-  ]
+  const trainingDone = profile?.certifiedAt
 
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <div className="flex items-center gap-3 mb-1">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
             <h1 className="text-2xl font-bold">Meu Dashboard</h1>
             {profile?.isChancelado && (
               <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-bold px-2 py-0.5 rounded-full">
-                CHANCELADO
+                CHANCELADO TC
               </span>
+            )}
+            {!profile?.isChancelado && !trainingDone && (
+              <button onClick={() => setTab('treinamento')}
+                className="bg-orange-500/10 text-orange-400 border border-orange-500/30 text-xs font-semibold px-2 py-0.5 rounded-full hover:bg-orange-500/20 transition-colors">
+                Completar treinamento →
+              </button>
             )}
           </div>
           <p className="text-sm text-gray-500">
             {profile ? `${profile.city}, ${profile.state} — R$ ${fmt(profile.pricePerHour)}/h` : ''}
           </p>
         </div>
-        <Link href="/grillmasters/new"
-          className="text-sm text-orange-400 hover:text-orange-300 border border-orange-500/30 px-3 py-1.5 rounded-lg transition-colors">
-          Editar perfil
-        </Link>
       </div>
 
-      {/* Disponibilidade toggle */}
-      <div className={`rounded-xl border px-5 py-4 mb-6 flex items-center justify-between gap-4 ${
-        profile?.available
-          ? 'bg-green-500/10 border-green-500/30'
-          : 'bg-gray-900 border-gray-800'
-      }`}>
-        <div>
-          <p className={`font-semibold text-sm ${profile?.available ? 'text-green-300' : 'text-gray-300'}`}>
-            {profile?.available ? 'Disponivel para novos eventos' : 'Indisponivel no momento'}
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {profile?.available
-              ? 'Clientes podem te encontrar e enviar pedidos.'
-              : 'Voce nao aparece nas buscas de clientes.'}
-          </p>
-        </div>
-        <button
-          onClick={handleToggleAvailability}
-          disabled={togglingAvail}
-          className={`relative w-14 h-7 rounded-full transition-colors shrink-0 disabled:opacity-60 ${profile?.available ? 'bg-green-500' : 'bg-gray-700'}`}
-        >
-          <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${profile?.available ? 'translate-x-8' : 'translate-x-1'}`} />
-        </button>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 bg-gray-900 p-1 rounded-xl overflow-x-auto">
+        {(['eventos', 'agenda', 'perfil', 'treinamento'] as Tab[]).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`flex-1 min-w-max py-2 px-4 rounded-lg text-sm font-semibold capitalize transition-colors relative ${
+              tab === t ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'
+            }`}>
+            {t}
+            {t === 'eventos' && pendingOrders.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                {pendingOrders.length}
+              </span>
+            )}
+            {t === 'treinamento' && !trainingDone && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* Novos Eventos (PENDING) */}
-      {pendingOrders.length > 0 && (
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="inline-block w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            <h2 className="font-semibold text-orange-300">Novos Eventos — aguardando sua resposta ({pendingOrders.length})</h2>
+      {/* ── ABA EVENTOS ── */}
+      {tab === 'eventos' && (
+        <div className="space-y-6">
+          {/* Toggle disponibilidade */}
+          <div className={`rounded-xl border px-5 py-4 flex items-center justify-between gap-4 ${
+            profile?.available ? 'bg-green-500/10 border-green-500/30' : 'bg-gray-900 border-gray-800'
+          }`}>
+            <div>
+              <p className={`font-semibold text-sm ${profile?.available ? 'text-green-300' : 'text-gray-300'}`}>
+                {profile?.available ? 'Disponivel para novos eventos' : 'Indisponivel no momento'}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {profile?.available
+                  ? 'Clientes podem te encontrar e enviar pedidos.'
+                  : 'Voce nao aparece nas buscas de clientes.'}
+              </p>
+            </div>
+            <button onClick={handleToggleAvailability} disabled={togglingAvail}
+              className={`relative w-14 h-7 rounded-full transition-colors shrink-0 disabled:opacity-60 ${profile?.available ? 'bg-green-500' : 'bg-gray-700'}`}>
+              <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${profile?.available ? 'translate-x-8' : 'translate-x-1'}`} />
+            </button>
           </div>
-          <div className="space-y-3">
-            {pendingOrders.map(o => (
-              <div key={o.id} className="bg-gray-900 border border-orange-500/30 rounded-xl p-4">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="min-w-0">
-                    <p className="font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
-                    <p className="text-sm text-gray-400 mt-0.5">{fmtDate(o.eventDate)}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {o.eventAddress} · {o.guestCount} convidado{o.guestCount !== 1 ? 's' : ''} · {o.eventHours}h
-                      {o.boutique ? ` · Acougue: ${o.boutique.name}` : ''}
-                    </p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-lg font-black text-orange-400">R$ {fmt(o.totalPrice)}</p>
-                    <p className="text-xs text-gray-600 font-mono">#{o.id.slice(0, 8)}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleAccept(o.id)}
-                    disabled={actionLoading === o.id + '-accept' || actionLoading === o.id + '-reject'}
-                    className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
-                  >
-                    {actionLoading === o.id + '-accept' ? 'Aceitando...' : 'Aceitar evento'}
-                  </button>
-                  <button
-                    onClick={() => handleReject(o.id)}
-                    disabled={actionLoading === o.id + '-accept' || actionLoading === o.id + '-reject'}
-                    className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-gray-300 text-sm font-semibold py-2 rounded-lg transition-colors"
-                  >
-                    {actionLoading === o.id + '-reject' ? 'Recusando...' : 'Recusar'}
-                  </button>
-                </div>
+
+          {/* Novos Eventos */}
+          {pendingOrders.length > 0 && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="inline-block w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                <h2 className="font-semibold text-orange-300">Novos Eventos — aguardando sua resposta ({pendingOrders.length})</h2>
+              </div>
+              <div className="space-y-3">
+                {pendingOrders.map(o => {
+                  const gmEarning = o.totalPrice * 0.93
+                  return (
+                    <div key={o.id} className="bg-gray-900 border border-orange-500/30 rounded-xl p-4">
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="min-w-0">
+                          <p className="font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
+                          <p className="text-sm text-gray-400 mt-0.5">{fmtDate(o.eventDate)}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {o.eventAddress} · {o.guestCount} convidado{o.guestCount !== 1 ? 's' : ''} · {o.eventHours}h
+                            {o.boutique ? ` · ${o.boutique.name}` : ''}
+                          </p>
+                          {o.notes && <p className="text-xs text-gray-400 mt-1 italic">"{o.notes}"</p>}
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-lg font-black text-orange-400">R$ {fmt(gmEarning)}</p>
+                          <p className="text-xs text-gray-500">sua parte (93%)</p>
+                          <p className="text-xs text-gray-600 font-mono">#{o.id.slice(0, 8)}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleAccept(o.id)}
+                          disabled={!!actionLoading}
+                          className="flex-1 bg-green-500 hover:bg-green-600 disabled:opacity-50 text-white text-sm font-semibold py-2 rounded-lg transition-colors">
+                          {actionLoading === o.id + '-accept' ? 'Aceitando...' : 'Aceitar evento'}
+                        </button>
+                        <button onClick={() => handleReject(o.id)}
+                          disabled={!!actionLoading}
+                          className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-gray-300 text-sm font-semibold py-2 rounded-lg transition-colors">
+                          {actionLoading === o.id + '-reject' ? 'Recusando...' : 'Recusar'}
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {pendingOrders.length === 0 && (
+            <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 text-center">
+              <p className="text-gray-400 text-sm">Nenhum novo evento aguardando resposta.</p>
+              <p className="text-gray-600 text-xs mt-1">Quando um cliente te selecionar, o evento aparecerá aqui.</p>
+            </div>
+          )}
+
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: 'Ganhos este mes', value: 'R$ ' + fmt(earnedThisMonth), sub: 'liquido (93%)', color: 'text-orange-400' },
+              { label: 'Ganhos este ano', value: 'R$ ' + fmt(earnedThisYear), sub: 'liquido (93%)', color: 'text-green-400' },
+              { label: 'Proximos eventos', value: String(upcomingOrders.length), sub: 'confirmados', color: 'text-blue-400' },
+              { label: 'Avaliacao media', value: (profile?.rating ?? 0).toFixed(1) + ' / 5', sub: profile?.totalOrders + ' total', color: 'text-yellow-400' },
+            ].map(c => (
+              <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1 leading-tight">{c.label}</p>
+                <p className={'text-xl font-bold ' + c.color}>{c.value}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{c.sub}</p>
               </div>
             ))}
+          </div>
+
+          {/* Próximos eventos confirmados */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="font-semibold text-sm">Agenda — Proximos Eventos</h2>
+              <span className="text-xs text-gray-500">{upcomingOrders.length} confirmado{upcomingOrders.length !== 1 ? 's' : ''}</span>
+            </div>
+            {upcomingOrders.length === 0 ? (
+              <div className="p-6 text-center text-gray-500 text-sm">Nenhum evento confirmado na agenda.</div>
+            ) : (
+              <div className="divide-y divide-gray-800">
+                {upcomingOrders.map(o => {
+                  const daysUntil = Math.ceil((new Date(o.eventDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+                  return (
+                    <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className={`shrink-0 text-center px-2 py-1 rounded-lg ${daysUntil <= 1 ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
+                          <p className={`text-xl font-black leading-none ${daysUntil <= 1 ? 'text-orange-400' : 'text-blue-400'}`}>
+                            {daysUntil <= 0 ? 'Hj' : daysUntil === 1 ? '1d' : daysUntil + 'd'}
+                          </p>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
+                          <p className="text-xs text-gray-400 mt-0.5">{fmtDate(o.eventDate)} · {o.guestCount} convidados · {o.eventHours}h</p>
+                          <p className="text-xs text-gray-500 truncate">{o.eventAddress}</p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice * 0.93)}</p>
+                        <span className={'text-xs px-2 py-0.5 rounded-full ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
+                          {STATUS_LABEL[o.status] ?? o.status}
+                        </span>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Contrato */}
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
+            <p className="text-xs text-yellow-300">⚠️ <strong>Contratos em revisao juridica</strong> — os termos podem ser atualizados antes do lancamento oficial.</p>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>
+              {contract && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${contract.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                  {contract.status === 'ACCEPTED' ? 'Aceito' : 'Pendente de assinatura'}
+                </span>
+              )}
+            </div>
+            {contract ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><p className="text-gray-500 text-xs">Vigencia</p><p className="text-white font-medium">{contract.durationMonths} meses</p></div>
+                  <div><p className="text-gray-500 text-xs">Gerado em</p><p className="text-white font-medium">{new Date(contract.generatedAt).toLocaleDateString('pt-BR')}</p></div>
+                  {contract.acceptedAt && <div><p className="text-gray-500 text-xs">Aceito em</p><p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p></div>}
+                </div>
+                <button onClick={async () => {
+                  const res = await fetch(BASE + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
+                  if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
+                }} className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline">
+                  Visualizar contrato
+                </button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Nenhum contrato gerado ainda.</p>
+            )}
+          </div>
+
+          {/* Histórico */}
+          <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="font-semibold text-sm">Historico</h2>
+              <span className="text-xs text-gray-500">{historyOrders.length} pedido(s)</span>
+            </div>
+            {historyOrders.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 text-sm">Nenhum historico ainda.</div>
+            ) : (
+              <div className="divide-y divide-gray-800">
+                {historyOrders.slice(0, 20).map(o => (
+                  <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <p className="text-sm font-medium text-white truncate">{o.customer?.name ?? 'Cliente'}</p>
+                        <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
+                          {STATUS_LABEL[o.status] ?? o.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })} — {o.guestCount} convidado{o.guestCount !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice * 0.93)}</p>
+                      <p className="text-xs text-gray-600 font-mono">#{o.id.slice(0, 8)}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* Stats cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {cards.map(c => (
-          <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-            <p className="text-xs text-gray-500 mb-1 leading-tight">{c.label}</p>
-            <p className={'text-xl font-bold ' + c.color}>{c.value}</p>
-            <p className="text-xs text-gray-600 mt-0.5">{c.sub}</p>
-          </div>
-        ))}
-      </div>
+      {/* ── ABA AGENDA ── */}
+      {tab === 'agenda' && (
+        <div className="space-y-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <p className="text-sm text-gray-400 mb-4">
+              Marque os dias em que você <strong className="text-white">NÃO está disponível</strong>. Dias marcados em cinza não aparecerão para clientes.
+            </p>
 
-      {/* Agenda — próximos eventos confirmados */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-6">
-        <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="font-semibold text-sm">Agenda — Proximos Eventos</h2>
-          <span className="text-xs text-gray-500">{upcomingOrders.length} confirmado{upcomingOrders.length !== 1 ? 's' : ''}</span>
-        </div>
-        {upcomingOrders.length === 0 ? (
-          <div className="p-6 text-center text-gray-500 text-sm">Nenhum evento confirmado na agenda.</div>
-        ) : (
-          <div className="divide-y divide-gray-800">
-            {upcomingOrders.map(o => {
-              const daysUntil = Math.ceil((new Date(o.eventDate).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
-              return (
-                <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-4 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className={`shrink-0 text-center px-2 py-1 rounded-lg ${daysUntil <= 1 ? 'bg-orange-500/20' : 'bg-blue-500/20'}`}>
-                      <p className={`text-xl font-black leading-none ${daysUntil <= 1 ? 'text-orange-400' : 'text-blue-400'}`}>{daysUntil <= 0 ? 'Hj' : daysUntil === 1 ? '1d' : daysUntil + 'd'}</p>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-white">{o.customer?.name ?? 'Cliente'}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{fmtDate(o.eventDate)} · {o.guestCount} convidados · {o.eventHours}h</p>
-                      <p className="text-xs text-gray-500 truncate">{o.eventAddress}</p>
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice)}</p>
-                    <span className={'text-xs px-2 py-0.5 rounded-full ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
-                      {STATUS_LABEL[o.status] ?? o.status}
-                    </span>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Aviso jurídico */}
-      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3 mb-4">
-        <p className="text-xs text-yellow-300">
-          ⚠️ <strong>Contratos em revisao juridica</strong> — os termos de parceria podem ser atualizados antes do lancamento oficial da plataforma.
-        </p>
-      </div>
-
-      {/* Card do contrato */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>
-          {contract && (
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-              contract.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'
-            }`}>
-              {contract.status === 'ACCEPTED' ? 'Aceito' : 'Pendente de assinatura'}
-            </span>
-          )}
-        </div>
-        {contract ? (
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div>
-                <p className="text-gray-500 text-xs">Vigencia</p>
-                <p className="text-white font-medium">{contract.durationMonths} meses</p>
-              </div>
-              <div>
-                <p className="text-gray-500 text-xs">Gerado em</p>
-                <p className="text-white font-medium">{new Date(contract.generatedAt).toLocaleDateString('pt-BR')}</p>
-              </div>
-              {contract.acceptedAt && (
-                <div>
-                  <p className="text-gray-500 text-xs">Aceito em</p>
-                  <p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p>
-                </div>
-              )}
+            {/* Month nav */}
+            <div className="flex items-center justify-between mb-4">
+              <button onClick={() => setCalMonth(m => {
+                const d = new Date(m.year, m.month - 1, 1)
+                return { year: d.getFullYear(), month: d.getMonth() }
+              })} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                ‹
+              </button>
+              <span className="font-semibold text-white">{MONTHS_PT[month]} {year}</span>
+              <button onClick={() => setCalMonth(m => {
+                const d = new Date(m.year, m.month + 1, 1)
+                return { year: d.getFullYear(), month: d.getMonth() }
+              })} className="p-2 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors">
+                ›
+              </button>
             </div>
-            <button
-              onClick={async () => {
-                const res = await fetch(BASE + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
-                if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
-              }}
-              className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline"
-            >
-              Visualizar contrato
+
+            {/* Day headers */}
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(d => (
+                <div key={d} className="text-center text-xs text-gray-600 font-medium py-1">{d}</div>
+              ))}
+            </div>
+
+            {/* Calendar grid */}
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: firstDay }).map((_, i) => <div key={'e' + i} />)}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                const isPast = new Date(dateStr) < new Date(new Date().toDateString())
+                const isMarkedUnavail = scheduleMap[dateStr] === false
+                const isToggling = togglingDate === dateStr
+                return (
+                  <button key={day} onClick={() => !isPast && handleToggleScheduleDay(dateStr)}
+                    disabled={isPast || isToggling}
+                    className={`aspect-square rounded-lg text-sm font-medium transition-colors flex items-center justify-center ${
+                      isPast ? 'text-gray-700 cursor-default' :
+                      isMarkedUnavail ? 'bg-gray-700 text-gray-400' :
+                      'bg-orange-500/20 text-orange-300 hover:bg-orange-500/40'
+                    } ${isToggling ? 'opacity-50' : ''}`}>
+                    {day}
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="flex gap-4 mt-4 text-xs text-gray-500">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-orange-500/20" />
+                <span>Disponível</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded bg-gray-700" />
+                <span>Indisponível</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Toggle disponibilidade geral */}
+          <div className={`rounded-xl border px-5 py-4 flex items-center justify-between gap-4 ${
+            profile?.available ? 'bg-green-500/10 border-green-500/30' : 'bg-gray-900 border-gray-800'
+          }`}>
+            <div>
+              <p className={`font-semibold text-sm ${profile?.available ? 'text-green-300' : 'text-gray-300'}`}>
+                {profile?.available ? 'Aceitando pedidos agora' : 'Pausado — nao apareco nas buscas'}
+              </p>
+              <p className="text-xs text-gray-500 mt-0.5">Toggle geral de disponibilidade (independente do calendário)</p>
+            </div>
+            <button onClick={handleToggleAvailability} disabled={togglingAvail}
+              className={`relative w-14 h-7 rounded-full transition-colors shrink-0 disabled:opacity-60 ${profile?.available ? 'bg-green-500' : 'bg-gray-700'}`}>
+              <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform ${profile?.available ? 'translate-x-8' : 'translate-x-1'}`} />
             </button>
           </div>
-        ) : (
-          <p className="text-sm text-gray-500">Nenhum contrato gerado ainda. Complete o cadastro para gerar seu contrato.</p>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Modal de leitura do contrato */}
+      {/* ── ABA PERFIL ── */}
+      {tab === 'perfil' && (
+        <div className="space-y-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-5">
+            <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400">Perfil Profissional</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Cidade</label>
+                <input value={profileForm.city ?? ''} onChange={e => setProfileForm(f => ({ ...f, city: e.target.value }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Estado (UF)</label>
+                <input value={profileForm.state ?? ''} onChange={e => setProfileForm(f => ({ ...f, state: e.target.value }))}
+                  maxLength={2} className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Preço por hora (R$)</label>
+                <input type="number" min={0} value={profileForm.pricePerHour ?? ''} onChange={e => setProfileForm(f => ({ ...f, pricePerHour: Number(e.target.value) }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Anos de experiência</label>
+                <input type="number" min={0} value={profileForm.experience ?? ''} onChange={e => setProfileForm(f => ({ ...f, experience: Number(e.target.value) }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Min. convidados</label>
+                <input type="number" min={0} value={profileForm.minGuests ?? ''} onChange={e => setProfileForm(f => ({ ...f, minGuests: Number(e.target.value) }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Máx. convidados</label>
+                <input type="number" min={0} value={profileForm.maxGuests ?? ''} onChange={e => setProfileForm(f => ({ ...f, maxGuests: Number(e.target.value) }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Bio (apresentação)</label>
+              <textarea value={profileForm.bio ?? ''} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} rows={3}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 resize-none" />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Especialidades</label>
+              <textarea value={profileForm.specialties ?? ''} onChange={e => setProfileForm(f => ({ ...f, specialties: e.target.value }))} rows={2}
+                placeholder="Ex: churrasco gaúcho, parrillada argentina, defumados, espetinhos, eventos corporativos..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 resize-none placeholder-gray-600" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Estilo de churrasco</label>
+                <input value={profileForm.churrascoStyle ?? ''} onChange={e => setProfileForm(f => ({ ...f, churrascoStyle: e.target.value }))}
+                  placeholder="Ex: Gaúcho, Mineiro, Paulistano..."
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Instagram</label>
+                <input value={profileForm.instagram ?? ''} onChange={e => setProfileForm(f => ({ ...f, instagram: e.target.value }))}
+                  placeholder="@seuperfil"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Vídeo de apresentação (URL YouTube ou Instagram)</label>
+              <input value={profileForm.videoUrl ?? ''} onChange={e => setProfileForm(f => ({ ...f, videoUrl: e.target.value }))}
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">URL da foto de perfil</label>
+              <input value={profileForm.photoUrl ?? ''} onChange={e => setProfileForm(f => ({ ...f, photoUrl: e.target.value }))}
+                placeholder="https://..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-2">Galeria de eventos ({(profileForm.galleryUrls ?? []).length} fotos)</label>
+              {(profileForm.galleryUrls ?? []).map((url, i) => (
+                <div key={i} className="flex items-center gap-2 mb-1.5">
+                  <input value={url} readOnly className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-xs text-gray-300" />
+                  <button onClick={() => setProfileForm(f => ({ ...f, galleryUrls: (f.galleryUrls ?? []).filter((_, j) => j !== i) }))}
+                    className="text-red-400 hover:text-red-300 text-sm px-2">✕</button>
+                </div>
+              ))}
+              <div className="flex gap-2 mt-2">
+                <input value={galleryInput} onChange={e => setGalleryInput(e.target.value)}
+                  placeholder="https://... (URL da foto)"
+                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+                <button onClick={() => {
+                  if (galleryInput.trim()) {
+                    setProfileForm(f => ({ ...f, galleryUrls: [...(f.galleryUrls ?? []), galleryInput.trim()] }))
+                    setGalleryInput('')
+                  }
+                }} className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors">
+                  + Add
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="text-sm text-white font-medium">Tenho churrasqueira própria</p>
+                <p className="text-xs text-gray-500">Equipamentos incluídos no serviço</p>
+              </div>
+              <button onClick={() => setProfileForm(f => ({ ...f, bringsEquipment: !f.bringsEquipment }))}
+                className={`relative w-12 h-6 rounded-full transition-colors ${profileForm.bringsEquipment ? 'bg-orange-500' : 'bg-gray-700'}`}>
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${profileForm.bringsEquipment ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            {profileMsg && (
+              <p className={`text-sm text-center font-medium ${profileMsg.startsWith('Erro') ? 'text-red-400' : 'text-green-400'}`}>{profileMsg}</p>
+            )}
+
+            <button onClick={handleSaveProfile} disabled={savingProfile}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors">
+              {savingProfile ? 'Salvando...' : 'Salvar Perfil'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── ABA TREINAMENTO ── */}
+      {tab === 'treinamento' && (
+        <div className="space-y-6">
+          {trainingDone ? (
+            /* Certificado */
+            <div>
+              <style>{`@media print { .no-print { display: none !important; } body { background: white !important; } }`}</style>
+              <div className="no-print mb-4 flex items-center justify-between">
+                <p className="text-green-400 font-semibold text-sm">Treinamento concluído! Seu certificado está abaixo.</p>
+                <button onClick={() => window.print()}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                  Imprimir certificado
+                </button>
+              </div>
+              <div id="certificado" className="bg-white text-gray-900 rounded-2xl p-10 border-4 border-orange-400 text-center">
+                <div className="mb-6">
+                  <p className="text-orange-600 font-black text-2xl tracking-wide">🔥 TECH CHURRAS</p>
+                  <p className="text-gray-500 text-xs mt-1 tracking-widest uppercase">Plataforma de Churrasqueiros Premium</p>
+                </div>
+                <p className="text-gray-700 text-sm mb-3">Certificamos que</p>
+                <p className="text-3xl font-black text-gray-900 mb-3">{user?.name ?? 'Churrasqueiro'}</p>
+                <p className="text-gray-700 text-sm mb-6 max-w-sm mx-auto">
+                  concluiu com êxito o <strong>Programa de Formação e Chancela Tech Churras</strong>, atestando domínio dos padrões de qualidade, atendimento ao cliente e uso da plataforma.
+                </p>
+                <div className="flex items-center justify-center gap-8 mb-6 text-sm text-gray-600">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Data de conclusão</p>
+                    <p className="font-bold">{new Date(profile!.certifiedAt!).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-0.5">Código de certificação</p>
+                    <p className="font-mono font-bold text-orange-600">{profile!.certificationCode}</p>
+                  </div>
+                </div>
+                <div className="border-t border-gray-200 pt-5">
+                  <p className="text-xs text-gray-400 mb-1">Assinado por</p>
+                  <p className="font-bold text-gray-800">Jota Albuquerque</p>
+                  <p className="text-xs text-gray-500">Fundador — Tech Churras</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* Treinamento pendente */
+            <div className="space-y-4">
+              <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-5">
+                <h2 className="font-bold text-orange-300 mb-1">Treinamento obrigatório para Chancela Tech Churras</h2>
+                <p className="text-sm text-gray-400">
+                  Complete os 4 módulos abaixo para receber seu certificado digital e ser exibido como churrasqueiro chancelado na plataforma.
+                </p>
+                <div className="mt-3 flex items-center gap-2">
+                  <div className="flex-1 h-1.5 bg-gray-800 rounded-full">
+                    <div className="h-1.5 bg-orange-500 rounded-full transition-all" style={{ width: `${(checkedModules.size / 4) * 100}%` }} />
+                  </div>
+                  <span className="text-xs text-gray-400">{checkedModules.size}/4</span>
+                </div>
+              </div>
+
+              {TRAINING_MODULES.map(mod => {
+                const done = checkedModules.has(mod.id)
+                return (
+                  <div key={mod.id} className={`rounded-xl border p-5 transition-colors ${done ? 'bg-green-500/5 border-green-500/30' : 'bg-gray-900 border-gray-800'}`}>
+                    <div className="flex items-start gap-3">
+                      <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${done ? 'bg-green-500 text-white' : 'bg-gray-800 text-gray-400'}`}>
+                        {done ? '✓' : mod.id}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-semibold text-sm ${done ? 'text-green-300' : 'text-white'}`}>Módulo {mod.id} — {mod.title}</p>
+                        <p className="text-xs text-gray-400 mt-1">{mod.desc}</p>
+                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                          <span>🎬</span>
+                          <span className="font-mono truncate">{mod.videoPlaceholder}</span>
+                          <span className="text-gray-600">(vídeo em breve)</span>
+                        </div>
+                        <label className="flex items-center gap-2 mt-3 cursor-pointer group">
+                          <input type="checkbox" checked={done}
+                            onChange={e => {
+                              const next = new Set(checkedModules)
+                              if (e.target.checked) next.add(mod.id); else next.delete(mod.id)
+                              setCheckedModules(next)
+                            }}
+                            className="w-4 h-4 accent-orange-500" />
+                          <span className="text-xs text-gray-400 group-hover:text-white transition-colors">Assisti e entendi o conteúdo deste módulo</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+
+              <button onClick={handleCompleteTraining}
+                disabled={checkedModules.size < 4 || certifying}
+                className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors">
+                {certifying ? 'Gerando certificado...' : checkedModules.size < 4 ? `Conclua todos os módulos (${checkedModules.size}/4)` : 'Concluir treinamento e gerar certificado'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal contrato */}
       {showContractText && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
           <div className="bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
             <div className="flex items-center justify-between p-5 border-b border-gray-800">
-              <div>
-                <span className="font-bold text-orange-400">Contrato de Parceria</span>
-                <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">MINUTA — REV. JURIDICA PENDENTE</span>
-              </div>
-              <button onClick={() => setShowContractText(false)} className="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
-            </div>
-            <div className="p-4 bg-yellow-500/10 border-b border-yellow-500/20">
-              <p className="text-xs text-yellow-300">Este contrato esta em fase de revisao juridica e pode ser atualizado antes do lancamento oficial.</p>
+              <span className="font-bold text-orange-400">Contrato de Parceria</span>
+              <button onClick={() => setShowContractText(false)} className="text-gray-500 hover:text-white text-xl leading-none">×</button>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
               <pre className="font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{contractText}</pre>
@@ -410,44 +886,6 @@ export default function GrillmasterDashboardPage() {
           </div>
         </div>
       )}
-
-      {/* Histórico */}
-      <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-800 flex items-center justify-between">
-          <h2 className="font-semibold text-sm">Historico</h2>
-          <span className="text-xs text-gray-500">{historyOrders.length} pedido(s)</span>
-        </div>
-        {historyOrders.length === 0 ? (
-          <div className="p-8 text-center text-gray-500 text-sm">
-            Nenhum historico ainda.
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-800">
-            {historyOrders.slice(0, 20).map(o => (
-              <Link key={o.id} href={`/orders/${o.id}`} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 mb-0.5">
-                    <p className="text-sm font-medium text-white truncate">{o.customer?.name ?? 'Cliente'}</p>
-                    <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
-                      {STATUS_LABEL[o.status] ?? o.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    {new Date(o.eventDate).toLocaleDateString('pt-BR', {
-                      day: '2-digit', month: 'short', year: 'numeric',
-                    })} — {o.guestCount} convidado{o.guestCount !== 1 ? 's' : ''}
-                    {o.boutique ? ` — ${o.boutique.name}` : ''}
-                  </p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice)}</p>
-                  <p className="text-xs text-gray-600 font-mono">#{o.id.slice(0, 8)}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   )
 }

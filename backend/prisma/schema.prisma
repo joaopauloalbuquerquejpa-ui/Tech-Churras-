@@ -74,6 +74,12 @@ model Grillmaster {
   minGuests       Int?
   maxGuests       Int?
   pixKey          String?
+  videoUrl        String?
+  certificationCode String? @unique
+  certifiedAt     DateTime?
+  trainingModules Int[]    @default([])
+  uniformSent     Boolean  @default(false)
+  uniformSentAt   DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -91,6 +97,8 @@ model GrillmasterSchedule {
   createdAt     DateTime @default(now())
 
   grillmaster Grillmaster @relation(fields: [grillmasterId], references: [id])
+
+  @@unique([grillmasterId, date])
 }
 
 model Boutique {

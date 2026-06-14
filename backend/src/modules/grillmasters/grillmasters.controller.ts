@@ -6,6 +6,10 @@ import {
   getGrillmasterById,
   updateGrillmaster,
   getMyGrillmasterOrders,
+  getGrillmasterSchedule,
+  toggleScheduleDay,
+  completeTrainingModule,
+  markUniformSent,
 } from './grillmasters.service'
 
 export async function createGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
@@ -64,6 +68,45 @@ export async function getMyOrdersHandler(req: FastifyRequest, reply: FastifyRepl
   try {
     const userId = (req.user as any).id
     return reply.send(await getMyGrillmasterOrders(userId))
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getScheduleHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    return reply.send(await getGrillmasterSchedule(userId))
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function toggleScheduleHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const { date } = req.body as { date: string }
+    if (!date) return reply.status(400).send({ error: 'date required' })
+    return reply.send(await toggleScheduleDay(userId, date))
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function completeModuleHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const { moduleId } = req.params as { moduleId: string }
+    return reply.send(await completeTrainingModule(userId, Number(moduleId)))
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function markUniformSentHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { grillmasterId } = req.params as { grillmasterId: string }
+    return reply.send(await markUniformSent(grillmasterId))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

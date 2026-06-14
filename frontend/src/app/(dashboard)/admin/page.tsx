@@ -35,6 +35,10 @@ interface PendingGrillmaster {
   state: string
   experience: number
   isChancelado: boolean
+  uniformSent: boolean
+  uniformSentAt?: string
+  certifiedAt?: string
+  trainingModules: number[]
   photoUrl?: string
   galleryUrls?: string[]
   instagram?: string
@@ -148,6 +152,18 @@ export default function AdminPage() {
       headers: { Authorization: 'Bearer ' + getToken() },
     })
     if (res.ok) setPendingGrillmasters(prev => prev.filter(g => g.id !== id))
+  }
+
+  async function markUniformSent(grillmasterId: string) {
+    const res = await fetch(BASE + '/admin/grillmasters/' + grillmasterId + '/uniform', {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + getToken() },
+    })
+    if (res.ok) {
+      setPendingGrillmasters(prev => prev.map(g =>
+        g.id === grillmasterId ? { ...g, uniformSent: true, uniformSentAt: new Date().toISOString() } : g
+      ))
+    }
   }
 
   async function approveBoutique(id: string) {
@@ -354,6 +370,22 @@ export default function AdminPage() {
                           onChange={e => setGmField(g.id, 'pricePerHour', +e.target.value)}
                           className="bg-gray-800 rounded-lg px-3 py-1.5 text-white text-sm w-28"
                         />
+                      </div>
+                      <div className="flex items-center gap-2 ml-auto">
+                        {g.trainingModules?.length === 4 && (
+                          <span className="text-xs text-green-400 font-medium">Treinamento ✓</span>
+                        )}
+                        <button
+                          onClick={() => markUniformSent(g.id)}
+                          disabled={g.uniformSent}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                            g.uniformSent
+                              ? 'bg-green-500/20 text-green-400 cursor-default'
+                              : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+                          }`}
+                        >
+                          {g.uniformSent ? '✓ Uniforme enviado' : 'Marcar uniforme enviado'}
+                        </button>
                       </div>
                     </div>
                   </div>

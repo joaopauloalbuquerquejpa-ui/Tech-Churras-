@@ -12,6 +12,7 @@ export const createGrillmasterSchema = z.object({
   photoUrl: z.string().optional(),
   galleryUrls: z.array(z.string()).optional(),
   instagram: z.string().optional(),
+  videoUrl: z.string().optional(),
   churrascoStyle: z.string().optional(),
   bringsEquipment: z.boolean().optional(),
   minGuests: z.number().int().optional(),
@@ -97,4 +98,58 @@ export async function getMyGrillmasterOrders(userId: string) {
       orderBy: { createdAt: 'desc' },
     }),
   }
+}
+
+export async function getGrillmasterSchedule(userId: string) {
+  const gm = await prisma.grillmaster.findUnique({ where: { userId } })
+  if (!gm) throw new Error('Perfil de churrasqueiro nao encontrado')
+  const from = new Date()
+  from.setHours(0, 0, 0, 0)
+  const to = new Date()
+  to.setDate(to.getDate() + 60)
+  return prisma.grillmasterSchedule.findMany({
+    where: { grillmasterId: gm.id, date: { gte: from, lte: to } },
+    orderBy: { date: 'asc' },
+  })
+}
+
+export async function toggleScheduleDay(userId: string, dateStr: string) {
+  const gm = await prisma.grillmaster.findUnique({ where: { userId } })
+  if (!gm) throw new Error('Perfil de churrasqueiro nao encontrado')
+  const date = new Date(dateStr)
+  date.setUTCHours(12, 0, 0, 0)
+  const existing = await prisma.grillmasterSchedule.findUnique({
+    where: { grillmasterId_date: { grillmasterId: gm.id, date } },
+  })
+  if (existing) {
+    return prisma.grillmasterSchedule.update({
+      where: { id: existing.id },
+      data: { available: !existing.available },
+    })
+  }
+  return prisma.grillmasterSchedule.create({
+    data: { grillmasterId: gm.id, date, available: false },
+  })
+}
+
+export async function completeTrainingModule(userId: string, moduleId: number) {
+  if (moduleId < 1 || moduleId > 4) throw new Error('Modulo invalido')
+  const gm = await prisma.grillmaster.findUnique({ where: { userId } })
+  if (!gm) throw new Error('Perfil de churrasqueiro nao encontrado')
+  const modules = Array.from(new Set([...gm.trainingModules, moduleId])).sort()
+  const allDone = [1, 2, 3, 4].every(m => modules.includes(m))
+  const data: any = { trainingModules: modules }
+  if (allDone && !gm.certifiedAt) {
+    const { randomUUID } = await import('crypto')
+    data.certificationCode = 'TC-' + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
+    data.certifiedAt = new Date()
+  }
+  return prisma.grillmaster.update({ where: { userId }, data })
+}
+
+export async function markUniformSent(grillmasterId: string) {
+  return prisma.grillmaster.update({
+    where: { id: grillmasterId },
+    data: { uniformSent: true, uniformSentAt: new Date() },
+  })
 }
