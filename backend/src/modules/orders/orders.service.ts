@@ -84,6 +84,16 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     }).catch(() => {})
   }
 
+  // Notify grillmaster of incoming order
+  if (order.grillmasterId) {
+    prisma.grillmaster.findUnique({ where: { id: order.grillmasterId }, select: { userId: true } }).then(gm => {
+      if (gm) {
+        const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
+        sendPushToUser(gm.userId, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch(() => {})
+      }
+    }).catch(() => {})
+  }
+
   return order
 }
 
@@ -263,7 +273,7 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
   const refundAmount = order.paymentStatus === 'PAID' ? order.totalPrice - cancellationFee : null
   const cancelledBy = role === 'ADMIN' ? 'ADMIN' : role === 'GRILLMASTER' ? 'GRILLMASTER' : 'CUSTOMER'
 
-  return prisma.order.update({
+  const updated = await prisma.order.update({
     where: { id },
     data: {
       status: 'CANCELLED',
@@ -272,7 +282,18 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
       cancellationFee: cancellationFee > 0 ? cancellationFee : null,
       refundAmount: refundAmount !== null ? refundAmount : undefined,
     },
+    include: { grillmaster: { select: { userId: true } } },
   })
+
+  // Notify the other party about the cancellation
+  const eventDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)
+  if (cancelledBy === 'CUSTOMER' && updated.grillmaster?.userId) {
+    sendPushToUser(updated.grillmaster.userId, 'Pedido cancelado', `O cliente cancelou o pedido de ${eventDate}.`, '/grillmasters/dashboard').catch(() => {})
+  } else if (cancelledBy === 'GRILLMASTER') {
+    sendPushToUser(order.customerId, 'Pedido cancelado', `Seu pedido de ${eventDate} foi cancelado pelo churrasqueiro.`, `/orders/${id}`).catch(() => {})
+  }
+
+  return updated
 }
 
 export async function updateOrderLocation(id: string, lat: number, lng: number, userId: string) {
