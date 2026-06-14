@@ -85,7 +85,7 @@ export default function DashboardLayout({
     { href: '/churras-club', label: '🏆 Club', tour: '' },
     { href: '/orders', label: 'Pedidos', tour: 'orders-link' },
     { href: '/favoritos', label: 'Favoritos', tour: 'favoritos-link' },
-    { href: '/perfil/enderecos', label: 'Enderecos', tour: '' },
+    { href: '/perfil', label: 'Perfil', tour: '' },
     { href: '/ajuda', label: 'Ajuda', tour: '' },
   ]
 

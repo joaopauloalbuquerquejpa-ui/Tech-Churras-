@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { register, login } from './auth.controller'
-import { markOnboardingCompleted } from './auth.service'
+import { markOnboardingCompleted, updateUserProfile } from './auth.service'
 import { authenticate } from '../../middlewares/auth.middleware'
 
 export async function authRoutes(app: FastifyInstance) {
@@ -10,6 +10,30 @@ export async function authRoutes(app: FastifyInstance) {
     try {
       await markOnboardingCompleted((req.user as any).id)
       return reply.send({ ok: true })
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+
+  app.get('/auth/me', { preHandler: [authenticate] }, async (req, reply) => {
+    try {
+      const { prisma } = await import('../../config/prisma')
+      const user = await prisma.user.findUnique({
+        where: { id: (req.user as any).id },
+        select: { id: true, name: true, email: true, phone: true, role: true, points: true, averageRating: true, createdAt: true },
+      })
+      if (!user) return reply.status(404).send({ error: 'Usuário não encontrado' })
+      return reply.send(user)
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+
+  app.patch('/auth/profile', { preHandler: [authenticate] }, async (req, reply) => {
+    try {
+      const { name, phone } = req.body as { name?: string; phone?: string }
+      const updated = await updateUserProfile((req.user as any).id, { name, phone })
+      return reply.send(updated)
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
     }

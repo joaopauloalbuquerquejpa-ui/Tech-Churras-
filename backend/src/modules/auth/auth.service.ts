@@ -80,3 +80,14 @@ export async function loginUser(data: LoginInput) {
 export async function markOnboardingCompleted(userId: string) {
   return prisma.user.update({ where: { id: userId }, data: { onboardingCompleted: true } })
 }
+
+export async function updateUserProfile(userId: string, data: { name?: string; phone?: string }) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      ...(data.name ? { name: data.name.trim() } : {}),
+      ...(data.phone !== undefined ? { phone: data.phone.trim() || null } : {}),
+    },
+    select: { id: true, name: true, email: true, phone: true, role: true },
+  })
+}

@@ -6,11 +6,12 @@ export async function login(email: string, password: string) {
   return data
 }
 
-export async function register(name: string, email: string, password: string, referralCode?: string, role?: string) {
+export async function register(name: string, email: string, password: string, referralCode?: string, role?: string, phone?: string) {
   const { data } = await api.post('/auth/register', {
     name, email, password,
     ...(referralCode ? { referralCode } : {}),
     ...(role ? { role } : {}),
+    ...(phone ? { phone } : {}),
   })
   localStorage.setItem('token', data.token)
   return data

@@ -12,6 +12,7 @@ function RegisterForm() {
   const { setUser, setToken } = useAuthStore()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [error, setError] = useState('')
@@ -35,7 +36,7 @@ function RegisterForm() {
     setLoading(true)
     setError('')
     try {
-      const data = await register(name, email, password, referralCode ?? undefined, roleParam ?? undefined)
+      const data = await register(name, email, password, referralCode ?? undefined, roleParam ?? undefined, phone.trim() || undefined)
       setUser(data.user)
       setToken(data.token)
       router.push('/dashboard')
@@ -96,6 +97,19 @@ function RegisterForm() {
               className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-orange-500 focus:outline-none"
               placeholder="seu@email.com"
               required
+            />
+          </div>
+          <div>
+            <label className="text-gray-300 text-sm mb-1 block">
+              Celular{' '}
+              <span className="text-gray-500 font-normal">(opcional — para confirmações pelo WhatsApp)</span>
+            </label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg border border-gray-700 focus:border-orange-500 focus:outline-none"
+              placeholder="(11) 99999-9999"
             />
           </div>
           <div>
