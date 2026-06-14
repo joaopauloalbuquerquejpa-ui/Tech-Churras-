@@ -136,6 +136,16 @@ export default function GrillmasterDashboardPage() {
   const [showContractText, setShowContractText] = useState(false)
   const [contractText, setContractText] = useState('')
 
+  // GPS tracking
+  const [gpsOrderId, setGpsOrderId] = useState<string | null>(null)
+  const [gpsActive, setGpsActive] = useState(false)
+  const [gpsStatus, setGpsStatus] = useState<'idle' | 'requesting' | 'active' | 'error'>('idle')
+  const [gpsDistanceKm, setGpsDistanceKm] = useState<number | null>(null)
+  const [gpsLastUpdate, setGpsLastUpdate] = useState<Date | null>(null)
+  const [gpsShareToken, setGpsShareToken] = useState<string | null>(null)
+  const watchIdRef = useRef<number | null>(null)
+  const lastSentRef = useRef<number>(0)
+
   useEffect(() => {
     if (!user) return
     if (user.role !== 'GRILLMASTER') { router.replace('/dashboard'); return }
@@ -177,6 +187,77 @@ export default function GrillmasterDashboardPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  }
+
+  async function sendLocation(orderId: string, lat: number, lng: number) {
+    const now = Date.now()
+    if (now - lastSentRef.current < 12000) return
+    lastSentRef.current = now
+    try {
+      await fetch(`${BASE}/orders/${orderId}/location`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify({ lat, lng }),
+      })
+      setGpsLastUpdate(new Date())
+    } catch {}
+  }
+
+  async function startGps(orderId: string, eventAddress: string) {
+    if (!('geolocation' in navigator)) { setGpsStatus('error'); return }
+    setGpsOrderId(orderId)
+    setGpsStatus('requesting')
+
+    // Get share token to show the link
+    try {
+      const res = await fetch(`${BASE}/orders/${orderId}/share`, {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken() },
+      })
+      if (res.ok) {
+        const d = await res.json()
+        if (d.shareToken) setGpsShareToken(d.shareToken)
+      }
+    } catch {}
+
+    // Update status detail to "a caminho"
+    try {
+      await fetch(`${BASE}/orders/${orderId}/status-detail`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify({ statusDetail: 'Churrasqueiro a caminho' }),
+      })
+    } catch {}
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords
+        setGpsActive(true)
+        setGpsStatus('active')
+        sendLocation(orderId, latitude, longitude)
+      },
+      () => setGpsStatus('error'),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 }
+    )
+  }
+
+  function stopGps() {
+    if (watchIdRef.current != null) {
+      navigator.geolocation.clearWatch(watchIdRef.current)
+      watchIdRef.current = null
+    }
+    setGpsActive(false)
+    setGpsStatus('idle')
+    setGpsOrderId(null)
+    setGpsDistanceKm(null)
   }
 
   async function handleToggleAvailability() {
@@ -314,6 +395,14 @@ export default function GrillmasterDashboardPage() {
   })
   const maxMonthEarning = Math.max(...last6Months.map(m => m.earnings), 1)
 
+  // Events happening today (±2h window to handle timezone offset)
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
+  const todayOrders = upcomingOrders.filter(o => {
+    const d = new Date(o.eventDate)
+    return d >= todayStart && d < todayEnd
+  })
+
   // Calendar helpers
   const { year, month } = calMonth
   const firstDay = new Date(year, month, 1).getDay()
@@ -375,6 +464,77 @@ export default function GrillmasterDashboardPage() {
       {/* ── ABA EVENTOS ── */}
       {tab === 'eventos' && (
         <div className="space-y-6">
+
+          {/* 🚗 GPS TRACKER — aparece quando há evento hoje */}
+          {todayOrders.length > 0 && (
+            <div className={`rounded-2xl border p-5 transition-all ${gpsActive ? 'bg-green-500/10 border-green-500/40' : 'bg-gray-900 border-orange-500/30'}`}>
+              <div className="flex items-center justify-between gap-3 mb-4">
+                <div className="flex items-center gap-2">
+                  {gpsActive && <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse shrink-0" />}
+                  <h2 className={`font-bold text-sm ${gpsActive ? 'text-green-300' : 'text-orange-300'}`}>
+                    {gpsActive ? 'GPS Ativo — Clientes vendo você ao vivo' : `Evento hoje — Ativar modo GPS`}
+                  </h2>
+                </div>
+                {gpsActive && gpsLastUpdate && (
+                  <span className="text-xs text-gray-500">Atualizado: {gpsLastUpdate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                )}
+              </div>
+
+              {!gpsActive ? (
+                <div>
+                  {todayOrders.map(o => (
+                    <div key={o.id} className="flex items-center justify-between gap-3 mb-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-white">{o.customer?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{o.eventAddress} · {o.guestCount} convidados</p>
+                      </div>
+                      <button
+                        onClick={() => startGps(o.id, o.eventAddress)}
+                        disabled={gpsStatus === 'requesting'}
+                        className="shrink-0 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors"
+                      >
+                        {gpsStatus === 'requesting' ? 'Ativando...' : '📍 Ativar GPS'}
+                      </button>
+                    </div>
+                  ))}
+                  {gpsStatus === 'error' && (
+                    <p className="text-xs text-red-400 mt-2">Permissão de GPS negada. Ative o GPS nas configurações do celular.</p>
+                  )}
+                  <p className="text-xs text-gray-600 mt-2">Ao ativar, clientes poderão ver você chegando em tempo real no mapa.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {gpsShareToken && (
+                    <div className="bg-gray-800 rounded-xl p-3">
+                      <p className="text-xs text-gray-400 mb-2">Compartilhe com os convidados:</p>
+                      <div className="flex items-center gap-2">
+                        <code className="flex-1 text-xs text-orange-300 font-mono truncate">
+                          techchurras.com.br/acompanhar/{gpsShareToken}
+                        </code>
+                        <button
+                          onClick={() => {
+                            const url = `https://www.techchurras.com.br/acompanhar/${gpsShareToken}`
+                            const msg = `🔥 Me acompanhe chegando ao churrasco!\n\n${url}`
+                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
+                          }}
+                          className="shrink-0 bg-green-600 hover:bg-green-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors"
+                        >
+                          WhatsApp
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  <button
+                    onClick={stopGps}
+                    className="w-full bg-gray-700 hover:bg-gray-600 text-gray-300 font-semibold py-2.5 rounded-xl text-sm transition-colors"
+                  >
+                    Parar rastreamento GPS
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Toggle disponibilidade */}
           <div className={`rounded-xl border px-5 py-4 flex items-center justify-between gap-4 ${
             profile?.available ? 'bg-green-500/10 border-green-500/30' : 'bg-gray-900 border-gray-800'

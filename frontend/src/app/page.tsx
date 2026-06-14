@@ -285,6 +285,27 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* SEO city links */}
+        <div className="border-t border-gray-900 pt-8 pb-4 max-w-5xl mx-auto">
+          <p className="text-xs text-gray-700 mb-3 font-semibold uppercase tracking-wide">Churrasqueiros por cidade</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-600">
+            {['sao-paulo','rio-de-janeiro','belo-horizonte','brasilia','curitiba','porto-alegre','salvador','fortaleza','recife','manaus','goiania','campinas','natal','joao-pessoa','teresina'].map(c => (
+              <Link key={c} href={`/churrasqueiros/${c}`} className="hover:text-gray-400 transition-colors">
+                {c.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </Link>
+            ))}
+          </div>
+          <p className="text-xs text-gray-700 mt-4 mb-3 font-semibold uppercase tracking-wide">Açougues por cidade</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-600">
+            {['sao-paulo','rio-de-janeiro','belo-horizonte','brasilia','curitiba','porto-alegre','salvador','fortaleza','recife','campinas'].map(c => (
+              <Link key={c} href={`/acougues/${c}`} className="hover:text-gray-400 transition-colors">
+                {c.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         <div className="border-t border-gray-900 pt-6 text-center text-xs text-gray-700">
           © {new Date().getFullYear()} Tech Churras · CNPJ em registro · Feito com 🔥 no Brasil
         </div>

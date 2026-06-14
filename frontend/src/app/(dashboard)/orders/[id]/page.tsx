@@ -552,7 +552,18 @@ export default function OrderDetailPage() {
 
         <div className="p-5">
           <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Endereco</p>
-          <p className="font-semibold">{order.eventAddress}</p>
+          <p className="font-semibold mb-2">{order.eventAddress}</p>
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(order.eventAddress)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-blue-400 text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="3 11 22 2 13 21 11 13 3 11" />
+            </svg>
+            Como chegar (Google Maps)
+          </a>
         </div>
 
         <div className="p-5 grid grid-cols-2 gap-4">
