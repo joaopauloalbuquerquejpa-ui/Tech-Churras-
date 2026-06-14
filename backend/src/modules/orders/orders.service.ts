@@ -120,6 +120,23 @@ export async function listOrders(customerId: string) {
   return orders.map(o => ({ ...o, _unreadMessages: unreadMap[o.id] ?? 0 }))
 }
 
+async function sendWhatsAppMessage(phone: string, message: string, label: string) {
+  const instance = process.env.ZAPI_INSTANCE
+  const token = process.env.ZAPI_TOKEN
+  if (!instance || !token) return
+  const cleanPhone = phone.replace(/\D/g, '')
+  try {
+    const res = await fetch(
+      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: cleanPhone, message }) }
+    )
+    if (!res.ok) console.log(`[WhatsApp] ${label} erro:`, res.status)
+    else console.log(`[WhatsApp] ${label} enviado para`, cleanPhone)
+  } catch (err) {
+    console.log(`[WhatsApp] ${label} falha:`, err)
+  }
+}
+
 async function sendWhatsAppConfirmation(
   phone: string,
   customerName: string,
@@ -133,27 +150,11 @@ async function sendWhatsAppConfirmation(
     console.log('[WhatsApp] ZAPI_INSTANCE/ZAPI_TOKEN nao configurados — pulando envio')
     return
   }
-  const cleanPhone = phone.replace(/\D/g, '')
   const date = new Intl.DateTimeFormat('pt-BR', {
-    day: '2-digit', month: '2-digit', year: 'numeric',
-    hour: '2-digit', minute: '2-digit',
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
   }).format(eventDate)
-  const message =
-    `🔥 Seu churrasco está confirmado! Olá ${customerName}, seu pedido #${orderId.slice(0, 8)} com ${grillmasterName} foi confirmado para ${date}. Acompanhe em: https://www.techchurras.com.br/orders/${orderId}`
-  try {
-    const res = await fetch(
-      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleanPhone, message }),
-      }
-    )
-    if (!res.ok) console.log('[WhatsApp] Erro:', res.status, await res.text())
-    else console.log('[WhatsApp] Mensagem enviada para', cleanPhone)
-  } catch (err) {
-    console.log('[WhatsApp] Falha na requisicao:', err)
-  }
+  const message = `🔥 Seu churrasco está confirmado! Olá ${customerName}, seu pedido #${orderId.slice(0, 8)} com ${grillmasterName} foi confirmado para ${date}. Acompanhe em: https://www.techchurras.com.br/orders/${orderId}`
+  await sendWhatsAppMessage(phone, message, 'confirmacao')
 }
 
 export async function updateOrderStatusDetail(id: string, statusDetail: string, userId: string, role: string) {
@@ -219,6 +220,14 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       if (gm) sendPushToUser(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch(() => {})
     }).catch(() => {})
 
+    const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
+    sendPushToUser(
+      updated.customerId,
+      '🌟 Como foi o churrasco?',
+      `Avalie ${gmName} e ajude outros clientes a encontrar os melhores!`,
+      `/orders/${updated.id}/review`
+    ).catch(() => {})
+
     if (updated.paymentStatus === 'PAID') {
       const pts = Math.floor(updated.totalPrice / 10)
       if (pts > 0) {
@@ -237,7 +246,12 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       updated.id,
       gmName,
       updated.eventDate
-    ).catch(err => console.log('[WhatsApp] Erro:', err))
+    ).catch(() => {})
+  }
+  if (status === 'COMPLETED' && updated.customer.phone) {
+    const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
+    const msg = `⭐ Como foi o churrasco com ${gmName}?\n\nEsperamos que tenha sido incrível! Avalie o evento em 1 minuto e ajude outros clientes:\nhttps://www.techchurras.com.br/orders/${updated.id}/review\n\n🔥 Tech Churras`
+    sendWhatsAppMessage(updated.customer.phone, msg, 'review-pos-evento').catch(() => {})
   }
   return updated
 }

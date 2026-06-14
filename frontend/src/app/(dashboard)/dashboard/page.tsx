@@ -53,6 +53,7 @@ interface Order {
   eventDate: string
   grillmaster?: { user?: { name: string } }
   boutique?: { name: string }
+  review?: { id: string; grillRating?: number | null } | null
 }
 
 function useCountdown(target: string | null) {
@@ -110,6 +111,7 @@ export default function DashboardPage() {
   const [rawStats, setRawStats] = useState({ orders: 0, grillmasters: 0, boutiques: 0 })
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
   const [nextEvent, setNextEvent] = useState<Order | null>(null)
+  const [pendingReviews, setPendingReviews] = useState<Order[]>([])
   const [points, setPoints] = useState<number | null>(null)
   const [featuredGMs, setFeaturedGMs] = useState<FeaturedGM[]>([])
   const countdown = useCountdown(nextEvent?.eventDate ?? null)
@@ -140,6 +142,8 @@ export default function DashboardPage() {
           .filter(o => ['PENDING', 'CONFIRMED', 'IN_PROGRESS'].includes(o.status) && new Date(o.eventDate) > new Date())
           .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime())
         if (upcoming.length > 0) setNextEvent(upcoming[0])
+        const needsReview = arr.filter(o => o.status === 'COMPLETED' && !o.review?.grillRating).slice(0, 2)
+        setPendingReviews(needsReview)
       })
       .catch(() => {})
     fetch(BASE + '/grillmasters', { headers: h })
@@ -302,6 +306,36 @@ export default function DashboardPage() {
                 Compartilhar
               </button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Avaliacoes pendentes ── */}
+      {pendingReviews.length > 0 && (
+        <div className="mb-8 bg-gradient-to-r from-yellow-900/20 to-orange-900/10 border border-yellow-500/30 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-lg">⭐</span>
+            <p className="font-bold text-white text-sm">
+              {pendingReviews.length === 1 ? 'Você tem 1 churrasco para avaliar!' : `Você tem ${pendingReviews.length} churrascos para avaliar!`}
+            </p>
+          </div>
+          <div className="space-y-2">
+            {pendingReviews.map(o => (
+              <Link key={o.id} href={`/orders/${o.id}/review`}
+                className="flex items-center justify-between bg-gray-900/60 hover:bg-gray-900/80 rounded-xl px-4 py-3 transition-colors group">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">
+                    {o.grillmaster?.user?.name ?? 'Churrasqueiro'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
+                  </p>
+                </div>
+                <span className="shrink-0 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-3 py-1 rounded-full font-semibold group-hover:bg-yellow-500/30 transition-colors">
+                  Avaliar ★
+                </span>
+              </Link>
+            ))}
           </div>
         </div>
       )}
