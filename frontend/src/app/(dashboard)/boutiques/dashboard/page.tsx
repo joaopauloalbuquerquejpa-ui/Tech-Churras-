@@ -551,6 +551,52 @@ export default function BoutiqueDashboardPage() {
         </p>
       </div>
 
+      {/* ── ONBOARDING: aparece enquanto não tem produtos ── */}
+      {boutique.products.length === 0 && (
+        <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/40 rounded-2xl p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-2xl">🚀</span>
+            <div>
+              <h2 className="font-bold text-white">Primeiros passos — comece a vender hoje</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Complete abaixo para aparecer nas buscas e receber seus primeiros pedidos</p>
+            </div>
+          </div>
+          <div className="space-y-2.5">
+            {[
+              { done: true,  icon: '✅', label: 'Açougue cadastrado', sub: 'Você já está na plataforma!' },
+              { done: boutique.approved, icon: boutique.approved ? '✅' : '⏳', label: 'Aprovação da equipe Tech Churras', sub: boutique.approved ? 'Aprovado — seu açougue está ativo' : 'Nossa equipe avisa no WhatsApp em até 24h' },
+              { done: false, icon: '📦', label: 'Adicionar pelo menos 5 cortes de carne', sub: 'Abra "Meus Produtos" → "+ Produto" → selecione categoria Carne' },
+              { done: false, icon: '🥗', label: 'Adicionar 1 acompanhamento (farofa, vinagrete...)', sub: 'Categoria "Acompanhamento" — churrasqueiros retiram tudo em uma visita' },
+              { done: boutique.open, icon: boutique.open ? '✅' : '🔓', label: 'Abrir sua loja', sub: boutique.open ? 'Loja aberta — você já aparece nas buscas!' : 'Clique em "Loja fechada — abrir" no topo desta página' },
+              { done: false, icon: '🖨️', label: 'Imprimir a placa do balcão', sub: 'Converta clientes do seu balcão em pedidos digitais — QR code exclusivo' },
+            ].map((step, i) => (
+              <div key={i} className={`flex items-start gap-3 rounded-xl px-4 py-3 ${step.done ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-900/60 border border-gray-800'}`}>
+                <span className="text-lg shrink-0 mt-0.5">{step.icon}</span>
+                <div className="min-w-0">
+                  <p className={`text-sm font-semibold ${step.done ? 'text-green-400 line-through opacity-70' : 'text-white'}`}>{step.label}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{step.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex gap-2 flex-wrap">
+            <a
+              href="#produtos"
+              className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
+              onClick={() => setShowForm(true)}
+            >
+              + Adicionar produto agora
+            </a>
+            <a
+              href="/boutiques/dashboard/qrcode-eventos"
+              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-gray-700"
+            >
+              🖨️ Imprimir placa do balcão
+            </a>
+          </div>
+        </div>
+      )}
+
       <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
         <div className="flex items-center justify-between mb-3">
           <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>
