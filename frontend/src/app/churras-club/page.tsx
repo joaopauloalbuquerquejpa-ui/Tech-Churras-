@@ -63,7 +63,7 @@ export default function ChurrasClubPage() {
   function handleInterest(e: React.FormEvent) {
     e.preventDefault()
     const msg = `Olá! Tenho interesse no Churras Club.\n\nNome: ${name}\nEmail: ${email}\n\nQuero saber mais sobre a assinatura mensal.`
-    window.open(`https://wa.me/5599999999999?text=${encodeURIComponent(msg)}`, '_blank')
+    window.open(`https://wa.me/5511970593650?text=${encodeURIComponent(msg)}`, '_blank')
     setSubmitted(true)
   }
 

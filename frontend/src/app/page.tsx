@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PriceCalculator from '@/components/PriceCalculator'
 
 export const metadata: Metadata = {
   title: 'Tech Churras — O Churrasqueiro dos Famosos',
@@ -111,6 +112,8 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      <PriceCalculator />
 
       {/* Stats */}
       <section className="border-y border-gray-900 py-10">

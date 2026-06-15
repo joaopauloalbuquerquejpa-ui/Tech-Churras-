@@ -7,6 +7,7 @@ import { useFavoritesStore } from '@/store/favorites'
 import Link from 'next/link'
 import NotificationBell from '@/components/NotificationBell'
 import OnboardingTour from '@/components/OnboardingTour'
+import SupportButton from '@/components/SupportButton'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 function PushBanner() {
@@ -153,6 +154,7 @@ export default function DashboardLayout({
       </nav>
       {user && <OnboardingTour userId={user.id} role={user.role} />}
       <main className='p-6'>{children}</main>
+      <SupportButton />
       <footer className='border-t border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600'>
         <span>© 2026 Tech Churras</span>
         <div className='flex gap-5'>
