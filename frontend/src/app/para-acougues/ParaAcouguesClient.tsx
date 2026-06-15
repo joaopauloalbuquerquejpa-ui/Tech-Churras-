@@ -294,7 +294,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               },
               {
                 n: '03', icon: '📦', title: 'Pedido chega no app',
-                desc: 'Você recebe o pedido no dashboard, separa os cortes. O Grillmaster retira.',
+                desc: 'Você recebe o pedido, separa os cortes e os acompanhamentos prontos. O Grillmaster retira tudo em uma única visita.',
               },
               {
                 n: '04', icon: '💰', title: 'Você recebe semanal',
@@ -312,8 +312,87 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
         </div>
       </section>
 
-      {/* ── SIMULADOR ─────────────────────────────────────────────────── */}
+      {/* ── ACOMPANHAMENTOS ───────────────────────────────────────────── */}
       <section className="py-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold tracking-widest text-green-400 uppercase mb-3">Nova frente de receita</p>
+            <h2 className="text-3xl sm:text-4xl font-black">Acompanhamentos: faturamento que não existia</h2>
+            <p className="text-gray-400 mt-3 max-w-2xl mx-auto">
+              No dia do evento, o churrasqueiro passa no seu balcão para retirar a carne.
+              Agora ele leva também os acompanhamentos prontos — pão de alho, farofa, vinagrete, molhos.
+              Você prepara, ele carrega. Zero entrega, zero logística extra para você.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div className="bg-gradient-to-br from-green-500/5 to-gray-900 border border-green-500/20 rounded-2xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-green-500/10">
+                <p className="font-bold text-green-400">Acompanhamentos do churrasco completo</p>
+                <p className="text-xs text-gray-500 mt-0.5">Você cadastra, o cliente escolhe na hora do pedido</p>
+              </div>
+              <div className="divide-y divide-gray-800/60">
+                {[
+                  { nome: 'Pão de alho artesanal', ticket: 'R$ 3–5/un', tag: 'Alta margem' },
+                  { nome: 'Farofa de manteiga', ticket: 'R$ 25–40/porção', tag: 'Simples de preparar' },
+                  { nome: 'Vinagrete fresco', ticket: 'R$ 20–35/porção', tag: 'Zero desperdício' },
+                  { nome: 'Queijo coalho', ticket: 'R$ 30–50/porção', tag: 'Produto premium' },
+                  { nome: 'Molho barbecue artesanal', ticket: 'R$ 15–25/porção', tag: 'Alta percepção de valor' },
+                  { nome: 'Maionese temperada', ticket: 'R$ 20–35/porção', tag: 'Custo mínimo' },
+                ].map(item => (
+                  <div key={item.nome} className="flex items-center justify-between px-6 py-3.5">
+                    <div>
+                      <p className="text-sm text-white font-medium">{item.nome}</p>
+                      <p className="text-xs text-green-500/60">{item.tag}</p>
+                    </div>
+                    <p className="text-sm font-bold text-gray-300 shrink-0 ml-4">{item.ticket}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+                <p className="font-bold text-white mb-1">Potencial de receita só com acompanhamentos</p>
+                <p className="text-xs text-gray-500 mb-5">Acima da venda de carnes. Estimativa por volume de eventos/mês.</p>
+                <div className="space-y-4">
+                  {[
+                    { eventos: 5,  acomp: 80,  label: 'Começo' },
+                    { eventos: 15, acomp: 100, label: 'Parceiro Ativo' },
+                    { eventos: 30, acomp: 130, label: 'Referência SP' },
+                    { eventos: 60, acomp: 160, label: 'Escala Total' },
+                  ].map(e => {
+                    const total = e.eventos * e.acomp
+                    const barPct = Math.round((total / (60 * 160)) * 100)
+                    return (
+                      <div key={e.label}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-sm text-gray-400">{e.label} · {e.eventos} eventos/mês</span>
+                          <span className="text-sm font-black text-green-400">+ R$ {total.toLocaleString('pt-BR')}/mês</span>
+                        </div>
+                        <div className="w-full bg-gray-800 rounded-full h-2">
+                          <div className="bg-gradient-to-r from-green-600 to-green-400 h-2 rounded-full transition-all" style={{ width: `${barPct}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-gray-700 mt-4">* Estimativa. Valores sujeitos ao volume real de pedidos.</p>
+              </div>
+
+              <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5">
+                <p className="text-sm font-bold text-orange-300 mb-2">Zero trabalho extra para o churrasqueiro</p>
+                <p className="text-sm text-gray-400 leading-relaxed">
+                  O churrasqueiro chancelado passa no seu balcão para retirar a carne e leva os acompanhamentos já prontos — tudo em uma única parada. Sem entrega, sem logística extra para você.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SIMULADOR ─────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 bg-gray-950/50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
             <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-3">Calculadora</p>

@@ -33,7 +33,7 @@ const BENEFICIOS_FUNDADOR = [
 const COMO_FUNCIONA = [
   { n: '1', texto: 'Você cadastra seus cortes e preços no dashboard — leva menos de 10 minutos' },
   { n: '2', texto: 'Cliente contrata o churrasqueiro + seleciona os cortes do seu açougue no mesmo app' },
-  { n: '3', texto: 'O churrasqueiro chancelado retira no seu balcão no dia do evento' },
+  { n: '3', texto: 'O churrasqueiro retira a carne E os acompanhamentos prontos no seu balcão — tudo em uma única visita' },
   { n: '4', texto: 'Você recebe o valor via PIX toda sexta-feira, já com comissão descontada' },
 ]
 
@@ -197,6 +197,70 @@ function ConviteContent() {
                 <span className="text-sm text-green-400 font-semibold">Selo "Açougue Validado Tech Churras"</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Acompanhamentos — nova frente de faturamento */}
+        <div className="mb-10">
+          <p className="text-xs text-green-400 font-bold uppercase tracking-widest mb-2">Nova frente de receita</p>
+          <h2 className="text-2xl font-black mb-2">Acompanhamentos: faturamento que não existia</h2>
+          <p className="text-gray-500 text-sm mb-5">
+            No dia do churrasco, o churrasqueiro passa no seu açougue para retirar a carne.
+            Agora ele retira também os acompanhamentos prontos — pão de alho, farofa, vinagrete.
+            Você prepara, ele carrega. Zero entrega, zero logística extra. Uma operação simples que abre uma frente inteira de receita.
+          </p>
+
+          <div className="bg-gradient-to-br from-green-500/5 to-gray-900 border border-green-500/20 rounded-2xl overflow-hidden mb-5">
+            <div className="px-5 py-4 border-b border-green-500/10">
+              <p className="text-sm font-bold text-green-400">Acompanhamentos padrão do churrasco completo</p>
+              <p className="text-xs text-gray-500 mt-0.5">Você cadastra no dashboard, o cliente escolhe na hora de fechar o pedido</p>
+            </div>
+            <div className="divide-y divide-gray-800/60">
+              {[
+                { nome: 'Pão de alho artesanal', preco: 'R$ 3–5/un', detalhe: 'Alta margem, giro constante' },
+                { nome: 'Farofa de manteiga', preco: 'R$ 25–40/porção', detalhe: 'Simples de preparar' },
+                { nome: 'Vinagrete fresco', preco: 'R$ 20–35/porção', detalhe: 'Zero desperdício' },
+                { nome: 'Queijo coalho grelhado', preco: 'R$ 30–50/porção', detalhe: 'Produto premium' },
+                { nome: 'Molho barbecue artesanal', preco: 'R$ 15–25/porção', detalhe: 'Alta percepção de valor' },
+                { nome: 'Maionese temperada', preco: 'R$ 20–35/porção', detalhe: 'Custo mínimo' },
+              ].map(item => (
+                <div key={item.nome} className="flex items-center justify-between px-5 py-3">
+                  <div>
+                    <p className="text-sm text-white font-medium">{item.nome}</p>
+                    <p className="text-xs text-green-500/70">{item.detalhe}</p>
+                  </div>
+                  <p className="text-sm font-bold text-gray-300 shrink-0 ml-3">{item.preco}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <p className="text-sm font-bold text-white mb-1">Potencial de receita só com acompanhamentos</p>
+            <p className="text-xs text-gray-600 mb-4">Acima da venda de carnes. Baseado em ticket médio por evento.</p>
+            <div className="space-y-3">
+              {[
+                { eventos: 5,  acomp: 80,  label: 'Começo' },
+                { eventos: 15, acomp: 100, label: 'Parceiro Ativo' },
+                { eventos: 30, acomp: 130, label: 'Parceiro Referência' },
+                { eventos: 60, acomp: 160, label: 'Escala Total' },
+              ].map(e => {
+                const total = e.eventos * e.acomp
+                const barPct = Math.round((total / (60 * 160)) * 100)
+                return (
+                  <div key={e.label}>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs text-gray-400">{e.label} · {e.eventos} eventos/mês</span>
+                      <span className="text-sm font-black text-green-400">+ R$ {fmt(total)}/mês</span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-1.5">
+                      <div className="bg-gradient-to-r from-green-600 to-green-400 h-1.5 rounded-full" style={{ width: `${barPct}%` }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <p className="text-xs text-gray-700 mt-4">* Estimativa. Valores acima das vendas de carne e sujeitos ao volume real de pedidos.</p>
           </div>
         </div>
 

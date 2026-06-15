@@ -107,8 +107,8 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
       a: 'Sim. Você define a disponibilidade da sua agenda pelo app. Quando estiver disponível, aceita ou recusa pedidos. Churrasqueiros com alta taxa de aceite ganham mais visibilidade na plataforma.',
     },
     {
-      q: 'O açougue parceiro inclui a carne?',
-      a: 'Sim. Quando o cliente pede junto com um açougue parceiro, a carne já fica separada para você retirar. Você não precisa comprar, transportar ou negociar — é só retirar e ir para o evento.',
+      q: 'O açougue parceiro inclui a carne e os acompanhamentos?',
+      a: 'Sim. Quando o cliente fecha o pedido, ele pode escolher acompanhamentos (pão de alho, farofa, vinagrete, etc.) que o açougue prepara. Você retira a carne E os acompanhamentos prontos em uma única parada — zero trabalho extra, churrasco completo para o cliente.',
     },
     {
       q: 'O que preciso levar para o evento?',
@@ -296,7 +296,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
               },
               {
                 n: '03', icon: '🔥', title: 'Faça o evento',
-                desc: 'Apareça no local, pegue os insumos do açougue parceiro e entregue um churrasco incrível.',
+                desc: 'Passe no açougue parceiro, retire a carne E os acompanhamentos já prontos — tudo em uma parada — e entregue um churrasco completo.',
               },
               {
                 n: '04', icon: '💸', title: 'Receba via PIX',

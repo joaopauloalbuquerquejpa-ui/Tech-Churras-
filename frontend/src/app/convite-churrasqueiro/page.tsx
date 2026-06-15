@@ -21,14 +21,14 @@ const BENEFICIOS_CHANCELAMENTO = [
   { icon: '🏅', titulo: 'Badge Chancelado', desc: 'Aparece no seu perfil. O cliente vê antes de contratar — diferencial imediato.' },
   { icon: '📍', titulo: 'Prioridade nas buscas', desc: 'Churrasqueiros Fundadores aparecem em primeiro por 6 meses.' },
   { icon: '🤝', titulo: 'Acesso direto ao Jota', desc: 'WhatsApp direto com o fundador para dúvidas e crescimento.' },
-  { icon: '🥩', titulo: 'Carne já separada', desc: 'Açougues parceiros separam os cortes — você só retira e vai pro evento.' },
+  { icon: '🥩', titulo: 'Carne + acompanhamentos', desc: 'Açougues parceiros preparam os cortes e os acompanhamentos — você retira tudo em uma parada e vai pro evento.' },
   { icon: '💸', titulo: 'PIX toda sexta', desc: '93% do valor do evento cai na sua conta sem precisar cobrar ninguém.' },
 ]
 
 const COMO_FUNCIONA = [
   { n: '1', texto: 'Você cria seu perfil com fotos, especialidades e preço por hora — leva 10 minutos' },
   { n: '2', texto: 'Cliente encontra seu perfil, vê suas avaliações e contrata pelo app' },
-  { n: '3', texto: 'Você confirma, retira a carne no açougue parceiro e vai pro evento' },
+  { n: '3', texto: 'Você confirma, retira a carne E os acompanhamentos prontos no açougue parceiro em uma única parada, e vai pro evento' },
   { n: '4', texto: '93% do valor cai no seu PIX toda sexta-feira, automático' },
 ]
 
@@ -175,11 +175,16 @@ function ConviteContent() {
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-2xl shrink-0">🥩</div>
             <div>
-              <p className="text-xs text-green-400 font-bold uppercase tracking-widest mb-1">Logística resolvida</p>
-              <h3 className="font-black text-white text-lg mb-2">Açougues parceiros: a carne já está separada</h3>
-              <p className="text-gray-400 text-sm leading-relaxed">
-                Quando o cliente contrata você com o kit completo, os cortes ficam separados no açougue parceiro validado pela Tech Churras. Você retira no balcão no dia do evento — sem precisar comprar, negociar preço ou carregar geladeira. Você só precisa chegar e fazer o que sabe fazer.
+              <p className="text-xs text-green-400 font-bold uppercase tracking-widest mb-1">Logística totalmente resolvida</p>
+              <h3 className="font-black text-white text-lg mb-2">Açougues parceiros: carne + acompanhamentos prontos</h3>
+              <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                Quando o cliente fecha o pedido, os cortes e os acompanhamentos (pão de alho, farofa, vinagrete...) ficam prontos no açougue parceiro. Você retira tudo em uma única parada no dia do evento — sem comprar, sem negociar, sem carregar geladeira. Zero trabalho extra, churrasco completo para o cliente.
               </p>
+              <div className="flex flex-wrap gap-2">
+                {['Carne já separada', 'Acompanhamentos prontos', 'Uma parada só', 'Zero logística extra'].map(t => (
+                  <span key={t} className="text-xs bg-green-500/10 text-green-300 border border-green-500/20 px-2.5 py-1 rounded-full">{t}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>

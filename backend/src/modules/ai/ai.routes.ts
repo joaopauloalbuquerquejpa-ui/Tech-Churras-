@@ -246,11 +246,24 @@ Regras:
     const boutique = boutiquesWithProducts[0] as any
     const grillmaster = nearbyGrillmasters[0] as any
 
-    const catalog = boutique.products.map((p: any) => {
+    function formatCatalogItem(p: any) {
       const discountActive = p.discountPercent && (!p.discountValidUntil || new Date(p.discountValidUntil) > new Date())
       const finalPrice = discountActive ? p.price * (1 - p.discountPercent / 100) : p.price
-      return `[${p.id}] ${p.name} — R$${finalPrice.toFixed(2)}/${p.unit} (${p.category})`
-    }).join('\n')
+      return `[${p.id}] ${p.name} — R$${finalPrice.toFixed(2)}/${p.unit}`
+    }
+
+    const carneProducts = boutique.products.filter((p: any) => p.category === 'CARNE')
+    const acompProducts = boutique.products.filter((p: any) => p.category === 'ACOMPANHAMENTO')
+    const otherProducts = boutique.products.filter((p: any) => p.category !== 'CARNE' && p.category !== 'ACOMPANHAMENTO')
+
+    const catalogCarnes = carneProducts.map(formatCatalogItem).join('\n') || '(nenhuma carne cadastrada)'
+    const catalogAcomp = acompProducts.map(formatCatalogItem).join('\n') || '(nenhum acompanhamento — pule essa secao)'
+    const catalogOther = otherProducts.map(formatCatalogItem).join('\n') || '(nenhum)'
+
+    const gmSpecialties = grillmaster.specialties || 'churrasco tradicional'
+    const gmStyle = grillmaster.churrascoStyle || 'tradicional brasileiro'
+    const gmExperience = grillmaster.experience ? `${grillmaster.experience} anos` : 'experiente'
+    const gmBio = grillmaster.bio ? `Bio: ${grillmaster.bio}` : ''
 
     const kitPrompt = `Voce e o assistente de churrasco da Tech Churras. Monte o kit perfeito para este evento.
 
@@ -260,15 +273,30 @@ DADOS DO EVENTO:
 - Orcamento: ${budget ? `R$ ${budget}` : 'sem limite definido'}
 - Data: ${eventDate || 'a confirmar'}
 
-PRODUTOS DISPONIVEIS no acougue "${boutique.name}" (${boutique.distanceKm.toFixed(1)} km do evento):
-${catalog}
+CHURRASQUEIRO SELECIONADO: ${grillmaster.user.name}
+- Especialidades: ${gmSpecialties}
+- Estilo: ${gmStyle}
+- Experiencia: ${gmExperience}
+${gmBio}
+- Preco: R$${grillmaster.pricePerHour}/hora | Avaliacao: ${grillmaster.rating.toFixed(1)}/5
+INSTRUCAO CRITICA: Escolha os cortes do catalogo que COMBINAM com as especialidades deste churrasqueiro. Ex: especialista em parrilla argentina -> prefira fraldinha/asado; especialista em cortes nobres -> prefira picanha/tomahawk; estilo gaucho -> prefira costela/linguica; tradicional paulista -> picanha e carvao abundante.
 
-CHURRASQUEIRO SELECIONADO: ${grillmaster.user.name} — R$${grillmaster.pricePerHour}/hora — avaliacao ${grillmaster.rating.toFixed(1)}/5
+ACOUGUE PARCEIRO: "${boutique.name}" (${boutique.distanceKm.toFixed(1)} km do evento)
+
+CARNES DISPONIVEIS:
+${catalogCarnes}
+
+ACOMPANHAMENTOS (preparados pelo acougue, churrasqueiro retira tudo em UMA visita):
+${catalogAcomp}
+
+OUTROS PRODUTOS:
+${catalogOther}
 
 REGRAS:
-- Use SOMENTE produtos da lista acima pelos IDs exatos
-- Calcule ~400g de carne por pessoa
-- Inclua sempre carne principal, carvao e ao menos um acompanhamento
+- Use SOMENTE os IDs exatos da lista acima — nunca invente produtos
+- ~400g de carne por pessoa
+- Inclua carne principal + carvao + acompanhamento se disponivel
+- Mencione no summary que os acompanhamentos ja vem prontos do acougue (zero trabalho extra pro churrasqueiro)
 - Recomende 3-4h de churrasqueiro para ate 15 pessoas, 5-6h para mais
 - Responda SOMENTE JSON valido, sem markdown
 
