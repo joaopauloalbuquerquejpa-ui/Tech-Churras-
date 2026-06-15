@@ -28,6 +28,8 @@ function RegisterForm() {
     if (convite) setConviteId(convite)
     const role = searchParams.get('role')
     if (role) setRoleParam(role.toUpperCase())
+    const nomeParam = searchParams.get('nome')
+    if (nomeParam) setName(decodeURIComponent(nomeParam))
   }, [searchParams])
 
   async function handleSubmit(e: React.FormEvent) {

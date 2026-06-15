@@ -21,6 +21,7 @@ interface KitItem {
   unit: string
   unitPrice: number
   totalPrice: number
+  category?: string
 }
 
 interface KitResult {
@@ -224,7 +225,7 @@ export default function KitPerfeitoPage() {
           {/* Boutique + products */}
           <div className="bg-gray-900 rounded-2xl p-5">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">Açougue selecionado</p>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-5">
               {result.boutique.logoUrl ? (
                 <img src={result.boutique.logoUrl} alt="" className="w-10 h-10 rounded-xl object-cover border border-gray-700" />
               ) : (
@@ -236,26 +237,85 @@ export default function KitPerfeitoPage() {
               </div>
             </div>
 
-            <div className="space-y-0">
-              {result.kit.items.map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
-                  <div>
-                    <p className="text-sm text-white font-medium">{item.productName}</p>
-                    <p className="text-xs text-gray-500">
-                      {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
-                    </p>
-                  </div>
-                  <p className="text-sm font-bold text-orange-400 shrink-0 ml-3">
-                    R$ {item.totalPrice.toFixed(2)}
-                  </p>
+            {/* Carnes */}
+            {result.kit.items.filter(i => i.category === 'CARNE').length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">🥩 Cortes de Carne</p>
+                <div className="space-y-0">
+                  {result.kit.items.filter(i => i.category === 'CARNE').map((item, i) => (
+                    <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
+                      <div>
+                        <p className="text-sm text-white font-medium">{item.productName}</p>
+                        <p className="text-xs text-gray-500">
+                          {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-orange-400 shrink-0 ml-3">
+                        R$ {item.totalPrice.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-              <div className="flex items-center justify-between pt-3">
-                <p className="text-sm font-bold text-white">Subtotal produtos</p>
-                <p className="text-sm font-bold text-white">
-                  R$ {result.kit.totalProducts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </div>
+            )}
+
+            {/* Acompanhamentos */}
+            {result.kit.items.filter(i => i.category === 'ACOMPANHAMENTO').length > 0 && (
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-xs font-bold text-green-400 uppercase tracking-widest">🌿 Acompanhamentos</p>
+                  <span className="text-xs bg-green-500/15 text-green-400 border border-green-500/25 px-2 py-0.5 rounded-full font-medium">
+                    prontos pelo açougue
+                  </span>
+                </div>
+                <div className="bg-green-500/5 border border-green-500/20 rounded-xl overflow-hidden">
+                  {result.kit.items.filter(i => i.category === 'ACOMPANHAMENTO').map((item, i) => (
+                    <div key={i} className="flex items-center justify-between px-3 py-2.5 border-b border-green-500/10 last:border-0">
+                      <div>
+                        <p className="text-sm text-white font-medium">{item.productName}</p>
+                        <p className="text-xs text-gray-500">
+                          {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-green-400 shrink-0 ml-3">
+                        R$ {item.totalPrice.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-green-500/70 mt-1.5 pl-1">
+                  Churrasqueiro retira tudo em uma visita — zero trabalho extra
                 </p>
               </div>
+            )}
+
+            {/* Outros (sal, carvão etc) */}
+            {result.kit.items.filter(i => i.category !== 'CARNE' && i.category !== 'ACOMPANHAMENTO').length > 0 && (
+              <div className="mb-4">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Outros itens</p>
+                <div className="space-y-0">
+                  {result.kit.items.filter(i => i.category !== 'CARNE' && i.category !== 'ACOMPANHAMENTO').map((item, i) => (
+                    <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
+                      <div>
+                        <p className="text-sm text-white font-medium">{item.productName}</p>
+                        <p className="text-xs text-gray-500">
+                          {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
+                        </p>
+                      </div>
+                      <p className="text-sm font-bold text-orange-400 shrink-0 ml-3">
+                        R$ {item.totalPrice.toFixed(2)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-2 border-t border-gray-800">
+              <p className="text-sm font-bold text-white">Subtotal produtos</p>
+              <p className="text-sm font-bold text-white">
+                R$ {result.kit.totalProducts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
             </div>
           </div>
 

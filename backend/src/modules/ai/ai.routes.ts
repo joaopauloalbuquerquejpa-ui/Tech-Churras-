@@ -318,6 +318,15 @@ REGRAS:
       return reply.status(500).send({ error: 'Falha ao montar kit', raw: rawText.slice(0, 300) })
     }
 
+    // Enrich items with product category from boutique catalog
+    const productCategoryMap = new Map(boutique.products.map((p: any) => [p.id, p.category]))
+    if (Array.isArray(kit.items)) {
+      kit.items = kit.items.map((item: any) => ({
+        ...item,
+        category: productCategoryMap.get(item.productId) ?? 'OUTRO',
+      }))
+    }
+
     return reply.send({
       kit,
       boutique: { id: boutique.id, name: boutique.name, distanceKm: boutique.distanceKm, logoUrl: boutique.logoUrl },
