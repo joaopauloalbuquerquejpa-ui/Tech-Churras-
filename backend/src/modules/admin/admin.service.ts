@@ -1,4 +1,19 @@
 import { prisma } from '../../config/prisma'
+import { sendPushToUser } from '../push/push.service'
+
+async function sendWhatsApp(phone: string, message: string, label: string) {
+  const instance = process.env.ZAPI_INSTANCE
+  const token = process.env.ZAPI_TOKEN
+  if (!instance || !token) return
+  const clean = phone.replace(/\D/g, '')
+  try {
+    const res = await fetch(
+      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: clean, message }) }
+    )
+    if (!res.ok) console.log(`[WhatsApp] ${label} erro:`, res.status)
+  } catch {}
+}
 
 export async function listUsers() {
   return prisma.user.findMany({
@@ -30,7 +45,11 @@ export async function approveGrillmaster(
   grillmasterId: string,
   extras?: { isChancelado?: boolean; pricePerHour?: number }
 ) {
-  return prisma.grillmaster.update({
+  const gm = await prisma.grillmaster.findUnique({
+    where: { id: grillmasterId },
+    include: { user: { select: { id: true, name: true, phone: true } } },
+  })
+  const updated = await prisma.grillmaster.update({
     where: { id: grillmasterId },
     data: {
       approved: true,
@@ -39,13 +58,43 @@ export async function approveGrillmaster(
       ...(extras?.pricePerHour !== undefined ? { pricePerHour: extras.pricePerHour } : {}),
     },
   })
+  if (gm?.user) {
+    const name = gm.user.name.split(' ')[0]
+    sendPushToUser(
+      gm.user.id,
+      '🎉 Perfil aprovado!',
+      `Parabéns ${name}! Você já está ativo na Tech Churras e pode receber pedidos.`,
+      '/grillmasters/dashboard'
+    ).catch(() => {})
+    if (gm.user.phone) {
+      sendWhatsApp(
+        gm.user.phone,
+        `🔥 Parabéns ${name}! Seu perfil de churrasqueiro foi *aprovado* na Tech Churras!\n\nVocê já pode receber pedidos. Acesse seu painel:\nhttps://www.techchurras.com.br/grillmasters/dashboard`,
+        'gm-aprovado'
+      ).catch(() => {})
+    }
+  }
+  return updated
 }
 
 export async function rejectGrillmaster(grillmasterId: string) {
-  return prisma.grillmaster.update({
+  const gm = await prisma.grillmaster.findUnique({
+    where: { id: grillmasterId },
+    include: { user: { select: { id: true, name: true } } },
+  })
+  const updated = await prisma.grillmaster.update({
     where: { id: grillmasterId },
     data: { approved: false, available: false },
   })
+  if (gm?.user) {
+    sendPushToUser(
+      gm.user.id,
+      'Perfil em revisão',
+      'Precisamos de mais informações sobre seu perfil. Entre em contato com o suporte.',
+      '/grillmasters/dashboard'
+    ).catch(() => {})
+  }
+  return updated
 }
 
 export async function listPendingBoutiques() {
@@ -63,7 +112,10 @@ function generateReferralCode(name: string): string {
 }
 
 export async function approveBoutique(boutiqueId: string) {
-  const boutique = await prisma.boutique.findUnique({ where: { id: boutiqueId } })
+  const boutique = await prisma.boutique.findUnique({
+    where: { id: boutiqueId },
+    include: { user: { select: { id: true, name: true, phone: true } } },
+  })
   if (!boutique) throw new Error('Acougue nao encontrado')
   let referralCode = boutique.referralCode
   if (!referralCode) {
@@ -72,7 +124,41 @@ export async function approveBoutique(boutiqueId: string) {
     if (existing) code = generateReferralCode(boutique.name)
     referralCode = code
   }
-  return prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true, referralCode } })
+  const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true, referralCode } })
+  if (boutique.user) {
+    const name = boutique.user.name.split(' ')[0]
+    sendPushToUser(
+      boutique.user.id,
+      '🎉 Açougue aprovado!',
+      `Parabéns ${name}! O açougue ${boutique.name} já está ativo na Tech Churras.`,
+      '/boutiques/dashboard'
+    ).catch(() => {})
+    if (boutique.user.phone) {
+      sendWhatsApp(
+        boutique.user.phone,
+        `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\nVocê já pode receber pedidos. Acesse seu painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
+        'boutique-aprovado'
+      ).catch(() => {})
+    }
+  }
+  return updated
+}
+
+export async function rejectBoutique(boutiqueId: string) {
+  const boutique = await prisma.boutique.findUnique({
+    where: { id: boutiqueId },
+    include: { user: { select: { id: true, name: true } } },
+  })
+  const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: false } })
+  if (boutique?.user) {
+    sendPushToUser(
+      boutique.user.id,
+      'Cadastro em revisão',
+      'Precisamos de mais informações sobre seu açougue. Entre em contato com o suporte.',
+      '/boutiques/dashboard'
+    ).catch(() => {})
+  }
+  return updated
 }
 
 export async function getBoutiqueReferralStats(boutiqueId: string) {
@@ -86,10 +172,6 @@ export async function getBoutiqueReferralStats(boutiqueId: string) {
     }),
   ])
   return { boutiqueId, referred, converted }
-}
-
-export async function rejectBoutique(boutiqueId: string) {
-  return prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: false } })
 }
 
 export async function listAllOrders() {

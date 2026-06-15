@@ -34,6 +34,7 @@ interface ScheduleEntry {
 
 interface GrillmasterProfile {
   id: string
+  approved: boolean
   rating: number
   totalOrders: number
   pricePerHour: number
@@ -362,10 +363,85 @@ export default function GrillmasterDashboardPage() {
 
   if (notFound) {
     return (
-      <div className="max-w-xl mx-auto text-center py-20">
-        <p className="text-gray-400 mb-4">Voce nao tem um perfil de churrasqueiro cadastrado.</p>
-        <Link href="/grillmasters/new" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-semibold text-sm">
-          Cadastrar como churrasqueiro
+      <div className="max-w-lg mx-auto px-4 py-12">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl">🔥</span>
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Bem-vindo à Tech Churras!</h1>
+          <p className="text-gray-400 text-sm">Você está a poucos passos de começar a receber pedidos de churrasco.</p>
+        </div>
+
+        <div className="space-y-3 mb-8">
+          <div className="bg-gray-900 border border-orange-500/30 rounded-xl p-4 flex items-start gap-4">
+            <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">1</div>
+            <div>
+              <p className="font-semibold text-white">Complete seu perfil</p>
+              <p className="text-gray-400 text-xs mt-0.5">Adicione sua foto, bio, especialidades e valor por hora.</p>
+            </div>
+          </div>
+          <div className="bg-gray-900 rounded-xl p-4 flex items-start gap-4 opacity-60">
+            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm shrink-0">2</div>
+            <div>
+              <p className="font-semibold text-gray-300">Aguardar aprovação</p>
+              <p className="text-gray-500 text-xs mt-0.5">Nossa equipe analisa seu perfil em até 24h.</p>
+            </div>
+          </div>
+          <div className="bg-gray-900 rounded-xl p-4 flex items-start gap-4 opacity-60">
+            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm shrink-0">3</div>
+            <div>
+              <p className="font-semibold text-gray-300">Receber pedidos</p>
+              <p className="text-gray-500 text-xs mt-0.5">Você recebe notificações e pode aceitar ou recusar eventos.</p>
+            </div>
+          </div>
+        </div>
+
+        <Link
+          href="/grillmasters/new"
+          className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-center block transition-colors"
+        >
+          Cadastrar meu perfil agora
+        </Link>
+        <p className="text-center text-xs text-gray-600 mt-3">Gratuito · Sem mensalidade · Comissão só nos eventos</p>
+      </div>
+    )
+  }
+
+  if (profile && !profile.approved) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-12">
+        <div className="text-center mb-8">
+          <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-4xl">⏳</span>
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Perfil em análise</h1>
+          <p className="text-gray-400 text-sm">Recebemos seu cadastro! Nossa equipe está revisando suas informações.</p>
+        </div>
+
+        <div className="bg-gray-900 rounded-xl p-5 mb-6 space-y-3">
+          <div className="flex items-center gap-3">
+            <span className="text-green-400">✓</span>
+            <span className="text-sm text-gray-300">Perfil enviado</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-yellow-400">●</span>
+            <span className="text-sm text-white font-medium">Análise em andamento (até 24h)</span>
+          </div>
+          <div className="flex items-center gap-3 opacity-40">
+            <span className="text-gray-500">○</span>
+            <span className="text-sm text-gray-400">Aprovação e ativação</span>
+          </div>
+        </div>
+
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-4 text-sm text-orange-300">
+          Você receberá uma notificação assim que seu perfil for aprovado. Fique de olho no WhatsApp também!
+        </div>
+
+        <Link
+          href="/grillmasters/new"
+          className="mt-4 text-center block text-xs text-gray-500 hover:text-gray-300 transition-colors"
+        >
+          Editar informações do cadastro
         </Link>
       </div>
     )
