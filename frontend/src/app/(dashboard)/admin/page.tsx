@@ -419,6 +419,14 @@ export default function AdminPage() {
               <p className="text-lg font-bold text-orange-400 mt-1">Gerenciar</p>
               <p className="text-xs text-gray-600 mt-1">Controle de pagamentos para parceiros</p>
             </Link>
+            <Link
+              href="/admin/onboarding-acougue"
+              className="bg-gray-900 rounded-xl p-5 border border-green-500/20 hover:border-green-500/50 hover:bg-gray-800 transition-all group"
+            >
+              <p className="text-gray-400 text-sm group-hover:text-green-400 transition-colors">🥩 Onboarding Açougue</p>
+              <p className="text-lg font-bold text-green-400 mt-1">Roteiro</p>
+              <p className="text-xs text-gray-600 mt-1">Script + checklist para visita presencial</p>
+            </Link>
           </div>
         </div>
       )}
