@@ -317,7 +317,7 @@ const PROBLEMS = [
 ]
 
 const SOLUTIONS = [
-  'Grillmasters chancelados pessoalmente por Jota',
+  'Grillmasters chancelados pessoalmente por João Paulo Albuquerque',
   'Calculadora inteligente de quantidades por pessoa',
   'Açougues premium curados e verificados',
   'Preço 100% fechado antes do evento',
@@ -405,7 +405,7 @@ export default function FounderPage() {
           </motion.div>
 
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
-            <Typewriter text="Jota Albuquerque" />
+            <Typewriter text="João Paulo Albuquerque" />
           </h1>
 
           <motion.p
@@ -455,10 +455,10 @@ export default function FounderPage() {
             >
               <Image
                 src="/jota.jpg"
-                alt="Jota Albuquerque"
+                alt="João Paulo Albuquerque — Grillmaster e Fundador da Tech Churras"
                 width={280}
                 height={360}
-                className="object-cover block"
+                className="object-cover object-top block"
               />
             </div>
             <motion.div
@@ -478,7 +478,7 @@ export default function FounderPage() {
               transition={{ duration: 0.6, delay: 0.15 }}
               className="text-3xl font-black text-white mb-1"
             >
-              Jota Albuquerque
+              João Paulo Albuquerque
             </motion.h2>
             <motion.span
               initial={{ opacity: 0 }}
@@ -490,9 +490,9 @@ export default function FounderPage() {
             </motion.span>
 
             {[
-              'João "Jota" Albuquerque começou acendendo brasa em festas de família. Hoje, com 13+ anos de trajetória e mais de 500 eventos em 3 países, é um dos churrasqueiros mais respeitados do Brasil.',
-              'Atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais nacionais e levou o churrasco brasileiro para a África e o Mediterrâneo. Fez tudo isso — e percebeu que faltava algo.',
-              'Faltava um jeito de levar essa qualidade para qualquer pessoa, em qualquer lugar. Foi para isso que ele construiu a Tech Churras: para que o melhor churrasco do Brasil não seja privilégio de poucos.',
+              'João Paulo "Jota" Albuquerque começou acendendo brasa em festas de família. Hoje, com 13+ anos de trajetória e mais de 1.800 eventos em 3 países, é um dos Grillmasters mais respeitados do Brasil e do mundo.',
+              'Grillmaster das maiores celebridades — atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais nacionais e levou o churrasco brasileiro para a África e o Mediterrâneo. Fez tudo isso — e percebeu que faltava algo.',
+              'A Tech Churras nasceu para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.',
             ].map((para, i) => (
               <motion.p
                 key={i}
@@ -542,10 +542,10 @@ export default function FounderPage() {
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden border border-orange-500/40">
-                <Image src="/jota.jpg" alt="Jota" width={40} height={40} className="object-cover" />
+                <Image src="/jota.jpg" alt="João Paulo Albuquerque" width={40} height={40} className="object-cover" />
               </div>
               <div>
-                <p className="text-white font-bold text-sm">Jota Albuquerque</p>
+                <p className="text-white font-bold text-sm">João Paulo Albuquerque</p>
                 <p className="text-gray-500 text-xs">Fundador & CEO, Tech Churras</p>
               </div>
             </div>
@@ -704,7 +704,7 @@ export default function FounderPage() {
               transition={{ duration: 0.7 }}
               className="text-3xl md:text-4xl font-black text-white mb-4 animate-textGlow"
             >
-              A Chancela Jota Grillmaster
+              A Chancela João Paulo Albuquerque
             </motion.h2>
 
             <motion.p
@@ -713,8 +713,8 @@ export default function FounderPage() {
               transition={{ duration: 0.7, delay: 0.25 }}
               className="text-gray-300 max-w-xl mx-auto leading-relaxed"
             >
-              Cada churrasqueiro na plataforma passa pelo processo de curadoria e certificação
-              pessoal de Jota. A Chancela Jota Grillmaster é a garantia de que você está
+              Cada Grillmaster na plataforma passa pelo processo de curadoria e certificação
+              pessoal de João Paulo Albuquerque. A Chancela Albuquerque é a garantia de que você está
               contratando um profissional treinado nos mais altos padrões da gastronomia do fogo.
             </motion.p>
           </div>
@@ -768,7 +768,7 @@ export default function FounderPage() {
             transition={{ delay: 0.4 }}
             className="text-gray-300 text-lg mb-12 max-w-lg"
           >
-            Grillmasters chancelados por Jota. Cortes premium. Experiência completa.
+            Grillmasters chancelados por João Paulo Albuquerque. Cortes premium. Experiência completa.
           </motion.p>
 
           <div className="flex flex-col sm:flex-row gap-4">
