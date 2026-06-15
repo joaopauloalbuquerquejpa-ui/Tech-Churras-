@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { Events } from '@/lib/analytics'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -54,6 +55,7 @@ export default function PaymentPage() {
       .then(d => {
         if (!d) return
         if (d.error) { setError(d.error); return }
+        if (d.checkout_url) Events.beginCheckout(orderId, d.totalPrice ?? 0)
         setCheckoutUrl(d.checkout_url ?? '')
       })
       .catch(() => setError('Erro ao preparar pagamento. Tente novamente.'))

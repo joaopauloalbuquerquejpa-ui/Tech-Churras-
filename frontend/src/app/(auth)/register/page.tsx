@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { register } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
+import { Events } from '@/lib/analytics'
 
 function RegisterForm() {
   const router = useRouter()
@@ -45,6 +46,7 @@ function RegisterForm() {
       setUser(data.user)
       setToken(data.token)
       const role = data.user?.role
+      Events.signUp(role ?? 'CUSTOMER')
       if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
       else if (role === 'BOUTIQUE') router.push('/boutiques/dashboard')
       else if (role === 'ADMIN') router.push('/admin')

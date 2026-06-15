@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useCartStore } from '@/store/cart'
+import { Events } from '@/lib/analytics'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
@@ -500,6 +501,11 @@ function GuidedOrderForm() {
       })
       if (res.ok) {
         const order = await res.json()
+        Events.orderCreated(
+          insumos.totalPessoas || 1,
+          order.totalPrice ?? 0,
+          !!body.boutiqueId,
+        )
         cart.clearCart()
         router.push('/orders/' + order.id + '/payment')
       } else {

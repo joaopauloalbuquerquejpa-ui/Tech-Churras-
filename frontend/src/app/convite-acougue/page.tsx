@@ -2,6 +2,7 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
+import { Events } from '@/lib/analytics'
 
 const WHATSAPP_BASE = 'https://wa.me/5511970593650'
 const TICKET_MEDIO = 300
@@ -71,6 +72,7 @@ function ConviteContent() {
           Tech <span className="text-orange-500">Churras</span>
         </Link>
         <a href={waUrl} target="_blank" rel="noopener noreferrer"
+          onClick={() => Events.clickWhatsApp('convite-acougue-nav')}
           className="flex items-center gap-2 text-sm bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-2 rounded-lg transition-colors">
           <WaIcon /> WhatsApp
         </a>
@@ -433,6 +435,7 @@ function ConviteContent() {
         {/* CTAs */}
         <div className="space-y-3 mb-4">
           <a href={waUrl} target="_blank" rel="noopener noreferrer"
+            onClick={() => Events.clickWhatsApp('convite-acougue-cta')}
             className="flex items-center justify-center gap-3 w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-2xl text-base transition-colors shadow-lg shadow-green-900/30">
             <WaIcon />
             Falar com Jota no WhatsApp
