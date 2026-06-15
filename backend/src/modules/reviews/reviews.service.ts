@@ -1,4 +1,5 @@
 import { prisma } from '../../config/prisma'
+import { sendPushToUser } from '../push/push.service'
 
 export async function createReview(data: {
   orderId: string
@@ -51,10 +52,20 @@ export async function createReview(data: {
       where: { grillmasterId: order.grillmasterId, grillRating: { not: null } },
     })
     const avg = reviews.reduce((acc, r) => acc + (r.grillRating ?? 0), 0) / reviews.length
-    await prisma.grillmaster.update({
+    const updatedGm = await prisma.grillmaster.update({
       where: { id: order.grillmasterId },
       data: { rating: Math.round(avg * 10) / 10 },
+      select: { userId: true },
     })
+    const stars = '⭐'.repeat(data.grillRating)
+    const customerName = await prisma.user.findUnique({ where: { id: data.customerId }, select: { name: true } })
+    const firstName = customerName?.name?.split(' ')[0] ?? 'Um cliente'
+    sendPushToUser(
+      updatedGm.userId,
+      `${stars} Nova avaliação!`,
+      `${firstName} te deu ${data.grillRating} estrela${data.grillRating !== 1 ? 's' : ''}${data.grillComment ? ': "' + data.grillComment.slice(0, 60) + '"' : ''}`,
+      '/grillmasters/dashboard'
+    ).catch(() => {})
   }
 
   if (order.boutiqueId && data.boutiqueRating) {
@@ -62,10 +73,18 @@ export async function createReview(data: {
       where: { boutiqueId: order.boutiqueId, boutiqueRating: { not: null } },
     })
     const avg = reviews.reduce((acc, r) => acc + (r.boutiqueRating ?? 0), 0) / reviews.length
-    await prisma.boutique.update({
+    const updatedBoutique = await prisma.boutique.update({
       where: { id: order.boutiqueId },
       data: { rating: Math.round(avg * 10) / 10 },
+      select: { userId: true },
     })
+    const stars = '⭐'.repeat(data.boutiqueRating)
+    sendPushToUser(
+      updatedBoutique.userId,
+      `${stars} Nova avaliação no açougue!`,
+      `Você recebeu ${data.boutiqueRating} estrela${data.boutiqueRating !== 1 ? 's' : ''} por este evento.`,
+      '/boutiques/dashboard'
+    ).catch(() => {})
   }
 
   return review

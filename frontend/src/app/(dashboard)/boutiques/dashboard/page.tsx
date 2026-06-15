@@ -439,13 +439,46 @@ export default function BoutiqueDashboardPage() {
   if (loading) return <p className="text-gray-400 p-6">Carregando...</p>
 
   if (notFound) return (
-    <div className="max-w-xl mx-auto p-6">
-      <div className="bg-gray-900 rounded-xl p-8 text-center">
-        <p className="text-gray-400 mb-4">Você não tem um açougue cadastrado.</p>
-        <Link href="/boutiques/new" className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-lg inline-block font-medium">
-          Cadastrar açougue
-        </Link>
+    <div className="max-w-lg mx-auto px-4 py-12">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span className="text-4xl">🥩</span>
+        </div>
+        <h1 className="text-2xl font-bold mb-2">Cadastre seu açougue!</h1>
+        <p className="text-gray-400 text-sm">Venda cortes nobres para clientes que estão organizando churrascos na sua cidade.</p>
       </div>
+
+      <div className="space-y-3 mb-8">
+        <div className="bg-gray-900 border border-orange-500/30 rounded-xl p-4 flex items-start gap-4">
+          <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-white font-bold text-sm shrink-0">1</div>
+          <div>
+            <p className="font-semibold text-white">Cadastre seu açougue</p>
+            <p className="text-gray-400 text-xs mt-0.5">Nome, endereço, fotos e horário de funcionamento.</p>
+          </div>
+        </div>
+        <div className="bg-gray-900 rounded-xl p-4 flex items-start gap-4 opacity-60">
+          <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm shrink-0">2</div>
+          <div>
+            <p className="font-semibold text-gray-300">Aguardar aprovação</p>
+            <p className="text-gray-500 text-xs mt-0.5">Nossa equipe verifica em até 24h e avisa no WhatsApp.</p>
+          </div>
+        </div>
+        <div className="bg-gray-900 rounded-xl p-4 flex items-start gap-4 opacity-60">
+          <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center text-gray-400 font-bold text-sm shrink-0">3</div>
+          <div>
+            <p className="font-semibold text-gray-300">Vender para festas</p>
+            <p className="text-gray-500 text-xs mt-0.5">Adicione seus cortes e comece a receber pedidos automaticamente.</p>
+          </div>
+        </div>
+      </div>
+
+      <Link
+        href="/boutiques/new"
+        className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-bold text-center block transition-colors"
+      >
+        Cadastrar meu açougue agora
+      </Link>
+      <p className="text-center text-xs text-gray-600 mt-3">Gratuito · Sem mensalidade · Comissão só nas vendas</p>
     </div>
   )
 
