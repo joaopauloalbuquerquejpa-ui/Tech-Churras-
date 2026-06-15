@@ -193,6 +193,42 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                   <span key={t} className="text-xs text-gray-500">{t}</span>
                 ))}
               </div>
+
+              {/* Churrasqueiro Fundador box */}
+              <div className="mt-8 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🏅</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <p className="font-black text-white text-sm">Churrasqueiro Fundador</p>
+                      <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                        10 vagas · SP
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-3">Primeiros 10 churrasqueiros chancelados em São Paulo:</p>
+                    <div className="space-y-1.5">
+                      {[
+                        'Treinamento presencial com Jota Albuquerque — 1.800+ eventos',
+                        'Badge "Churrasqueiro Fundador" permanente na plataforma',
+                        'Prioridade máxima nas buscas por 6 meses',
+                        'Acesso direto ao fundador via WhatsApp',
+                      ].map(b => (
+                        <div key={b} className="flex items-start gap-2 text-xs text-gray-300">
+                          <span className="text-amber-400 mt-0.5">✦</span>
+                          <span>{b}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <a
+                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero uma das vagas de Churrasqueiro Fundador da Tech Churras em SP.')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="mt-4 inline-block text-xs bg-amber-500 hover:bg-amber-400 text-black font-black px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Quero uma vaga de Fundador →
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Dashboard mockup */}
@@ -274,6 +310,69 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                 <p className="text-sm text-gray-400 leading-relaxed">{s.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CHANCELAMENTO ────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-3">Exclusivo Tech Churras</p>
+            <h2 className="text-3xl sm:text-4xl font-black mb-4">Programa de Chancelamento</h2>
+            <p className="text-gray-400 max-w-xl mx-auto">
+              Não somos um aplicativo de freelas de churrasco. Somos uma rede de profissionais certificados. Existe diferença — e o cliente paga por ela.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-8 items-center">
+            <div className="space-y-4">
+              {[
+                {
+                  icon: '👨‍🏫', titulo: 'Treinamento com Jota Albuquerque',
+                  desc: 'Treinamento presencial desenvolvido por Jota — 1.800+ eventos, Madonna, Lady Gaga, Neymar. Técnicas de corte, controle de fogo, temperos, apresentação e postura profissional.',
+                },
+                {
+                  icon: '📋', titulo: 'Avaliação e aprovação',
+                  desc: 'Antes de aparecer na plataforma, seu perfil é avaliado. Só churrasqueiros que atendem o padrão de qualidade da Tech Churras são aprovados e ficam visíveis para os clientes.',
+                },
+                {
+                  icon: '⭐', titulo: 'Manutenção da nota mínima',
+                  desc: 'Para continuar ativo, você mantém avaliação acima de 4.5★. Isso protege a reputação de todos os churrasqueiros da rede — e garante que o cliente sempre contrate alguém de confiança.',
+                },
+                {
+                  icon: '🏅', titulo: 'Selo visível no seu perfil',
+                  desc: 'O badge "Chancelado Tech Churras" aparece no seu perfil público. Para o cliente, é a garantia de que você passou por um processo sério — não é qualquer um com uma grelha.',
+                },
+              ].map(item => (
+                <div key={item.titulo} className="flex gap-4 bg-gray-900 border border-gray-800 rounded-2xl p-5">
+                  <span className="text-2xl shrink-0">{item.icon}</span>
+                  <div>
+                    <p className="font-bold text-white mb-1">{item.titulo}</p>
+                    <p className="text-sm text-gray-400 leading-relaxed">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/5 border border-orange-500/20 rounded-3xl p-8">
+              <div className="flex items-center gap-3 mb-6">
+                <img src="/jota.jpg" alt="Jota Albuquerque" className="w-14 h-14 rounded-full object-cover object-top border-2 border-orange-500/40" />
+                <div>
+                  <p className="font-black text-white">Jota Albuquerque</p>
+                  <p className="text-xs text-gray-500">Fundador & CEO · 1.800+ eventos</p>
+                </div>
+              </div>
+              <p className="text-3xl text-orange-500 font-black leading-none mb-3">"</p>
+              <p className="text-gray-200 leading-relaxed mb-6">
+                Passei anos fazendo churrasco para os maiores eventos do mundo. O que aprendi não está em curso nenhum. Quero passar isso para os churrasqueiros da Tech Churras — porque quando você evolui, a plataforma inteira evolui.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {['Técnicas de corte', 'Controle de fogo', 'Temperos regionais', 'Postura profissional', 'Equipamentos'].map(t => (
+                  <span key={t} className="text-xs bg-orange-500/10 text-orange-300 border border-orange-500/20 px-2.5 py-1 rounded-full">{t}</span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
