@@ -1,6 +1,7 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
 import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
+import { emailOrderConfirmed } from '../email/email.service'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -93,14 +94,28 @@ export async function handleMPWebhook(payload: any) {
       },
     })
 
-    // Notify GM of payment-confirmed order
+    // Notify GM and customer of payment-confirmed order
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { grillmaster: { select: { userId: true } }, customer: { select: { name: true } } },
+      include: {
+        grillmaster: { include: { user: { select: { id: true, name: true } } } },
+        customer: { select: { id: true, name: true, email: true } },
+      },
     })
-    if (order?.grillmaster?.userId) {
+    if (order?.grillmaster?.user) {
       const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
-      sendPushToUser(order.grillmaster.userId, '💳 Pagamento confirmado!', `${order.customer.name} pagou. Evento em ${date}. Confirme sua presença.`, '/grillmasters/dashboard').catch(() => {})
+      sendPushToUser(order.grillmaster.user.id, '💳 Pagamento confirmado!', `${order.customer.name} pagou. Evento em ${date}. Confirme sua presença.`, '/grillmasters/dashboard').catch(() => {})
+    }
+    if (order?.customer) {
+      sendPushToUser(order.customer.id, '✅ Pagamento confirmado!', 'Seu churrasco está confirmado! Acompanhe os detalhes no app.', `/orders/${orderId}`).catch(() => {})
+      emailOrderConfirmed(
+        order.customer.email,
+        order.customer.name,
+        orderId,
+        order.grillmaster?.user?.name ?? 'churrasqueiro',
+        order.eventDate,
+        order.eventAddress ?? ''
+      ).catch(() => {})
     }
   }
 
