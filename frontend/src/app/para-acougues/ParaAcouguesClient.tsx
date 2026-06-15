@@ -6,6 +6,7 @@ import Link from 'next/link'
 const MENSALIDADE = 369
 const COMISSAO_RATE = 0.07
 const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
+const FUNDADOR_VAGAS = 3
 
 // ── Animated number counter ──────────────────────────────────────────
 function AnimatedNumber({ value, prefix = '', suffix = '', decimals = 0 }: {
@@ -192,6 +193,42 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 ].map(t => (
                   <span key={t} className="text-xs text-gray-500">{t}</span>
                 ))}
+              </div>
+
+              {/* Parceiro Fundador box */}
+              <div className="mt-8 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-5">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🏅</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <p className="font-black text-white text-sm">Pacote Parceiro Fundador</p>
+                      <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                        {FUNDADOR_VAGAS} vagas
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mb-3">Primeiros {FUNDADOR_VAGAS} açougues parceiros em São Paulo:</p>
+                    <div className="space-y-1.5">
+                      {[
+                        '3 meses sem mensalidade (economia de R$ 1.107)',
+                        'Badge "Açougue Fundador" permanente na plataforma',
+                        'Destaque nas buscas por 6 meses',
+                        'Acesso direto ao fundador via WhatsApp',
+                      ].map(b => (
+                        <div key={b} className="flex items-start gap-2 text-xs text-gray-300">
+                          <span className="text-amber-400 mt-0.5">✦</span>
+                          <span>{b}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <a
+                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero uma das vagas de Parceiro Fundador do açougue na Tech Churras.')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="mt-4 inline-block text-xs bg-amber-500 hover:bg-amber-400 text-black font-black px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Quero uma vaga de Fundador →
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
 
