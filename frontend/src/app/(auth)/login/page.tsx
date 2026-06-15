@@ -29,7 +29,11 @@ export default function LoginPage() {
       const data = await login(email, password)
       setUser(data.user)
       setToken(data.token)
-      router.push('/dashboard')
+      const role = data.user?.role
+      if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
+      else if (role === 'BOUTIQUE') router.push('/boutiques/dashboard')
+      else if (role === 'ADMIN') router.push('/admin')
+      else router.push('/dashboard')
     } catch {
       setError('Email ou senha incorretos')
     } finally {

@@ -66,10 +66,17 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
     if (coords) { latitude = coords.lat; longitude = coords.lng }
   }
 
-  return prisma.boutique.create({
+  const boutique = await prisma.boutique.create({
     data: { userId, ...data, latitude, longitude },
     include: { user: { select: { name: true, email: true } } },
   })
+  // Notify all admins of new partner registration
+  prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } }).then(admins => {
+    for (const admin of admins) {
+      sendPushToUser(admin.id, '🥩 Novo açougue!', `${boutique.user?.name} cadastrou ${boutique.name} e aguarda aprovação.`, '/admin').catch(() => {})
+    }
+  }).catch(() => {})
+  return boutique
 }
 
 export async function listBoutiques(params: {

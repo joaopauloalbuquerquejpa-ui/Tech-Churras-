@@ -42,7 +42,11 @@ function RegisterForm() {
       const data = await register(name, email, password, referralCode ?? undefined, roleParam ?? undefined, phone.trim() || undefined, conviteId ?? undefined)
       setUser(data.user)
       setToken(data.token)
-      router.push('/dashboard')
+      const role = data.user?.role
+      if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
+      else if (role === 'BOUTIQUE') router.push('/boutiques/dashboard')
+      else if (role === 'ADMIN') router.push('/admin')
+      else router.push('/dashboard')
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Erro ao criar conta. Tente novamente.')
     } finally {

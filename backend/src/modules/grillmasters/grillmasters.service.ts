@@ -1,6 +1,7 @@
 import { prisma } from '../../config/prisma'
 import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
+import { sendPushToUser } from '../push/push.service'
 
 export const createGrillmasterSchema = z.object({
   bio: z.string().optional(),
@@ -33,10 +34,17 @@ export async function createGrillmaster(userId: string, data: CreateGrillmasterI
     if (coords) { latitude = coords.lat; longitude = coords.lng }
   }
 
-  return prisma.grillmaster.create({
+  const gm = await prisma.grillmaster.create({
     data: { userId, ...data, latitude, longitude },
     include: { user: { select: { name: true, email: true } } },
   })
+  // Notify all admins of new partner registration
+  prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } }).then(admins => {
+    for (const admin of admins) {
+      sendPushToUser(admin.id, '👨‍🍳 Novo churrasqueiro!', `${gm.user?.name} cadastrou perfil e aguarda aprovação.`, '/admin').catch(() => {})
+    }
+  }).catch(() => {})
+  return gm
 }
 
 export async function listGrillmasters(params: {
