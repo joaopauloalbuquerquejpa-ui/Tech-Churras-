@@ -43,7 +43,7 @@ export default function PriceCalculator() {
             <p className="text-3xl font-black text-orange-400">
               {total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}
             </p>
-            <p className="text-xs text-gray-500 mt-1">churrasqueiro + carnes</p>
+            <p className="text-xs text-gray-500 mt-1">Grillmaster + carnes</p>
           </div>
         </div>
         <div className="text-center">

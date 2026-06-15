@@ -150,7 +150,7 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 text-xs text-orange-400 font-semibold mb-8 uppercase tracking-wide">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-          Churrasqueiro + Açougue + IA + Tracking ao vivo
+          Grillmaster + Açougue + IA + Tracking ao vivo
         </div>
         <h1 className="text-5xl md:text-7xl font-black leading-none mb-6">
           O melhor churrasco{' '}
