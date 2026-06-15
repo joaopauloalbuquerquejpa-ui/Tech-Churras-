@@ -3,6 +3,7 @@ import { z } from 'zod'
 import crypto from 'crypto'
 import { validateCoupon } from '../coupons/coupons.service'
 import { sendPushToUser } from '../push/push.service'
+import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } from '../email/email.service'
 
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
@@ -86,10 +87,17 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
 
   // Notify grillmaster of incoming order
   if (order.grillmasterId) {
-    prisma.grillmaster.findUnique({ where: { id: order.grillmasterId }, select: { userId: true } }).then(gm => {
-      if (gm) {
+    Promise.all([
+      prisma.grillmaster.findUnique({
+        where: { id: order.grillmasterId },
+        include: { user: { select: { id: true, email: true, name: true } } },
+      }),
+      prisma.user.findUnique({ where: { id: customerId }, select: { name: true } }),
+    ]).then(([gm, customer]) => {
+      if (gm?.user) {
         const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
-        sendPushToUser(gm.userId, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch(() => {})
+        sendPushToUser(gm.user.id, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch(() => {})
+        emailNewOrderGrillmaster(gm.user.email, gm.user.name, order.id, customer?.name ?? 'Cliente', order.eventDate, order.guestCount).catch(() => {})
       }
     }).catch(() => {})
   }
@@ -214,6 +222,14 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       `Seu churrasco foi confirmado para ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updated.eventDate)}.`,
       `/orders/${updated.id}`
     ).catch(() => {})
+    emailOrderConfirmed(
+      updated.customer.email,
+      updated.customer.name,
+      updated.id,
+      updated.grillmaster?.user?.name ?? 'churrasqueiro',
+      updated.eventDate,
+      updated.eventAddress ?? ''
+    ).catch(() => {})
   }
   if (status === 'COMPLETED' && updated.grillmasterId) {
     prisma.grillmaster.findUnique({ where: { id: updated.grillmasterId } }).then(gm => {
@@ -252,6 +268,10 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
     const msg = `⭐ Como foi o churrasco com ${gmName}?\n\nEsperamos que tenha sido incrível! Avalie o evento em 1 minuto e ajude outros clientes:\nhttps://www.techchurras.com.br/orders/${updated.id}/review\n\n🔥 Tech Churras`
     sendWhatsAppMessage(updated.customer.phone, msg, 'review-pos-evento').catch(() => {})
+  }
+  if (status === 'COMPLETED') {
+    const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
+    emailOrderCompleted(updated.customer.email, updated.customer.name, updated.id, gmName).catch(() => {})
   }
   return updated
 }

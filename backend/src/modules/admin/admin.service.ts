@@ -1,5 +1,6 @@
 import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
+import { emailPartnerApproved } from '../email/email.service'
 
 async function sendWhatsApp(phone: string, message: string, label: string) {
   const instance = process.env.ZAPI_INSTANCE
@@ -47,7 +48,7 @@ export async function approveGrillmaster(
 ) {
   const gm = await prisma.grillmaster.findUnique({
     where: { id: grillmasterId },
-    include: { user: { select: { id: true, name: true, phone: true } } },
+    include: { user: { select: { id: true, name: true, email: true, phone: true } } },
   })
   const updated = await prisma.grillmaster.update({
     where: { id: grillmasterId },
@@ -66,6 +67,7 @@ export async function approveGrillmaster(
       `Parabéns ${name}! Você já está ativo na Tech Churras e pode receber pedidos.`,
       '/grillmasters/dashboard'
     ).catch(() => {})
+    emailPartnerApproved(gm.user.email, gm.user.name, 'GRILLMASTER', 'https://www.techchurras.com.br/grillmasters/dashboard').catch(() => {})
     if (gm.user.phone) {
       sendWhatsApp(
         gm.user.phone,
@@ -114,7 +116,7 @@ function generateReferralCode(name: string): string {
 export async function approveBoutique(boutiqueId: string) {
   const boutique = await prisma.boutique.findUnique({
     where: { id: boutiqueId },
-    include: { user: { select: { id: true, name: true, phone: true } } },
+    include: { user: { select: { id: true, name: true, email: true, phone: true } } },
   })
   if (!boutique) throw new Error('Acougue nao encontrado')
   let referralCode = boutique.referralCode
@@ -133,6 +135,7 @@ export async function approveBoutique(boutiqueId: string) {
       `Parabéns ${name}! O açougue ${boutique.name} já está ativo na Tech Churras.`,
       '/boutiques/dashboard'
     ).catch(() => {})
+    emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch(() => {})
     if (boutique.user.phone) {
       sendWhatsApp(
         boutique.user.phone,
