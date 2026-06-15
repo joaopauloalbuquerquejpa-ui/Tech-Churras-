@@ -13,6 +13,7 @@ import {
   getDashboardStatsHandler,
   markOrderPaidHandler,
 } from './admin.controller'
+import { updateGrillmasterProfile } from './admin.service'
 import {
   listPayoutsHandler,
   getPayoutsSummaryHandler,
@@ -35,6 +36,15 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get('/admin/grillmasters/pending', listPendingGrillmastersHandler)
   app.patch('/admin/grillmasters/:grillmasterId/approve', approveGrillmasterHandler)
   app.patch('/admin/grillmasters/:grillmasterId/reject', rejectGrillmasterHandler)
+  app.patch('/admin/grillmasters/:grillmasterId/profile', async (req, reply) => {
+    try {
+      const { grillmasterId } = req.params as { grillmasterId: string }
+      const updated = await updateGrillmasterProfile(grillmasterId, req.body as Record<string, unknown>)
+      return reply.send(updated)
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
 
   app.get('/admin/boutiques/pending', listPendingBoutiquesHandler)
   app.patch('/admin/boutiques/:boutiqueId/approve', approveBoutiqueHandler)

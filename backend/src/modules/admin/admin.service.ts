@@ -16,6 +16,10 @@ async function sendWhatsApp(phone: string, message: string, label: string) {
   } catch {}
 }
 
+export async function updateGrillmasterProfile(grillmasterId: string, data: Record<string, unknown>) {
+  return prisma.grillmaster.update({ where: { id: grillmasterId }, data })
+}
+
 export async function listUsers() {
   return prisma.user.findMany({
     select: { id: true, name: true, email: true, role: true, createdAt: true },
