@@ -141,3 +141,22 @@ export async function emailPartnerApproved(
 
   await sendEmail(to, '🎉 Seu perfil foi aprovado na Tech Churras!', html, 'partner-approved')
 }
+
+export async function emailWelcomeCustomer(to: string, customerName: string) {
+  const firstName = customerName.split(' ')[0]
+  const html = baseTemplate(`
+    <h2 style="color:#f97316;margin:0 0 8px;font-size:24px">🔥 Bem-vindo à Tech Churras!</h2>
+    <p style="color:#aaa;margin:0 0 20px">Oi ${firstName}! Você acaba de entrar no maior marketplace de churrasqueiros profissionais do Brasil.</p>
+    <div style="background:#111;border-radius:12px;padding:16px;margin-bottom:20px">
+      <p style="margin:4px 0;color:#fff">🥩 <strong>Açougues selecionados</strong> com os melhores cortes</p>
+      <p style="margin:4px 0;color:#fff">👨‍🍳 <strong>Churrasqueiros certificados</strong> perto de você</p>
+      <p style="margin:4px 0;color:#fff">📍 <strong>Rastreamento ao vivo</strong> do evento</p>
+      <p style="margin:4px 0;color:#fff">⭐ <strong>Avaliações reais</strong> de clientes verificados</p>
+    </div>
+    <a href="${BASE_URL}/grillmasters" style="display:block;background:#f97316;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:bold;font-size:16px">
+      Encontrar churrasqueiros
+    </a>
+    <p style="color:#666;font-size:12px;text-align:center;margin-top:16px">Use o cupom <strong style="color:#f97316">CHURRAS10</strong> no primeiro pedido para 10% OFF.</p>
+  `)
+  await sendEmail(to, '🔥 Bem-vindo à Tech Churras! Seu churrasco perfeito está aqui.', html, 'welcome-customer')
+}

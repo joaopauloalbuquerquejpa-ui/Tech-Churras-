@@ -1,6 +1,7 @@
 import { prisma } from '../../config/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
+import { emailWelcomeCustomer } from '../email/email.service'
 
 export const registerSchema = z.object({
   name: z.string().min(2),
@@ -62,6 +63,11 @@ export async function registerUser(data: RegisterInput) {
         data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true },
       }).catch(() => {})
     }
+  }
+
+  // Fire-and-forget welcome email for customers only
+  if (data.role === 'CUSTOMER') {
+    emailWelcomeCustomer(user.email, user.name).catch(() => {})
   }
 
   return user

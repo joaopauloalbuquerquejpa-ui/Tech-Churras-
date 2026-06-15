@@ -178,6 +178,15 @@ export default function OrderDetailPage() {
     return () => clearInterval(interval)
   }, [order?.statusDetail])
 
+  // Auto-refresh status for customers on active (non-terminal) orders
+  useEffect(() => {
+    if (!order) return
+    if (['COMPLETED', 'CANCELLED'].includes(order.status)) return
+    if (order.statusDetail === 'Churrasqueiro a caminho') return // 10s interval already active
+    const interval = setInterval(fetchOrder, 30000)
+    return () => clearInterval(interval)
+  }, [order?.status, order?.statusDetail])
+
   useEffect(() => {
     if (!order || !currentUser) return
     const isGM = currentUser.role === 'GRILLMASTER' && order.grillmaster?.user?.id === currentUser.id
