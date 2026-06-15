@@ -23,8 +23,15 @@ import {
 import { listCoupons, createCoupon, toggleCoupon } from '../coupons/coupons.service'
 import { getBoutiqueReferralStats } from './admin.service'
 
+async function requireAdmin(req: any, reply: any) {
+  if (req.user?.role !== 'ADMIN') {
+    return reply.status(403).send({ error: 'Acesso restrito a administradores' })
+  }
+}
+
 export async function adminRoutes(app: FastifyInstance) {
   app.addHook('preHandler', app.authenticate)
+  app.addHook('preHandler', requireAdmin)
 
   app.get('/admin/dashboard', getDashboardStatsHandler)
   app.get('/admin/stats', getDashboardStatsHandler)
