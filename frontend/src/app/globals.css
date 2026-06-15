@@ -133,6 +133,12 @@ body {
   border-radius: 16px;
 }
 
+/* ── iOS safe area ── */
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {

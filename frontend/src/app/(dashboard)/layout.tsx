@@ -8,6 +8,7 @@ import Link from 'next/link'
 import NotificationBell from '@/components/NotificationBell'
 import OnboardingTour from '@/components/OnboardingTour'
 import SupportButton from '@/components/SupportButton'
+import MobileNav from '@/components/MobileNav'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 
 function PushBanner() {
@@ -154,7 +155,8 @@ export default function DashboardLayout({
         </div>
       </nav>
       {user && <OnboardingTour userId={user.id} role={user.role} />}
-      <main className='p-6'>{children}</main>
+      <main className='p-6 pb-24 md:pb-6'>{children}</main>
+      <MobileNav />
       <SupportButton />
       <footer className='border-t border-gray-800 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-gray-600'>
         <span>© 2026 Tech Churras</span>
