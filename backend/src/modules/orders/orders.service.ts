@@ -80,8 +80,20 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
 
   // Notify boutique owner when a new order involves their boutique
   if (order.boutiqueId) {
-    prisma.boutique.findUnique({ where: { id: order.boutiqueId } }).then(b => {
-      if (b) sendPushToUser(b.userId, 'Novo pedido no seu açougue!', 'Um novo pedido foi criado envolvendo seu açougue.', '/boutiques/dashboard').catch(() => {})
+    const eventDateFmt = new Intl.DateTimeFormat('pt-BR', {
+      weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+    }).format(order.eventDate)
+    prisma.boutique.findUnique({
+      where: { id: order.boutiqueId },
+      include: { user: { select: { id: true, name: true, phone: true } } },
+    }).then(b => {
+      if (!b) return
+      sendPushToUser(b.userId, '🥩 Novo pedido no seu açougue!', `Evento em ${eventDateFmt} — acesse o dashboard.`, '/boutiques/dashboard').catch(() => {})
+      if (b.user?.phone) {
+        const firstName = b.user.name.split(' ')[0]
+        const msg = `🥩 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Chegou um pedido para o *${order.boutique?.name ?? 'seu açougue'}*.\n\n📅 Evento: ${eventDateFmt}\n👥 ${order.guestCount} convidados\n\nVeja os detalhes e prepare os cortes:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`
+        sendWhatsAppMessage(b.user.phone, msg, 'new-order-boutique').catch(() => {})
+      }
     }).catch(() => {})
   }
 
@@ -90,14 +102,19 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     Promise.all([
       prisma.grillmaster.findUnique({
         where: { id: order.grillmasterId },
-        include: { user: { select: { id: true, email: true, name: true } } },
+        include: { user: { select: { id: true, email: true, name: true, phone: true } } },
       }),
       prisma.user.findUnique({ where: { id: customerId }, select: { name: true } }),
     ]).then(([gm, customer]) => {
-      if (gm?.user) {
-        const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
-        sendPushToUser(gm.user.id, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch(() => {})
-        emailNewOrderGrillmaster(gm.user.email, gm.user.name, order.id, customer?.name ?? 'Cliente', order.eventDate, order.guestCount).catch(() => {})
+      if (!gm?.user) return
+      const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
+      sendPushToUser(gm.user.id, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch(() => {})
+      emailNewOrderGrillmaster(gm.user.email, gm.user.name, order.id, customer?.name ?? 'Cliente', order.eventDate, order.guestCount).catch(() => {})
+      if (gm.user.phone) {
+        const firstName = gm.user.name.split(' ')[0]
+        const customerName = customer?.name ?? 'Cliente'
+        const msg = `🔥 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Você recebeu um novo pedido.\n\n👤 Cliente: ${customerName}\n📅 Data: ${date}\n👥 ${order.guestCount} convidados\n\nAcesse o painel para *confirmar agora*:\nhttps://www.techchurras.com.br/grillmasters/dashboard\n\n_Responda rápido — clientes preferem churrasqueiros ágeis! 🔥_`
+        sendWhatsAppMessage(gm.user.phone, msg, 'new-order-gm').catch(() => {})
       }
     }).catch(() => {})
   }
@@ -263,6 +280,25 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       gmName,
       updated.eventDate
     ).catch(() => {})
+  }
+  // Notify boutique to prepare the order when GM confirms
+  if (status === 'CONFIRMED') {
+    prisma.order.findUnique({
+      where: { id },
+      include: {
+        boutique: { include: { user: { select: { name: true, phone: true } } } },
+        grillmaster: { include: { user: { select: { name: true } } } },
+      },
+    }).then(o => {
+      if (!o?.boutique?.user?.phone) return
+      const date = new Intl.DateTimeFormat('pt-BR', {
+        weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+      }).format(o.eventDate)
+      const firstName = o.boutique.user.name.split(' ')[0]
+      const gmName = o.grillmaster?.user?.name ?? 'churrasqueiro'
+      const msg = `✅ *Pedido confirmado — separe os cortes!*\n\nOlá ${firstName}, o churrasqueiro *${gmName}* confirmou o pedido e passará no seu açougue.\n\n📅 Evento: ${date}\n👥 ${o.guestCount} convidados\n\nSepare os cortes e acompanhamentos para quando ele chegar:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`
+      sendWhatsAppMessage(o.boutique.user.phone, msg, 'order-confirmed-boutique').catch(() => {})
+    }).catch(() => {})
   }
   if (status === 'COMPLETED' && updated.customer.phone) {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
