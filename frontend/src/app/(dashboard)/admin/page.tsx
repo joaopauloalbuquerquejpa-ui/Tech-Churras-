@@ -15,6 +15,11 @@ interface Stats {
   totalGrillmasters: number
   totalBoutiques: number
   totalRevenue: number
+  ordersToday: number
+  revenueToday: number
+  usersToday: number
+  activeOrders: number
+  revenueWeek: number
 }
 
 interface Order {
@@ -105,26 +110,41 @@ export default function AdminPage() {
   const [viewContract, setViewContract] = useState<AdminContract | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('stats')
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
 
-  useEffect(() => {
+  async function fetchAll(silent = false) {
+    if (!silent) setLoading(true)
+    else setRefreshing(true)
     const h = { Authorization: 'Bearer ' + getToken() }
-    Promise.all([
-      fetch(BASE + '/admin/stats', { headers: h }).then(r => r.json()),
-      fetch(BASE + '/admin/orders', { headers: h }).then(r => r.json()),
-      fetch(BASE + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
-      fetch(BASE + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
-      fetch(BASE + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
-    ]).then(([s, o, pg, pb, c]) => {
+    try {
+      const [s, o, pg, pb, c] = await Promise.all([
+        fetch(BASE + '/admin/stats', { headers: h }).then(r => r.json()),
+        fetch(BASE + '/admin/orders', { headers: h }).then(r => r.json()),
+        fetch(BASE + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
+        fetch(BASE + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
+        fetch(BASE + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
+      ])
       setStats(s)
       setOrders(Array.isArray(o) ? o : o.orders || [])
       const gms: PendingGrillmaster[] = Array.isArray(pg) ? pg : []
       setPendingGrillmasters(gms)
       const init: Record<string, GmApproveState> = {}
       gms.forEach(g => { init[g.id] = { isChancelado: false, pricePerHour: g.pricePerHour } })
-      setGmApproveState(init)
+      setGmApproveState(prev => ({ ...init, ...prev }))
       setPendingBoutiques(Array.isArray(pb) ? pb : [])
       setContracts(Array.isArray(c) ? c : [])
-    }).finally(() => setLoading(false))
+      setLastUpdated(new Date())
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchAll()
+    const interval = setInterval(() => fetchAll(true), 30000)
+    return () => clearInterval(interval)
   }, [])
 
   async function updateStatus(id: string, status: string) {
@@ -192,7 +212,24 @@ export default function AdminPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Painel Admin</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Painel Admin</h1>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="text-xs text-gray-500">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse" />
+              Atualizado às {lastUpdated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          )}
+          <button
+            onClick={() => fetchAll(true)}
+            disabled={refreshing}
+            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+          >
+            {refreshing ? '↻' : 'Atualizar'}
+          </button>
+        </div>
+      </div>
 
       <div className="flex gap-2 mb-6">
         {([
@@ -212,35 +249,62 @@ export default function AdminPage() {
       </div>
 
       {tab === 'stats' && stats && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="bg-gray-900 rounded-xl p-5">
-            <p className="text-gray-400 text-sm">Total Pedidos</p>
-            <p className="text-3xl font-bold text-orange-400">{stats.totalOrders}</p>
+        <div className="space-y-4">
+          {/* Today highlights */}
+          <div className="bg-gradient-to-r from-orange-900/20 to-gray-900 border border-orange-500/20 rounded-2xl p-5">
+            <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-4">Hoje</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Pedidos hoje</p>
+                <p className="text-3xl font-black text-white">{stats.ordersToday}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Receita hoje</p>
+                <p className="text-2xl font-black text-green-400">R$ {(stats.revenueToday ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Novos usuários</p>
+                <p className="text-3xl font-black text-white">{stats.usersToday}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-1">Pedidos ativos</p>
+                <p className="text-3xl font-black text-orange-400">{stats.activeOrders}</p>
+              </div>
+            </div>
           </div>
-          <div className="bg-gray-900 rounded-xl p-5">
-            <p className="text-gray-400 text-sm">Usuários</p>
-            <p className="text-3xl font-bold text-orange-400">{stats.totalUsers}</p>
+
+          {/* All-time stats */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="bg-gray-900 rounded-xl p-5">
+              <p className="text-gray-400 text-sm">Total Pedidos</p>
+              <p className="text-3xl font-bold text-orange-400">{stats.totalOrders}</p>
+              <p className="text-xs text-gray-600 mt-1">R$ {(stats.revenueWeek ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} últimos 7 dias</p>
+            </div>
+            <div className="bg-gray-900 rounded-xl p-5">
+              <p className="text-gray-400 text-sm">Usuários</p>
+              <p className="text-3xl font-bold text-orange-400">{stats.totalUsers}</p>
+            </div>
+            <div className="bg-gray-900 rounded-xl p-5">
+              <p className="text-gray-400 text-sm">Churrasqueiros</p>
+              <p className="text-3xl font-bold text-orange-400">{stats.totalGrillmasters}</p>
+            </div>
+            <div className="bg-gray-900 rounded-xl p-5">
+              <p className="text-gray-400 text-sm">Açougues</p>
+              <p className="text-3xl font-bold text-orange-400">{stats.totalBoutiques}</p>
+            </div>
+            <div className="bg-gray-900 rounded-xl p-5">
+              <p className="text-gray-400 text-sm">Receita Total</p>
+              <p className="text-3xl font-bold text-green-400">R$ {(stats.totalRevenue ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+            </div>
+            <Link
+              href="/admin/repasses"
+              className="bg-gray-900 rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 hover:bg-gray-800 transition-all group"
+            >
+              <p className="text-gray-400 text-sm group-hover:text-orange-400 transition-colors">Repasses Semanais</p>
+              <p className="text-lg font-bold text-orange-400 mt-1">Gerenciar</p>
+              <p className="text-xs text-gray-600 mt-1">Controle de pagamentos para parceiros</p>
+            </Link>
           </div>
-          <div className="bg-gray-900 rounded-xl p-5">
-            <p className="text-gray-400 text-sm">Churrasqueiros</p>
-            <p className="text-3xl font-bold text-orange-400">{stats.totalGrillmasters}</p>
-          </div>
-          <div className="bg-gray-900 rounded-xl p-5">
-            <p className="text-gray-400 text-sm">Açougues</p>
-            <p className="text-3xl font-bold text-orange-400">{stats.totalBoutiques}</p>
-          </div>
-          <div className="bg-gray-900 rounded-xl p-5">
-            <p className="text-gray-400 text-sm">Receita Total</p>
-            <p className="text-3xl font-bold text-green-400">R$ {(stats.totalRevenue ?? 0).toFixed(2)}</p>
-          </div>
-          <Link
-            href="/admin/repasses"
-            className="bg-gray-900 rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 hover:bg-gray-800 transition-all group"
-          >
-            <p className="text-gray-400 text-sm group-hover:text-orange-400 transition-colors">Repasses Semanais</p>
-            <p className="text-lg font-bold text-orange-400 mt-1">Gerenciar</p>
-            <p className="text-xs text-gray-600 mt-1">Controle de pagamentos para parceiros</p>
-          </Link>
         </div>
       )}
 

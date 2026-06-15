@@ -111,12 +111,34 @@ export async function markOrderPaid(orderId: string) {
 }
 
 export async function getDashboardStats() {
-  const [totalUsers, totalOrders, totalBoutiques, totalGrillmasters, revenue] = await Promise.all([
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const weekStart = new Date()
+  weekStart.setDate(weekStart.getDate() - 7)
+  weekStart.setHours(0, 0, 0, 0)
+
+  const [
+    totalUsers,
+    totalOrders,
+    totalBoutiques,
+    totalGrillmasters,
+    revenue,
+    ordersToday,
+    revenueToday,
+    usersToday,
+    activeOrders,
+    revenueWeek,
+  ] = await Promise.all([
     prisma.user.count(),
     prisma.order.count(),
     prisma.boutique.count(),
     prisma.grillmaster.count(),
     prisma.order.aggregate({ _sum: { totalPrice: true } }),
+    prisma.order.count({ where: { createdAt: { gte: todayStart } } }),
+    prisma.order.aggregate({ where: { createdAt: { gte: todayStart } }, _sum: { totalPrice: true } }),
+    prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
+    prisma.order.count({ where: { status: { in: ['CONFIRMED', 'IN_PROGRESS'] } } }),
+    prisma.order.aggregate({ where: { createdAt: { gte: weekStart } }, _sum: { totalPrice: true } }),
   ])
 
   return {
@@ -125,5 +147,10 @@ export async function getDashboardStats() {
     totalBoutiques,
     totalGrillmasters,
     totalRevenue: revenue._sum.totalPrice ?? 0,
+    ordersToday,
+    revenueToday: revenueToday._sum.totalPrice ?? 0,
+    usersToday,
+    activeOrders,
+    revenueWeek: revenueWeek._sum.totalPrice ?? 0,
   }
 }
