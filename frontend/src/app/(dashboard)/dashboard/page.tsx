@@ -492,22 +492,39 @@ export default function DashboardPage() {
       )}
 
       {/* Indique e ganhe */}
-      <div className="mb-8 bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-center justify-between gap-4">
-        <div>
-          <p className="font-bold text-white text-sm mb-1">🎁 Indique o Tech Churras</p>
-          <p className="text-xs text-gray-400">Envie para amigos e familiares. Quanto mais churrascos, melhor para todo mundo.</p>
+      {user && (
+        <div className="mb-8 bg-gray-900 border border-gray-800 rounded-2xl p-5">
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <p className="font-bold text-white text-sm mb-1">🎁 Indique e seus amigos ganham 10% OFF</p>
+              <p className="text-xs text-gray-400">Cada amigo que usar seu link ganha desconto no primeiro churrasco.</p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const link = `https://www.techchurras.com.br/convite/${user.id}`
+                navigator.clipboard?.writeText(link)
+                const msg = `🔥 Usa meu link e ganha 10% OFF no primeiro churrasco pelo Tech Churras!\n\n${link}`
+                window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
+              }}
+              className="flex-1 flex items-center justify-center gap-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-bold py-2.5 rounded-xl transition-colors"
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.9 2C6.458 2 2.015 6.443 2.015 11.885c0 1.778.468 3.51 1.36 5.034L2 22l5.225-1.372a9.86 9.86 0 004.675 1.187C17.342 21.815 22 17.385 22 11.9 22 6.458 17.342 2 11.9 2z"/></svg>
+              WhatsApp
+            </button>
+            <button
+              onClick={async () => {
+                const link = `https://www.techchurras.com.br/convite/${user.id}`
+                await navigator.clipboard?.writeText(link)
+              }}
+              className="flex-1 text-xs bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2.5 rounded-xl transition-colors"
+            >
+              Copiar link
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => {
-            const msg = `🔥 Achei o melhor jeito de contratar churrasqueiro profissional!\n\nÉ o Tech Churras — você escolhe o churrasqueiro, eles trazem tudo e você acompanha chegando ao vivo no mapa.\n\nCria uma conta aqui: https://www.techchurras.com.br`
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
-          }}
-          className="shrink-0 flex items-center gap-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-bold px-4 py-2.5 rounded-xl transition-colors"
-        >
-          <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.9 2C6.458 2 2.015 6.443 2.015 11.885c0 1.778.468 3.51 1.36 5.034L2 22l5.225-1.372a9.86 9.86 0 004.675 1.187C17.342 21.815 22 17.385 22 11.9 22 6.458 17.342 2 11.9 2z"/></svg>
-          Indicar agora
-        </button>
-      </div>
+      )}
 
       {/* Trust row */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-gray-500">

@@ -69,7 +69,7 @@ export async function publicRoutes(app: FastifyInstance) {
     }
   })
 
-  // Referral code lookup
+  // Referral code lookup (boutique)
   app.get('/ref/:code', async (req, reply) => {
     const { code } = req.params as { code: string }
     const boutique = await prisma.boutique.findUnique({
@@ -78,5 +78,16 @@ export async function publicRoutes(app: FastifyInstance) {
     })
     if (!boutique) return reply.status(404).send({ error: 'Codigo de indicacao nao encontrado' })
     return boutique
+  })
+
+  // Customer referral lookup: GET /ref/user/:userId
+  app.get('/ref/user/:userId', async (req, reply) => {
+    const { userId } = req.params as { userId: string }
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, name: true, role: true },
+    })
+    if (!user || user.role !== 'CUSTOMER') return reply.status(404).send({ error: 'Indicacao nao encontrada' })
+    return { id: user.id, name: user.name }
   })
 }

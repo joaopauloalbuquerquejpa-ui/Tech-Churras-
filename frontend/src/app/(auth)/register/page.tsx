@@ -18,11 +18,14 @@ function RegisterForm() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [referralCode, setReferralCode] = useState<string | null>(null)
+  const [conviteId, setConviteId] = useState<string | null>(null)
   const [roleParam, setRoleParam] = useState<string | null>(null)
 
   useEffect(() => {
     const ref = searchParams.get('ref')
     if (ref) setReferralCode(ref.toUpperCase())
+    const convite = searchParams.get('convite')
+    if (convite) setConviteId(convite)
     const role = searchParams.get('role')
     if (role) setRoleParam(role.toUpperCase())
   }, [searchParams])
@@ -36,7 +39,7 @@ function RegisterForm() {
     setLoading(true)
     setError('')
     try {
-      const data = await register(name, email, password, referralCode ?? undefined, roleParam ?? undefined, phone.trim() || undefined)
+      const data = await register(name, email, password, referralCode ?? undefined, roleParam ?? undefined, phone.trim() || undefined, conviteId ?? undefined)
       setUser(data.user)
       setToken(data.token)
       router.push('/dashboard')
@@ -60,6 +63,11 @@ function RegisterForm() {
           <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-4 py-3 mb-5">
             <p className="text-orange-300 font-semibold text-sm">🔥 Cadastro de Churrasqueiro Parceiro</p>
             <p className="text-orange-400/80 text-xs mt-0.5">Sua conta já será criada como churrasqueiro parceiro.</p>
+          </div>
+        ) : conviteId ? (
+          <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-4 py-3 mb-5">
+            <p className="text-orange-300 font-semibold text-sm">🎁 Você foi convidado!</p>
+            <p className="text-orange-400/80 text-xs mt-0.5">10% de desconto no primeiro churrasco já garantido.</p>
           </div>
         ) : referralCode ? (
           <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-4 py-3 mb-5">

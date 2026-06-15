@@ -9,6 +9,7 @@ export const registerSchema = z.object({
   phone: z.string().optional(),
   role: z.enum(['CUSTOMER', 'GRILLMASTER', 'BOUTIQUE']).default('CUSTOMER'),
   referralCode: z.string().optional(),
+  conviteId: z.string().optional(),
 })
 
 export const loginSchema = z.object({
@@ -48,6 +49,19 @@ export async function registerUser(data: RegisterInput) {
     await prisma.coupon.create({
       data: { code: couponCode, discountType: 'PERCENT', discountValue: 15, maxUses: 1, active: true },
     }).catch(() => {})
+  }
+
+  if (data.conviteId && !referredByBoutiqueId) {
+    const referrer = await prisma.user.findUnique({
+      where: { id: data.conviteId },
+      select: { id: true, role: true },
+    }).catch(() => null)
+    if (referrer && referrer.role === 'CUSTOMER' && referrer.id !== user.id) {
+      const couponCode = 'CONVITE-' + user.id.slice(0, 6).toUpperCase()
+      await prisma.coupon.create({
+        data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true },
+      }).catch(() => {})
+    }
   }
 
   return user
