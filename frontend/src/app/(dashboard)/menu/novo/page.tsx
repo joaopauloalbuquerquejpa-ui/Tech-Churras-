@@ -254,7 +254,18 @@ function GuidedOrderForm() {
   useEffect(() => {
     const paramId = searchParams.get('grillmasterId')
     if (paramId) setSelectedGrillmasterId(paramId)
+    const urlBoutique = searchParams.get('boutiqueId')
+    if (urlBoutique) setSelectedBoutiqueId(urlBoutique)
   }, [searchParams])
+
+  // Auto-skip step 3 when boutique pre-selected via QR balcao URL
+  useEffect(() => {
+    const urlBoutique = searchParams.get('boutiqueId')
+    if (step === 3 && urlBoutique && selectedBoutiqueId === urlBoutique) {
+      setStep(4)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+  }, [step, selectedBoutiqueId, searchParams])
 
   // Fetch grillmasters and boutiques
   useEffect(() => {

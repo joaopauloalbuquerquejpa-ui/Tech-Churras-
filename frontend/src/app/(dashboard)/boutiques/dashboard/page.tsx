@@ -143,8 +143,10 @@ export default function BoutiqueDashboardPage() {
   const [copied, setCopied] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const qrRef = useRef<HTMLDivElement>(null)
+  const qrBalcaoRef = useRef<HTMLDivElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const productPhotoRef = useRef<HTMLInputElement>(null)
+  const [copiedBalcao, setCopiedBalcao] = useState(false)
 
   const [photoState, setPhotoState] = useState<'idle' | 'analyzing' | 'done' | 'error'>('idle')
   const [photoError, setPhotoError] = useState('')
@@ -436,6 +438,22 @@ export default function BoutiqueDashboardPage() {
     a.click()
   }
 
+  function copyBalcaoLink(url: string) {
+    navigator.clipboard.writeText(url)
+    setCopiedBalcao(true)
+    setTimeout(() => setCopiedBalcao(false), 2000)
+  }
+
+  function downloadQRBalcao() {
+    const canvas = qrBalcaoRef.current?.querySelector('canvas')
+    if (!canvas) return
+    const url = canvas.toDataURL('image/png')
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'qrcode-balcao-eventos.png'
+    a.click()
+  }
+
   if (loading) return <p className="text-gray-400 p-6">Carregando...</p>
 
   if (notFound) return (
@@ -484,6 +502,7 @@ export default function BoutiqueDashboardPage() {
 
   if (!boutique) return null
   const referralUrl = stats?.referralCode ? SITE_URL + '/r/' + stats.referralCode : ''
+  const balcaoUrl = SITE_URL + '/menu/novo?boutiqueId=' + boutique.id + '&utm_source=qr_balcao'
   const activeDiscountCount = boutique.products.filter(isDiscountActive).length
 
   return (
@@ -684,6 +703,119 @@ export default function BoutiqueDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* ── BALCÃO DE EVENTOS ───────────────────────────────────────────── */}
+      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-orange-500/10 to-transparent border-b border-gray-800 px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-lg shrink-0">
+              🏪
+            </div>
+            <div>
+              <p className="font-bold text-white text-sm">Balcão de Eventos — Máquina de vendas</p>
+              <p className="text-xs text-gray-500">Transforme cada cliente do balcão em um evento completo Tech Churras</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {/* 3 frentes */}
+          <div>
+            <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Suas 3 frentes de faturamento</p>
+            <div className="space-y-2">
+              {[
+                {
+                  n: '1', cor: 'border-orange-500/40 bg-orange-500/5',
+                  badge: 'Ativo agora', badgeCor: 'bg-orange-500/20 text-orange-400',
+                  titulo: 'Clientes da Tech Churras',
+                  desc: 'Novos clientes digitais que chegam pelo app — você recebe o pedido sem fazer nada.',
+                },
+                {
+                  n: '2', cor: 'border-amber-500/40 bg-amber-500/5',
+                  badge: 'Ativo agora', badgeCor: 'bg-amber-500/20 text-amber-400',
+                  titulo: 'Clientes do seu balcão',
+                  desc: 'Quem já está comprando carne para um evento — o QR abaixo converte a visita em churrasco completo.',
+                },
+                {
+                  n: '3', cor: 'border-blue-500/30 bg-blue-500/5',
+                  badge: 'Futuro próximo', badgeCor: 'bg-blue-500/20 text-blue-400',
+                  titulo: 'Seus próprios churrasqueiros',
+                  desc: 'Com volume, você monta sua equipe de churrasqueiros parceiros e multiplica o faturamento sem sair do lugar.',
+                },
+              ].map(f => (
+                <div key={f.n} className={`flex items-start gap-3 border rounded-xl p-3.5 ${f.cor}`}>
+                  <div className="w-7 h-7 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs font-black text-white shrink-0 mt-0.5">
+                    {f.n}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                      <p className="text-sm font-bold text-white">{f.titulo}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${f.badgeCor}`}>{f.badge}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 leading-relaxed">{f.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* QR do balcão */}
+          <div className="border border-dashed border-orange-500/30 rounded-xl p-4">
+            <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-3">QR Code — Balcão (Frente 2)</p>
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <div className="bg-white p-3 rounded-xl shrink-0">
+                <QRCodeSVG value={balcaoUrl} size={110} level="H" />
+              </div>
+              <div className="flex-1 space-y-3">
+                <div className="bg-gray-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+                  <p className="text-xs text-gray-400 font-mono truncate">{balcaoUrl}</p>
+                  <button
+                    onClick={() => copyBalcaoLink(balcaoUrl)}
+                    className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                  >
+                    {copiedBalcao ? '✓ Copiado' : 'Copiar'}
+                  </button>
+                </div>
+
+                <div className="flex gap-2">
+                  <div ref={qrBalcaoRef} className="hidden">
+                    <QRCodeCanvas value={balcaoUrl} size={600} level="H" />
+                  </div>
+                  <button
+                    onClick={downloadQRBalcao}
+                    className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Baixar QR
+                  </button>
+                  <Link
+                    href="/boutiques/dashboard/qrcode-eventos"
+                    className="flex-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-medium px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    🖨️ Imprimir Placa
+                  </Link>
+                </div>
+
+                <p className="text-xs text-gray-600 leading-relaxed">
+                  Cole na frente do balcão. Quando o cliente escanear, {boutique.name} já estará pré-selecionado no pedido.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Script para atendente */}
+          <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4">
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Script para o seu atendente</p>
+            <div className="bg-gray-900 rounded-lg px-4 py-3 border border-gray-700">
+              <p className="text-sm text-gray-200 leading-relaxed italic">
+                "Você vai fazer churrasco? A gente tem parceria com churrasqueiros profissionais certificados — você escaneia esse QR aqui, escolhe o churrasqueiro e a carne já vem separada daqui mesmo. Tudo em um app, fácil."
+              </p>
+            </div>
+            <p className="text-xs text-gray-600 mt-2">50% do trabalho já foi feito — o cliente está comprando carne, basta converter para o pacote completo.</p>
+          </div>
+        </div>
+      </div>
 
       {stats && stats.recentOrders.length > 0 && (
         <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">

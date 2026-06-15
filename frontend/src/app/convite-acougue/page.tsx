@@ -279,6 +279,72 @@ function ConviteContent() {
           </div>
         </div>
 
+        {/* 3 Frentes de faturamento */}
+        <div className="mb-10">
+          <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-2">Três frentes de faturamento</p>
+          <h2 className="text-2xl font-black mb-2">Seu açougue vira uma máquina de vendas</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            A maioria dos parceiros só pensa em clientes que chegam pelo app. Mas a maior oportunidade está dentro do seu próprio estabelecimento — e no futuro que cresce junto com você.
+          </p>
+
+          <div className="space-y-3 mb-6">
+            {[
+              {
+                n: '1', icon: '📱', cor: 'border-orange-500/30 bg-orange-500/5',
+                badgeCor: 'bg-orange-500/20 text-orange-400', badge: 'Começa no dia 1',
+                titulo: 'Clientes que chegam pela Tech Churras',
+                desc: 'Quem contrata um churrasqueiro pelo app escolhe os cortes do seu açougue automaticamente. Você não faz nada — o cliente aparece, o churrasqueiro retira e você fatura.',
+              },
+              {
+                n: '2', icon: '🏪', cor: 'border-amber-500/30 bg-amber-500/5',
+                badgeCor: 'bg-amber-500/20 text-amber-400', badge: 'QR Code no balcão',
+                titulo: 'Seus próprios clientes do balcão',
+                desc: 'Quem entra no seu açougue comprando carne para um evento já fez 50% do caminho. Um QR Code no balcão converte essa visita em um pedido completo — churrasqueiro, carne e acompanhamentos — sem você precisar explicar nada.',
+              },
+              {
+                n: '3', icon: '👨‍🍳', cor: 'border-blue-500/20 bg-blue-500/5',
+                badgeCor: 'bg-blue-500/20 text-blue-400', badge: 'Futuro próximo',
+                titulo: 'Seus próprios churrasqueiros',
+                desc: 'Com volume de eventos, você monta sua própria equipe de churrasqueiros parceiros. O açougue vira uma operadora completa de churrascos — controlando a carne, os acompanhamentos e a mão de obra. O faturamento multiplica sem sair do estabelecimento.',
+              },
+            ].map(f => (
+              <div key={f.n} className={`border rounded-2xl p-5 ${f.cor}`}>
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-gray-900/60 border border-gray-700 flex items-center justify-center text-xl shrink-0">
+                    {f.icon}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <span className="text-xs font-bold text-gray-500">Frente {f.n}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-bold ${f.badgeCor}`}>{f.badge}</span>
+                    </div>
+                    <p className="font-bold text-white mb-1.5">{f.titulo}</p>
+                    <p className="text-sm text-gray-400 leading-relaxed">{f.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-gray-900 border border-orange-500/20 rounded-2xl p-5">
+            <p className="text-sm font-bold text-white mb-3">Potencial combinado das 3 frentes</p>
+            <div className="grid grid-cols-3 gap-3 text-center">
+              {[
+                { valor: 'R$ 16.800', label: 'Carnes via app/mês', obs: '60 eventos × R$ 280' },
+                { valor: 'R$ 9.600', label: 'Acompanhamentos/mês', obs: '60 eventos × R$ 160' },
+                { valor: 'Ilimitado', label: 'Com equipe própria', obs: 'Escala conforme cresce' },
+              ].map(s => (
+                <div key={s.label} className="bg-gray-800/60 rounded-xl p-3">
+                  <p className="text-orange-400 font-black text-base leading-tight">{s.valor}</p>
+                  <p className="text-xs text-gray-400 mt-1 leading-tight">{s.label}</p>
+                  <p className="text-xs text-gray-600 mt-0.5 leading-tight">{s.obs}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-700 mt-3 text-center">* Estimativas baseadas em parceiros ativos. Resultados variam conforme o volume.</p>
+          </div>
+        </div>
+
         {/* Escala de ganhos */}
         <div className="mb-10">
           <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-2">Potencial de receita</p>

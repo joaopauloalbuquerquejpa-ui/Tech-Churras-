@@ -391,6 +391,82 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
         </div>
       </section>
 
+      {/* ── 3 FRENTES ─────────────────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-3">Três frentes de faturamento</p>
+            <h2 className="text-3xl sm:text-4xl font-black mb-4">Seu açougue vira uma máquina de vendas</h2>
+            <p className="text-gray-400 max-w-xl mx-auto text-sm">
+              A maioria dos parceiros só pensa em clientes que chegam pelo app. Mas a maior oportunidade está dentro do seu próprio estabelecimento — e no futuro que cresce junto com você.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5 mb-10">
+            {[
+              {
+                n: '1', icon: '📱',
+                badge: 'Começa no dia 1', badgeCor: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+                cor: 'border-orange-500/30',
+                titulo: 'Clientes da Tech Churras',
+                desc: 'Quem contrata um churrasqueiro pelo app escolhe seus cortes automaticamente. Zero marketing, zero esforço — o cliente simplesmente aparece.',
+                num: '+60', numLabel: 'novos eventos/mês possíveis',
+              },
+              {
+                n: '2', icon: '🏪',
+                badge: 'QR Code no balcão', badgeCor: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+                cor: 'border-amber-500/30',
+                titulo: 'Seus clientes do balcão',
+                desc: 'Quem entra comprando carne para um evento já fez 50% do caminho. Um QR no balcão converte a visita em pedido completo — churrasqueiro, carne e acompanhamentos.',
+                num: '50%', numLabel: 'do trabalho já foi feito',
+              },
+              {
+                n: '3', icon: '👨‍🍳',
+                badge: 'Futuro próximo', badgeCor: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+                cor: 'border-blue-500/30',
+                titulo: 'Seus próprios churrasqueiros',
+                desc: 'Com volume, você monta sua equipe de churrasqueiros parceiros. O açougue vira operadora completa — carne, acompanhamentos e mão de obra. Faturamento ilimitado.',
+                num: '∞', numLabel: 'escalabilidade',
+              },
+            ].map(f => (
+              <div key={f.n} className={`bg-gray-900 border ${f.cor} rounded-2xl p-6 flex flex-col`}>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-xl bg-gray-800 border border-gray-700 flex items-center justify-center text-2xl shrink-0">
+                    {f.icon}
+                  </div>
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold border ${f.badgeCor}`}>{f.badge}</span>
+                </div>
+                <p className="text-xs font-bold text-gray-500 mb-1">Frente {f.n}</p>
+                <p className="font-bold text-white text-lg mb-2">{f.titulo}</p>
+                <p className="text-sm text-gray-400 leading-relaxed flex-1">{f.desc}</p>
+                <div className="mt-4 pt-4 border-t border-gray-800">
+                  <p className="text-2xl font-black text-white">{f.num}</p>
+                  <p className="text-xs text-gray-500">{f.numLabel}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-500/5 to-gray-900 border border-orange-500/20 rounded-2xl p-6 text-center">
+            <p className="text-sm font-bold text-white mb-1">Potencial combinado das 3 frentes (60 eventos/mês)</p>
+            <p className="text-xs text-gray-500 mb-4">Estimativa baseada em ticket médio de mercado</p>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { valor: 'R$ 16.800', label: 'Carnes via app', obs: '60 × R$ 280 médio' },
+                { valor: 'R$ 9.600', label: 'Acompanhamentos', obs: '60 × R$ 160 médio' },
+                { valor: 'Sem limite', label: 'Com equipe própria', obs: 'Escala com o volume' },
+              ].map(s => (
+                <div key={s.label}>
+                  <p className="text-orange-400 font-black text-xl leading-tight">{s.valor}</p>
+                  <p className="text-xs text-gray-300 mt-1">{s.label}</p>
+                  <p className="text-xs text-gray-600">{s.obs}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── SIMULADOR ─────────────────────────────────────────────────── */}
       <section className="py-20 px-4 sm:px-6 bg-gray-950/50">
         <div className="max-w-5xl mx-auto">
