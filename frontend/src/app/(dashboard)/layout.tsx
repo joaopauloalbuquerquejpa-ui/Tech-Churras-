@@ -60,7 +60,7 @@ export default function DashboardLayout({
 
   const PROTECTED_PREFIXES = [
     '/dashboard', '/orders', '/menu', '/perfil',
-    '/admin', '/founder', '/favoritos',
+    '/admin', '/favoritos',
     '/boutiques/dashboard', '/grillmasters/dashboard',
   ]
 
