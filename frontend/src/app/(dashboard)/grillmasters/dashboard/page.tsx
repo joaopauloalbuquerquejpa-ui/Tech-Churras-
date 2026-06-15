@@ -535,6 +535,50 @@ export default function GrillmasterDashboardPage() {
         )}
       </div>
 
+      {/* ── Completude do perfil ── */}
+      {profile && (() => {
+        const fields = [
+          { label: 'Foto de perfil', ok: !!profile.photoUrl },
+          { label: 'Bio', ok: !!(profile.bio && profile.bio.length > 20) },
+          { label: 'Especialidades', ok: !!profile.specialties },
+          { label: 'Estilo de churrasco', ok: !!profile.churrascoStyle },
+          { label: 'Instagram', ok: !!profile.instagram },
+          { label: 'Galeria (1+ foto)', ok: (profile.galleryUrls?.length ?? 0) > 0 },
+          { label: 'Mín. convidados', ok: !!profile.minGuests },
+          { label: 'Máx. convidados', ok: !!profile.maxGuests },
+        ]
+        const pct = Math.round(fields.filter(f => f.ok).length / fields.length * 100)
+        const missing = fields.filter(f => !f.ok)
+        if (pct >= 87) return null
+        return (
+          <div className="mb-5 bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="font-bold text-white text-sm">Perfil {pct}% completo</p>
+                <p className="text-xs text-gray-500 mt-0.5">Perfis completos aparecem em primeiro nas buscas</p>
+              </div>
+              <span className="text-2xl font-black text-orange-400">{pct}%</span>
+            </div>
+            <div className="w-full bg-gray-800 rounded-full h-2 mb-4">
+              <div className="bg-orange-500 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+            </div>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {missing.map(f => (
+                <span key={f.label} className="text-xs bg-gray-800 text-gray-400 px-2.5 py-1 rounded-full border border-gray-700">
+                  + {f.label}
+                </span>
+              ))}
+            </div>
+            <button
+              onClick={() => setTab('perfil')}
+              className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-xl transition-colors"
+            >
+              Completar perfil →
+            </button>
+          </div>
+        )
+      })()}
+
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-900 p-1 rounded-xl overflow-x-auto">
         {(['eventos', 'agenda', 'financeiro', 'perfil', 'treinamento'] as Tab[]).map(t => (

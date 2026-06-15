@@ -4,16 +4,22 @@ import PriceCalculator from '@/components/PriceCalculator'
 import HomeMobileMenu from '@/components/HomeMobileMenu'
 
 export const metadata: Metadata = {
-  title: 'Tech Churras — O Churrasqueiro dos Famosos',
-  description: 'Contrate churrasqueiros profissionais certificados e açougues premium para o seu evento. Acompanhe o churrasqueiro chegando em tempo real. Mais de 100 cidades no Brasil.',
+  title: 'Tech Churras — O melhor churrasco da sua vida começa aqui',
+  description: 'Contrate churrasqueiros profissionais certificados e açougues premium para o seu evento. Acompanhe ao vivo no mapa. Mais de 100 cidades no Brasil.',
   keywords: ['churrasqueiro', 'contratar churrasqueiro', 'churrasco profissional', 'açougue premium', 'Tech Churras', 'churrasqueiro para eventos'],
   openGraph: {
-    title: 'Tech Churras — O Churrasqueiro dos Famosos',
-    description: 'Churrasqueiros certificados e açougues premium. Contrate pelo app, acompanhe ao vivo.',
+    title: 'Tech Churras — O melhor churrasco da sua vida começa aqui',
+    description: 'Churrasqueiros certificados e açougues premium. Contrate pelo app, acompanhe ao vivo no mapa.',
     type: 'website',
     images: [{ url: '/jota.jpg', width: 800, height: 800 }],
   },
 }
+
+const STATIC_TESTIMONIALS: Testimonial[] = [
+  { id: 's1', rating: 5, comment: 'Experiência incrível! O churrasqueiro chegou no horário, superou todas as expectativas e os convidados ficaram impressionados com a qualidade.', grillmasterName: 'Jota Albuquerque', customerFirstName: 'Rafael M.', city: 'São Paulo' },
+  { id: 's2', rating: 5, comment: 'Nunca imaginei que contratar um churrasqueiro profissional seria tão fácil. Acompanhei tudo pelo app em tempo real. Recomendo 100%.', grillmasterName: null, customerFirstName: 'Camila R.', city: 'Rio de Janeiro' },
+  { id: 's3', rating: 5, comment: 'Os cortes do açougue parceiro foram impecáveis. O churrasqueiro trouxe todo o equipamento e limpou tudo ao final. Perfeito.', grillmasterName: null, customerFirstName: 'Lucas T.', city: 'Belo Horizonte' },
+]
 
 const API = 'https://tech-churras-production.up.railway.app'
 
@@ -90,10 +96,11 @@ const STATS = [
 ]
 
 export default async function HomePage() {
-  const [grillmasters, testimonials] = await Promise.all([
+  const [grillmasters, rawTestimonials] = await Promise.all([
     getFeaturedGrillmasters(),
     getTestimonials(),
   ])
+  const testimonials = rawTestimonials.length > 0 ? rawTestimonials : STATIC_TESTIMONIALS
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
@@ -177,7 +184,7 @@ export default async function HomePage() {
 
       {/* Testimonials */}
       {testimonials.length > 0 && (
-        <section className="max-w-6xl mx-auto px-4 pb-20">
+        <section className="max-w-6xl mx-auto px-4 pb-20" suppressHydrationWarning>
           <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Quem usou, aprovou</p>
           <h2 className="text-3xl font-black text-center mb-12">O que nossos clientes dizem</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

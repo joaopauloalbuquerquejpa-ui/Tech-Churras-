@@ -112,6 +112,7 @@ export default function DashboardPage() {
   const [recentOrders, setRecentOrders] = useState<Order[]>([])
   const [nextEvent, setNextEvent] = useState<Order | null>(null)
   const [pendingReviews, setPendingReviews] = useState<Order[]>([])
+  const [ordersLoaded, setOrdersLoaded] = useState(false)
   const [points, setPoints] = useState<number | null>(null)
   const [featuredGMs, setFeaturedGMs] = useState<FeaturedGM[]>([])
   const countdown = useCountdown(nextEvent?.eventDate ?? null)
@@ -146,6 +147,7 @@ export default function DashboardPage() {
         setPendingReviews(needsReview)
       })
       .catch(() => {})
+      .finally(() => setOrdersLoaded(true))
     fetch(BASE + '/grillmasters', { headers: h })
       .then(r => r.json())
       .then(d => {
@@ -250,6 +252,46 @@ export default function DashboardPage() {
           </span>
         </div>
       </section>
+
+      {/* ── Empty state: primeiro pedido ── */}
+      {ordersLoaded && recentOrders.length === 0 && !nextEvent && (
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-2">Bem-vindo à Tech Churras</p>
+            <h2 className="text-xl font-black mb-1">Seu primeiro churrasco profissional está a 3 passos</h2>
+            <p className="text-gray-500 text-sm">Simples, rápido e sem complicação</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            {[
+              { step: '1', icon: '👨‍🍳', title: 'Escolha o churrasqueiro', desc: 'Veja avaliações reais, portfólio e valor por hora.', href: '/grillmasters', cta: 'Ver churrasqueiros' },
+              { step: '2', icon: '🤖', title: 'Monte o kit com IA', desc: 'A IA calcula cortes e quantidades certas para seus convidados.', href: '/kit-perfeito', cta: 'Montar com IA' },
+              { step: '3', icon: '🔥', title: 'Curta o churrasco', desc: 'Acompanhe ao vivo no mapa e compartilhe com os convidados.', href: null, cta: null },
+            ].map(s => (
+              <div key={s.step} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-white font-black text-sm shrink-0">{s.step}</div>
+                  <span className="text-2xl">{s.icon}</span>
+                </div>
+                <div>
+                  <p className="font-bold text-white mb-1">{s.title}</p>
+                  <p className="text-gray-500 text-xs leading-relaxed">{s.desc}</p>
+                </div>
+                {s.href && (
+                  <Link href={s.href} className="text-xs text-orange-400 font-semibold hover:text-orange-300 transition-colors mt-auto">
+                    {s.cta} →
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+          <Link
+            href="/grillmasters"
+            className="block text-center bg-orange-500 hover:bg-orange-600 text-white font-black py-4 rounded-2xl transition-all hover:shadow-lg hover:shadow-orange-500/30 text-base"
+          >
+            Contratar meu churrasqueiro agora 🔥
+          </Link>
+        </div>
+      )}
 
       {/* ── Próximo churrasco ── */}
       {nextEvent && !countdown.past && (
