@@ -40,9 +40,11 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [photoFiles, setPhotoFiles] = useState<File[]>([])
   const [photoPreviews, setPhotoPreviews] = useState<string[]>([])
   const [uploadProgress, setUploadProgress] = useState('')
+  const [referralCopied, setReferralCopied] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     grillRating: 0,
@@ -50,6 +52,14 @@ export default function ReviewPage() {
     grillComment: '',
     boutiqueComment: '',
   })
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('auth-storage')
+      const uid = raw ? JSON.parse(raw)?.state?.user?.id : null
+      if (uid) setCurrentUserId(uid)
+    } catch {}
+  }, [])
 
   useEffect(() => {
     const t = getToken()
@@ -143,20 +153,61 @@ export default function ReviewPage() {
   if (done) {
     const gmName = order?.grillmaster?.user?.name ?? 'churrasqueiro'
     const shareMsg = `🔥 Acabo de avaliar o churrasco do ${gmName} via Tech Churras!\n\nSe você ainda não conhece, é a melhor forma de contratar churrasqueiros profissionais 🥩✨\n\nhttps://www.techchurras.com.br`
+    const referralUrl = currentUserId ? `https://www.techchurras.com.br/convite/${currentUserId}` : null
+    const referralMsg = referralUrl
+      ? `🔥 Contratei um churrasqueiro profissional pelo Tech Churras e foi incrível!\n\nUse meu link e ganhe 10% OFF no seu primeiro churrasco:\n${referralUrl}`
+      : null
+
+    async function copyReferral() {
+      if (!referralUrl) return
+      await navigator.clipboard.writeText(referralUrl)
+      setReferralCopied(true)
+      setTimeout(() => setReferralCopied(false), 2500)
+    }
+
     return (
-      <div className="max-w-md mx-auto mt-12 text-center">
-        <div className="text-5xl mb-4">⭐</div>
-        <h2 className="text-xl font-bold text-white mb-2">Avaliacao enviada! Obrigado!</h2>
-        <p className="text-gray-400 mb-6">Sua opinião ajuda outros clientes a escolher os melhores churrasqueiros.</p>
+      <div className="max-w-md mx-auto mt-12">
+        <div className="text-center mb-8">
+          <div className="text-5xl mb-4">⭐</div>
+          <h2 className="text-xl font-bold text-white mb-2">Avaliação enviada! Obrigado!</h2>
+          <p className="text-gray-400 text-sm">Sua opinião ajuda outros clientes a escolher os melhores churrasqueiros.</p>
+        </div>
+
+        {referralUrl && (
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-5 mb-4">
+            <h3 className="font-bold text-white mb-1">Indique um amigo e ele ganha 10% OFF!</h3>
+            <p className="text-gray-400 text-xs mb-4">Compartilhe seu link exclusivo. Seu amigo recebe desconto na primeira contratação.</p>
+            <div className="flex gap-2 mb-3">
+              <div className="flex-1 bg-gray-800 rounded-lg px-3 py-2 text-xs text-gray-400 truncate font-mono">
+                {referralUrl}
+              </div>
+              <button
+                onClick={copyReferral}
+                className="bg-orange-500 hover:bg-orange-600 text-white text-xs px-3 py-2 rounded-lg font-semibold transition-colors shrink-0"
+              >
+                {referralCopied ? 'Copiado!' : 'Copiar'}
+              </button>
+            </div>
+            <button
+              onClick={() => referralMsg && window.open(`https://wa.me/?text=${encodeURIComponent(referralMsg)}`, '_blank')}
+              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 rounded-xl transition-colors text-sm"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.9 2C6.458 2 2.015 6.443 2.015 11.885c0 1.778.468 3.51 1.36 5.034L2 22l5.225-1.372a9.86 9.86 0 004.675 1.187C17.342 21.815 22 17.385 22 11.9 22 6.458 17.342 2 11.9 2z"/></svg>
+              Enviar pelo WhatsApp
+            </button>
+          </div>
+        )}
+
         <button
           onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank')}
-          className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3.5 rounded-xl transition-colors mb-3"
+          className="flex items-center justify-center gap-2 w-full border border-green-700 hover:bg-green-900/30 text-green-400 font-medium py-3 rounded-xl transition-colors mb-3 text-sm"
         >
-          <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.9 2C6.458 2 2.015 6.443 2.015 11.885c0 1.778.468 3.51 1.36 5.034L2 22l5.225-1.372a9.86 9.86 0 004.675 1.187C17.342 21.815 22 17.385 22 11.9 22 6.458 17.342 2 11.9 2z"/></svg>
-          Compartilhar no WhatsApp
+          <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.9 2C6.458 2 2.015 6.443 2.015 11.885c0 1.778.468 3.51 1.36 5.034L2 22l5.225-1.372a9.86 9.86 0 004.675 1.187C17.342 21.815 22 17.385 22 11.9 22 6.458 17.342 2 11.9 2z"/></svg>
+          Compartilhar minha avaliação
         </button>
+
         <Link href={'/orders/' + orderId}
-          className="block text-sm text-gray-500 hover:text-gray-300 transition-colors">
+          className="block text-center text-sm text-gray-500 hover:text-gray-300 transition-colors">
           Voltar ao pedido →
         </Link>
       </div>
