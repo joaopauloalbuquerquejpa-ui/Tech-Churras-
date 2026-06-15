@@ -155,7 +155,7 @@ export default function ReviewPage() {
     const shareMsg = `🔥 Acabo de avaliar o churrasco do ${gmName} via Tech Churras!\n\nSe você ainda não conhece, é a melhor forma de contratar churrasqueiros profissionais 🥩✨\n\nhttps://www.techchurras.com.br`
     const referralUrl = currentUserId ? `https://www.techchurras.com.br/convite/${currentUserId}` : null
     const referralMsg = referralUrl
-      ? `🔥 Contratei um churrasqueiro profissional pelo Tech Churras e foi incrível!\n\nUse meu link e ganhe 10% OFF no seu primeiro churrasco:\n${referralUrl}`
+      ? `🔥 Contratei um churrasqueiro profissional pela Tech Churras e foi incrível!\n\nUse meu link e ganhe 10% OFF no seu primeiro churrasco:\n${referralUrl}`
       : null
 
     async function copyReferral() {

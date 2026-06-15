@@ -211,7 +211,7 @@ export default function ChurrasClubPage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-900 px-4 py-8 text-center text-xs text-gray-600">
-        <p>© {new Date().getFullYear()} Tech Churras · O churrasqueiro dos famosos</p>
+        <p>© {new Date().getFullYear()} Tech Churras · Churrasqueiros profissionais</p>
       </footer>
     </div>
   )

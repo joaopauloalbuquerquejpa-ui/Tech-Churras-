@@ -505,7 +505,7 @@ export default function DashboardPage() {
               onClick={() => {
                 const link = `https://www.techchurras.com.br/convite/${user.id}`
                 navigator.clipboard?.writeText(link)
-                const msg = `🔥 Usa meu link e ganha 10% OFF no primeiro churrasco pelo Tech Churras!\n\n${link}`
+                const msg = `🔥 Usa meu link e ganha 10% OFF no primeiro churrasco pela Tech Churras!\n\n${link}`
                 window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
               }}
               className="flex-1 flex items-center justify-center gap-2 bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 text-green-400 text-xs font-bold py-2.5 rounded-xl transition-colors"

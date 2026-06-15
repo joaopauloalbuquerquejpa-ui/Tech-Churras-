@@ -23,10 +23,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const referrer = await getReferrer(id)
   const name = referrer?.name?.split(' ')[0] ?? 'um amigo'
   return {
-    title: `${name} te convidou para o Tech Churras!`,
+    title: `${name} te convidou para a Tech Churras!`,
     description: 'Contrate churrasqueiros profissionais certificados. Crie sua conta grátis e ganhe 10% OFF no primeiro churrasco.',
     openGraph: {
-      title: `${name} te convidou para o Tech Churras!`,
+      title: `${name} te convidou para a Tech Churras!`,
       description: 'Churrasqueiros profissionais + carnes premium. Acompanhe ao vivo no mapa. 10% OFF no seu primeiro pedido.',
       type: 'website',
       images: [{ url: '/jota.jpg', width: 800, height: 800 }],
@@ -87,7 +87,7 @@ export default async function ConvitePage({ params }: { params: Promise<{ id: st
         </Link>
 
         <p className="text-center text-xs text-gray-700 mt-5">
-          🔥 Tech Churras · O churrasqueiro dos famosos
+          🔥 a Tech Churras · Churrasqueiros profissionais
         </p>
       </div>
     </div>

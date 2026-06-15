@@ -18,7 +18,7 @@ function getToken() {
 }
 
 const CUSTOMER_STEPS = [
-  { target: 'body', placement: 'center' as const, title: 'Bem-vindo ao Tech Churras!', content: 'Vamos te mostrar como funciona a plataforma em poucos passos.' },
+  { target: 'body', placement: 'center' as const, title: 'Bem-vindo à Tech Churras!', content: 'Vamos te mostrar como funciona a plataforma em poucos passos.' },
   { target: '[data-tour="menu-link"]', title: 'Monte seu pedido', content: 'No Menu você escolhe os cortes e produtos do açougue parceiro.' },
   { target: '[data-tour="grillmasters-link"]', title: 'Escolha seu churrasqueiro', content: 'Veja os churrasqueiros disponíveis, compare avaliações e preços por hora.' },
   { target: '[data-tour="orders-link"]', title: 'Acompanhe seus pedidos', content: 'Aqui você vê o status de todos os seus churrascos em tempo real.' },

@@ -194,7 +194,7 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
 
       {/* Footer */}
       <footer className="border-t border-gray-900 mt-20 px-4 py-8 text-center text-xs text-gray-600">
-        <p>© {new Date().getFullYear()} Tech Churras · O churrasqueiro dos famosos</p>
+        <p>© {new Date().getFullYear()} Tech Churras · Açougues premium</p>
         <div className="flex justify-center gap-4 mt-2">
           <Link href="/para-acougues" className="hover:text-gray-400 transition-colors">Seja parceiro</Link>
           <Link href="/termos-de-uso" className="hover:text-gray-400 transition-colors">Termos</Link>

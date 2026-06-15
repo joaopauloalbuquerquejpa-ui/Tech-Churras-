@@ -117,13 +117,14 @@ export default async function HomePage() {
           Plataforma de churrasqueiros premium
         </div>
         <h1 className="text-5xl md:text-7xl font-black leading-none mb-6">
-          O churrasco do seu{' '}
+          O melhor churrasco{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-400 to-orange-600">
-            evento perfeito
+            da sua vida
           </span>
+          {' '}começa aqui.
         </h1>
         <p className="text-gray-400 text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-          Churrasqueiros profissionais certificados. Açougues premium selecionados. Acompanhe ao vivo no mapa. Pague só depois que ficar bom.
+          Churrasqueiros certificados. Açougues premium selecionados. Tudo no app — do agendamento ao acompanhamento ao vivo.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <Link href="/grillmasters"
@@ -311,7 +312,7 @@ export default async function HomePage() {
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           <div>
             <p className="font-black text-orange-400 mb-3">🔥 Tech Churras</p>
-            <p className="text-xs text-gray-600 leading-relaxed">O churrasqueiro dos famosos. Conectando clientes com profissionais certificados desde 2025.</p>
+            <p className="text-xs text-gray-600 leading-relaxed">a Tech Churras. Conectando churrasqueiros profissionais e clientes exigentes desde 2025.</p>
           </div>
           <div>
             <p className="font-semibold text-sm mb-3 text-gray-300">Plataforma</p>

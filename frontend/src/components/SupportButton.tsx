@@ -2,7 +2,7 @@
 import { useState } from 'react'
 
 const SUPPORT_PHONE = '5511970593650'
-const SUPPORT_MSG = 'Olá! Preciso de ajuda com o Tech Churras.'
+const SUPPORT_MSG = 'Olá! Preciso de ajuda com a Tech Churras.'
 
 export default function SupportButton() {
   const [open, setOpen] = useState(false)
@@ -26,13 +26,13 @@ export default function SupportButton() {
               📦 Dúvida sobre pedido
             </button>
             <button
-              onClick={() => openWhatsApp('Olá! Quero saber como contratar um churrasqueiro pelo Tech Churras.')}
+              onClick={() => openWhatsApp('Olá! Quero saber como contratar um churrasqueiro pela Tech Churras.')}
               className="w-full text-left text-xs bg-gray-800 hover:bg-gray-700 text-white px-3 py-2.5 rounded-xl transition-colors"
             >
               🔥 Como contratar um churrasqueiro
             </button>
             <button
-              onClick={() => openWhatsApp('Olá! Tenho interesse em ser parceiro do Tech Churras.')}
+              onClick={() => openWhatsApp('Olá! Tenho interesse em ser parceiro da Tech Churras.')}
               className="w-full text-left text-xs bg-gray-800 hover:bg-gray-700 text-white px-3 py-2.5 rounded-xl transition-colors"
             >
               🤝 Quero ser parceiro

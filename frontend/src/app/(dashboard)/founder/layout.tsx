@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Jota Albuquerque — O Churrasqueiro dos Famosos',
-  description: 'Conheça Jota Albuquerque, o churrasqueiro dos famosos e fundador do Tech Churras. Experiência e tradição no churrasco brasileiro.',
+  title: 'Jota Albuquerque — Fundador da Tech Churras',
+  description: 'Conheça Jota Albuquerque, fundador da Tech Churras. 13+ anos de experiência, 500+ eventos e a missão de transformar o churrasco brasileiro.',
   openGraph: {
-    title: 'Jota Albuquerque — O Churrasqueiro dos Famosos',
-    description: 'Conheça Jota Albuquerque, o churrasqueiro dos famosos e fundador do Tech Churras.',
+    title: 'Jota Albuquerque — Fundador da Tech Churras',
+    description: 'O visionário por trás da maior plataforma de churrasqueiros profissionais do Brasil.',
     images: [{ url: '/jota.jpg', width: 800, height: 800, alt: 'Jota Albuquerque' }],
   },
 }

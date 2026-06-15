@@ -109,7 +109,7 @@ export default async function ChurrasqueirosPage({ params }: { params: Promise<{
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl">
             {grillmasters.length > 0
-              ? `${grillmasters.length} churrasqueiro${grillmasters.length > 1 ? 's' : ''} profissional${grillmasters.length > 1 ? 'is' : ''} disponível${grillmasters.length > 1 ? 'is' : ''} em ${cityName}. Contrate pelo app, acompanhe ao vivo e pague só depois do evento.`
+              ? `${grillmasters.length} churrasqueiro${grillmasters.length > 1 ? 's' : ''} profissional${grillmasters.length > 1 ? 'is' : ''} disponível${grillmasters.length > 1 ? 'is' : ''} em ${cityName}. Contrate pelo app e acompanhe ao vivo no mapa.`
               : `Ainda não temos churrasqueiros cadastrados em ${cityName}. Seja o primeiro ou explore outras cidades.`
             }
           </p>
@@ -192,7 +192,7 @@ export default async function ChurrasqueirosPage({ params }: { params: Promise<{
 
       {/* Footer */}
       <footer className="border-t border-gray-900 mt-20 px-4 py-8 text-center text-xs text-gray-600">
-        <p>© {new Date().getFullYear()} Tech Churras · O churrasqueiro dos famosos</p>
+        <p>© {new Date().getFullYear()} Tech Churras · Churrasqueiros profissionais</p>
         <div className="flex justify-center gap-4 mt-2">
           <Link href="/para-churrasqueiros" className="hover:text-gray-400 transition-colors">Seja parceiro</Link>
           <Link href="/termos-de-uso" className="hover:text-gray-400 transition-colors">Termos</Link>

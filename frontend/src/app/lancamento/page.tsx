@@ -239,7 +239,7 @@ export default async function LancamentoPage() {
       {/* Footer */}
       <footer className="border-t border-gray-900 px-4 py-8 text-center">
         <p className="font-black text-orange-400 mb-2">🔥 Tech Churras</p>
-        <p className="text-xs text-gray-600">O churrasqueiro dos famosos · Feito com 🔥 no Brasil</p>
+        <p className="text-xs text-gray-600">a Tech Churras · Feito com 🔥 no Brasil</p>
         <div className="flex justify-center gap-5 mt-4 text-xs text-gray-600">
           <Link href="/termos-de-uso" className="hover:text-gray-400 transition-colors">Termos de Uso</Link>
           <Link href="/politica-de-privacidade" className="hover:text-gray-400 transition-colors">Privacidade</Link>

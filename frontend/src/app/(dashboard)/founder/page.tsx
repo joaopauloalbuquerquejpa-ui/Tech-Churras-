@@ -400,12 +400,12 @@ export default function FounderPage() {
                 backgroundSize: '200% 100%',
               }}
             >
-              Churrasqueiro dos Famosos
+              Fundador da Tech Churras
             </span>
           </motion.div>
 
           <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
-            <Typewriter text="Conheça o Fundador" />
+            <Typewriter text="Jota Albuquerque" />
           </h1>
 
           <motion.p
@@ -414,7 +414,7 @@ export default function FounderPage() {
             transition={{ delay: 1.6, duration: 0.8 }}
             className="text-gray-300 text-xl max-w-lg mb-16"
           >
-            A história por trás da revolução do churrasco brasileiro
+            Do quintal da família aos maiores eventos do mundo — e de volta ao quintal de todos.
           </motion.p>
 
           {/* Scroll bounce */}
@@ -490,9 +490,9 @@ export default function FounderPage() {
             </motion.span>
 
             {[
-              'Com mais de 13 anos de trajetória, João "Jota" Albuquerque consolidou-se como o Churrasqueiro dos Famosos e uma das maiores referências do churrasco no Brasil.',
-              'Especialista em dominar o fogo e a brasa, ele transforma cada evento em uma experiência memorável que une técnica apurada, excelência gastronômica e hospitalidade de alto nível.',
-              'De festas íntimas a megaeventos com celebridades internacionais, Jota carrega no currículo mais de 500 eventos realizados em 3 países — e uma visão clara do que o churrasco pode ser.',
+              'João "Jota" Albuquerque começou acendendo brasa em festas de família. Hoje, com 13+ anos de trajetória e mais de 500 eventos em 3 países, é um dos churrasqueiros mais respeitados do Brasil.',
+              'Atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais nacionais e levou o churrasco brasileiro para a África e o Mediterrâneo. Fez tudo isso — e percebeu que faltava algo.',
+              'Faltava um jeito de levar essa qualidade para qualquer pessoa, em qualquer lugar. Foi para isso que ele construiu a Tech Churras: para que o melhor churrasco do Brasil não seja privilégio de poucos.',
             ].map((para, i) => (
               <motion.p
                 key={i}
@@ -524,6 +524,33 @@ export default function FounderPage() {
             </motion.div>
           </div>
         </div>
+
+        {/* ── MANIFESTO QUOTE ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="relative mb-16 rounded-2xl overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #1a0a00 0%, #0a0a0a 100%)', border: '1px solid rgba(249,115,22,0.25)' }}
+        >
+          <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-orange-500 to-orange-800 rounded-l-2xl" />
+          <div className="px-8 py-10">
+            <p className="text-4xl text-orange-500 font-black mb-4 leading-none">"</p>
+            <p className="text-xl md:text-2xl font-semibold text-white leading-relaxed mb-6">
+              Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full overflow-hidden border border-orange-500/40">
+                <Image src="/jota.jpg" alt="Jota" width={40} height={40} className="object-cover" />
+              </div>
+              <div>
+                <p className="text-white font-bold text-sm">Jota Albuquerque</p>
+                <p className="text-gray-500 text-xs">Fundador & CEO, Tech Churras</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* ── STATS COUNTERS ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-16 border-y border-gray-800 mb-24">
