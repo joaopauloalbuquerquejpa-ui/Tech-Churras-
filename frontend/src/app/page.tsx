@@ -314,6 +314,33 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Founder */}
+      <section className="max-w-5xl mx-auto px-4 py-20">
+        <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="relative h-72 md:h-auto bg-gray-800">
+              <img src="/jota.jpg" alt="Jota Albuquerque" className="w-full h-full object-cover object-top" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900/30" />
+            </div>
+            <div className="p-8 md:p-10 flex flex-col justify-center">
+              <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Quem está por trás</p>
+              <h2 className="text-3xl font-black text-white mb-2">Jota Albuquerque</h2>
+              <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13+ anos · 500+ eventos</p>
+              <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
+              <p className="text-gray-300 text-base leading-relaxed mb-8">
+                Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
+              </p>
+              <Link
+                href="/founder"
+                className="inline-block self-start bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors"
+              >
+                Conheça a história completa →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-gray-900 px-4 py-10">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
@@ -328,6 +355,7 @@ export default async function HomePage() {
               <Link href="/boutiques" className="block hover:text-gray-300 transition-colors">Açougues</Link>
               <Link href="/kit-perfeito" className="block hover:text-gray-300 transition-colors">Kit Perfeito IA</Link>
               <Link href="/churras-club" className="block hover:text-gray-300 transition-colors">Churras Club</Link>
+              <Link href="/founder" className="block hover:text-gray-300 transition-colors">Fundador</Link>
             </div>
           </div>
           <div>
