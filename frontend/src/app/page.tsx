@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import PriceCalculator from '@/components/PriceCalculator'
+import HomeMobileMenu from '@/components/HomeMobileMenu'
 
 export const metadata: Metadata = {
   title: 'Tech Churras — O Churrasqueiro dos Famosos',
@@ -42,6 +43,25 @@ async function getFeaturedGrillmasters(): Promise<Grillmaster[]> {
   }
 }
 
+interface Testimonial {
+  id: string
+  rating: number
+  comment: string
+  grillmasterName: string | null
+  customerFirstName: string
+  city: string | null
+}
+
+async function getTestimonials(): Promise<Testimonial[]> {
+  try {
+    const res = await fetch(`${API}/public/testimonials`, { next: { revalidate: 3600 } })
+    if (!res.ok) return []
+    return await res.json()
+  } catch {
+    return []
+  }
+}
+
 const HOW_IT_WORKS = [
   {
     step: '1',
@@ -70,19 +90,23 @@ const STATS = [
 ]
 
 export default async function HomePage() {
-  const grillmasters = await getFeaturedGrillmasters()
+  const [grillmasters, testimonials] = await Promise.all([
+    getFeaturedGrillmasters(),
+    getTestimonials(),
+  ])
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Nav */}
-      <nav className="border-b border-gray-900/50 px-4 py-4 flex items-center justify-between max-w-6xl mx-auto">
+      <nav className="relative border-b border-gray-900/50 px-4 py-4 flex items-center justify-between max-w-6xl mx-auto">
         <span className="font-black text-orange-400 text-xl">🔥 Tech Churras</span>
         <div className="flex items-center gap-4">
           <Link href="/grillmasters" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Churrasqueiros</Link>
           <Link href="/boutiques" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Açougues</Link>
           <Link href="/churras-club" className="text-sm text-orange-400 hover:text-orange-300 transition-colors hidden sm:block font-semibold">🏆 Club</Link>
           <Link href="/login" className="text-sm bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg transition-colors">Entrar</Link>
-          <Link href="/register" className="text-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-lg font-semibold transition-colors">Cadastrar</Link>
+          <Link href="/register" className="text-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-lg font-semibold transition-colors hidden sm:inline-block">Cadastrar</Link>
+          <HomeMobileMenu />
         </div>
       </nav>
 
@@ -149,6 +173,33 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {/* Testimonials */}
+      {testimonials.length > 0 && (
+        <section className="max-w-6xl mx-auto px-4 pb-20">
+          <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Quem usou, aprovou</p>
+          <h2 className="text-3xl font-black text-center mb-12">O que nossos clientes dizem</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {testimonials.slice(0, 6).map(t => (
+              <div key={t.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
+                <div className="flex items-center gap-1 text-yellow-400 text-lg">
+                  {Array.from({ length: t.rating }, (_, i) => <span key={i}>★</span>)}
+                </div>
+                <p className="text-gray-300 text-sm leading-relaxed flex-1">"{t.comment}"</p>
+                <div className="flex items-center justify-between border-t border-gray-800 pt-3">
+                  <div>
+                    <p className="text-xs font-semibold text-white">{t.customerFirstName}</p>
+                    {t.city && <p className="text-xs text-gray-600">{t.city}</p>}
+                  </div>
+                  {t.grillmasterName && (
+                    <p className="text-xs text-orange-400 font-medium">com {t.grillmasterName.split(' ')[0]}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Featured Grillmasters */}
       {grillmasters.length > 0 && (
