@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify'
+import { prisma } from '../../config/prisma'
 import {
   listUsersHandler,
   blockUserHandler,
@@ -48,6 +49,44 @@ export async function adminRoutes(app: FastifyInstance) {
       const { grillmasterId } = req.params as { grillmasterId: string }
       const updated = await updateGrillmasterProfile(grillmasterId, req.body as Record<string, unknown>)
       return reply.send(updated)
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+
+  app.get('/admin/grillmasters/:grillmasterId/schedule', async (req, reply) => {
+    try {
+      const { grillmasterId } = req.params as { grillmasterId: string }
+      const from = new Date()
+      const to = new Date(); to.setMonth(to.getMonth() + 4)
+      const schedule = await prisma.grillmasterSchedule.findMany({
+        where: { grillmasterId, date: { gte: from, lte: to } },
+        orderBy: { date: 'asc' },
+      })
+      return reply.send(schedule)
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+
+  app.post('/admin/grillmasters/:grillmasterId/schedule/toggle', async (req, reply) => {
+    try {
+      const { grillmasterId } = req.params as { grillmasterId: string }
+      const { date } = req.body as { date: string }
+      const d = new Date(date); d.setUTCHours(12, 0, 0, 0)
+      const existing = await prisma.grillmasterSchedule.findUnique({
+        where: { grillmasterId_date: { grillmasterId, date: d } },
+      })
+      let result
+      if (existing) {
+        await prisma.grillmasterSchedule.delete({ where: { id: existing.id } })
+        result = { deleted: true, date }
+      } else {
+        result = await prisma.grillmasterSchedule.create({
+          data: { grillmasterId, date: d, available: true },
+        })
+      }
+      return reply.send(result)
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
     }
