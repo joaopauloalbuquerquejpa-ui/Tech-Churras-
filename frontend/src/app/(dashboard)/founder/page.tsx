@@ -518,7 +518,7 @@ export default function FounderPage() {
             >
               {[
                 { n: '13+', l: 'anos' },
-                { n: '500+', l: 'eventos' },
+                { n: '1.800+', l: 'eventos' },
                 { n: '3', l: 'países' },
               ].map((s) => (
                 <div key={s.l} className="text-center">
@@ -559,7 +559,7 @@ export default function FounderPage() {
 
         {/* ── STATS COUNTERS ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-16 border-y border-gray-800 mb-24">
-          <AnimatedCounter value={500} suffix="+" label="eventos realizados" />
+          <AnimatedCounter value={1800} suffix="+" label="eventos realizados" />
           <AnimatedCounter value={13} suffix="+" label="anos de experiência" />
           <AnimatedCounter value={3} label="países atendidos" />
           <AnimatedCounter value={100} suffix="%" label="aprovação" />
