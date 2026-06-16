@@ -166,10 +166,10 @@ export async function adminRoutes(app: FastifyInstance) {
     const gm = await prisma.grillmaster.deleteMany({ where: { id: { not: KEEP_GM_ID } } })
     log.push(`GMs deletados: ${gm.count}`)
 
-    // 9. Favoritos, push tokens, notificações de usuários fake
+    // 9. Favoritos, push subscriptions de usuários fake
     await prisma.favorite.deleteMany({ where: { userId: { notIn: KEEP_USER_IDS } } })
-    const pt = await prisma.pushToken.deleteMany({ where: { userId: { notIn: KEEP_USER_IDS } } })
-    log.push(`PushTokens deletados: ${pt.count}`)
+    const pt = await prisma.pushSubscription.deleteMany({ where: { userId: { notIn: KEEP_USER_IDS } } })
+    log.push(`PushSubscriptions deletadas: ${pt.count}`)
 
     // 10. Usuários fake
     const us = await prisma.user.deleteMany({ where: { id: { notIn: KEEP_USER_IDS } } })
