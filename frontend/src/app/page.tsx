@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   keywords: ['grillmaster', 'churrasqueiro', 'contratar churrasqueiro', 'açougue premium', 'churrasco profissional', 'Tech Churras', 'kit churrasco IA'],
   openGraph: {
     title: 'Tech Churras — O ecossistema completo para o churrasco perfeito',
-    description: 'Grillmasters certificados + açougue premium + IA que planeja tudo + tracking ao vivo. Tudo num só app.',
+    description: 'Grillmasters certificados + açougue premium + IA que planeja tudo + localização ao vivo. Tudo num só app.',
     type: 'website',
     images: [{ url: '/jota.jpg', width: 800, height: 800 }],
   },
@@ -64,42 +64,51 @@ async function getTestimonials(): Promise<Testimonial[]> {
   } catch { return [] }
 }
 
-const ECOSYSTEM = [
+const PERSONAS = [
+  {
+    icon: '🎉',
+    badge: 'Para você',
+    badgeColor: 'text-orange-400',
+    titulo: 'Churrasco completo, sem stress',
+    items: [
+      'Grillmaster chancelado na sua cidade',
+      'Cortes do açougue parceiro separados no dia',
+      'IA monta o kit certo para seus convidados',
+      'Acompanhe tudo ao vivo no mapa',
+    ],
+    href: '/grillmasters',
+    cta: 'Contratar Grillmaster',
+    cor: 'border-orange-500/30 bg-orange-500/5',
+  },
   {
     icon: '👨‍🍳',
-    titulo: 'Grillmasters certificados',
-    desc: 'Chancelados pela Tech Churras. Treinamento presencial, avaliação mínima 4.5★ e experiência comprovada. Você escolhe pelo perfil, estilo e avaliações.',
-    href: '/grillmasters',
-    cta: 'Ver Grillmasters',
-    cor: 'border-orange-500/30 bg-orange-500/5',
-    badge: 'Chancelado',
+    badge: 'Para Grillmasters',
+    badgeColor: 'text-yellow-400',
+    titulo: 'Mais pedidos. Mais renda.',
+    items: [
+      'Receba pedidos e gerencie agenda pelo app',
+      'Chancela Jota Albuquerque inclusa',
+      'Treinamento de chancelamento presencial',
+      '2 meses sem mensalidade para os primeiros',
+    ],
+    href: '/para-churrasqueiros',
+    cta: 'Quero ser Grillmaster parceiro',
+    cor: 'border-yellow-500/20 bg-yellow-500/5',
   },
   {
     icon: '🥩',
-    titulo: 'Açougue premium parceiro',
-    desc: 'Só açougues validados pela Tech Churras entram na plataforma. Os cortes ficam separados antes do evento — o Grillmaster retira no balcão no dia.',
-    href: '/boutiques',
-    cta: 'Ver açougues',
-    cor: 'border-red-500/30 bg-red-500/5',
-    badge: 'Validado',
-  },
-  {
-    icon: '🤖',
-    titulo: 'IA que planeja tudo',
-    desc: 'Informe quantos convidados e o estilo do evento. A IA calcula os cortes certos, quantidades exatas e sugere o Grillmaster ideal — inclusive cardápios vegetarianos e veganos.',
-    href: '/kit-perfeito',
-    cta: 'Montar com IA',
-    cor: 'border-purple-500/30 bg-purple-500/5',
-    badge: 'IA Generativa',
-  },
-  {
-    icon: '📍',
-    titulo: 'Acompanhe ao vivo',
-    desc: 'No dia do evento, veja o Grillmaster no mapa em tempo real. Compartilhe o link com seus convidados pelo WhatsApp — todo mundo acompanha junto.',
-    href: '/register',
-    cta: 'Começar agora',
-    cor: 'border-green-500/30 bg-green-500/5',
-    badge: 'Tempo real',
+    badge: 'Para açougues',
+    badgeColor: 'text-red-400',
+    titulo: 'Seus cortes, clientes certos.',
+    items: [
+      'Cliente já chega pronto para churrasquear',
+      'Sem entrega, sem logística extra',
+      'Repasse semanal via PIX',
+      '2 meses sem mensalidade para os primeiros',
+    ],
+    href: '/para-acougues',
+    cta: 'Quero ser açougue parceiro',
+    cor: 'border-red-500/20 bg-red-500/5',
   },
 ]
 
@@ -150,7 +159,7 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 text-xs text-orange-400 font-semibold mb-8 uppercase tracking-wide">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-          Grillmaster + Açougue + IA + Tracking ao vivo
+          Grillmaster + Açougue + IA + Localização ao vivo
         </div>
         <h1 className="text-5xl md:text-7xl font-black leading-none mb-6">
           O melhor churrasco{' '}
@@ -159,14 +168,8 @@ export default async function HomePage() {
           </span>
           {' '}começa aqui.
         </h1>
-        <p className="text-gray-300 text-xl max-w-2xl mx-auto mb-4 leading-relaxed">
-          O Grillmaster das maiores celebridades do Brasil e do mundo é quem vai comandar o churrasco do seu evento particular ou corporativo.
-        </p>
-        <p className="text-gray-400 text-base max-w-2xl mx-auto mb-4 leading-relaxed">
-          A Tech Churras nasceu para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.
-        </p>
-        <p className="text-gray-600 text-sm max-w-xl mx-auto mb-10">
-          Grillmasters certificados · Açougue premium · IA que planeja tudo · Acompanhamento ao vivo no mapa
+        <p className="text-gray-300 text-xl max-w-xl mx-auto mb-10 leading-relaxed">
+          Grillmaster chancelado, açougue premium e IA que monta tudo — em poucos cliques, no quintal da sua casa.
         </p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <Link href="/grillmasters"
@@ -186,22 +189,29 @@ export default async function HomePage() {
 
       <PriceCalculator />
 
-      {/* Ecossistema */}
+      {/* Para quem é? */}
       <section className="max-w-6xl mx-auto px-4 py-20">
-        <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Por que a Tech Churras?</p>
-        <h2 className="text-3xl md:text-4xl font-black text-center mb-4">O ecossistema completo para o churrasco perfeito</h2>
+        <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Para quem é?</p>
+        <h2 className="text-3xl md:text-4xl font-black text-center mb-4">Uma plataforma. Três soluções.</h2>
         <p className="text-center text-gray-500 max-w-xl mx-auto mb-12 text-base">
-          Não é somente um app de churrasco!
+          Cliente, Grillmaster ou açougue — a Tech Churras tem uma solução feita para você.
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {ECOSYSTEM.map(e => (
-            <div key={e.titulo} className={`border ${e.cor} rounded-2xl p-6 flex flex-col`}>
-              <div className="text-4xl mb-4">{e.icon}</div>
-              <span className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">{e.badge}</span>
-              <h3 className="font-black text-white text-lg mb-3">{e.titulo}</h3>
-              <p className="text-gray-400 text-sm leading-relaxed flex-1 mb-5">{e.desc}</p>
-              <Link href={e.href} className="text-sm font-bold text-orange-400 hover:text-orange-300 transition-colors">
-                {e.cta} →
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {PERSONAS.map(p => (
+            <div key={p.titulo} className={`border ${p.cor} rounded-2xl p-7 flex flex-col`}>
+              <div className="text-4xl mb-4">{p.icon}</div>
+              <span className={`text-xs font-bold uppercase tracking-widest mb-2 ${p.badgeColor}`}>{p.badge}</span>
+              <h3 className="font-black text-white text-xl mb-4">{p.titulo}</h3>
+              <ul className="space-y-2 flex-1 mb-6">
+                {p.items.map(item => (
+                  <li key={item} className="flex items-start gap-2 text-gray-400 text-sm">
+                    <span className="text-orange-500 mt-0.5 shrink-0">✓</span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href={p.href} className="text-sm font-bold text-orange-400 hover:text-orange-300 transition-colors">
+                {p.cta} →
               </Link>
             </div>
           ))}
@@ -357,50 +367,6 @@ export default async function HomePage() {
         </section>
       )}
 
-      {/* Kit Perfeito CTA */}
-      <section className="bg-gradient-to-br from-orange-600 to-red-700 py-16">
-        <div className="max-w-3xl mx-auto px-4 text-center">
-          <p className="text-orange-200 font-semibold text-sm uppercase tracking-wide mb-3">IA generativa</p>
-          <h2 className="text-3xl font-black mb-4">Kit Perfeito — calculado por IA</h2>
-          <p className="text-orange-100 text-lg mb-8 max-w-xl mx-auto">
-            Informe quantos convidados, a data e o estilo. A IA monta o kit ideal: Grillmaster certo, cortes do açougue parceiro nas quantidades exatas — inclusive opções vegetarianas e veganas, tudo organizado.
-          </p>
-          <Link href="/kit-perfeito"
-            className="inline-block bg-white text-orange-600 hover:bg-orange-50 font-black px-8 py-4 rounded-2xl text-lg transition-colors">
-            Montar meu kit agora ✨
-          </Link>
-        </div>
-      </section>
-
-      {/* For Partners */}
-      <section className="max-w-5xl mx-auto px-4 py-20">
-        <p className="text-center text-sm text-gray-500 font-semibold uppercase tracking-wide mb-3">Para parceiros</p>
-        <h2 className="text-3xl font-black text-center mb-10">Cresça com a Tech Churras</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7">
-            <span className="text-4xl mb-4 block">👨‍🍳</span>
-            <h3 className="text-xl font-bold mb-2">Grillmaster parceiro</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Receba pedidos pelo app, gerencie sua agenda e aumente seus ganhos por evento. Treinamento de chancelamento com Jota Albuquerque incluso. Os primeiros cadastrados terão 2 meses sem mensalidade.
-            </p>
-            <Link href="/para-churrasqueiros"
-              className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">
-              Quero ser Grillmaster parceiro →
-            </Link>
-          </div>
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-7">
-            <span className="text-4xl mb-4 block">🥩</span>
-            <h3 className="text-xl font-bold mb-2">Açougue parceiro</h3>
-            <p className="text-gray-400 text-sm leading-relaxed mb-6">
-              Seus cortes aparecem para quem já vai fazer churrasco — cliente certo, na hora certa. Sem entrega, sem marketing extra. Repasse semanal via PIX. Os primeiros cadastrados terão 2 meses sem mensalidade.
-            </p>
-            <Link href="/para-acougues"
-              className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold px-6 py-2.5 rounded-xl text-sm transition-colors">
-              Quero ser açougue parceiro →
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* Churras Club teaser */}
       <section className="border-y border-gray-800 py-12">
@@ -426,7 +392,7 @@ export default async function HomePage() {
             </div>
             <div className="p-8 md:p-10 flex flex-col justify-center">
               <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Quem está por trás</p>
-              <h2 className="text-3xl font-black text-white mb-2">João Paulo Albuquerque</h2>
+              <h2 className="text-3xl font-black text-white mb-2">Jota Albuquerque</h2>
               <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13+ anos · 1.800+ eventos</p>
               <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
               <p className="text-gray-300 text-base leading-relaxed mb-8">
