@@ -157,7 +157,6 @@ export default function GrillmasterDashboardPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMsg, setProfileMsg] = useState('')
   const [uploadingGallery, setUploadingGallery] = useState(false)
-  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   // Calendar
   const [calMonth, setCalMonth] = useState(() => {
@@ -1180,35 +1179,31 @@ export default function GrillmasterDashboardPage() {
                 </div>
               ))}
               <div className="flex gap-2 mt-2">
-                <button
-                  type="button"
-                  disabled={uploadingGallery}
-                  onClick={() => galleryInputRef.current?.click()}
-                  className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                <label
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${uploadingGallery ? 'bg-orange-500/50 pointer-events-none' : 'bg-orange-500 hover:bg-orange-600'} text-white`}
                 >
                   {uploadingGallery ? '⏳ Enviando...' : '📷 Adicionar foto da galeria'}
-                </button>
-                <input
-                  ref={galleryInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0]
-                    if (!galleryInputRef.current) return
-                    galleryInputRef.current.value = ''
-                    if (!file) return
-                    setUploadingGallery(true)
-                    try {
-                      const url = await uploadImageFile(file)
-                      setProfileForm(f => ({ ...f, galleryUrls: [...(f.galleryUrls ?? []), url] }))
-                    } catch (err: any) {
-                      alert('Erro ao fazer upload: ' + err.message)
-                    } finally {
-                      setUploadingGallery(false)
-                    }
-                  }}
-                />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingGallery}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0]
+                      e.target.value = ''
+                      if (!file) return
+                      setUploadingGallery(true)
+                      try {
+                        const url = await uploadImageFile(file)
+                        setProfileForm(f => ({ ...f, galleryUrls: [...(f.galleryUrls ?? []), url] }))
+                      } catch (err: any) {
+                        alert('Erro ao fazer upload: ' + err.message)
+                      } finally {
+                        setUploadingGallery(false)
+                      }
+                    }}
+                  />
+                </label>
               </div>
             </div>
 
