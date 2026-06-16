@@ -297,7 +297,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               por cada cliente que você converter
             </h2>
             <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-              Você já tem 2.000 clientes passando pelo seu balcão todo mês. Com o seu QR code exclusivo, cada um que virar cliente da Tech Churras vale{' '}
+              Você já tem muitos clientes passando pelo seu balcão todo mês. Com o seu QR code exclusivo, cada um que virar cliente da Tech Churras vale{' '}
               <strong className="text-white">R$ 40 direto no seu repasse semanal.</strong>
             </p>
           </div>
@@ -376,16 +376,6 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
             </div>
           </div>
 
-          {/* Transparência do modelo */}
-          <div className="mt-8 bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <p className="font-bold text-white mb-3">🔍 Como o bônus não prejudica a Tech Churras?</p>
-            <p className="text-sm text-gray-400 leading-relaxed mb-4">
-              Quando um cliente faz o primeiro pedido (ticket médio R$ 900), a TC recebe 15% = R$ 135 de taxa de plataforma.
-              Dos R$ 135, paga R$ 40 de bônus para você. A TC ainda fica com R$ 95 nesse primeiro pedido —
-              e do segundo em diante fica com os R$ 135 inteiros. O bônus se paga sozinho.
-            </p>
-            <p className="text-xs text-gray-600">Você nunca sai perdendo — o bônus já está dentro do que a TC arrecadou.</p>
-          </div>
         </div>
       </section>
 
