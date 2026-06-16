@@ -11,6 +11,39 @@ function getToken() {
   return raw ? JSON.parse(raw)?.state?.token : null
 }
 
+async function compressImage(file: File): Promise<Blob> {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      URL.revokeObjectURL(url)
+      const MAX = 1200
+      const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(b => resolve(b ?? file), 'image/jpeg', 0.82)
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file) }
+    img.src = url
+  })
+}
+
+async function uploadImageFile(file: File): Promise<string> {
+  const blob = await compressImage(file)
+  const fd = new FormData()
+  fd.append('file', blob, 'photo.jpg')
+  const res = await fetch(BASE + '/upload/image', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + getToken() },
+    body: fd,
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Erro ao fazer upload')
+  return data.url as string
+}
+
 interface Order {
   id: string
   status: string
@@ -123,7 +156,8 @@ export default function GrillmasterDashboardPage() {
   const [profileForm, setProfileForm] = useState<Partial<GrillmasterProfile>>({})
   const [savingProfile, setSavingProfile] = useState(false)
   const [profileMsg, setProfileMsg] = useState('')
-  const [galleryInput, setGalleryInput] = useState('')
+  const [uploadingGallery, setUploadingGallery] = useState(false)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
 
   // Calendar
   const [calMonth, setCalMonth] = useState(() => {
@@ -1146,17 +1180,35 @@ export default function GrillmasterDashboardPage() {
                 </div>
               ))}
               <div className="flex gap-2 mt-2">
-                <input value={galleryInput} onChange={e => setGalleryInput(e.target.value)}
-                  placeholder="https://... (URL da foto)"
-                  className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
-                <button onClick={() => {
-                  if (galleryInput.trim()) {
-                    setProfileForm(f => ({ ...f, galleryUrls: [...(f.galleryUrls ?? []), galleryInput.trim()] }))
-                    setGalleryInput('')
-                  }
-                }} className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded-lg text-sm font-semibold transition-colors">
-                  + Add
+                <button
+                  type="button"
+                  disabled={uploadingGallery}
+                  onClick={() => galleryInputRef.current?.click()}
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  {uploadingGallery ? '⏳ Enviando...' : '📷 Adicionar foto da galeria'}
                 </button>
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0]
+                    if (!galleryInputRef.current) return
+                    galleryInputRef.current.value = ''
+                    if (!file) return
+                    setUploadingGallery(true)
+                    try {
+                      const url = await uploadImageFile(file)
+                      setProfileForm(f => ({ ...f, galleryUrls: [...(f.galleryUrls ?? []), url] }))
+                    } catch (err: any) {
+                      alert('Erro ao fazer upload: ' + err.message)
+                    } finally {
+                      setUploadingGallery(false)
+                    }
+                  }}
+                />
               </div>
             </div>
 
