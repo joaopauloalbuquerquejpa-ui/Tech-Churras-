@@ -168,8 +168,9 @@ export default async function HomePage() {
           </span>
           {' '}começa aqui.
         </h1>
-        <p className="text-gray-300 text-xl max-w-xl mx-auto mb-10 leading-relaxed">
-          Grillmaster chancelado, açougue premium e IA que monta tudo — em poucos cliques, no quintal da sua casa.
+        <p className="text-gray-300 text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+          Grillmaster profissional. Açougue premium. IA que monta tudo.{' '}
+          <span className="text-gray-400">Um ecossistema completo — para festas, eventos corporativos e qualquer ocasião que mereça o melhor.</span>
         </p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <Link href="/grillmasters"
