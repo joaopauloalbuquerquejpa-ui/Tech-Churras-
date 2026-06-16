@@ -74,6 +74,11 @@ interface DemandItem {
   category: string; totalQuantityNeeded: number; unit: string; eventsCount: number; nextEventDate: string
 }
 
+interface ReferralStats {
+  referralCode: string; referralLink: string
+  totalReferrals: number; pendingBonus: number; paidBonus: number
+}
+
 interface KitItem {
   productName: string; quantity: number; unit: string
 }
@@ -110,6 +115,8 @@ const emptyKitForm = {
   price: 0, discountPrice: 0, coverImageUrl: '',
 }
 
+type Tab = 'overview' | 'referrals' | 'balcao' | 'produtos'
+
 function priceLabel(unit: string) {
   if (unit === 'kg') return 'Preço por kg (R$)'
   if (unit === 'un' || unit === 'unidade') return 'Preço por unidade (R$)'
@@ -131,19 +138,23 @@ export default function BoutiqueDashboardPage() {
   const [kits, setKits] = useState<Kit[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [demand, setDemand] = useState<DemandItem[]>([])
+  const [referralStats, setReferralStats] = useState<ReferralStats | null>(null)
   const [contract, setContract] = useState<{ id: string; status: string; durationMonths: number; acceptedAt: string | null; generatedAt: string } | null>(null)
   const [showContractText, setShowContractText] = useState(false)
   const [contractText, setContractText] = useState('')
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const [activeTab, setActiveTab] = useState<Tab>('overview')
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(emptyForm)
   const [submitting, setSubmitting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [copiedReferral, setCopiedReferral] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const qrRef = useRef<HTMLDivElement>(null)
   const qrBalcaoRef = useRef<HTMLDivElement>(null)
+  const qrIndicacaoRef = useRef<HTMLDivElement>(null)
   const photoInputRef = useRef<HTMLInputElement>(null)
   const productPhotoRef = useRef<HTMLInputElement>(null)
   const [copiedBalcao, setCopiedBalcao] = useState(false)
@@ -165,11 +176,12 @@ export default function BoutiqueDashboardPage() {
   async function fetchAll() {
     try {
       const h = { Authorization: 'Bearer ' + getToken() }
-      const [bRes, sRes, dRes, cRes] = await Promise.all([
+      const [bRes, sRes, dRes, cRes, rRes] = await Promise.all([
         fetch(BASE + '/boutiques/my', { headers: h }),
         fetch(BASE + '/boutiques/dashboard/stats', { headers: h }),
         fetch(BASE + '/boutiques/dashboard/demand-forecast', { headers: h }),
         fetch(BASE + '/contracts/my', { headers: h }),
+        fetch(BASE + '/boutiques/dashboard/referrals', { headers: h }),
       ])
       if (!bRes.ok) { setNotFound(true); return }
       const [b, s, d, contracts] = await Promise.all([
@@ -180,6 +192,7 @@ export default function BoutiqueDashboardPage() {
       if (s) setStats(s)
       if (Array.isArray(d)) setDemand(d)
       if (Array.isArray(contracts) && contracts.length > 0) setContract(contracts[0])
+      if (rRes.ok) setReferralStats(await rRes.json())
       const kRes = await fetch(BASE + '/boutiques/' + b.id + '/kits')
       if (kRes.ok) setKits(await kRes.json())
     } catch {
@@ -428,8 +441,26 @@ export default function BoutiqueDashboardPage() {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  function copyFullReferralLink() {
+    const link = referralStats?.referralLink ?? (stats?.referralCode ? SITE_URL + '/r/' + stats.referralCode : '')
+    if (!link) return
+    navigator.clipboard.writeText(link)
+    setCopiedReferral(true)
+    setTimeout(() => setCopiedReferral(false), 2000)
+  }
+
   function downloadQR() {
     const canvas = qrRef.current?.querySelector('canvas')
+    if (!canvas) return
+    const url = canvas.toDataURL('image/png')
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'qrcode-indicacao.png'
+    a.click()
+  }
+
+  function downloadQRIndicacao() {
+    const canvas = qrIndicacaoRef.current?.querySelector('canvas')
     if (!canvas) return
     const url = canvas.toDataURL('image/png')
     const a = document.createElement('a')
@@ -501,13 +532,22 @@ export default function BoutiqueDashboardPage() {
   )
 
   if (!boutique) return null
-  const referralUrl = stats?.referralCode ? SITE_URL + '/r/' + stats.referralCode : ''
+
+  const referralCode = referralStats?.referralCode ?? stats?.referralCode ?? null
+  const referralLink = referralStats?.referralLink ?? (referralCode ? `${SITE_URL}/r/${referralCode}` : '')
   const balcaoUrl = SITE_URL + '/menu/novo?boutiqueId=' + boutique.id + '&utm_source=qr_balcao'
   const activeDiscountCount = boutique.products.filter(isDiscountActive).length
 
+  const TABS: { id: Tab; label: string; icon: string }[] = [
+    { id: 'overview', label: 'Visão Geral', icon: '📊' },
+    { id: 'referrals', label: 'Indicações', icon: '🎁' },
+    { id: 'balcao', label: 'Balcão', icon: '🏪' },
+    { id: 'produtos', label: 'Produtos', icon: '🥩' },
+  ]
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
+      {/* Header — sempre visível */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">{boutique.name}</h1>
@@ -530,101 +570,871 @@ export default function BoutiqueDashboardPage() {
         </div>
       )}
 
-      {stats && (
-        <div className="grid grid-cols-3 gap-4">
-          {[
-            { label: 'Faturamento 30 dias', value: 'R$ ' + stats.totalRevenue30days.toLocaleString('pt-BR', { minimumFractionDigits: 2 }), color: 'text-green-400' },
-            { label: 'Pedidos 30 dias', value: String(stats.totalOrders30days), color: 'text-blue-400' },
-            { label: 'Pedidos pendentes', value: String(stats.pendingOrdersCount), color: 'text-orange-400' },
-          ].map(c => (
-            <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-              <p className="text-xs text-gray-500 mb-1">{c.label}</p>
-              <p className={'text-xl font-black ' + c.color}>{c.value}</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
-        <p className="text-xs text-yellow-300">
-          ⚠️ <strong>Contratos em revisão jurídica</strong> — os termos de parceria podem ser atualizados antes do lançamento oficial da plataforma.
-        </p>
+      {/* Abas de navegação */}
+      <div className="flex gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={
+              'flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-sm font-medium transition-colors ' +
+              (activeTab === tab.id
+                ? 'bg-orange-500 text-white'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800')
+            }
+          >
+            <span className="text-base leading-none">{tab.icon}</span>
+            <span className="hidden sm:inline">{tab.label}</span>
+            {tab.id === 'referrals' && (referralStats?.totalReferrals ?? 0) > 0 && (
+              <span className={'text-xs px-1.5 py-0.5 rounded-full font-bold ' + (activeTab === 'referrals' ? 'bg-white/20 text-white' : 'bg-green-500/20 text-green-400')}>
+                {referralStats!.totalReferrals}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
-      {/* ── ONBOARDING: aparece enquanto não tem produtos ── */}
-      {boutique.products.length === 0 && (
-        <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/40 rounded-2xl p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-2xl">🚀</span>
-            <div>
-              <h2 className="font-bold text-white">Primeiros passos — comece a vender hoje</h2>
-              <p className="text-xs text-gray-400 mt-0.5">Complete abaixo para aparecer nas buscas e receber seus primeiros pedidos</p>
+      {/* ══════════════════════════════════════════════════════ VISÃO GERAL */}
+      {activeTab === 'overview' && (
+        <div className="space-y-6">
+          {stats && (
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { label: 'Faturamento 30 dias', value: 'R$ ' + stats.totalRevenue30days.toLocaleString('pt-BR', { minimumFractionDigits: 2 }), color: 'text-green-400' },
+                { label: 'Pedidos 30 dias', value: String(stats.totalOrders30days), color: 'text-blue-400' },
+                { label: 'Pedidos pendentes', value: String(stats.pendingOrdersCount), color: 'text-orange-400' },
+              ].map(c => (
+                <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+                  <p className="text-xs text-gray-500 mb-1">{c.label}</p>
+                  <p className={'text-xl font-black ' + c.color}>{c.value}</p>
+                </div>
+              ))}
             </div>
+          )}
+
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
+            <p className="text-xs text-yellow-300">
+              ⚠️ <strong>Contratos em revisão jurídica</strong> — os termos de parceria podem ser atualizados antes do lançamento oficial da plataforma.
+            </p>
           </div>
-          <div className="space-y-2.5">
-            {[
-              { done: true,  icon: '✅', label: 'Açougue cadastrado', sub: 'Você já está na plataforma!' },
-              { done: boutique.approved, icon: boutique.approved ? '✅' : '⏳', label: 'Aprovação da equipe Tech Churras', sub: boutique.approved ? 'Aprovado — seu açougue está ativo' : 'Nossa equipe avisa no WhatsApp em até 24h' },
-              { done: false, icon: '📦', label: 'Adicionar pelo menos 5 cortes de carne', sub: 'Abra "Meus Produtos" → "+ Produto" → selecione categoria Carne' },
-              { done: false, icon: '🥗', label: 'Adicionar 1 acompanhamento (farofa, vinagrete...)', sub: 'Categoria "Acompanhamento" — churrasqueiros retiram tudo em uma visita' },
-              { done: boutique.open, icon: boutique.open ? '✅' : '🔓', label: 'Abrir sua loja', sub: boutique.open ? 'Loja aberta — você já aparece nas buscas!' : 'Clique em "Loja fechada — abrir" no topo desta página' },
-              { done: false, icon: '🖨️', label: 'Imprimir a placa do balcão', sub: 'Converta clientes do seu balcão em pedidos digitais — QR code exclusivo' },
-            ].map((step, i) => (
-              <div key={i} className={`flex items-start gap-3 rounded-xl px-4 py-3 ${step.done ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-900/60 border border-gray-800'}`}>
-                <span className="text-lg shrink-0 mt-0.5">{step.icon}</span>
-                <div className="min-w-0">
-                  <p className={`text-sm font-semibold ${step.done ? 'text-green-400 line-through opacity-70' : 'text-white'}`}>{step.label}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{step.sub}</p>
+
+          {boutique.products.length === 0 && (
+            <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/40 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl">🚀</span>
+                <div>
+                  <h2 className="font-bold text-white">Primeiros passos — comece a vender hoje</h2>
+                  <p className="text-xs text-gray-400 mt-0.5">Complete abaixo para aparecer nas buscas e receber seus primeiros pedidos</p>
                 </div>
               </div>
-            ))}
+              <div className="space-y-2.5">
+                {[
+                  { done: true,  icon: '✅', label: 'Açougue cadastrado', sub: 'Você já está na plataforma!' },
+                  { done: boutique.approved, icon: boutique.approved ? '✅' : '⏳', label: 'Aprovação da equipe Tech Churras', sub: boutique.approved ? 'Aprovado — seu açougue está ativo' : 'Nossa equipe avisa no WhatsApp em até 24h' },
+                  { done: false, icon: '📦', label: 'Adicionar pelo menos 5 cortes de carne', sub: 'Vá em "Produtos" → "+ Produto" → selecione categoria Carne' },
+                  { done: false, icon: '🥗', label: 'Adicionar 1 acompanhamento (farofa, vinagrete...)', sub: 'Categoria "Acompanhamento" — churrasqueiros retiram tudo em uma visita' },
+                  { done: boutique.open, icon: boutique.open ? '✅' : '🔓', label: 'Abrir sua loja', sub: boutique.open ? 'Loja aberta — você já aparece nas buscas!' : 'Clique em "Loja fechada — abrir" no topo desta página' },
+                  { done: false, icon: '🖨️', label: 'Imprimir a placa do balcão', sub: 'Vá em "Balcão" e imprima seu QR code exclusivo' },
+                ].map((step, i) => (
+                  <div key={i} className={`flex items-start gap-3 rounded-xl px-4 py-3 ${step.done ? 'bg-green-500/10 border border-green-500/20' : 'bg-gray-900/60 border border-gray-800'}`}>
+                    <span className="text-lg shrink-0 mt-0.5">{step.icon}</span>
+                    <div className="min-w-0">
+                      <p className={`text-sm font-semibold ${step.done ? 'text-green-400 line-through opacity-70' : 'text-white'}`}>{step.label}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{step.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 flex gap-2 flex-wrap">
+                <button
+                  onClick={() => setActiveTab('produtos')}
+                  className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
+                >
+                  + Adicionar produto agora
+                </button>
+                <button
+                  onClick={() => setActiveTab('balcao')}
+                  className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-gray-700"
+                >
+                  🖨️ Imprimir placa do balcão
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>
+              {contract && (
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${contract.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                  {contract.status === 'ACCEPTED' ? 'Aceito' : 'Pendente de assinatura'}
+                </span>
+              )}
+            </div>
+            {contract ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div><p className="text-gray-500 text-xs">Vigência</p><p className="text-white font-medium">{contract.durationMonths} meses</p></div>
+                  <div><p className="text-gray-500 text-xs">Gerado em</p><p className="text-white font-medium">{new Date(contract.generatedAt).toLocaleDateString('pt-BR')}</p></div>
+                  {contract.acceptedAt && <div><p className="text-gray-500 text-xs">Aceito em</p><p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p></div>}
+                </div>
+                <button
+                  onClick={async () => {
+                    const res = await fetch(BASE + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
+                    if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
+                  }}
+                  className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline"
+                >Visualizar contrato</button>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Nenhum contrato gerado ainda.</p>
+            )}
           </div>
-          <div className="mt-4 flex gap-2 flex-wrap">
-            <a
-              href="#produtos"
-              className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-2 rounded-lg transition-colors"
-              onClick={() => setShowForm(true)}
-            >
-              + Adicionar produto agora
-            </a>
-            <a
-              href="/boutiques/dashboard/qrcode-eventos"
-              className="bg-gray-800 hover:bg-gray-700 text-gray-200 text-sm font-semibold px-4 py-2 rounded-lg transition-colors border border-gray-700"
-            >
-              🖨️ Imprimir placa do balcão
-            </a>
+
+          {stats && stats.revenueByDay.length > 0 && (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <p className="text-sm font-semibold text-gray-300 mb-4">Faturamento — últimos 30 dias</p>
+              <ResponsiveContainer width="100%" height={180}>
+                <AreaChart data={stats.revenueByDay} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(v: string) => v.slice(5)} />
+                  <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(v: number) => 'R$' + v} />
+                  <Tooltip
+                    contentStyle={{ background: '#111', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
+                    formatter={(v) => ['R$ ' + Number(v).toFixed(2), 'Faturamento']}
+                  />
+                  <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fill="url(#revenueGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm font-semibold text-white">Previsão de Demanda — Próximos 14 dias</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pedidos confirmados e pagos com itens do seu açougue</p>
+              </div>
+            </div>
+            {demand.length === 0 ? (
+              <p className="text-gray-600 text-sm py-4 text-center">Nenhuma demanda prevista no momento</p>
+            ) : (
+              <div className="space-y-3">
+                {demand.map(item => {
+                  const nextDate = new Date(item.nextEventDate)
+                  const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+                  const urgent = daysUntil <= 2
+                  return (
+                    <div key={item.category} className={'flex items-center justify-between gap-3 rounded-xl px-4 py-3 border ' + (urgent ? 'bg-orange-500/10 border-orange-500/30' : 'bg-gray-800 border-transparent')}>
+                      <div className="flex items-center gap-3 min-w-0">
+                        {urgent && <span className="text-orange-400 text-lg shrink-0">⚠️</span>}
+                        <div className="min-w-0">
+                          <p className={'text-sm font-semibold ' + (urgent ? 'text-orange-300' : 'text-white')}>{CATEGORIES[item.category] || item.category}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.eventsCount} {item.eventsCount === 1 ? 'evento confirmado' : 'eventos confirmados'} ·
+                            próximo em {daysUntil <= 0 ? 'hoje' : daysUntil === 1 ? 'amanhã' : daysUntil + ' dias'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className={'text-base font-black ' + (urgent ? 'text-orange-400' : 'text-white')}>{item.totalQuantityNeeded}{item.unit}</p>
+                        <p className="text-xs text-gray-500">necessários</p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {stats && stats.recentOrders.length > 0 && (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <p className="text-sm font-semibold text-white mb-4">Pedidos Recentes</p>
+              <div className="space-y-2">
+                {stats.recentOrders.map(o => (
+                  <Link key={o.id} href={'/orders/' + o.id} className="flex items-center justify-between gap-3 px-4 py-3 bg-gray-800 hover:bg-gray-750 rounded-xl transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className={'text-xs text-white px-2 py-0.5 rounded-full font-medium shrink-0 ' + (STATUS_COLOR[o.status] || 'bg-gray-500')}>
+                        {STATUS_LABEL[o.status] || o.status}
+                      </span>
+                      <p className="text-sm font-medium text-gray-300 truncate">{o.customerName}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-sm font-bold text-orange-400">R$ {o.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                      <p className="text-xs text-gray-600">{new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════ INDICAÇÕES */}
+      {activeTab === 'referrals' && (
+        <div className="space-y-6">
+          {/* KPIs */}
+          <div className="grid grid-cols-3 gap-4">
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">Clientes indicados</p>
+              <p className="text-3xl font-black text-orange-400">{referralStats?.totalReferrals ?? stats?.referralCount ?? 0}</p>
+            </div>
+            <div className="bg-gray-900 border border-green-500/30 rounded-2xl p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">Bônus a receber</p>
+              <p className="text-2xl font-black text-green-400">
+                R$ {(referralStats?.pendingBonus ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-gray-600 mt-0.5">no próximo repasse</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-center">
+              <p className="text-xs text-gray-500 mb-1">Bônus já pago</p>
+              <p className="text-2xl font-black text-gray-300">
+                R$ {(referralStats?.paidBonus ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              </p>
+            </div>
+          </div>
+
+          {/* QR Code + link */}
+          {referralCode ? (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <p className="text-xs text-green-400 font-bold uppercase tracking-widest mb-1">Seu QR Code exclusivo</p>
+              <p className="text-sm text-gray-400 mb-4">
+                Coloque no balcão, no WhatsApp, no Instagram — cada cliente que escanear e fizer o primeiro pedido vale <strong className="text-white">R$ 40</strong> para você.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-5 items-start">
+                <div className="bg-white p-4 rounded-2xl shrink-0 shadow-lg">
+                  <QRCodeSVG value={referralLink} size={140} level="H" />
+                </div>
+                <div className="flex-1 space-y-3 w-full">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Link de indicação</p>
+                    <div className="bg-gray-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-2">
+                      <p className="text-xs text-gray-300 font-mono truncate">{referralLink}</p>
+                      <button onClick={copyFullReferralLink} className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">
+                        {copiedReferral ? '✓ Copiado' : 'Copiar'}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1">Código de indicação</p>
+                    <div className="bg-gray-800 rounded-xl px-4 py-2.5">
+                      <p className="text-lg font-black font-mono text-white tracking-widest">{referralCode}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <div ref={qrIndicacaoRef} className="hidden">
+                      <QRCodeCanvas value={referralLink} size={600} level="H" />
+                    </div>
+                    <button onClick={downloadQRIndicacao} className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                      Baixar QR Code
+                    </button>
+                    <Link
+                      href="/boutiques/dashboard/qrcode-impressao"
+                      className="flex-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+                    >
+                      🖨️ Imprimir Placa
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center">
+              <p className="text-gray-500 text-sm">Código de indicação ainda não gerado. Entre em contato com o suporte.</p>
+            </div>
+          )}
+
+          {/* Como funciona */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Como funciona</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {[
+                {
+                  n: '1', icon: '📱',
+                  titulo: 'Compartilhe o QR Code',
+                  desc: 'Imprima e coloque no balcão. Mande o link no WhatsApp e Instagram.',
+                },
+                {
+                  n: '2', icon: '👤',
+                  titulo: 'Cliente se cadastra',
+                  desc: 'Ele escaneia, cria conta e faz o primeiro pedido. Fica vinculado ao seu açougue.',
+                },
+                {
+                  n: '3', icon: '💸',
+                  titulo: 'R$ 40 no repasse',
+                  desc: 'O bônus cai automaticamente no seu repasse semanal via PIX. Sem burocracia.',
+                },
+              ].map(s => (
+                <div key={s.n} className="bg-gray-800 rounded-xl p-4 flex gap-3 items-start">
+                  <div className="w-7 h-7 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center text-xs font-black text-green-400 shrink-0 mt-0.5">
+                    {s.n}
+                  </div>
+                  <div>
+                    <p className="text-base mb-1">{s.icon}</p>
+                    <p className="text-sm font-bold text-white mb-1">{s.titulo}</p>
+                    <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Dicas de conversão */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Dicas para converter mais</p>
+            <div className="space-y-3">
+              {[
+                {
+                  icon: '🖨️',
+                  titulo: 'Placa no balcão',
+                  desc: 'Imprima o QR code em tamanho A5 ou A4 e coloque na frente do caixa. Clientes que estão comprando carne para evento já estão no perfil certo.',
+                  acao: 'Imprimir placa',
+                  href: '/boutiques/dashboard/qrcode-impressao',
+                },
+                {
+                  icon: '💬',
+                  titulo: 'Script para o atendente',
+                  desc: '"Você vai fazer churrasco? A gente tem parceria com churrasqueiros profissionais — você escaneia esse QR e a carne já vem separada daqui. Tudo num app."',
+                  acao: null,
+                  href: null,
+                },
+                {
+                  icon: '📲',
+                  titulo: 'Status do WhatsApp',
+                  desc: 'Mande o link de indicação como status. Clientes que já compram aqui são os mais propensos a usar.',
+                  acao: null,
+                  href: null,
+                },
+              ].map((d, i) => (
+                <div key={i} className="flex gap-3 bg-gray-800 rounded-xl p-4">
+                  <span className="text-xl shrink-0">{d.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-white mb-1">{d.titulo}</p>
+                    <p className="text-xs text-gray-400 leading-relaxed italic">{d.desc}</p>
+                    {d.href && (
+                      <Link href={d.href} className="inline-block mt-2 text-xs text-orange-400 hover:text-orange-300 font-medium underline">
+                        {d.acao} →
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Potencial de ganhos */}
+          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/20 rounded-2xl p-5">
+            <p className="text-xs text-green-400 font-bold uppercase tracking-widest mb-3">Potencial de bônus mensal</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                { clientes: 5, bonus: 200 },
+                { clientes: 20, bonus: 800 },
+                { clientes: 50, bonus: 2000 },
+                { clientes: 100, bonus: 4000 },
+              ].map(r => (
+                <div key={r.clientes} className="bg-gray-900/60 rounded-xl p-3 text-center">
+                  <p className="text-xs text-gray-500">{r.clientes} clientes/mês</p>
+                  <p className="text-xl font-black text-green-400 mt-1">+R$ {r.bonus.toLocaleString('pt-BR')}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-3">Sem limite de indicações. Bônus pago junto ao repasse semanal.</p>
           </div>
         </div>
       )}
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>
-          {contract && (
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${contract.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-              {contract.status === 'ACCEPTED' ? 'Aceito' : 'Pendente de assinatura'}
-            </span>
-          )}
-        </div>
-        {contract ? (
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><p className="text-gray-500 text-xs">Vigência</p><p className="text-white font-medium">{contract.durationMonths} meses</p></div>
-              <div><p className="text-gray-500 text-xs">Gerado em</p><p className="text-white font-medium">{new Date(contract.generatedAt).toLocaleDateString('pt-BR')}</p></div>
-              {contract.acceptedAt && <div><p className="text-gray-500 text-xs">Aceito em</p><p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p></div>}
+      {/* ══════════════════════════════════════════════════════ BALCÃO */}
+      {activeTab === 'balcao' && (
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-orange-500/10 to-transparent border-b border-gray-800 px-5 py-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-lg shrink-0">🏪</div>
+              <div>
+                <p className="font-bold text-white text-sm">Balcão de Eventos — Máquina de vendas</p>
+                <p className="text-xs text-gray-500">Transforme cada cliente do balcão em um evento completo Tech Churras</p>
+              </div>
             </div>
-            <button
-              onClick={async () => {
-                const res = await fetch(BASE + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
-                if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
-              }}
-              className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline"
-            >Visualizar contrato</button>
           </div>
-        ) : (
-          <p className="text-sm text-gray-500">Nenhum contrato gerado ainda.</p>
-        )}
-      </div>
+
+          <div className="p-5 space-y-5">
+            <div>
+              <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Suas 3 frentes de faturamento</p>
+              <div className="space-y-2">
+                {[
+                  {
+                    n: '1', cor: 'border-orange-500/40 bg-orange-500/5',
+                    badge: 'Ativo agora', badgeCor: 'bg-orange-500/20 text-orange-400',
+                    titulo: 'Clientes da Tech Churras',
+                    desc: 'Novos clientes digitais que chegam pelo app — você recebe o pedido sem fazer nada.',
+                  },
+                  {
+                    n: '2', cor: 'border-amber-500/40 bg-amber-500/5',
+                    badge: 'Ativo agora', badgeCor: 'bg-amber-500/20 text-amber-400',
+                    titulo: 'Clientes do seu balcão',
+                    desc: 'Quem já está comprando carne para um evento — o QR abaixo converte a visita em churrasco completo.',
+                  },
+                  {
+                    n: '3', cor: 'border-blue-500/30 bg-blue-500/5',
+                    badge: 'Futuro próximo', badgeCor: 'bg-blue-500/20 text-blue-400',
+                    titulo: 'Seus próprios churrasqueiros',
+                    desc: 'Com volume, você monta sua equipe de churrasqueiros parceiros e multiplica o faturamento sem sair do lugar.',
+                  },
+                ].map(f => (
+                  <div key={f.n} className={`flex items-start gap-3 border rounded-xl p-3.5 ${f.cor}`}>
+                    <div className="w-7 h-7 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs font-black text-white shrink-0 mt-0.5">{f.n}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                        <p className="text-sm font-bold text-white">{f.titulo}</p>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${f.badgeCor}`}>{f.badge}</span>
+                      </div>
+                      <p className="text-xs text-gray-400 leading-relaxed">{f.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border border-dashed border-orange-500/30 rounded-xl p-4">
+              <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-3">QR Code — Balcão</p>
+              <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <div className="bg-white p-3 rounded-xl shrink-0">
+                  <QRCodeSVG value={balcaoUrl} size={110} level="H" />
+                </div>
+                <div className="flex-1 space-y-3">
+                  <div className="bg-gray-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
+                    <p className="text-xs text-gray-400 font-mono truncate">{balcaoUrl}</p>
+                    <button
+                      onClick={() => copyBalcaoLink(balcaoUrl)}
+                      className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                    >
+                      {copiedBalcao ? '✓ Copiado' : 'Copiar'}
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <div ref={qrBalcaoRef} className="hidden">
+                      <QRCodeCanvas value={balcaoUrl} size={600} level="H" />
+                    </div>
+                    <button onClick={downloadQRBalcao} className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                      Baixar QR
+                    </button>
+                    <Link href="/boutiques/dashboard/qrcode-eventos"
+                      className="flex-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-medium px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                    >
+                      🖨️ Imprimir Placa
+                    </Link>
+                  </div>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Cole na frente do balcão. Quando o cliente escanear, {boutique.name} já estará pré-selecionado no pedido.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Script para o seu atendente</p>
+              <div className="bg-gray-900 rounded-lg px-4 py-3 border border-gray-700">
+                <p className="text-sm text-gray-200 leading-relaxed italic">
+                  "Você vai fazer churrasco? A gente tem parceria com churrasqueiros profissionais certificados — você escaneia esse QR aqui, escolhe o churrasqueiro e a carne já vem separada daqui mesmo. Tudo em um app, fácil."
+                </p>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">50% do trabalho já foi feito — o cliente está comprando carne, basta converter para o pacote completo.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════ PRODUTOS */}
+      {activeTab === 'produtos' && (
+        <div className="space-y-6">
+          {/* Pacotes de Churrasco */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-bold text-white">Pacotes de Churrasco</h2>
+                <p className="text-xs text-gray-500 mt-0.5">Monte kits completos com desconto para seus clientes</p>
+              </div>
+              <button
+                onClick={() => { cancelKitForm(); setShowKitForm(true) }}
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
+              >
+                + Novo pacote
+              </button>
+            </div>
+
+            {showKitForm && (
+              <div className="bg-gray-800 rounded-xl p-4 mb-4 border border-orange-500/30">
+                <h3 className="font-semibold text-sm mb-3">{editingKitId ? 'Editar pacote' : 'Novo pacote'}</h3>
+
+                <div className="mb-4">
+                  {kitForm.coverImageUrl ? (
+                    <div className="relative w-full h-32 rounded-xl overflow-hidden mb-2">
+                      <img src={kitForm.coverImageUrl} alt="capa" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setKitForm(f => ({ ...f, coverImageUrl: '' }))}
+                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black/80"
+                      >✕</button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => kitPhotoRef.current?.click()}
+                      disabled={uploadingKitPhoto}
+                      className="w-full h-20 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center gap-2 text-sm text-gray-400 hover:border-orange-500 hover:text-orange-400 transition-colors mb-2"
+                    >
+                      {uploadingKitPhoto ? '⏳ Enviando...' : '📷 Foto de capa (opcional)'}
+                    </button>
+                  )}
+                  <input ref={kitPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleKitPhotoUpload} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gray-400 mb-1">Nome do pacote *</label>
+                    <input type="text" value={kitForm.name} onChange={e => setKitForm(f => ({ ...f, name: e.target.value }))}
+                      className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: Kit Família 10 pessoas" />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="block text-xs text-gray-400 mb-1">Descrição</label>
+                    <input type="text" value={kitForm.description} onChange={e => setKitForm(f => ({ ...f, description: e.target.value }))}
+                      className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="O que está incluído..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Mín. pessoas</label>
+                    <input type="number" min={1} value={kitForm.minGuests} onChange={e => setKitForm(f => ({ ...f, minGuests: +e.target.value }))}
+                      className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Máx. pessoas</label>
+                    <input type="number" min={1} value={kitForm.maxGuests} onChange={e => setKitForm(f => ({ ...f, maxGuests: +e.target.value }))}
+                      className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Preço normal (R$) *</label>
+                    <input type="number" min={0} step="0.01" value={kitForm.price} onChange={e => setKitForm(f => ({ ...f, price: +e.target.value }))}
+                      className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Preço com desconto (R$)</label>
+                    <input type="number" min={0} step="0.01" value={kitForm.discountPrice || ''} onChange={e => setKitForm(f => ({ ...f, discountPrice: +e.target.value }))}
+                      className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="0 = sem desconto" />
+                  </div>
+                </div>
+
+                {kitForm.price > 0 && kitForm.discountPrice > 0 && kitForm.discountPrice < kitForm.price && (
+                  <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 mb-3 text-xs text-green-400">
+                    Economia de <strong>R$ {(kitForm.price - kitForm.discountPrice).toFixed(2)}</strong> ({Math.round((1 - kitForm.discountPrice / kitForm.price) * 100)}% de desconto)
+                  </div>
+                )}
+
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs text-gray-400">Itens do pacote</label>
+                    <button type="button" onClick={addKitItem} className="text-xs text-orange-400 hover:text-orange-300">+ Adicionar item</button>
+                  </div>
+                  {kitItems.length === 0 && (
+                    <p className="text-xs text-gray-600 py-2 text-center">Nenhum item adicionado</p>
+                  )}
+                  <div className="space-y-2">
+                    {kitItems.map((item, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input type="text" value={item.productName} onChange={e => updateKitItem(idx, 'productName', e.target.value)}
+                          className="flex-1 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="Nome do produto" />
+                        <input type="number" min={0.1} step="0.1" value={item.quantity} onChange={e => updateKitItem(idx, 'quantity', +e.target.value)}
+                          className="w-16 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" />
+                        <input type="text" value={item.unit} onChange={e => updateKitItem(idx, 'unit', e.target.value)}
+                          className="w-12 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="kg" />
+                        <button type="button" onClick={() => removeKitItem(idx)} className="text-red-400 hover:text-red-300 text-sm">✕</button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button onClick={submitKit} disabled={submittingKit} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                    {submittingKit ? 'Salvando...' : editingKitId ? 'Salvar' : 'Criar pacote'}
+                  </button>
+                  <button onClick={cancelKitForm} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancelar</button>
+                </div>
+              </div>
+            )}
+
+            {kits.length === 0 && !showKitForm ? (
+              <p className="text-gray-600 text-sm text-center py-4">Nenhum pacote criado. Monte seu primeiro kit!</p>
+            ) : (
+              <div className="space-y-3">
+                {kits.map(k => {
+                  const saving = k.discountPrice && k.discountPrice < k.price ? k.price - k.discountPrice : 0
+                  return (
+                    <div key={k.id} className="bg-gray-800 rounded-xl overflow-hidden">
+                      <div className="flex items-start gap-3 p-4">
+                        {k.coverImageUrl ? (
+                          <img src={k.coverImageUrl} alt={k.name} className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                        ) : (
+                          <div className="w-16 h-16 rounded-lg bg-gray-700 flex items-center justify-center shrink-0 text-2xl">🍖</div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <div>
+                              <p className="font-semibold text-white">{k.name}</p>
+                              <p className="text-xs text-gray-400 mt-0.5">{k.minGuests}–{k.maxGuests} pessoas</p>
+                              {k.description && <p className="text-xs text-gray-500 mt-1">{k.description}</p>}
+                            </div>
+                            <div className="text-right shrink-0">
+                              {saving > 0 ? (
+                                <>
+                                  <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold block mb-1">
+                                    PACOTE — Economize R${saving.toFixed(2)}
+                                  </span>
+                                  <p className="text-xs text-gray-500 line-through">R$ {k.price.toFixed(2)}</p>
+                                  <p className="text-sm font-bold text-orange-400">R$ {k.discountPrice!.toFixed(2)}</p>
+                                </>
+                              ) : (
+                                <p className="text-sm font-bold text-orange-400">R$ {k.price.toFixed(2)}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="border-t border-gray-700 px-4 py-2 flex gap-2 justify-end">
+                        <button onClick={() => startEditKit(k)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded">Editar</button>
+                        <button onClick={() => removeKit(k.id)} className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-2 py-1 rounded">Remover</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Produtos */}
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
+            <p className="text-sm text-orange-300 font-medium mb-0.5">Mantenha seus preços sempre atualizados</p>
+            <p className="text-xs text-orange-400/80">Eles aparecem diretamente para os clientes no momento do pedido.</p>
+          </div>
+
+          {activeDiscountCount > 0 && (
+            <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-sm text-green-400">
+              <strong>{activeDiscountCount}</strong> {activeDiscountCount === 1 ? 'produto com desconto ativo' : 'produtos com desconto ativo'}
+            </div>
+          )}
+
+          <input ref={photoInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleAiPhotoSelect} />
+          <input ref={productPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProductPhotoUpload} />
+
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h2 className="text-lg font-semibold">
+              Produtos ({boutique.products.length})
+              {photoCount > 0 && <span className="ml-2 text-xs text-green-400 font-normal">{photoCount} adicionado{photoCount > 1 ? 's' : ''} nesta sessão</span>}
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                disabled={photoState === 'analyzing'}
+                className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                {photoState === 'analyzing' ? (
+                  <><span className="inline-block w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-300 rounded-full animate-spin" /> Analisando...</>
+                ) : <>📸 Adicionar por foto</>}
+              </button>
+              <button onClick={() => { cancelForm(); setShowForm(true) }} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                + Adicionar produto
+              </button>
+            </div>
+          </div>
+
+          {photoState === 'done' && (
+            <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-sm text-green-400">
+              ✅ IA identificou o produto — confira e ajuste os dados abaixo. <strong>Preencha o preço</strong> antes de salvar.
+            </div>
+          )}
+          {photoState === 'error' && (
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 text-sm text-yellow-400">
+              ⚠️ {photoError || 'Não foi possível identificar o produto'} — preencha manualmente.
+            </div>
+          )}
+
+          {showForm && (
+            <div className="bg-gray-900 rounded-xl p-5 border border-orange-500/30">
+              <h3 className="font-semibold mb-4">{editingId ? 'Editar produto' : 'Novo produto'}</h3>
+
+              <div className="mb-4">
+                {form.imageUrl ? (
+                  <div className="relative w-24 h-24 rounded-xl overflow-hidden mb-2">
+                    <img src={form.imageUrl} alt="produto" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setForm(f => ({ ...f, imageUrl: '' }))}
+                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black/80"
+                    >✕</button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => productPhotoRef.current?.click()}
+                    disabled={uploadingPhoto}
+                    className="flex items-center gap-2 text-xs text-gray-400 hover:text-orange-400 border border-dashed border-gray-600 hover:border-orange-500 rounded-lg px-3 py-2 transition-colors mb-2"
+                  >
+                    {uploadingPhoto ? '⏳ Enviando...' : '📷 Adicionar foto do produto (opcional)'}
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="col-span-2">
+                  <label className="block text-xs text-gray-400 mb-1">Nome *</label>
+                  <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
+                    className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: Picanha, Fraldinha..." />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs text-gray-400 mb-1">Descrição</label>
+                  <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                    className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Opcional" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Unidade</label>
+                  <input type="text" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })}
+                    className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="kg, un..." />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">{priceLabel(form.unit)} *</label>
+                  <input type="number" min={0} step="0.01" value={form.price} onChange={e => setForm({ ...form, price: +e.target.value })}
+                    className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Categoria</label>
+                  <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+                    className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white">
+                    {Object.entries(CATEGORIES).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-400 mb-1">Estoque (opcional)</label>
+                  <input type="number" min={0} value={form.stockQuantity}
+                    onChange={e => setForm({ ...form, stockQuantity: e.target.value === '' ? '' : +e.target.value })}
+                    className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Qtd." />
+                </div>
+                <div className="col-span-2">
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <button type="button" onClick={() => setForm(f => ({ ...f, available: !f.available }))}
+                      className={'relative w-11 h-6 rounded-full transition-colors shrink-0 ' + (form.available ? 'bg-orange-500' : 'bg-gray-700')}>
+                      <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (form.available ? 'translate-x-5' : 'translate-x-0')} />
+                    </button>
+                    <span className="text-sm text-gray-300">{form.available ? 'Disponível para pedidos' : 'Indisponível'}</span>
+                  </label>
+                </div>
+
+                <div className="col-span-2 border-t border-gray-800 pt-3">
+                  <label className="flex items-center gap-3 cursor-pointer mb-3">
+                    <button type="button" onClick={() => setForm(f => ({ ...f, discountEnabled: !f.discountEnabled }))}
+                      className={'relative w-11 h-6 rounded-full transition-colors shrink-0 ' + (form.discountEnabled ? 'bg-green-500' : 'bg-gray-700')}>
+                      <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (form.discountEnabled ? 'translate-x-5' : 'translate-x-0')} />
+                    </button>
+                    <span className="text-sm text-gray-300 font-medium">Ativar desconto</span>
+                  </label>
+                  {form.discountEnabled && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Percentual de desconto (%)</label>
+                        <input type="number" min={0} max={100} step={1} value={form.discountPercent}
+                          onChange={e => setForm(f => ({ ...f, discountPercent: +e.target.value }))}
+                          className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: 15" />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-gray-400 mb-1">Válido até (opcional)</label>
+                        <input type="date" value={form.discountValidUntil}
+                          onChange={e => setForm(f => ({ ...f, discountValidUntil: e.target.value }))}
+                          className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" />
+                      </div>
+                      {form.discountPercent > 0 && form.price > 0 && (
+                        <div className="col-span-2 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
+                          <p className="text-xs text-green-400">
+                            Preço com desconto: <strong>R$ {discountedPrice(form.price, form.discountPercent).toFixed(2)}</strong>/{form.unit}
+                            {' '}(de R$ {form.price.toFixed(2)})
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={submitProduct} disabled={submitting} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                  {submitting ? 'Salvando...' : editingId ? 'Salvar' : 'Adicionar'}
+                </button>
+                <button onClick={cancelForm} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancelar</button>
+              </div>
+            </div>
+          )}
+
+          {boutique.products.length === 0 && !showForm && (
+            <div className="bg-gray-900 rounded-xl p-8 text-center text-gray-400">
+              <p className="mb-2">Nenhum produto cadastrado ainda.</p>
+              <p className="text-xs text-gray-500">Adicione seus cortes e produtos para que apareçam no momento do pedido dos clientes.</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            {boutique.products.map(p => {
+              const active = isDiscountActive(p)
+              return (
+                <div key={p.id} className="bg-gray-900 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    {p.imageUrl ? (
+                      <img src={p.imageUrl} alt={p.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 text-xl">🥩</div>
+                    )}
+                    <button type="button" onClick={() => toggleProduct(p.id)} title={p.available ? 'Clique para desativar' : 'Clique para ativar'}
+                      className={'relative w-10 h-5 rounded-full transition-colors shrink-0 ' + (p.available ? 'bg-green-500' : 'bg-gray-600')}>
+                      <span className={'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ' + (p.available ? 'translate-x-5' : 'translate-x-0')} />
+                    </button>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium truncate">{p.name}</p>
+                        {active && (
+                          <span className="text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-bold shrink-0">
+                            {p.discountPercent}% OFF
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">
+                        {CATEGORIES[p.category] || p.category} · {p.unit}
+                        {p.stockQuantity != null && <span> · estoque: {p.stockQuantity}</span>}
+                        {active && p.discountValidUntil && (
+                          <span className="ml-1 text-orange-400"> · até {new Date(p.discountValidUntil).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <div className="text-right">
+                      {active ? (
+                        <>
+                          <p className="text-xs text-gray-500 line-through leading-none">R$ {p.price.toFixed(2)}</p>
+                          <p className="text-sm font-bold text-orange-400">R$ {discountedPrice(p.price, p.discountPercent!).toFixed(2)}/{p.unit}</p>
+                        </>
+                      ) : (
+                        <span className="text-orange-400 font-semibold text-sm">R$ {p.price.toFixed(2)}/{p.unit}</span>
+                      )}
+                    </div>
+                    <button onClick={() => startEdit(p)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded">Editar</button>
+                    <button onClick={() => removeProduct(p.id)} className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-2 py-1 rounded">Remover</button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {showContractText && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
@@ -645,629 +1455,6 @@ export default function BoutiqueDashboardPage() {
           </div>
         </div>
       )}
-
-      {stats && stats.revenueByDay.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <p className="text-sm font-semibold text-gray-300 mb-4">Faturamento — últimos 30 dias</p>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={stats.revenueByDay} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(v: string) => v.slice(5)} />
-              <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(v: number) => 'R$' + v} />
-              <Tooltip
-                contentStyle={{ background: '#111', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
-                formatter={(v) => ['R$ ' + Number(v).toFixed(2), 'Faturamento']}
-              />
-              <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fill="url(#revenueGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <p className="text-sm font-semibold text-white">Previsão de Demanda — Próximos 14 dias</p>
-            <p className="text-xs text-gray-500 mt-0.5">Pedidos confirmados e pagos com itens do seu açougue</p>
-          </div>
-        </div>
-        {demand.length === 0 ? (
-          <p className="text-gray-600 text-sm py-4 text-center">Nenhuma demanda prevista no momento</p>
-        ) : (
-          <div className="space-y-3">
-            {demand.map(item => {
-              const nextDate = new Date(item.nextEventDate)
-              const daysUntil = Math.ceil((nextDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
-              const urgent = daysUntil <= 2
-              return (
-                <div key={item.category} className={'flex items-center justify-between gap-3 rounded-xl px-4 py-3 border ' + (urgent ? 'bg-orange-500/10 border-orange-500/30' : 'bg-gray-800 border-transparent')}>
-                  <div className="flex items-center gap-3 min-w-0">
-                    {urgent && <span className="text-orange-400 text-lg shrink-0">⚠️</span>}
-                    <div className="min-w-0">
-                      <p className={'text-sm font-semibold ' + (urgent ? 'text-orange-300' : 'text-white')}>{CATEGORIES[item.category] || item.category}</p>
-                      <p className="text-xs text-gray-500">
-                        {item.eventsCount} {item.eventsCount === 1 ? 'evento confirmado' : 'eventos confirmados'} ·
-                        próximo em {daysUntil <= 0 ? 'hoje' : daysUntil === 1 ? 'amanhã' : daysUntil + ' dias'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className={'text-base font-black ' + (urgent ? 'text-orange-400' : 'text-white')}>{item.totalQuantityNeeded}{item.unit}</p>
-                    <p className="text-xs text-gray-500">necessários</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {stats?.referralCode && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div>
-              <p className="text-sm font-semibold text-white mb-1">Sistema de Indicação — QR Code de Balcão</p>
-              <p className="text-xs text-gray-500">Clientes indicados ganham 15% de desconto no primeiro pedido</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-xs text-gray-500 mb-0.5">Indicações</p>
-              <p className="text-xl font-black text-orange-400">{stats.referralCount}</p>
-            </div>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4 items-start">
-            <div className="bg-white p-3 rounded-xl shrink-0">
-              <QRCodeSVG value={referralUrl} size={120} level="H" />
-            </div>
-            <div className="flex-1 space-y-3">
-              <div className="bg-gray-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-2">
-                <p className="text-xs text-gray-300 font-mono truncate">{referralUrl}</p>
-                <button onClick={copyReferralLink} className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">
-                  {copied ? '✓ Copiado' : 'Copiar link'}
-                </button>
-              </div>
-              <div className="flex gap-2">
-                <div ref={qrRef} className="hidden">
-                  <QRCodeCanvas value={referralUrl} size={600} level="H" />
-                </div>
-                <button onClick={downloadQR} className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                  Baixar QR Code
-                </button>
-                <Link href="/boutiques/dashboard/qrcode-impressao"
-                  className="flex-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-sm font-medium px-4 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
-                >
-                  🖨️ Imprimir Placa
-                </Link>
-              </div>
-              <p className="text-xs text-gray-600">Código: <span className="font-mono font-bold text-gray-400">{stats.referralCode}</span></p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── BALCÃO DE EVENTOS ───────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-orange-500/10 to-transparent border-b border-gray-800 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center text-lg shrink-0">
-              🏪
-            </div>
-            <div>
-              <p className="font-bold text-white text-sm">Balcão de Eventos — Máquina de vendas</p>
-              <p className="text-xs text-gray-500">Transforme cada cliente do balcão em um evento completo Tech Churras</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-5 space-y-5">
-          {/* 3 frentes */}
-          <div>
-            <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Suas 3 frentes de faturamento</p>
-            <div className="space-y-2">
-              {[
-                {
-                  n: '1', cor: 'border-orange-500/40 bg-orange-500/5',
-                  badge: 'Ativo agora', badgeCor: 'bg-orange-500/20 text-orange-400',
-                  titulo: 'Clientes da Tech Churras',
-                  desc: 'Novos clientes digitais que chegam pelo app — você recebe o pedido sem fazer nada.',
-                },
-                {
-                  n: '2', cor: 'border-amber-500/40 bg-amber-500/5',
-                  badge: 'Ativo agora', badgeCor: 'bg-amber-500/20 text-amber-400',
-                  titulo: 'Clientes do seu balcão',
-                  desc: 'Quem já está comprando carne para um evento — o QR abaixo converte a visita em churrasco completo.',
-                },
-                {
-                  n: '3', cor: 'border-blue-500/30 bg-blue-500/5',
-                  badge: 'Futuro próximo', badgeCor: 'bg-blue-500/20 text-blue-400',
-                  titulo: 'Seus próprios churrasqueiros',
-                  desc: 'Com volume, você monta sua equipe de churrasqueiros parceiros e multiplica o faturamento sem sair do lugar.',
-                },
-              ].map(f => (
-                <div key={f.n} className={`flex items-start gap-3 border rounded-xl p-3.5 ${f.cor}`}>
-                  <div className="w-7 h-7 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-xs font-black text-white shrink-0 mt-0.5">
-                    {f.n}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
-                      <p className="text-sm font-bold text-white">{f.titulo}</p>
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${f.badgeCor}`}>{f.badge}</span>
-                    </div>
-                    <p className="text-xs text-gray-400 leading-relaxed">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* QR do balcão */}
-          <div className="border border-dashed border-orange-500/30 rounded-xl p-4">
-            <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-3">QR Code — Balcão (Frente 2)</p>
-            <div className="flex flex-col sm:flex-row gap-4 items-start">
-              <div className="bg-white p-3 rounded-xl shrink-0">
-                <QRCodeSVG value={balcaoUrl} size={110} level="H" />
-              </div>
-              <div className="flex-1 space-y-3">
-                <div className="bg-gray-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
-                  <p className="text-xs text-gray-400 font-mono truncate">{balcaoUrl}</p>
-                  <button
-                    onClick={() => copyBalcaoLink(balcaoUrl)}
-                    className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
-                  >
-                    {copiedBalcao ? '✓ Copiado' : 'Copiar'}
-                  </button>
-                </div>
-
-                <div className="flex gap-2">
-                  <div ref={qrBalcaoRef} className="hidden">
-                    <QRCodeCanvas value={balcaoUrl} size={600} level="H" />
-                  </div>
-                  <button
-                    onClick={downloadQRBalcao}
-                    className="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-medium px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                    Baixar QR
-                  </button>
-                  <Link
-                    href="/boutiques/dashboard/qrcode-eventos"
-                    className="flex-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-medium px-3 py-2.5 rounded-xl transition-colors flex items-center justify-center gap-1.5"
-                  >
-                    🖨️ Imprimir Placa
-                  </Link>
-                </div>
-
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  Cole na frente do balcão. Quando o cliente escanear, {boutique.name} já estará pré-selecionado no pedido.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Script para atendente */}
-          <div className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-4">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Script para o seu atendente</p>
-            <div className="bg-gray-900 rounded-lg px-4 py-3 border border-gray-700">
-              <p className="text-sm text-gray-200 leading-relaxed italic">
-                "Você vai fazer churrasco? A gente tem parceria com churrasqueiros profissionais certificados — você escaneia esse QR aqui, escolhe o churrasqueiro e a carne já vem separada daqui mesmo. Tudo em um app, fácil."
-              </p>
-            </div>
-            <p className="text-xs text-gray-600 mt-2">50% do trabalho já foi feito — o cliente está comprando carne, basta converter para o pacote completo.</p>
-          </div>
-        </div>
-      </div>
-
-      {stats && stats.recentOrders.length > 0 && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-          <p className="text-sm font-semibold text-white mb-4">Pedidos Recentes</p>
-          <div className="space-y-2">
-            {stats.recentOrders.map(o => (
-              <Link key={o.id} href={'/orders/' + o.id} className="flex items-center justify-between gap-3 px-4 py-3 bg-gray-800 hover:bg-gray-750 rounded-xl transition-colors">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className={'text-xs text-white px-2 py-0.5 rounded-full font-medium shrink-0 ' + (STATUS_COLOR[o.status] || 'bg-gray-500')}>
-                    {STATUS_LABEL[o.status] || o.status}
-                  </span>
-                  <p className="text-sm font-medium text-gray-300 truncate">{o.customerName}</p>
-                </div>
-                <div className="shrink-0 text-right">
-                  <p className="text-sm font-bold text-orange-400">R$ {o.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                  <p className="text-xs text-gray-600">{new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── PACOTES DE CHURRASCO ─────────────────────────────────────────── */}
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="font-bold text-white">Pacotes de Churrasco</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Monte kits completos com desconto para seus clientes</p>
-          </div>
-          <button
-            onClick={() => { cancelKitForm(); setShowKitForm(true) }}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium"
-          >
-            + Novo pacote
-          </button>
-        </div>
-
-        {showKitForm && (
-          <div className="bg-gray-800 rounded-xl p-4 mb-4 border border-orange-500/30">
-            <h3 className="font-semibold text-sm mb-3">{editingKitId ? 'Editar pacote' : 'Novo pacote'}</h3>
-
-            {/* Cover photo */}
-            <div className="mb-4">
-              {kitForm.coverImageUrl ? (
-                <div className="relative w-full h-32 rounded-xl overflow-hidden mb-2">
-                  <img src={kitForm.coverImageUrl} alt="capa" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => setKitForm(f => ({ ...f, coverImageUrl: '' }))}
-                    className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-black/80"
-                  >✕</button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => kitPhotoRef.current?.click()}
-                  disabled={uploadingKitPhoto}
-                  className="w-full h-20 border-2 border-dashed border-gray-600 rounded-xl flex items-center justify-center gap-2 text-sm text-gray-400 hover:border-orange-500 hover:text-orange-400 transition-colors mb-2"
-                >
-                  {uploadingKitPhoto ? '⏳ Enviando...' : '📷 Foto de capa (opcional)'}
-                </button>
-              )}
-              <input ref={kitPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleKitPhotoUpload} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div className="col-span-2">
-                <label className="block text-xs text-gray-400 mb-1">Nome do pacote *</label>
-                <input type="text" value={kitForm.name} onChange={e => setKitForm(f => ({ ...f, name: e.target.value }))}
-                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: Kit Família 10 pessoas" />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs text-gray-400 mb-1">Descrição</label>
-                <input type="text" value={kitForm.description} onChange={e => setKitForm(f => ({ ...f, description: e.target.value }))}
-                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="O que está incluído..." />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Mín. pessoas</label>
-                <input type="number" min={1} value={kitForm.minGuests} onChange={e => setKitForm(f => ({ ...f, minGuests: +e.target.value }))}
-                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Máx. pessoas</label>
-                <input type="number" min={1} value={kitForm.maxGuests} onChange={e => setKitForm(f => ({ ...f, maxGuests: +e.target.value }))}
-                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Preço normal (R$) *</label>
-                <input type="number" min={0} step="0.01" value={kitForm.price} onChange={e => setKitForm(f => ({ ...f, price: +e.target.value }))}
-                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-400 mb-1">Preço com desconto (R$)</label>
-                <input type="number" min={0} step="0.01" value={kitForm.discountPrice || ''} onChange={e => setKitForm(f => ({ ...f, discountPrice: +e.target.value }))}
-                  className="w-full bg-gray-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="0 = sem desconto" />
-              </div>
-            </div>
-
-            {kitForm.price > 0 && kitForm.discountPrice > 0 && kitForm.discountPrice < kitForm.price && (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 mb-3 text-xs text-green-400">
-                Economia de <strong>R$ {(kitForm.price - kitForm.discountPrice).toFixed(2)}</strong> ({Math.round((1 - kitForm.discountPrice / kitForm.price) * 100)}% de desconto)
-              </div>
-            )}
-
-            {/* Kit items */}
-            <div className="mb-3">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-xs text-gray-400">Itens do pacote</label>
-                <button type="button" onClick={addKitItem} className="text-xs text-orange-400 hover:text-orange-300">+ Adicionar item</button>
-              </div>
-              {kitItems.length === 0 && (
-                <p className="text-xs text-gray-600 py-2 text-center">Nenhum item adicionado</p>
-              )}
-              <div className="space-y-2">
-                {kitItems.map((item, idx) => (
-                  <div key={idx} className="flex gap-2 items-center">
-                    <input type="text" value={item.productName} onChange={e => updateKitItem(idx, 'productName', e.target.value)}
-                      className="flex-1 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="Nome do produto" />
-                    <input type="number" min={0.1} step="0.1" value={item.quantity} onChange={e => updateKitItem(idx, 'quantity', +e.target.value)}
-                      className="w-16 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" />
-                    <input type="text" value={item.unit} onChange={e => updateKitItem(idx, 'unit', e.target.value)}
-                      className="w-12 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="kg" />
-                    <button type="button" onClick={() => removeKitItem(idx)} className="text-red-400 hover:text-red-300 text-sm">✕</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <button onClick={submitKit} disabled={submittingKit} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium">
-                {submittingKit ? 'Salvando...' : editingKitId ? 'Salvar' : 'Criar pacote'}
-              </button>
-              <button onClick={cancelKitForm} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancelar</button>
-            </div>
-          </div>
-        )}
-
-        {kits.length === 0 && !showKitForm ? (
-          <p className="text-gray-600 text-sm text-center py-4">Nenhum pacote criado. Monte seu primeiro kit!</p>
-        ) : (
-          <div className="space-y-3">
-            {kits.map(k => {
-              const saving = k.discountPrice && k.discountPrice < k.price ? k.price - k.discountPrice : 0
-              return (
-                <div key={k.id} className="bg-gray-800 rounded-xl overflow-hidden">
-                  <div className="flex items-start gap-3 p-4">
-                    {k.coverImageUrl ? (
-                      <img src={k.coverImageUrl} alt={k.name} className="w-16 h-16 rounded-lg object-cover shrink-0" />
-                    ) : (
-                      <div className="w-16 h-16 rounded-lg bg-gray-700 flex items-center justify-center shrink-0 text-2xl">🍖</div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <p className="font-semibold text-white">{k.name}</p>
-                          <p className="text-xs text-gray-400 mt-0.5">{k.minGuests}–{k.maxGuests} pessoas</p>
-                          {k.description && <p className="text-xs text-gray-500 mt-1">{k.description}</p>}
-                        </div>
-                        <div className="text-right shrink-0">
-                          {saving > 0 ? (
-                            <>
-                              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full font-bold block mb-1">
-                                PACOTE — Economize R${saving.toFixed(2)}
-                              </span>
-                              <p className="text-xs text-gray-500 line-through">R$ {k.price.toFixed(2)}</p>
-                              <p className="text-sm font-bold text-orange-400">R$ {k.discountPrice!.toFixed(2)}</p>
-                            </>
-                          ) : (
-                            <p className="text-sm font-bold text-orange-400">R$ {k.price.toFixed(2)}</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="border-t border-gray-700 px-4 py-2 flex gap-2 justify-end">
-                    <button onClick={() => startEditKit(k)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded">Editar</button>
-                    <button onClick={() => removeKit(k.id)} className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-2 py-1 rounded">Remover</button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* ── PRODUTOS ─────────────────────────────────────────────────────── */}
-      <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4">
-        <p className="text-sm text-orange-300 font-medium mb-0.5">Mantenha seus preços sempre atualizados</p>
-        <p className="text-xs text-orange-400/80">Eles aparecem diretamente para os clientes no momento do pedido.</p>
-      </div>
-
-      {activeDiscountCount > 0 && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-sm text-green-400">
-          <strong>{activeDiscountCount}</strong> {activeDiscountCount === 1 ? 'produto com desconto ativo' : 'produtos com desconto ativo'}
-        </div>
-      )}
-
-      <input ref={photoInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleAiPhotoSelect} />
-      <input ref={productPhotoRef} type="file" accept="image/*" className="hidden" onChange={handleProductPhotoUpload} />
-
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h2 className="text-lg font-semibold">
-          Produtos ({boutique.products.length})
-          {photoCount > 0 && <span className="ml-2 text-xs text-green-400 font-normal">{photoCount} adicionado{photoCount > 1 ? 's' : ''} nesta sessão</span>}
-        </h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => photoInputRef.current?.click()}
-            disabled={photoState === 'analyzing'}
-            className="flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            {photoState === 'analyzing' ? (
-              <><span className="inline-block w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-300 rounded-full animate-spin" /> Analisando...</>
-            ) : <>📸 Adicionar por foto</>}
-          </button>
-          <button onClick={() => { cancelForm(); setShowForm(true) }} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
-            + Adicionar produto
-          </button>
-        </div>
-      </div>
-
-      {photoState === 'done' && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-4 py-3 text-sm text-green-400">
-          ✅ IA identificou o produto — confira e ajuste os dados abaixo. <strong>Preencha o preço</strong> antes de salvar.
-        </div>
-      )}
-      {photoState === 'error' && (
-        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 text-sm text-yellow-400">
-          ⚠️ {photoError || 'Não foi possível identificar o produto'} — preencha manualmente.
-        </div>
-      )}
-
-      {showForm && (
-        <div className="bg-gray-900 rounded-xl p-5 border border-orange-500/30">
-          <h3 className="font-semibold mb-4">{editingId ? 'Editar produto' : 'Novo produto'}</h3>
-
-          {/* Product photo */}
-          <div className="mb-4">
-            {form.imageUrl ? (
-              <div className="relative w-24 h-24 rounded-xl overflow-hidden mb-2">
-                <img src={form.imageUrl} alt="produto" className="w-full h-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, imageUrl: '' }))}
-                  className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black/80"
-                >✕</button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => productPhotoRef.current?.click()}
-                disabled={uploadingPhoto}
-                className="flex items-center gap-2 text-xs text-gray-400 hover:text-orange-400 border border-dashed border-gray-600 hover:border-orange-500 rounded-lg px-3 py-2 transition-colors mb-2"
-              >
-                {uploadingPhoto ? '⏳ Enviando...' : '📷 Adicionar foto do produto (opcional)'}
-              </button>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            <div className="col-span-2">
-              <label className="block text-xs text-gray-400 mb-1">Nome *</label>
-              <input type="text" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: Picanha, Fraldinha..." />
-            </div>
-            <div className="col-span-2">
-              <label className="block text-xs text-gray-400 mb-1">Descrição</label>
-              <input type="text" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Opcional" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Unidade</label>
-              <input type="text" value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="kg, un..." />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">{priceLabel(form.unit)} *</label>
-              <input type="number" min={0} step="0.01" value={form.price} onChange={e => setForm({ ...form, price: +e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Categoria</label>
-              <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white">
-                {Object.entries(CATEGORIES).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs text-gray-400 mb-1">Estoque (opcional)</label>
-              <input type="number" min={0} value={form.stockQuantity}
-                onChange={e => setForm({ ...form, stockQuantity: e.target.value === '' ? '' : +e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Qtd." />
-            </div>
-            <div className="col-span-2">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <button type="button" onClick={() => setForm(f => ({ ...f, available: !f.available }))}
-                  className={'relative w-11 h-6 rounded-full transition-colors shrink-0 ' + (form.available ? 'bg-orange-500' : 'bg-gray-700')}>
-                  <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (form.available ? 'translate-x-5' : 'translate-x-0')} />
-                </button>
-                <span className="text-sm text-gray-300">{form.available ? 'Disponível para pedidos' : 'Indisponível'}</span>
-              </label>
-            </div>
-
-            {/* Desconto */}
-            <div className="col-span-2 border-t border-gray-800 pt-3">
-              <label className="flex items-center gap-3 cursor-pointer mb-3">
-                <button type="button" onClick={() => setForm(f => ({ ...f, discountEnabled: !f.discountEnabled }))}
-                  className={'relative w-11 h-6 rounded-full transition-colors shrink-0 ' + (form.discountEnabled ? 'bg-green-500' : 'bg-gray-700')}>
-                  <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (form.discountEnabled ? 'translate-x-5' : 'translate-x-0')} />
-                </button>
-                <span className="text-sm text-gray-300 font-medium">Ativar desconto</span>
-              </label>
-              {form.discountEnabled && (
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">Percentual de desconto (%)</label>
-                    <input type="number" min={0} max={100} step={1} value={form.discountPercent}
-                      onChange={e => setForm(f => ({ ...f, discountPercent: +e.target.value }))}
-                      className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" placeholder="Ex: 15" />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-400 mb-1">Válido até (opcional)</label>
-                    <input type="date" value={form.discountValidUntil}
-                      onChange={e => setForm(f => ({ ...f, discountValidUntil: e.target.value }))}
-                      className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white" />
-                  </div>
-                  {form.discountPercent > 0 && form.price > 0 && (
-                    <div className="col-span-2 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2">
-                      <p className="text-xs text-green-400">
-                        Preço com desconto: <strong>R$ {discountedPrice(form.price, form.discountPercent).toFixed(2)}</strong>/{form.unit}
-                        {' '}(de R$ {form.price.toFixed(2)})
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button onClick={submitProduct} disabled={submitting} className="bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-medium">
-              {submitting ? 'Salvando...' : editingId ? 'Salvar' : 'Adicionar'}
-            </button>
-            <button onClick={cancelForm} className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm">Cancelar</button>
-          </div>
-        </div>
-      )}
-
-      {boutique.products.length === 0 && !showForm && (
-        <div className="bg-gray-900 rounded-xl p-8 text-center text-gray-400">
-          <p className="mb-2">Nenhum produto cadastrado ainda.</p>
-          <p className="text-xs text-gray-500">Adicione seus cortes e produtos para que apareçam no momento do pedido dos clientes.</p>
-        </div>
-      )}
-
-      <div className="space-y-2">
-        {boutique.products.map(p => {
-          const active = isDiscountActive(p)
-          return (
-            <div key={p.id} className="bg-gray-900 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3 min-w-0">
-                {p.imageUrl ? (
-                  <img src={p.imageUrl} alt={p.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
-                ) : (
-                  <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 text-xl">🥩</div>
-                )}
-                <button type="button" onClick={() => toggleProduct(p.id)} title={p.available ? 'Clique para desativar' : 'Clique para ativar'}
-                  className={'relative w-10 h-5 rounded-full transition-colors shrink-0 ' + (p.available ? 'bg-green-500' : 'bg-gray-600')}>
-                  <span className={'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ' + (p.available ? 'translate-x-5' : 'translate-x-0')} />
-                </button>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium truncate">{p.name}</p>
-                    {active && (
-                      <span className="text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-bold shrink-0">
-                        {p.discountPercent}% OFF
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-400">
-                    {CATEGORIES[p.category] || p.category} · {p.unit}
-                    {p.stockQuantity != null && <span> · estoque: {p.stockQuantity}</span>}
-                    {active && p.discountValidUntil && (
-                      <span className="ml-1 text-orange-400"> · até {new Date(p.discountValidUntil).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
-                    )}
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-2">
-                <div className="text-right">
-                  {active ? (
-                    <>
-                      <p className="text-xs text-gray-500 line-through leading-none">R$ {p.price.toFixed(2)}</p>
-                      <p className="text-sm font-bold text-orange-400">R$ {discountedPrice(p.price, p.discountPercent!).toFixed(2)}/{p.unit}</p>
-                    </>
-                  ) : (
-                    <span className="text-orange-400 font-semibold text-sm">R$ {p.price.toFixed(2)}/{p.unit}</span>
-                  )}
-                </div>
-                <button onClick={() => startEdit(p)} className="text-xs text-blue-400 hover:text-blue-300 border border-blue-900 px-2 py-1 rounded">Editar</button>
-                <button onClick={() => removeProduct(p.id)} className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-2 py-1 rounded">Remover</button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
     </div>
   )
 }
