@@ -47,8 +47,7 @@ export default function PWAInstallPrompt() {
   async function install() {
     if (!deferredPrompt) return
     await deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
-    if (outcome === 'accepted') localStorage.setItem('pwa-prompt-dismissed', '1')
+    await deferredPrompt.userChoice
     setShow(false)
     setDeferredPrompt(null)
   }
