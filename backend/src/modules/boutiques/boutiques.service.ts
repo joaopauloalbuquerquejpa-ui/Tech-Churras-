@@ -2,6 +2,13 @@ import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
 import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
+import { randomBytes } from 'crypto'
+
+function generateReferralCode(name: string): string {
+  const prefix = name.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X')
+  const suffix = randomBytes(3).toString('hex').toUpperCase()
+  return `${prefix}${suffix}`
+}
 
 export const createBoutiqueSchema = z.object({
   name: z.string().min(2),
@@ -66,8 +73,9 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
     if (coords) { latitude = coords.lat; longitude = coords.lng }
   }
 
+  const referralCode = generateReferralCode(data.name)
   const boutique = await prisma.boutique.create({
-    data: { userId, ...data, latitude, longitude },
+    data: { userId, ...data, latitude, longitude, referralCode },
     include: { user: { select: { name: true, email: true } } },
   })
   // Notify all admins of new partner registration
@@ -77,6 +85,25 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
     }
   }).catch(() => {})
   return boutique
+}
+
+export async function getReferralStats(userId: string) {
+  const boutique = await prisma.boutique.findUnique({ where: { userId }, select: { id: true, referralCode: true } })
+  if (!boutique) throw new Error('Açougue não encontrado')
+
+  const [referredUsers, bonuses] = await Promise.all([
+    prisma.user.count({ where: { referredByBoutiqueId: boutique.id } }),
+    prisma.payout.findMany({
+      where: { type: 'REFERRAL_BONUS', recipientId: boutique.id },
+      select: { amount: true, status: true },
+    }),
+  ])
+
+  const pendingBonus = bonuses.filter(b => b.status === 'PENDING').reduce((s, b) => s + b.amount, 0)
+  const paidBonus   = bonuses.filter(b => b.status === 'PAID').reduce((s, b) => s + b.amount, 0)
+  const referralLink = `https://www.techchurras.com.br/register?ref=${boutique.referralCode}`
+
+  return { referralCode: boutique.referralCode, referralLink, totalReferrals: referredUsers, pendingBonus, paidBonus }
 }
 
 export async function listBoutiques(params: {

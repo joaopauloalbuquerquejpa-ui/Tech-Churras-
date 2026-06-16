@@ -5,6 +5,7 @@ import Link from 'next/link'
 
 const MENSALIDADE = 369
 const COMISSAO_RATE = 0.07
+const BONUS_POR_CLIENTE = 40
 const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
 const FUNDADOR_VAGAS = 3
 
@@ -87,10 +88,15 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
 
   const faturamento = clientes * ticket
   const comissao = faturamento * COMISSAO_RATE
-  const liquido = faturamento - comissao - MENSALIDADE
-  const breakeven = Math.ceil(MENSALIDADE / (ticket * (1 - COMISSAO_RATE)))
+  const bonus = clientes * BONUS_POR_CLIENTE
+  const liquido = faturamento - comissao + bonus - MENSALIDADE
+  const breakeven = Math.ceil(MENSALIDADE / (ticket * (1 - COMISSAO_RATE) + BONUS_POR_CLIENTE))
 
   const faq = [
+    {
+      q: 'Como funciona o bônus de R$ 40 por cliente?',
+      a: 'Cada açougue parceiro recebe um QR code e link exclusivo. Quando um cliente novo se cadastra pela sua indicação e faz o primeiro pedido, você recebe automaticamente R$ 40 no seu repasse semanal via PIX — sem precisar fazer nada além de divulgar seu QR code. Não há limite de clientes que você pode indicar.',
+    },
     {
       q: 'Preciso ter site ou app próprio?',
       a: 'Não. A Tech Churras cuida de toda a parte tecnológica — app, pagamento, logística de pedidos. Você só precisa ter internet no balcão para acompanhar os pedidos no dashboard.',
@@ -270,6 +276,115 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               <div className="absolute -inset-4 rounded-3xl pointer-events-none"
                 style={{ background: 'radial-gradient(ellipse at center, rgba(249,115,22,0.06) 0%, transparent 70%)' }} />
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── PROGRAMA DE INDICAÇÃO ────────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/30 rounded-full px-5 py-2 text-sm font-bold text-green-400 mb-6">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+              Novidade — Programa de Indicação
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black mb-4">
+              Ganhe{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-400">
+                R$ 40
+              </span>{' '}
+              por cada cliente que você converter
+            </h2>
+            <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+              Você já tem 2.000 clientes passando pelo seu balcão todo mês. Com o seu QR code exclusivo, cada um que virar cliente da Tech Churras vale{' '}
+              <strong className="text-white">R$ 40 direto no seu repasse semanal.</strong>
+            </p>
+          </div>
+
+          {/* Como funciona o bônus */}
+          <div className="grid md:grid-cols-3 gap-5 mb-12">
+            {[
+              {
+                step: '1', icon: '📲',
+                title: 'QR Code no balcão',
+                desc: 'Você recebe um link e QR code exclusivo. Coloca no balcão, no WhatsApp, no Instagram — onde quiser.',
+                color: 'border-green-500/30 bg-green-500/5',
+              },
+              {
+                step: '2', icon: '👤',
+                title: 'Cliente se cadastra',
+                desc: 'O cliente escaneia, cria conta e faz o primeiro pedido. Automaticamente fica vinculado ao seu açougue.',
+                color: 'border-green-500/30 bg-green-500/5',
+              },
+              {
+                step: '3', icon: '💸',
+                title: 'R$ 40 cai no repasse',
+                desc: 'No mesmo repasse semanal via PIX, os R$ 40 de bônus aparecem automaticamente. Sem burocracia.',
+                color: 'border-green-500/30 bg-green-500/5',
+              },
+            ].map(s => (
+              <div key={s.step} className={`border ${s.color} rounded-2xl p-6 text-center`}>
+                <div className="text-4xl mb-3">{s.icon}</div>
+                <div className="w-7 h-7 rounded-full bg-green-500 text-black text-xs font-black flex items-center justify-center mx-auto mb-3">{s.step}</div>
+                <h3 className="font-bold text-white mb-2">{s.title}</h3>
+                <p className="text-sm text-gray-400 leading-relaxed">{s.desc}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Calculadora de bônus */}
+          <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/5 border border-green-500/30 rounded-2xl p-8">
+            <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div>
+                <p className="text-xs font-bold text-green-400 uppercase tracking-widest mb-3">Potencial de bônus</p>
+                <h3 className="text-2xl font-black text-white mb-6">Quanto você pode ganhar por mês?</h3>
+                <div className="space-y-4">
+                  {[
+                    { clientes: 5,   label: 'Começo (5 clientes/mês)' },
+                    { clientes: 20,  label: 'Crescendo (20 clientes/mês)' },
+                    { clientes: 50,  label: 'Parceiro ativo (50 clientes/mês)' },
+                    { clientes: 100, label: 'Referência da cidade (100/mês)' },
+                  ].map(r => (
+                    <div key={r.clientes} className="flex items-center justify-between gap-4">
+                      <span className="text-sm text-gray-400 flex-1">{r.label}</span>
+                      <span className="font-black text-green-400 text-lg whitespace-nowrap">
+                        + R$ {(r.clientes * BONUS_POR_CLIENTE).toLocaleString('pt-BR')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-black/40 rounded-2xl p-6 text-center">
+                <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Sem limite de ganhos</p>
+                <p className="text-6xl font-black text-green-400 mb-2">∞</p>
+                <p className="text-white font-bold mb-4">Quanto mais converte, mais ganha</p>
+                <div className="space-y-2 text-sm text-gray-400 text-left">
+                  <p className="flex items-center gap-2"><span className="text-green-400">✓</span> Pago junto ao repasse semanal via PIX</p>
+                  <p className="flex items-center gap-2"><span className="text-green-400">✓</span> Sem limite mensal de bônus</p>
+                  <p className="flex items-center gap-2"><span className="text-green-400">✓</span> Rastreado automaticamente pelo app</p>
+                  <p className="flex items-center gap-2"><span className="text-green-400">✓</span> Você vê cada bônus no dashboard</p>
+                </div>
+                <a
+                  href={WHATSAPP}
+                  target="_blank" rel="noopener noreferrer"
+                  className="mt-5 inline-block bg-green-500 hover:bg-green-400 text-black font-black px-6 py-3 rounded-xl transition-colors text-sm"
+                >
+                  Quero meu QR code exclusivo →
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Transparência do modelo */}
+          <div className="mt-8 bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <p className="font-bold text-white mb-3">🔍 Como o bônus não prejudica a Tech Churras?</p>
+            <p className="text-sm text-gray-400 leading-relaxed mb-4">
+              Quando um cliente faz o primeiro pedido (ticket médio R$ 900), a TC recebe 15% = R$ 135 de taxa de plataforma.
+              Dos R$ 135, paga R$ 40 de bônus para você. A TC ainda fica com R$ 95 nesse primeiro pedido —
+              e do segundo em diante fica com os R$ 135 inteiros. O bônus se paga sozinho.
+            </p>
+            <p className="text-xs text-gray-600">Você nunca sai perdendo — o bônus já está dentro do que a TC arrecadou.</p>
           </div>
         </div>
       </section>
@@ -495,7 +610,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               {/* Context hints */}
               <div className="pt-4 border-t border-gray-800 space-y-1.5">
                 <p className="text-xs text-gray-600 flex gap-2">
-                  <span className="text-gray-500">Faturamento bruto:</span>
+                  <span className="text-gray-500">Faturamento bruto (carnes):</span>
                   <span className="text-white font-medium">
                     <AnimatedNumber value={faturamento} prefix="R$ " decimals={2} />
                   </span>
@@ -504,6 +619,12 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   <span className="text-gray-500">Comissão plataforma (7%):</span>
                   <span className="text-red-400 font-medium">
                     − <AnimatedNumber value={comissao} prefix="R$ " decimals={2} />
+                  </span>
+                </p>
+                <p className="text-xs text-gray-600 flex gap-2">
+                  <span className="text-gray-500">Bônus de indicação (R$ 40/cliente):</span>
+                  <span className="text-green-400 font-medium">
+                    + <AnimatedNumber value={bonus} prefix="R$ " decimals={2} />
                   </span>
                 </p>
                 <p className="text-xs text-gray-600 flex gap-2">

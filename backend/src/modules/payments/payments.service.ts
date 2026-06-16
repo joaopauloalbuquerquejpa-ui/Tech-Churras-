@@ -116,8 +116,61 @@ export async function handleMPWebhook(payload: any) {
         order.eventDate,
         order.eventAddress ?? ''
       ).catch(() => {})
+      triggerReferralBonus(order.customer.id, orderId).catch(() => {})
     }
   }
 
   return { received: true }
+}
+
+async function triggerReferralBonus(customerId: string, orderId: string) {
+  const customer = await prisma.user.findUnique({
+    where: { id: customerId },
+    select: { referredByBoutiqueId: true },
+  })
+  if (!customer?.referredByBoutiqueId) return
+
+  // Only on first paid order
+  const previousPaid = await prisma.order.count({
+    where: { customerId, paymentStatus: 'PAID', id: { not: orderId } },
+  })
+  if (previousPaid > 0) return
+
+  // Avoid duplicate bonus
+  const exists = await prisma.payout.findFirst({
+    where: { type: 'REFERRAL_BONUS', recipientId: customer.referredByBoutiqueId, notes: customerId },
+  })
+  if (exists) return
+
+  const boutique = await prisma.boutique.findUnique({
+    where: { id: customer.referredByBoutiqueId },
+    select: { pixKey: true, userId: true },
+  })
+
+  const now = new Date()
+  await prisma.payout.create({
+    data: {
+      type: 'REFERRAL_BONUS',
+      recipientId: customer.referredByBoutiqueId,
+      orderId,
+      amount: 40,
+      commission: 0,
+      grossAmount: 40,
+      status: 'PENDING',
+      weekStart: now,
+      weekEnd: now,
+      pixKey: boutique?.pixKey ?? null,
+      notes: customerId,
+    },
+  })
+
+  // Notify boutique owner
+  if (boutique?.userId) {
+    sendPushToUser(
+      boutique.userId,
+      '🎉 Bônus de indicação!',
+      'Você ganhou R$ 40 por converter um novo cliente para a Tech Churras.',
+      '/boutiques/dashboard'
+    ).catch(() => {})
+  }
 }

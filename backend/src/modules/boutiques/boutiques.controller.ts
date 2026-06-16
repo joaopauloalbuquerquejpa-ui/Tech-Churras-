@@ -14,6 +14,7 @@ import {
   createKitSchema,
   getBoutiqueDashboardStats,
   getBoutiqueDemandForecast,
+  getReferralStats,
 } from './boutiques.service'
 import {
   createProduct,
@@ -194,6 +195,16 @@ export async function getBoutiqueDemandForecastHandler(req: FastifyRequest, repl
     const userId = (req.user as any).id
     const forecast = await getBoutiqueDemandForecast(userId)
     return reply.send(forecast)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getBoutiqueReferralStatsHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const stats = await getReferralStats(userId)
+    return reply.send(stats)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }
