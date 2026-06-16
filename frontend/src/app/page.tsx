@@ -144,7 +144,12 @@ export default async function HomePage() {
 
       {/* Nav */}
       <nav className="relative border-b border-gray-900/50 px-4 py-4 flex items-center justify-between max-w-6xl mx-auto">
-        <span className="font-black text-orange-400 text-xl">🔥 Tech Churras</span>
+        <Link href="/" className="flex items-center gap-2 shrink-0">
+          <div className="h-8 overflow-hidden relative w-9">
+            <img src="/logo-flame.png" alt="" className="absolute bottom-0 h-14 w-auto" />
+          </div>
+          <span className="font-black text-xl text-white leading-none">Tech <span className="text-orange-500">Churras</span></span>
+        </Link>
         <div className="flex items-center gap-4">
           <Link href="/grillmasters" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Churrasqueiros</Link>
           <Link href="/boutiques" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Açougues</Link>
@@ -413,7 +418,12 @@ export default async function HomePage() {
       <footer className="border-t border-gray-900 px-4 py-10">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
           <div>
-            <p className="font-black text-orange-400 mb-3">🔥 Tech Churras</p>
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-6 overflow-hidden relative w-7">
+                <img src="/logo-flame.png" alt="" className="absolute bottom-0 h-10 w-auto" />
+              </div>
+              <p className="font-black text-white">Tech <span className="text-orange-500">Churras</span></p>
+            </div>
             <p className="text-xs text-gray-600 leading-relaxed">A Tech Churras. Conectando Grillmasters profissionais, açougues premium e clientes exigentes desde 2025.</p>
           </div>
           <div>

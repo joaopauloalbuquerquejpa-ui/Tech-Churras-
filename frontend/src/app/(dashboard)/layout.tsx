@@ -126,7 +126,12 @@ export default function DashboardLayout({
       <PushBanner />
       <nav className='bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between'>
         <div className='flex items-center gap-6'>
-          <h1 className='text-xl font-bold text-orange-500'>Tech Churras</h1>
+          <Link href='/' className='flex items-center gap-2 shrink-0'>
+            <div className='h-8 overflow-hidden relative w-9'>
+              <img src='/logo-flame.png' alt='' className='absolute bottom-0 h-14 w-auto' />
+            </div>
+            <span className='font-black text-xl text-white leading-none'>Tech <span className='text-orange-500'>Churras</span></span>
+          </Link>
           <div className='hidden md:flex items-center gap-1'>
             {links.map(link => (
               <Link key={link.href} href={link.href}
