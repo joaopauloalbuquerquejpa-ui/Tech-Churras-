@@ -249,12 +249,25 @@ Regras:
     const coords = await geocodeAddress(eventAddress)
     if (!coords) return reply.status(400).send({ error: 'Nao conseguimos localizar esse endereco. Tente ser mais especifico.' })
 
-    const [nearbyBoutiques, nearbyGrillmasters] = await Promise.all([
-      findNearbyBoutiques(coords.lat, coords.lng, 15),
-      findNearbyGrillmasters(coords.lat, coords.lng, 20),
-    ])
+    // Busca progressiva: 15km → 40km → 100km → qualquer disponível
+    async function findWithFallback() {
+      for (const r of [15, 40, 100]) {
+        const [b, g] = await Promise.all([
+          findNearbyBoutiques(coords!.lat, coords!.lng, r),
+          findNearbyGrillmasters(coords!.lat, coords!.lng, r),
+        ])
+        const bWithProd = b.filter((x: any) => x.products.length > 0)
+        if (bWithProd.length > 0 && g.length > 0) return { boutiques: bWithProd, grillmasters: g }
+      }
+      // Fallback final: retorna qualquer parceiro disponível, ignorando distância
+      const [b, g] = await Promise.all([
+        findNearbyBoutiques(coords!.lat, coords!.lng, 9999),
+        findNearbyGrillmasters(coords!.lat, coords!.lng, 9999),
+      ])
+      return { boutiques: b.filter((x: any) => x.products.length > 0), grillmasters: g }
+    }
 
-    const boutiquesWithProducts = nearbyBoutiques.filter((b: any) => b.products.length > 0)
+    const { boutiques: boutiquesWithProducts, grillmasters: nearbyGrillmasters } = await findWithFallback()
 
     if (boutiquesWithProducts.length === 0 || nearbyGrillmasters.length === 0) {
       return reply.status(404).send({
@@ -263,8 +276,8 @@ Regras:
       })
     }
 
-    const boutique = boutiquesWithProducts[0] as any
-    const grillmaster = nearbyGrillmasters[0] as any
+    const boutique = boutiquesWithProducts[0]
+    const grillmaster = nearbyGrillmasters[0]
 
     function formatCatalogItem(p: any) {
       const discountActive = p.discountPercent && (!p.discountValidUntil || new Date(p.discountValidUntil) > new Date())
