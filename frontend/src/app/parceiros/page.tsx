@@ -2,8 +2,22 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Seja Parceiro — Tech Churras',
-  description: 'Cadastre seu açougue na maior plataforma de churrasqueiros profissionais de SP. Ganhe R$40 por cliente indicado, sem mensalidade.',
+  title: 'Parceria para Açougues em São Paulo | Tech Churras',
+  description: 'Cadastre seu açougue gratuitamente na Tech Churras e apareça nas sugestões da IA para todos os churrascos da sua região. Ganhe R$40 por cliente indicado, sem mensalidade e sem contrato.',
+  keywords: [
+    'parceria açougue São Paulo',
+    'cadastrar açougue SP',
+    'açougue parceiro churrasco',
+    'como ganhar com açougue SP',
+    'Tech Churras parceiro',
+  ],
+  openGraph: {
+    title: 'Seu açougue no maior app de churrasco de SP | Tech Churras',
+    description: 'Sua carne nas sugestões da IA. R$40 por cliente. Sem mensalidade. Apenas 1 açougue por bairro.',
+    url: 'https://www.techchurras.com.br/parceiros',
+    images: [{ url: '/jota.jpg', width: 800, height: 800 }],
+  },
+  alternates: { canonical: 'https://www.techchurras.com.br/parceiros' },
 }
 
 const STEPS = [

@@ -4,15 +4,28 @@ import PriceCalculator from '@/components/PriceCalculator'
 import HomeMobileMenu from '@/components/HomeMobileMenu'
 
 export const metadata: Metadata = {
-  title: 'Tech Churras — Grillmaster + Açougue Premium + IA, tudo num só app',
-  description: 'Contrate Grillmasters certificados, escolha cortes de açougues premium parceiros e acompanhe tudo ao vivo no mapa. O ecossistema completo para o churrasco perfeito.',
-  keywords: ['grillmaster', 'churrasqueiro', 'contratar churrasqueiro', 'açougue premium', 'churrasco profissional', 'Tech Churras', 'kit churrasco IA'],
+  title: 'Contratar Churrasqueiro Profissional em São Paulo | Tech Churras',
+  description: 'Contrate Grillmasters profissionais certificados para aniversários, eventos corporativos e confraternizações em São Paulo. Kit de churrasco com IA, açougue premium parceiro e rastreamento ao vivo. Jota Grillmaster — fundador.',
+  keywords: [
+    'contratar churrasqueiro São Paulo',
+    'grillmaster profissional SP',
+    'churrasqueiro para aniversário São Paulo',
+    'churrasco corporativo SP',
+    'churrasqueiro a domicílio São Paulo',
+    'Jota Grillmaster',
+    'Tech Churras',
+    'kit churrasco completo SP',
+    'churrasqueiro para evento',
+    'açougue parceiro churrasco',
+  ],
   openGraph: {
-    title: 'Tech Churras — O ecossistema completo para o churrasco perfeito',
-    description: 'Grillmasters certificados + açougue premium + IA que planeja tudo + localização ao vivo. Tudo num só app.',
+    title: 'Contratar Churrasqueiro Profissional em SP | Tech Churras',
+    description: 'Grillmasters certificados, açougue premium e IA que planeja o kit ideal. Acompanhe o churrasqueiro ao vivo no mapa. São Paulo e Grande SP.',
     type: 'website',
-    images: [{ url: '/jota.jpg', width: 800, height: 800 }],
+    url: 'https://www.techchurras.com.br',
+    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Tech Churras — Grillmasters Profissionais em SP' }],
   },
+  alternates: { canonical: 'https://www.techchurras.com.br' },
 }
 
 const API = 'https://tech-churras-production.up.railway.app'
