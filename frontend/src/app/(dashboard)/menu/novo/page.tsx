@@ -12,6 +12,13 @@ function getToken() {
   return raw ? JSON.parse(raw)?.state?.token : null
 }
 
+function getCustomerName(): string {
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    return JSON.parse(raw ?? '{}')?.state?.user?.name ?? ''
+  } catch { return '' }
+}
+
 interface Grillmaster {
   id: string
   bio: string
@@ -1030,6 +1037,7 @@ function GuidedOrderForm() {
                           homens, mulheres, criancas, hours: eventHours,
                           style: 'tradicional',
                           grillmasterSpecialties: selectedGm?.specialties ?? '',
+                          customerName: getCustomerName(),
                           products: boutiqueProducts.map(p => ({ id: p.id, name: p.name, category: p.category, price: p.price, unit: p.unit })),
                         }),
                       })

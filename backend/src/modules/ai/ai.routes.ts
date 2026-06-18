@@ -9,7 +9,21 @@ import { findNearbyGrillmasters } from '../grillmasters/grillmasters.service'
 // Rate limit: max 10 req/min por usuário
 const suggestRateLimits = new Map<string, { count: number; resetAt: number }>()
 
-const SYSTEM_PROMPT = `Você é a Tech Churras IA — especialista em churrasco brasileiro com 20 anos de experiência, chancelada por Jota Albuquerque (Jota Grillmaster).
+const SYSTEM_PROMPT = `Você é a assistente da Tech Churras — parceira do Jota Albuquerque (Jota Grillmaster, fundador da plataforma) e especialista apaixonada por churrasco brasileiro.
+
+PERSONALIDADE E VOZ:
+- Fale como uma amiga de confiança que entende muito de churrasco e genuinamente quer que o evento seja incrível
+- Use linguagem brasileira natural e calorosa — "olha", "perfeito", "adorei a ideia", nunca robótico
+- Chame o cliente pelo primeiro nome quando souber (ex: "João, para o seu evento...")
+- Demonstre empolgação real pelo evento: aniversário, confraternização, casamento — cada um é especial
+- Emojis com moderação: máximo 2 por resposta; 🔥 e 🥩 funcionam bem
+- NUNCA comece com "Claro!" ou "Certamente!"
+
+QUANDO MENCIONAR O JOTA:
+- Cortes nobres (picanha, tomahawk, wagyu): "o Jota garante que essa picanha é o destaque de qualquer churrasco"
+- Menu Especialidade Jota: "essa é a experiência premium que o Jota criou pessoalmente"
+- Eventos especiais (casamento, corporativo grande): "o Jota trataria esse evento com atenção especial"
+- Seja natural — não force em todo lugar, apenas onde fizer sentido
 
 REGRAS DE CÁLCULO DE QUANTIDADE:
 - Homens adultos: 400g de carne por pessoa
@@ -80,16 +94,22 @@ export async function aiRoutes(app: FastifyInstance) {
   app.post('/ai/plan-event', { preHandler: [authenticate] }, async (request, reply) => {
     const {
       style = 'tradicional', homens = 5, mulheres = 3, criancas = 0,
-      restrictions = '', hours = 4,
+      restrictions = '', hours = 4, customerName = '', occasion = '',
     } = request.body as {
       style?: string; homens?: number; mulheres?: number
       criancas?: number; restrictions?: string; hours?: number
+      customerName?: string; occasion?: string
     }
 
     const totalPessoas = Number(homens) + Number(mulheres) + Number(criancas)
     if (totalPessoas < 1) return reply.status(400).send({ error: 'Informe pelo menos 1 convidado' })
 
-    const userPrompt = `Churrasco ${style}: ${homens}h ${mulheres}m ${criancas}c, ${hours}h.${restrictions ? ` Restrições: ${restrictions}.` : ''} Máximo 8 itens, respostas curtas. JSON puro.`
+    const firstName = customerName?.trim().split(' ')[0] || ''
+    const clientCtx = firstName ? `Cliente: ${firstName}` : ''
+    const occasionCtx = occasion ? `Ocasião: ${occasion}` : ''
+    const userPrompt = `${clientCtx}${occasionCtx ? ' | ' + occasionCtx : ''}
+Churrasco estilo ${style}: ${homens} homens, ${mulheres} mulheres, ${criancas} crianças — ${hours}h de evento.${restrictions ? ` Restrições: ${restrictions}.` : ''}
+No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre o evento. Máximo 8 itens. JSON puro.`
 
     const message = await client.messages.create({
       model: 'claude-sonnet-4-6',
@@ -218,8 +238,8 @@ Regras:
 
   // ── POST /ai/kit-perfeito ────────────────────────────────────────────
   app.post('/ai/kit-perfeito', async (request, reply) => {
-    const { eventAddress, guests, occasion = 'churrasco', budget, eventDate } = request.body as {
-      eventAddress: string; guests: number; occasion?: string; budget?: number; eventDate?: string
+    const { eventAddress, guests, occasion = 'churrasco', budget, eventDate, customerName = '' } = request.body as {
+      eventAddress: string; guests: number; occasion?: string; budget?: number; eventDate?: string; customerName?: string
     }
 
     if (!eventAddress || !guests || guests < 1) {
@@ -265,12 +285,14 @@ Regras:
     const gmExperience = grillmaster.experience ? `${grillmaster.experience} anos` : 'experiente'
     const gmBio = grillmaster.bio ? `Bio: ${grillmaster.bio}` : ''
 
-    const kitPrompt = `Voce e o assistente de churrasco da Tech Churras. Monte o kit perfeito para este evento.
+    const firstName = customerName?.trim().split(' ')[0] || ''
+    const kitPrompt = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte o kit perfeito com personalidade — fale de forma calorosa e natural, como uma especialista amiga.
+${firstName ? `O cliente se chama ${firstName} — chame pelo nome no campo summary.` : ''}
 
 DADOS DO EVENTO:
 - Convidados: ${guests} pessoas
-- Ocasiao: ${occasion}
-- Orcamento: ${budget ? `R$ ${budget}` : 'sem limite definido'}
+- Ocasião: ${occasion}
+- Orçamento: ${budget ? `R$ ${budget}` : 'sem limite definido'}
 - Data: ${eventDate || 'a confirmar'}
 
 CHURRASQUEIRO SELECIONADO: ${grillmaster.user.name}
@@ -339,9 +361,10 @@ REGRAS:
   // Recebe os produtos reais do açougue já selecionado e retorna sugestões
   // com productId exato para preencher o carrinho diretamente.
   app.post('/ai/suggest-from-catalog', { preHandler: [authenticate] }, async (request, reply) => {
-    const { homens = 5, mulheres = 3, criancas = 2, hours = 4, style = 'tradicional', grillmasterSpecialties = '', products } = request.body as {
+    const { homens = 5, mulheres = 3, criancas = 2, hours = 4, style = 'tradicional', grillmasterSpecialties = '', customerName = '', occasion = '', products } = request.body as {
       homens?: number; mulheres?: number; criancas?: number
       hours?: number; style?: string; grillmasterSpecialties?: string
+      customerName?: string; occasion?: string
       products: { id: string; name: string; category: string; price: number; unit: string }[]
     }
 
@@ -350,26 +373,30 @@ REGRAS:
     }
 
     const totalPessoas = Number(homens) + Number(mulheres) + Number(criancas)
+    const firstName = customerName?.trim().split(' ')[0] || ''
     const catalogLines = products
       .filter(p => p.id && p.name)
       .map(p => `[${p.id}] ${p.name} — ${p.category} — R$${Number(p.price).toFixed(2)}/${p.unit}`)
       .join('\n')
 
-    const prompt = `Você é especialista em churrasco brasileiro. Monte o kit ideal usando APENAS os produtos listados.
+    const totalKg = ((Number(homens)*400 + Number(mulheres)*300 + Number(criancas)*150)/1000).toFixed(1)
+    const prompt = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte o kit ideal de forma calorosa e personalizada.
+${firstName ? `Cliente: ${firstName}${occasion ? ` | Ocasião: ${occasion}` : ''}` : occasion ? `Ocasião: ${occasion}` : ''}
 
-EVENTO: ${homens} homens, ${mulheres} mulheres, ${criancas} crianças — ${hours}h de evento — estilo: ${style}
+EVENTO: ${homens} homens, ${mulheres} mulheres, ${criancas} crianças — ${hours}h — estilo: ${style}
 ${grillmasterSpecialties ? `ESPECIALIDADES DO CHURRASQUEIRO: ${grillmasterSpecialties}` : ''}
 
-PRODUTOS DO AÇOUGUE (use SOMENTE estes IDs):
+PRODUTOS DO AÇOUGUE — use SOMENTE estes IDs exatos:
 ${catalogLines}
 
 REGRAS:
-- 400g carne/homem, 300g/mulher, 150g/criança = ${((homens*400 + mulheres*300 + criancas*150)/1000).toFixed(1)}kg total
-- Inclua carvão se disponível (1 saco por 5 pessoas)
+- Meta: ~${totalKg}kg de carne (400g/h, 300g/m, 150g/c)
+- Carvão: 1 saco por 5 pessoas se disponível
 - Priorize cortes que combinam com as especialidades do churrasqueiro
-- Máximo 8 itens; razão em até 5 palavras por item
+- Máximo 8 itens; reason em até 5 palavras
+- summary: frase calorosa${firstName ? ` dirigida ao ${firstName}` : ''}, comente algo específico do evento (ocasião, nº de pessoas). Se escolheu corte nobre, mencione que o Jota aprova. 1-2 frases, tom amigo.
 - Responda SOMENTE JSON válido sem markdown:
-{"items":[{"productId":"id_exato","quantity":2.5,"unit":"kg","reason":"curta razao"}],"summary":"kit em 1 frase","totalKg":${((homens*400 + mulheres*300 + criancas*150)/1000).toFixed(1)}}`
+{"items":[{"productId":"id_exato","quantity":2.5,"unit":"kg","reason":"curta razao"}],"summary":"frase calorosa personalizada","totalKg":${totalKg}}`
 
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',

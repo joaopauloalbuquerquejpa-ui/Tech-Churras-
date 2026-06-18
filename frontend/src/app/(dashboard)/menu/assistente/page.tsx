@@ -11,6 +11,13 @@ function getToken() {
   return raw ? JSON.parse(raw)?.state?.token : null
 }
 
+function getCustomerName(): string {
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    return JSON.parse(raw ?? '{}')?.state?.user?.name ?? ''
+  } catch { return '' }
+}
+
 interface AiItem {
   category: string
   name: string
@@ -126,7 +133,7 @@ export default function AssistentePage() {
       const r = await fetch(`${BASE}/ai/plan-event`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
-        body: JSON.stringify({ style, homens, mulheres, criancas, hours, restrictions }),
+        body: JSON.stringify({ style, homens, mulheres, criancas, hours, restrictions, customerName: getCustomerName() }),
       })
       if (!r.ok) {
         const err = await r.json().catch(() => ({}))

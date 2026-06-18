@@ -5,6 +5,13 @@ import { useCartStore } from '@/store/cart'
 
 const BASE = 'https://tech-churras-production.up.railway.app'
 
+function getCustomerName(): string {
+  try {
+    const raw = localStorage.getItem('auth-storage')
+    return JSON.parse(raw ?? '{}')?.state?.user?.name ?? ''
+  } catch { return '' }
+}
+
 const OCCASIONS = [
   { value: 'churrasco em familia', label: 'Churrasco em Família' },
   { value: 'aniversario', label: 'Aniversário' },
@@ -68,6 +75,7 @@ export default function KitPerfeitoPage() {
           guests: Number(form.guests),
           occasion: form.occasion,
           budget: form.budget ? Number(form.budget) : undefined,
+          customerName: getCustomerName(),
         }),
       })
 
