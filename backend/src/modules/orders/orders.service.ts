@@ -497,7 +497,7 @@ export async function getOrderById(id: string, userId: string, role: string = 'C
       grillmaster: { include: { user: true } },
       boutique: true,
       review: { select: { id: true, customerRating: true } },
-      customer: { select: { id: true, name: true, averageRating: true } },
+      customer: { select: { id: true, name: true, averageRating: true, _count: { select: { orders: true } } } },
     },
   })
   if (!order) throw new Error('Pedido nao encontrado')

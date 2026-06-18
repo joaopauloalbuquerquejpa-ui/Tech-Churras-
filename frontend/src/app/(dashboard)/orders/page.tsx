@@ -193,9 +193,9 @@ export default function OrdersPage() {
                   <button
                     onClick={() => handleRepeat(order.id)}
                     disabled={repeatLoading === order.id}
-                    className="text-xs bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
+                    className="text-xs bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 disabled:opacity-50 text-orange-400 hover:text-orange-300 px-3 py-1.5 rounded-lg font-semibold transition-colors"
                   >
-                    {repeatLoading === order.id ? 'Carregando...' : 'Pedir novamente'}
+                    {repeatLoading === order.id ? 'Carregando...' : '🔁 Repetir este churrasco'}
                   </button>
                 </div>
               )}

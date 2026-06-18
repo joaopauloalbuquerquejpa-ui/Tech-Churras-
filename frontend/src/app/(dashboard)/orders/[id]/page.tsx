@@ -87,7 +87,7 @@ interface OrderDetail {
   }
   boutique?: { name: string }
   review?: { id: string; customerRating?: number | null } | null
-  customer?: { id: string; name: string; averageRating?: number | null }
+  customer?: { id: string; name: string; averageRating?: number | null; _count?: { orders: number } }
   grillmasterLat?: number | null
   grillmasterLng?: number | null
   cancelledBy?: string | null
@@ -392,8 +392,6 @@ export default function OrderDetailPage() {
     ? order.grillmaster.pricePerHour * order.eventHours
     : null
   const itemsCost = order.items?.reduce((s, i) => s + i.quantity * i.unitPrice, 0) ?? 0
-  const substates = STATUS_SUBSTATES[order.status] ?? []
-  const currentSubIdx = order.statusDetail ? substates.indexOf(order.statusDetail) : -1
   const otherPersonName = isOrderGrillmaster
     ? (order.customer?.name ?? 'o cliente')
     : (order.grillmaster?.user?.name ?? 'o churrasqueiro')
@@ -454,36 +452,92 @@ export default function OrderDetailPage() {
         </span>
       </div>
 
-      {/* Timeline */}
-      {substates.length > 0 && (
-        <div className="bg-gray-900 rounded-2xl p-5 mb-5 border border-gray-800">
-          <p className="text-xs text-gray-500 uppercase tracking-wide mb-4">Progresso</p>
-          <div className="space-y-0">
-            {substates.map((sub, i) => {
-              const isDone = i < currentSubIdx
-              const isCurrent = i === currentSubIdx
-              return (
-                <div key={sub} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    <div className={[
-                      'w-3 h-3 rounded-full mt-1 shrink-0',
-                      isDone ? 'bg-orange-500' : isCurrent ? 'bg-orange-500 ring-2 ring-orange-500/40' : 'bg-gray-700',
-                    ].join(' ')} />
-                    {i < substates.length - 1 && (
-                      <div className={['w-0.5 flex-1 min-h-[20px]', isDone || isCurrent ? 'bg-orange-500/40' : 'bg-gray-700'].join(' ')} />
-                    )}
+      {/* Journey Timeline */}
+      {order.status !== 'CANCELLED' && (() => {
+        const journeySteps = [
+          { label: 'Pedido feito', icon: '📋' },
+          { label: 'Pagamento confirmado', icon: '💳' },
+          { label: 'Churrasqueiro a caminho', icon: '🚗' },
+          { label: 'Churrasco em andamento', icon: '🔥' },
+          { label: 'Concluído', icon: '🎉' },
+        ]
+        let currentStep = 0
+        if (order.status === 'CONFIRMED') {
+          currentStep = order.statusDetail === 'Churrasqueiro a caminho' ? 2 : 1
+        } else if (order.status === 'IN_PROGRESS') {
+          currentStep = 3
+        } else if (order.status === 'COMPLETED') {
+          currentStep = 5
+        }
+        return (
+          <div className="bg-gray-900 rounded-2xl p-5 mb-5 border border-gray-800">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-4">Acompanhe seu pedido</p>
+            <div className="space-y-0">
+              {journeySteps.map((step, i) => {
+                const isDone = i < currentStep
+                const isCurrent = i === currentStep
+                return (
+                  <div key={step.label} className="flex gap-3 items-start">
+                    <div className="flex flex-col items-center">
+                      <div className={[
+                        'w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0',
+                        isDone ? 'bg-green-500 text-white' : isCurrent ? 'bg-orange-500 text-white ring-4 ring-orange-500/20' : 'bg-gray-800 text-gray-600',
+                      ].join(' ')}>
+                        {isDone ? '✓' : step.icon}
+                      </div>
+                      {i < journeySteps.length - 1 && (
+                        <div className={['w-0.5 flex-1 min-h-[16px] my-1', isDone ? 'bg-green-500/40' : 'bg-gray-800'].join(' ')} />
+                      )}
+                    </div>
+                    <div className="py-1.5">
+                      <p className={[
+                        'text-sm',
+                        isDone ? 'text-gray-500' : isCurrent ? 'text-white font-semibold' : 'text-gray-600',
+                      ].join(' ')}>
+                        {step.label}
+                      </p>
+                      {isCurrent && order.statusDetail && order.statusDetail !== step.label && (
+                        <p className="text-xs text-orange-400/80 mt-0.5">{order.statusDetail}</p>
+                      )}
+                    </div>
                   </div>
-                  <p className={[
-                    'text-sm pb-4',
-                    isDone ? 'text-gray-600 line-through' : isCurrent ? 'text-orange-400 font-semibold' : 'text-gray-600',
-                  ].join(' ')}>
-                    {sub}
-                  </p>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </div>
+        )
+      })()}
 
+      {/* Customer profile for grillmaster — shown above action button */}
+      {isOrderGrillmaster && order.customer && (
+        <div className="bg-gray-900 rounded-2xl p-5 mb-5 border border-gray-800">
+          <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Cliente</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-semibold text-white">{order.customer.name}</p>
+              {order.customer._count?.orders != null && (
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {order.customer._count.orders} {order.customer._count.orders === 1 ? 'pedido' : 'pedidos'} na plataforma
+                </p>
+              )}
+            </div>
+            {order.customer.averageRating != null ? (
+              <div className="flex flex-col items-end gap-1">
+                <Stars n={order.customer.averageRating} />
+                <span className="text-xs text-gray-400">{order.customer.averageRating.toFixed(1)} / 5</span>
+              </div>
+            ) : (
+              <span className="text-xs text-gray-600 bg-gray-800 px-2.5 py-1 rounded-full">Novo cliente</span>
+            )}
+          </div>
+          {order.status === 'COMPLETED' && !order.review?.customerRating && (
+            <Link
+              href={`/orders/${id}/review-customer`}
+              className="mt-3 inline-block text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1.5 rounded-lg hover:bg-orange-500/30 transition-colors"
+            >
+              Avaliar este cliente
+            </Link>
+          )}
         </div>
       )}
 
@@ -539,32 +593,6 @@ export default function OrderDetailPage() {
             grillmasterLat={order.grillmasterLat}
             grillmasterLng={order.grillmasterLng}
           />
-        </div>
-      )}
-
-      {/* Customer info for grillmaster */}
-      {isOrderGrillmaster && order.customer && (
-        <div className="bg-gray-900 rounded-2xl p-5 mb-5 border border-gray-800">
-          <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Cliente</p>
-          <div className="flex items-center justify-between">
-            <p className="font-semibold">{order.customer.name}</p>
-            {order.customer.averageRating != null ? (
-              <div className="flex items-center gap-1.5">
-                <Stars n={order.customer.averageRating} />
-                <span className="text-sm text-gray-400">{order.customer.averageRating.toFixed(1)}</span>
-              </div>
-            ) : (
-              <span className="text-xs text-gray-600">Sem avaliacoes</span>
-            )}
-          </div>
-          {order.status === 'COMPLETED' && !order.review?.customerRating && (
-            <Link
-              href={`/orders/${id}/review-customer`}
-              className="mt-3 inline-block text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1.5 rounded-lg hover:bg-orange-500/30 transition-colors"
-            >
-              Avaliar este cliente
-            </Link>
-          )}
         </div>
       )}
 
