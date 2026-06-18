@@ -325,6 +325,15 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
   if (status === 'COMPLETED') {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
     emailOrderCompleted(updated.customer.email, updated.customer.name, updated.id, gmName).catch(() => {})
+    const completedDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(updated.eventDate)
+    sendWhatsAppToAdmin(
+      `✅ *Evento concluído — Tech Churras!*\n\n` +
+      `👤 Cliente: ${updated.customer.name}\n` +
+      `🔥 GM: ${gmName}\n` +
+      `💰 R$ ${updated.totalPrice.toFixed(2)}\n` +
+      `📅 ${completedDate} · ${updated.guestCount} pessoas\n\n` +
+      `Aguarde a avaliação do cliente! ⭐\nhttps://www.techchurras.com.br/admin`
+    ).catch(() => {})
   }
   return updated
 }
@@ -379,6 +388,18 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
   } else if (cancelledBy === 'GRILLMASTER') {
     sendPushToUser(order.customerId, 'Pedido cancelado', `Seu pedido de ${eventDate} foi cancelado pelo churrasqueiro.`, `/orders/${id}`).catch(() => {})
   }
+
+  // Notify admin of cancellation
+  const cancelledByLabel = cancelledBy === 'CUSTOMER' ? 'cliente' : cancelledBy === 'GRILLMASTER' ? 'churrasqueiro' : 'admin'
+  sendWhatsAppToAdmin(
+    `🚨 *Pedido cancelado — Tech Churras!*\n\n` +
+    `📅 Evento: ${eventDate}\n` +
+    `💰 R$ ${order.totalPrice.toFixed(2)}\n` +
+    `❌ Cancelado por: ${cancelledByLabel}\n` +
+    `${reason ? `📝 Motivo: ${reason}` : ''}\n` +
+    `${cancellationFee > 0 ? `💸 Taxa de cancelamento: R$ ${cancellationFee.toFixed(2)}` : ''}\n\n` +
+    `https://www.techchurras.com.br/admin`
+  ).catch(() => {})
 
   return updated
 }

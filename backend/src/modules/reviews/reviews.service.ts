@@ -1,5 +1,5 @@
 import { prisma } from '../../config/prisma'
-import { sendPushToUser } from '../push/push.service'
+import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 
 export async function createReview(data: {
   orderId: string
@@ -84,6 +84,21 @@ export async function createReview(data: {
       `${stars} Nova avaliação no açougue!`,
       `Você recebeu ${data.boutiqueRating} estrela${data.boutiqueRating !== 1 ? 's' : ''} por este evento.`,
       '/boutiques/dashboard'
+    ).catch(() => {})
+  }
+
+  // Alert admin on low rating (≤ 3 stars)
+  const minRating = Math.min(data.grillRating, data.boutiqueRating ?? 5)
+  if (minRating <= 3) {
+    const customerName = await prisma.user.findUnique({ where: { id: data.customerId }, select: { name: true } }).catch(() => null)
+    const stars = '⭐'.repeat(minRating)
+    sendWhatsAppToAdmin(
+      `⚠️ *Review negativo — Tech Churras!*\n\n` +
+      `${stars} ${minRating}/5 estrelas\n` +
+      `👤 Cliente: ${customerName?.name ?? 'Desconhecido'}\n` +
+      `${data.grillComment ? `💬 "${data.grillComment}"` : ''}\n` +
+      `${data.boutiqueComment ? `💬 Açougue: "${data.boutiqueComment}"` : ''}\n\n` +
+      `Verifique e entre em contato:\nhttps://www.techchurras.com.br/admin`
     ).catch(() => {})
   }
 

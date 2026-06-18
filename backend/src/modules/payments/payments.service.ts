@@ -1,6 +1,6 @@
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
 import { prisma } from '../../config/prisma'
-import { sendPushToUser } from '../push/push.service'
+import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailOrderConfirmed } from '../email/email.service'
 import dotenv from 'dotenv'
 
@@ -117,6 +117,17 @@ export async function handleMPWebhook(payload: any) {
         order.eventAddress ?? ''
       ).catch(() => {})
       triggerReferralBonus(order.customer.id, orderId).catch(() => {})
+    }
+    if (order) {
+      const date = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(order.eventDate)
+      sendWhatsAppToAdmin(
+        `💳 *Pagamento confirmado — Tech Churras!*\n\n` +
+        `👤 ${order.customer?.name}\n` +
+        `💰 R$ ${order.totalPrice.toFixed(2)}\n` +
+        `📅 ${date} · ${order.guestCount} pessoas\n` +
+        `🔥 GM: ${order.grillmaster?.user?.name ?? '—'}\n\n` +
+        `Dinheiro a caminho! 🎉\nhttps://www.techchurras.com.br/admin`
+      ).catch(() => {})
     }
   }
 
