@@ -22,14 +22,32 @@ interface Stats {
   revenueWeek: number
 }
 
+interface OrderItem {
+  id: string
+  quantity: number
+  unitPrice: number
+  product?: { name: string; unit?: string }
+}
+
 interface Order {
   id: string
   status: string
   totalPrice: number
   eventDate: string
-  customer?: { name: string; email: string }
-  grillmaster?: { user?: { name: string } }
+  eventAddress: string
+  eventHours: number
+  guestCount: number
+  notes?: string
+  paymentStatus?: string
+  paidAt?: string
+  couponCode?: string
+  discountAmount?: number
+  cancellationReason?: string
+  createdAt: string
+  customer?: { name: string; email: string; phone?: string }
+  grillmaster?: { user?: { name: string; phone?: string } }
   boutique?: { name: string }
+  items?: OrderItem[]
 }
 
 interface PendingGrillmaster {
@@ -48,7 +66,7 @@ interface PendingGrillmaster {
   galleryUrls?: string[]
   instagram?: string
   churrascoStyle?: string
-  user: { name: string; email: string }
+  user: { name: string; email: string; phone?: string }
 }
 
 interface PendingBoutique {
@@ -57,10 +75,16 @@ interface PendingBoutique {
   description?: string
   city: string
   state: string
+  address?: string
+  phone?: string
+  instagram?: string
+  openingHours?: string
+  deliveryOrPickup?: string
+  pixKey?: string
   logoUrl?: string
   facadeUrl?: string
   galleryUrls?: string[]
-  user: { name: string; email: string }
+  user: { name: string; email: string; phone?: string }
 }
 
 interface GmApproveState {
@@ -127,7 +151,7 @@ interface ScheduleDay {
   available: boolean
 }
 
-type Tab = 'stats' | 'orders' | 'pending' | 'contracts' | 'equipe'
+type Tab = 'stats' | 'orders' | 'pending' | 'financeiro' | 'contracts' | 'equipe'
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -141,6 +165,7 @@ export default function AdminPage() {
   const [tab, setTab] = useState<Tab>('stats')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
 
   // ── TEAM JOTA ──────────────────────────────────────────────
   const [teamJota, setTeamJota] = useState<TeamJota | null>(null)
@@ -348,10 +373,11 @@ export default function AdminPage() {
       <div className="flex gap-2 mb-6 flex-wrap">
         {([
           { key: 'stats', label: 'Resumo' },
-          { key: 'orders', label: 'Pedidos' },
+          { key: 'orders', label: 'Pedidos (' + orders.length + ')' },
           { key: 'pending', label: pendingCount > 0 ? 'Pendentes (' + pendingCount + ')' : 'Pendentes' },
+          { key: 'financeiro', label: 'Financeiro' },
           { key: 'contracts', label: 'Contratos (' + contracts.length + ')' },
-          { key: 'equipe', label: '🔥 Minha Equipe' },
+          { key: 'equipe', label: 'Minha Equipe' },
         ] as { key: Tab; label: string }[]).map(t => (
           <button
             key={t.key}
@@ -416,16 +442,16 @@ export default function AdminPage() {
               className="bg-gray-900 rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 hover:bg-gray-800 transition-all group"
             >
               <p className="text-gray-400 text-sm group-hover:text-orange-400 transition-colors">Repasses Semanais</p>
-              <p className="text-lg font-bold text-orange-400 mt-1">Gerenciar</p>
-              <p className="text-xs text-gray-600 mt-1">Controle de pagamentos para parceiros</p>
+              <p className="text-lg font-bold text-orange-400 mt-1">Gerenciar →</p>
+              <p className="text-xs text-gray-600 mt-1">Pagamentos para parceiros</p>
             </Link>
             <Link
               href="/admin/onboarding-acougue"
               className="bg-gray-900 rounded-xl p-5 border border-green-500/20 hover:border-green-500/50 hover:bg-gray-800 transition-all group"
             >
-              <p className="text-gray-400 text-sm group-hover:text-green-400 transition-colors">🥩 Onboarding Açougue</p>
-              <p className="text-lg font-bold text-green-400 mt-1">Roteiro</p>
-              <p className="text-xs text-gray-600 mt-1">Script + checklist para visita presencial</p>
+              <p className="text-gray-400 text-sm group-hover:text-green-400 transition-colors">Onboarding Açougue</p>
+              <p className="text-lg font-bold text-green-400 mt-1">Roteiro →</p>
+              <p className="text-xs text-gray-600 mt-1">Script de visita presencial</p>
             </Link>
           </div>
         </div>
@@ -434,40 +460,123 @@ export default function AdminPage() {
       {tab === 'orders' && (
         <div className="space-y-3">
           {orders.length === 0 && <p className="text-gray-400">Nenhum pedido.</p>}
-          {orders.map(order => (
-            <div key={order.id} className="bg-gray-900 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <p className="font-medium">{order.customer?.name || 'Cliente'}</p>
-                  <p className="text-xs text-gray-400">{order.customer?.email}</p>
-                </div>
-                <span className={"text-xs text-white px-2 py-1 rounded-full " + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
-                  {STATUS_LABEL[order.status] || order.status}
-                </span>
+          {orders.map(order => {
+            const isOpen = expandedOrderId === order.id
+            return (
+              <div key={order.id} className="bg-gray-900 rounded-xl overflow-hidden">
+                {/* Linha resumo — clicável */}
+                <button
+                  onClick={() => setExpandedOrderId(isOpen ? null : order.id)}
+                  className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-800/50 transition-colors"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-sm">{order.customer?.name || 'Cliente'}</p>
+                      <span className={"text-xs text-white px-2 py-0.5 rounded-full " + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
+                        {STATUS_LABEL[order.status] || order.status}
+                      </span>
+                      {order.paymentStatus === 'PAID' && (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Pago</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {new Date(order.eventDate).toLocaleDateString('pt-BR')} · {order.guestCount} pessoas · R$ {(order.totalPrice ?? 0).toFixed(2)}
+                    </p>
+                  </div>
+                  <span className="text-gray-500 text-sm">{isOpen ? '▲' : '▼'}</span>
+                </button>
+
+                {/* Detalhe expandido */}
+                {isOpen && (
+                  <div className="border-t border-gray-800 px-4 pb-4 pt-3 space-y-4">
+                    {/* Cliente */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Cliente</p>
+                      <p className="text-sm text-white">{order.customer?.name}</p>
+                      <p className="text-xs text-gray-400">{order.customer?.email}</p>
+                      {order.customer?.phone && <p className="text-xs text-gray-400">📞 {order.customer.phone}</p>}
+                    </div>
+
+                    {/* Evento */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Evento</p>
+                      <p className="text-sm text-white">📍 {order.eventAddress}</p>
+                      <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-400">
+                        <span>📅 {new Date(order.eventDate).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                        <span>⏱ {order.eventHours}h</span>
+                        <span>👥 {order.guestCount} convidados</span>
+                      </div>
+                      {order.notes && <p className="text-xs text-yellow-300 mt-1">📝 {order.notes}</p>}
+                    </div>
+
+                    {/* Parceiros */}
+                    {(order.grillmaster || order.boutique) && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Parceiros</p>
+                        {order.grillmaster?.user && (
+                          <p className="text-xs text-gray-300">🔥 Churrasqueiro: {order.grillmaster.user.name}{order.grillmaster.user.phone ? ` · ${order.grillmaster.user.phone}` : ''}</p>
+                        )}
+                        {order.boutique && (
+                          <p className="text-xs text-gray-300">🥩 Açougue: {order.boutique.name}</p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Itens */}
+                    {order.items && order.items.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Itens do pedido</p>
+                        <div className="space-y-1">
+                          {order.items.map(item => (
+                            <div key={item.id} className="flex justify-between text-xs text-gray-300">
+                              <span>{item.quantity}x {item.product?.name ?? 'Item'}{item.product?.unit ? ` (${item.product.unit})` : ''}</span>
+                              <span className="text-gray-400">R$ {(item.unitPrice * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Financeiro */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Financeiro</p>
+                      <div className="flex flex-wrap gap-4 text-xs text-gray-300">
+                        <span>Total: <span className="text-orange-400 font-bold">R$ {(order.totalPrice ?? 0).toFixed(2)}</span></span>
+                        {order.couponCode && <span>Cupom: <span className="text-green-400">{order.couponCode}</span> (-R$ {(order.discountAmount ?? 0).toFixed(2)})</span>}
+                        <span>Pagamento: <span className={order.paymentStatus === 'PAID' ? 'text-green-400' : 'text-yellow-400'}>{order.paymentStatus ?? 'pendente'}</span></span>
+                        {order.paidAt && <span>Pago em: {new Date(order.paidAt).toLocaleDateString('pt-BR')}</span>}
+                      </div>
+                    </div>
+
+                    {order.cancellationReason && (
+                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                        <p className="text-xs text-red-400">Cancelamento: {order.cancellationReason}</p>
+                      </div>
+                    )}
+
+                    {/* Ações */}
+                    <div className="flex items-center justify-between pt-1">
+                      <p className="text-xs text-gray-600">ID: {order.id.slice(0, 8)}...</p>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-400">Status:</label>
+                        <select
+                          onChange={e => updateStatus(order.id, e.target.value)}
+                          defaultValue={order.status}
+                          className="bg-gray-800 text-white text-xs rounded px-2 py-1.5 border border-gray-700"
+                        >
+                          <option value="PENDING">Pendente</option>
+                          <option value="CONFIRMED">Confirmado</option>
+                          <option value="IN_PROGRESS">Em andamento</option>
+                          <option value="COMPLETED">Concluído</option>
+                          <option value="CANCELLED">Cancelado</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-400 space-y-0.5">
-                  {order.grillmaster && <p>Churrasqueiro: {order.grillmaster.user?.name}</p>}
-                  {order.boutique && <p>Açougue: {order.boutique.name}</p>}
-                  <p>Data: {new Date(order.eventDate).toLocaleDateString('pt-BR')}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-orange-400 font-bold">R$ {(order.totalPrice ?? 0).toFixed(2)}</span>
-                  <select
-                    onChange={e => updateStatus(order.id, e.target.value)}
-                    defaultValue={order.status}
-                    className="bg-gray-800 text-white text-xs rounded px-2 py-1"
-                  >
-                    <option value="PENDING">Pendente</option>
-                    <option value="CONFIRMED">Confirmado</option>
-                    <option value="IN_PROGRESS">Em andamento</option>
-                    <option value="COMPLETED">Concluído</option>
-                    <option value="CANCELLED">Cancelado</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -496,7 +605,8 @@ export default function AdminPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-400 mb-1">{g.user.email}</p>
+                        <p className="text-xs text-gray-400 mb-0.5">{g.user.email}</p>
+                        {g.user.phone && <p className="text-xs text-gray-400 mb-1">📞 {g.user.phone}</p>}
                         <p className="text-sm text-gray-300 line-clamp-2">{g.bio}</p>
                         <div className="flex gap-3 mt-2 text-xs text-gray-400 flex-wrap">
                           <span>{g.city}, {g.state}</span>
@@ -592,31 +702,12 @@ export default function AdminPage() {
             <div className="space-y-3">
               {pendingBoutiques.map(b => (
                 <div key={b.id} className="bg-gray-900 rounded-xl p-4">
-                  <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold">{b.name}</p>
-                      <p className="text-xs text-gray-400 mb-1">{b.user.name} &middot; {b.user.email}</p>
-                      {b.description && <p className="text-sm text-gray-300 line-clamp-2">{b.description}</p>}
-                      <p className="text-xs text-gray-400 mt-1">{b.city}, {b.state}</p>
-                      {/* Photo mini-grid */}
-                      {(b.logoUrl || b.facadeUrl || (b.galleryUrls && b.galleryUrls.length > 0)) && (
-                        <div className="flex gap-1.5 mt-2">
-                          {b.logoUrl && (
-                            <a href={b.logoUrl} target="_blank" rel="noopener noreferrer">
-                              <img src={b.logoUrl} alt="logo" className="w-10 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
-                            </a>
-                          )}
-                          {b.facadeUrl && (
-                            <a href={b.facadeUrl} target="_blank" rel="noopener noreferrer">
-                              <img src={b.facadeUrl} alt="fachada" className="w-16 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
-                            </a>
-                          )}
-                          {(b.galleryUrls ?? []).slice(0, 3).map((url, i) => (
-                            <a key={i} href={url} target="_blank" rel="noopener noreferrer">
-                              <img src={url} alt="" className="w-10 h-10 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
-                            </a>
-                          ))}
-                        </div>
+                      <p className="font-semibold text-lg">{b.name}</p>
+                      <p className="text-xs text-gray-400">{b.user.name} &middot; {b.user.email}</p>
+                      {(b.user.phone || b.phone) && (
+                        <p className="text-xs text-gray-400">📞 {b.phone || b.user.phone}</p>
                       )}
                     </div>
                     <div className="flex gap-2 shrink-0">
@@ -634,6 +725,37 @@ export default function AdminPage() {
                       </button>
                     </div>
                   </div>
+
+                  {b.description && <p className="text-sm text-gray-300 mb-2">{b.description}</p>}
+
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-400 mb-2">
+                    <span>📍 {b.address ? `${b.address}, ` : ''}{b.city}, {b.state}</span>
+                    {b.instagram && <span className="text-pink-400">📸 @{b.instagram}</span>}
+                    {b.openingHours && <span>🕐 {b.openingHours}</span>}
+                    {b.deliveryOrPickup && <span>🚚 {b.deliveryOrPickup}</span>}
+                    {b.pixKey && <span>💸 Pix: {b.pixKey}</span>}
+                  </div>
+
+                  {/* Fotos */}
+                  {(b.logoUrl || b.facadeUrl || (b.galleryUrls && b.galleryUrls.length > 0)) && (
+                    <div className="flex gap-1.5 flex-wrap">
+                      {b.logoUrl && (
+                        <a href={b.logoUrl} target="_blank" rel="noopener noreferrer" title="Logo">
+                          <img src={b.logoUrl} alt="logo" className="w-16 h-16 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                        </a>
+                      )}
+                      {b.facadeUrl && (
+                        <a href={b.facadeUrl} target="_blank" rel="noopener noreferrer" title="Fachada">
+                          <img src={b.facadeUrl} alt="fachada" className="w-24 h-16 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                        </a>
+                      )}
+                      {(b.galleryUrls ?? []).map((url, i) => (
+                        <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                          <img src={url} alt="" className="w-16 h-16 rounded-lg object-cover border border-gray-700 hover:opacity-80" />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -857,13 +979,145 @@ export default function AdminPage() {
         </div>
       )}
 
+      {tab === 'financeiro' && (() => {
+        const paid = orders.filter(o => o.paymentStatus === 'PAID')
+        const pending = orders.filter(o => o.paymentStatus !== 'PAID' && o.status !== 'CANCELLED')
+        const totalPaid = paid.reduce((s, o) => s + (o.totalPrice ?? 0), 0)
+        const totalPending = pending.reduce((s, o) => s + (o.totalPrice ?? 0), 0)
+        const commission = totalPaid * 0.07
+        const now = new Date()
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+        const monthOrders = paid.filter(o => new Date(o.createdAt) >= monthStart)
+        const monthRevenue = monthOrders.reduce((s, o) => s + (o.totalPrice ?? 0), 0)
+        const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        const lastMonthOrders = paid.filter(o => {
+          const d = new Date(o.createdAt)
+          return d >= lastMonthStart && d < monthStart
+        })
+        const lastMonthRevenue = lastMonthOrders.reduce((s, o) => s + (o.totalPrice ?? 0), 0)
+
+        return (
+          <div className="space-y-5">
+            {/* Cards de resumo */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gray-900 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Receita total (pago)</p>
+                <p className="text-2xl font-black text-green-400">R$ {totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">A receber (pedidos ativos)</p>
+                <p className="text-2xl font-black text-orange-400">R$ {totalPending.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Comissão acumulada (7%)</p>
+                <p className="text-2xl font-black text-yellow-400">R$ {commission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Pedidos pagos</p>
+                <p className="text-2xl font-black text-white">{paid.length}</p>
+              </div>
+            </div>
+
+            {/* Mês a mês */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-gray-900 rounded-xl p-4 border border-orange-500/20">
+                <p className="text-xs text-gray-500 mb-1">Este mês</p>
+                <p className="text-xl font-bold text-white">R$ {monthRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-xs text-gray-600 mt-1">{monthOrders.length} pedidos</p>
+              </div>
+              <div className="bg-gray-900 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Mês passado</p>
+                <p className="text-xl font-bold text-gray-400">R$ {lastMonthRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                <p className="text-xs text-gray-600 mt-1">{lastMonthOrders.length} pedidos</p>
+              </div>
+            </div>
+
+            {/* Tabela de pedidos pagos */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold text-sm text-gray-300">Pedidos recebidos</h3>
+                <a href="/admin/repasses" className="text-xs text-orange-400 hover:text-orange-300">Gerenciar repasses →</a>
+              </div>
+              {paid.length === 0 ? (
+                <p className="text-gray-500 text-sm">Nenhum pedido pago ainda.</p>
+              ) : (
+                <div className="bg-gray-900 rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-800 text-xs text-gray-500">
+                        <th className="text-left px-4 py-2">Cliente</th>
+                        <th className="text-left px-4 py-2 hidden md:table-cell">Data evento</th>
+                        <th className="text-left px-4 py-2 hidden md:table-cell">Churrasqueiro</th>
+                        <th className="text-right px-4 py-2">Total</th>
+                        <th className="text-right px-4 py-2 hidden md:table-cell">Comissão (7%)</th>
+                        <th className="text-left px-4 py-2 hidden md:table-cell">Pago em</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paid.map(o => (
+                        <tr key={o.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+                          <td className="px-4 py-2.5">
+                            <p className="text-white font-medium">{o.customer?.name}</p>
+                            <p className="text-xs text-gray-500">{o.customer?.email}</p>
+                          </td>
+                          <td className="px-4 py-2.5 hidden md:table-cell text-gray-400 text-xs">
+                            {new Date(o.eventDate).toLocaleDateString('pt-BR')}
+                          </td>
+                          <td className="px-4 py-2.5 hidden md:table-cell text-gray-400 text-xs">
+                            {o.grillmaster?.user?.name ?? '—'}
+                          </td>
+                          <td className="px-4 py-2.5 text-right font-bold text-green-400">
+                            R$ {(o.totalPrice ?? 0).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-2.5 text-right hidden md:table-cell text-yellow-400 text-xs">
+                            R$ {((o.totalPrice ?? 0) * 0.07).toFixed(2)}
+                          </td>
+                          <td className="px-4 py-2.5 hidden md:table-cell text-gray-500 text-xs">
+                            {o.paidAt ? new Date(o.paidAt).toLocaleDateString('pt-BR') : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      <tr className="bg-gray-800/50">
+                        <td colSpan={3} className="px-4 py-2.5 text-xs text-gray-500 hidden md:table-cell">Total</td>
+                        <td className="px-4 py-2.5 text-right font-black text-green-400">
+                          R$ {totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="px-4 py-2.5 text-right font-black text-yellow-400 hidden md:table-cell">
+                          R$ {commission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </td>
+                        <td className="hidden md:table-cell" />
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {/* Pedidos pendentes de pagamento */}
+            {pending.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-sm text-gray-300 mb-3">A receber — pedidos ativos sem pagamento confirmado</h3>
+                <div className="space-y-2">
+                  {pending.map(o => (
+                    <div key={o.id} className="bg-gray-900 rounded-xl px-4 py-3 flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-white">{o.customer?.name}</p>
+                        <p className="text-xs text-gray-500">{new Date(o.eventDate).toLocaleDateString('pt-BR')} · {STATUS_LABEL[o.status]}</p>
+                      </div>
+                      <span className="text-orange-400 font-bold">R$ {(o.totalPrice ?? 0).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )
+      })()}
+
       {tab === 'contracts' && (
         <div>
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3 mb-5">
-            <p className="text-xs text-yellow-300">
-              ⚠️ <strong>Contratos em fase de revisão jurídica</strong> — os aceites abaixo são registros de evidência eletrônica e não possuem validade jurídica plena até aprovação por advogado responsável.
-            </p>
-          </div>
 
           {contracts.length === 0 ? (
             <p className="text-gray-500 text-sm">Nenhum contrato gerado até o momento.</p>
@@ -904,12 +1158,9 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between p-5 border-b border-gray-800">
                   <div>
                     <span className="font-bold text-orange-400">{viewContract.partnerName}</span>
-                    <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">MINUTA — REV. JURÍDICA PENDENTE</span>
+                    <span className="ml-2 text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full">v1.0 — Aprovado</span>
                   </div>
                   <button onClick={() => setViewContract(null)} className="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
-                </div>
-                <div className="p-4 bg-yellow-500/10 border-b border-yellow-500/20">
-                  <p className="text-xs text-yellow-300">Este contrato está em fase de revisão jurídica e pode ser atualizado antes do lançamento oficial.</p>
                 </div>
                 <div className="flex-1 overflow-y-auto p-5">
                   <pre className="font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{viewContract.contractText}</pre>

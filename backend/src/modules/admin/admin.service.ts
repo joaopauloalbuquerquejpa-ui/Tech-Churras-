@@ -41,7 +41,7 @@ export async function listGrillmasters() {
 export async function listPendingGrillmasters() {
   return prisma.grillmaster.findMany({
     where: { approved: false },
-    include: { user: { select: { name: true, email: true } } },
+    include: { user: { select: { name: true, email: true, phone: true } } },
     orderBy: { createdAt: 'desc' },
   })
 }
@@ -106,7 +106,7 @@ export async function rejectGrillmaster(grillmasterId: string) {
 export async function listPendingBoutiques() {
   return prisma.boutique.findMany({
     where: { approved: false },
-    include: { user: { select: { name: true, email: true } } },
+    include: { user: { select: { name: true, email: true, phone: true } } },
     orderBy: { createdAt: 'desc' },
   })
 }
@@ -184,9 +184,10 @@ export async function getBoutiqueReferralStats(boutiqueId: string) {
 export async function listAllOrders() {
   return prisma.order.findMany({
     include: {
-      customer: { select: { name: true, email: true } },
-      grillmaster: { include: { user: { select: { name: true } } } },
+      customer: { select: { name: true, email: true, phone: true } },
+      grillmaster: { include: { user: { select: { name: true, phone: true } } } },
       boutique: { select: { name: true } },
+      items: { include: { product: { select: { name: true, price: true, unit: true } } } },
     },
     orderBy: { createdAt: 'desc' },
   })

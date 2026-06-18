@@ -2,7 +2,7 @@ import { prisma } from '../../config/prisma'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { validateCoupon } from '../coupons/coupons.service'
-import { sendPushToUser } from '../push/push.service'
+import { sendPushToUser, sendPushToRole } from '../push/push.service'
 import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } from '../email/email.service'
 
 export const createOrderSchema = z.object({
@@ -77,6 +77,10 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       data: { usedCount: { increment: 1 } },
     })
   }
+
+  // Notify all admins of new order
+  const adminDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)
+  sendPushToRole('ADMIN' as any, '🔥 Novo pedido!', `R$ ${order.totalPrice.toFixed(2)} — ${order.guestCount} pessoas em ${adminDate}`, '/admin').catch(() => {})
 
   // Notify boutique owner when a new order involves their boutique
   if (order.boutiqueId) {

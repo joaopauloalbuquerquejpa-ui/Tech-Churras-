@@ -109,8 +109,7 @@ export default function DashboardLayout({
     { href: '/ajuda', label: 'Ajuda', tour: '' },
   ]
   const adminLinks = [
-    { href: '/dashboard', label: 'Dashboard', tour: 'dashboard-link' },
-    { href: '/admin', label: 'Admin', tour: '' },
+    { href: '/admin', label: 'Painel', tour: '' },
     { href: '/founder', label: 'Fundador', tour: '' },
     { href: '/ajuda', label: 'Ajuda', tour: '' },
   ]

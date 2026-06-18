@@ -66,8 +66,7 @@ export default function MobileNav() {
   if (user?.role === 'ADMIN') {
     return (
       <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-gray-900 border-t border-gray-800 flex safe-bottom">
-        <NavItem href="/dashboard" icon={<GridIcon />} label="Dashboard" active={isActive('/dashboard')} />
-        <NavItem href="/admin" icon={<ShieldIcon />} label="Admin" active={isActive('/admin')} />
+        <NavItem href="/admin" icon={<ShieldIcon />} label="Painel" active={isActive('/admin')} />
         <NavItem href="/ajuda" icon={<HelpIcon />} label="Ajuda" active={isActive('/ajuda')} />
       </nav>
     )
