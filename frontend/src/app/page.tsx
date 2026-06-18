@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     description: 'Grillmasters certificados, açougue premium e IA que planeja o kit ideal. Acompanhe o churrasqueiro ao vivo no mapa. São Paulo e Grande SP.',
     type: 'website',
     url: 'https://www.techchurras.com.br',
-    images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'Tech Churras — Grillmasters Profissionais em SP' }],
+    images: [{ url: '/jota.jpg', width: 1200, height: 630, alt: 'Tech Churras — Grillmasters Profissionais em SP' }],
   },
   alternates: { canonical: 'https://www.techchurras.com.br' },
 }
@@ -152,7 +152,41 @@ export default async function HomePage() {
   ])
   const testimonials = rawTestimonials.length > 0 ? rawTestimonials : STATIC_TESTIMONIALS
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Como contratar um churrasqueiro profissional em São Paulo?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Pelo app da Tech Churras: escolha o Grillmaster, selecione a data e o número de convidados, deixe a IA montar o kit de carnes e acompanhe o churrasqueiro ao vivo no mapa. Tudo em menos de 5 minutos." }
+      },
+      {
+        "@type": "Question",
+        "name": "Quanto custa um churrasqueiro profissional em SP?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Na Tech Churras os Grillmasters cobram a partir de R$180/hora. Para um evento de 4 horas com 20 pessoas, o custo médio com Grillmaster + kit de carnes fica entre R$1.200 e R$2.500, dependendo dos cortes escolhidos." }
+      },
+      {
+        "@type": "Question",
+        "name": "O churrasqueiro traz o equipamento?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sim. Todos os Grillmasters da Tech Churras trazem a grelha, utensílios e temperos. As carnes são fornecidas pelos açougues premium parceiros da plataforma e entregues no local do evento." }
+      },
+      {
+        "@type": "Question",
+        "name": "A Tech Churras atende em qual região de São Paulo?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Atendemos toda São Paulo capital e Grande SP. O Grillmaster mais próximo do seu endereço é selecionado automaticamente pela plataforma." }
+      },
+      {
+        "@type": "Question",
+        "name": "É possível contratar churrasqueiro para evento corporativo?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Sim. A Tech Churras atende confraternizações corporativas, eventos de empresa e team building com churrasco. O Jota Grillmaster, fundador da plataforma, tem experiência em eventos de até 300 pessoas." }
+      }
+    ]
+  }
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
     <div className="min-h-screen bg-gray-950 text-white">
 
       {/* Nav */}
@@ -489,5 +523,6 @@ export default async function HomePage() {
         </div>
       </footer>
     </div>
+    </>
   )
 }
