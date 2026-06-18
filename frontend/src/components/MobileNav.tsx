@@ -76,7 +76,7 @@ export default function MobileNav() {
     return (
       <nav className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-gray-900 border-t border-gray-800 flex safe-bottom">
         <NavItem href="/dashboard" icon={<HomeIcon />} label="Home" active={isActive('/dashboard')} />
-        <NavItem href="/grillmasters" icon={<FireIcon />} label="Churrasco" active={isActive('/grillmasters') || isActive('/boutiques') || isActive('/kit-perfeito')} />
+        <NavItem href="/kit-perfeito" icon={<SparkleIcon />} label="Kit IA" active={isActive('/kit-perfeito') || isActive('/menu/assistente')} />
         <NavItem href="/menu/novo" icon={<CartIcon />} label="Pedido" active={isActive('/menu/novo')} badge={itemCount} />
         <NavItem href="/orders" icon={<OrdersIcon />} label="Pedidos" active={isActive('/orders')} />
         <NavItem href="/perfil" icon={<PersonIcon />} label="Perfil" active={isActive('/perfil') || isActive('/indicar')} />
@@ -177,6 +177,16 @@ function MeatIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18.6 3.4a4.5 4.5 0 0 1 0 6.4L14 15l-5-5 5.2-5.2a4.5 4.5 0 0 1 4.4-.4z" />
       <path d="M9 15L4.6 19.4a2 2 0 0 1-2.8-2.8L6 12" />
+    </svg>
+  )
+}
+
+function SparkleIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3z" />
+      <path d="M5 17l.75 2.25L8 20l-2.25.75L5 23l-.75-2.25L2 20l2.25-.75L5 17z" />
+      <path d="M19 3l.5 1.5L21 5l-1.5.5L19 7l-.5-1.5L17 5l1.5-.5L19 3z" />
     </svg>
   )
 }

@@ -218,6 +218,8 @@ function GuidedOrderForm() {
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
   const [acompanhamentos, setAcompanhamentos] = useState(false)
   const [acompanhamentosText, setAcompanhamentosText] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiSummary, setAiSummary] = useState('')
 
   // Step 5
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -987,20 +989,72 @@ function GuidedOrderForm() {
           )}
 
           {!productsLoading && boutiqueProducts.length > 0 && insumos.totalPessoas > 0 && (
-            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-semibold text-orange-300">Calculadora de carne</p>
-                <p className="text-xs text-orange-400/70">
-                  Para {insumos.totalPessoas} convidados sugerimos {calcMeatBreakdown(homens, mulheres, criancas).totalKg} kg no total
-                </p>
+            <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-orange-300">Calculadora de carne</p>
+                  <p className="text-xs text-orange-400/70">
+                    Para {insumos.totalPessoas} convidados: {calcMeatBreakdown(homens, mulheres, criancas).totalKg} kg total
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedQty(buildSuggestedQty(boutiqueProducts, homens, mulheres, criancas)); setAiSummary('') }}
+                  className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
+                >
+                  Aplicar cálculo
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedQty(buildSuggestedQty(boutiqueProducts, homens, mulheres, criancas))}
-                className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap"
-              >
-                Aplicar sugestão
-              </button>
+              <div className="flex items-center justify-between gap-3 pt-2 border-t border-orange-500/20">
+                <div>
+                  <p className="text-sm font-semibold text-white flex items-center gap-1.5">
+                    <span>✨</span> Montar com IA
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Claude analisa o catálogo e sugere os cortes ideais para o seu evento
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  disabled={aiLoading || boutiqueProducts.length === 0}
+                  onClick={async () => {
+                    setAiLoading(true)
+                    setAiSummary('')
+                    try {
+                      const t = getToken()
+                      const selectedGm = grillmasters.find(g => g.id === selectedGrillmasterId)
+                      const res = await fetch(BASE + '/ai/suggest-from-catalog', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t },
+                        body: JSON.stringify({
+                          homens, mulheres, criancas, hours: eventHours,
+                          style: 'tradicional',
+                          grillmasterSpecialties: selectedGm?.specialties ?? '',
+                          products: boutiqueProducts.map(p => ({ id: p.id, name: p.name, category: p.category, price: p.price, unit: p.unit })),
+                        }),
+                      })
+                      if (!res.ok) throw new Error('Erro na IA')
+                      const data = await res.json()
+                      if (Array.isArray(data.items) && data.items.length > 0) {
+                        const qty: Record<string, number> = {}
+                        for (const item of data.items) qty[item.productId] = item.quantity
+                        setSelectedQty(qty)
+                        setAiSummary(data.summary ?? '')
+                      }
+                    } catch {
+                      setAiSummary('Não foi possível gerar sugestão. Tente novamente.')
+                    } finally {
+                      setAiLoading(false)
+                    }
+                  }}
+                  className="shrink-0 bg-white/10 hover:bg-white/20 disabled:opacity-40 text-white text-xs font-bold px-3 py-2 rounded-lg transition-colors whitespace-nowrap border border-white/20"
+                >
+                  {aiLoading ? '...' : '✨ Gerar'}
+                </button>
+              </div>
+              {aiSummary && (
+                <p className="text-xs text-orange-300 bg-orange-500/10 rounded-lg px-3 py-2">{aiSummary}</p>
+              )}
             </div>
           )}
 

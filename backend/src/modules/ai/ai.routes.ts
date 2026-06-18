@@ -334,4 +334,62 @@ REGRAS:
       eventCoords: coords,
     })
   })
+
+  // ── POST /ai/suggest-from-catalog ────────────────────────────────────
+  // Recebe os produtos reais do açougue já selecionado e retorna sugestões
+  // com productId exato para preencher o carrinho diretamente.
+  app.post('/ai/suggest-from-catalog', { preHandler: [authenticate] }, async (request, reply) => {
+    const { homens = 5, mulheres = 3, criancas = 2, hours = 4, style = 'tradicional', grillmasterSpecialties = '', products } = request.body as {
+      homens?: number; mulheres?: number; criancas?: number
+      hours?: number; style?: string; grillmasterSpecialties?: string
+      products: { id: string; name: string; category: string; price: number; unit: string }[]
+    }
+
+    if (!Array.isArray(products) || products.length === 0) {
+      return reply.status(400).send({ error: 'Lista de produtos obrigatória' })
+    }
+
+    const totalPessoas = Number(homens) + Number(mulheres) + Number(criancas)
+    const catalogLines = products
+      .filter(p => p.id && p.name)
+      .map(p => `[${p.id}] ${p.name} — ${p.category} — R$${Number(p.price).toFixed(2)}/${p.unit}`)
+      .join('\n')
+
+    const prompt = `Você é especialista em churrasco brasileiro. Monte o kit ideal usando APENAS os produtos listados.
+
+EVENTO: ${homens} homens, ${mulheres} mulheres, ${criancas} crianças — ${hours}h de evento — estilo: ${style}
+${grillmasterSpecialties ? `ESPECIALIDADES DO CHURRASQUEIRO: ${grillmasterSpecialties}` : ''}
+
+PRODUTOS DO AÇOUGUE (use SOMENTE estes IDs):
+${catalogLines}
+
+REGRAS:
+- 400g carne/homem, 300g/mulher, 150g/criança = ${((homens*400 + mulheres*300 + criancas*150)/1000).toFixed(1)}kg total
+- Inclua carvão se disponível (1 saco por 5 pessoas)
+- Priorize cortes que combinam com as especialidades do churrasqueiro
+- Máximo 8 itens; razão em até 5 palavras por item
+- Responda SOMENTE JSON válido sem markdown:
+{"items":[{"productId":"id_exato","quantity":2.5,"unit":"kg","reason":"curta razao"}],"summary":"kit em 1 frase","totalKg":${((homens*400 + mulheres*300 + criancas*150)/1000).toFixed(1)}}`
+
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 800,
+      messages: [{ role: 'user', content: prompt }],
+    })
+
+    const raw = message.content[0].type === 'text' ? message.content[0].text : ''
+    try {
+      const cleaned = raw.replace(/```json\s*/g, '').replace(/```/g, '').trim()
+      const match = cleaned.match(/\{[\s\S]*\}/)
+      const parsed = JSON.parse(match ? match[0] : cleaned)
+      // Validate that returned productIds exist in the catalog
+      const validIds = new Set(products.map(p => p.id))
+      if (Array.isArray(parsed.items)) {
+        parsed.items = parsed.items.filter((item: any) => validIds.has(item.productId))
+      }
+      return reply.send(parsed)
+    } catch {
+      return reply.status(500).send({ error: 'Falha ao processar sugestão', raw: raw.slice(0, 300) })
+    }
+  })
 }
