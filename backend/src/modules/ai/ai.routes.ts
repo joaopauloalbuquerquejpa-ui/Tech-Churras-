@@ -58,7 +58,7 @@ REGRAS ESTRITAS DO JSON:
 - "reason": máximo 6 palavras por item
 - "tips": exatamente 3 dicas, cada uma com máximo 10 palavras
 - "schedule": máximo 20 palavras
-- "intro": máximo 25 palavras
+- "intro": máximo 30 palavras — comece com o nome do cliente se disponível, tom caloroso (ex: "Lucas, para o seu aniversário de 30 pessoas, montei um kit que vai impressionar! 🔥")
 - "howItsMade": exatamente 2-3 objetos
 - Responda SOMENTE com JSON válido, SEM markdown, SEM backticks, SEM qualquer texto fora do JSON
 

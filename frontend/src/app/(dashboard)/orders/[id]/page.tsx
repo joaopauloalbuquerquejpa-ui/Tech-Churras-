@@ -77,6 +77,7 @@ interface OrderDetail {
   notes?: string
   couponCode?: string
   discountAmount?: number
+  paymentStatus?: string | null
   items?: OrderItem[]
   grillmaster?: {
     id: string
@@ -135,6 +136,7 @@ export default function OrderDetailPage() {
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null)
   const [shareLoading, setShareLoading] = useState(false)
   const [shareToast, setShareToast] = useState('')
+  const [payingNow, setPayingNow] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const authRef = useRef<ReturnType<typeof getAuth>>({ token: null, user: null })
 
@@ -361,6 +363,25 @@ export default function OrderDetailPage() {
     }
   }
 
+  async function handlePayNow() {
+    if (!order || payingNow) return
+    setPayingNow(true)
+    try {
+      const { token } = authRef.current
+      const r = await fetch(`${BASE}/payments/create-preference`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ orderId: order.id }),
+      })
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error || 'Erro ao iniciar pagamento')
+      window.location.href = data.checkout_url
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'Erro ao iniciar pagamento')
+      setPayingNow(false)
+    }
+  }
+
   async function shareWhatsApp() {
     if (!order || shareLoading) return
     setShareLoading(true)
@@ -507,6 +528,40 @@ export default function OrderDetailPage() {
           </div>
         )
       })()}
+
+      {/* Payment CTA for customer — when confirmed but not yet paid */}
+      {!isGrillmaster && order.status === 'CONFIRMED' && order.paymentStatus !== 'approved' && (
+        <div className="bg-orange-500/10 border border-orange-500/40 rounded-2xl p-5 mb-5">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="text-2xl">💳</span>
+            <div>
+              <p className="font-bold text-white">Confirme o pagamento</p>
+              <p className="text-xs text-gray-400">Seu churrasco está reservado — finalize o pagamento para garantir</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-sm text-gray-400">Total do evento</span>
+            <span className="text-xl font-black text-white">
+              R$ {order.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+          <button
+            onClick={handlePayNow}
+            disabled={payingNow}
+            className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-bold py-3.5 rounded-xl transition-colors flex items-center justify-center gap-2 text-base"
+          >
+            {payingNow ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Aguarde...
+              </>
+            ) : (
+              <>💳 Pagar agora</>
+            )}
+          </button>
+          <p className="text-center text-xs text-gray-600 mt-2">Pix, cartão de crédito ou débito via Mercado Pago</p>
+        </div>
+      )}
 
       {/* Customer profile for grillmaster — shown above action button */}
       {isOrderGrillmaster && order.customer && (
