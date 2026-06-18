@@ -10,6 +10,21 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   )
 }
 
+export async function sendWhatsAppToAdmin(message: string): Promise<void> {
+  const phone = process.env.ADMIN_WHATSAPP_PHONE
+  const instance = process.env.ZAPI_INSTANCE
+  const token = process.env.ZAPI_TOKEN
+  if (!phone || !instance || !token) return
+  const clean = phone.replace(/\D/g, '')
+  try {
+    const res = await fetch(
+      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: clean, message }) }
+    )
+    if (!res.ok) console.log('[WhatsApp admin] erro:', res.status)
+  } catch {}
+}
+
 export async function sendPushToRole(role: Role, title: string, body: string, url = '/admin') {
   if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) return
   const users = await prisma.user.findMany({ where: { role }, select: { id: true } })

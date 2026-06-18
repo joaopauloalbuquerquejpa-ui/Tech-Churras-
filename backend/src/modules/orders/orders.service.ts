@@ -2,7 +2,7 @@ import { prisma } from '../../config/prisma'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { validateCoupon } from '../coupons/coupons.service'
-import { sendPushToUser, sendPushToRole } from '../push/push.service'
+import { sendPushToUser, sendPushToRole, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } from '../email/email.service'
 
 export const createOrderSchema = z.object({
@@ -78,9 +78,22 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     })
   }
 
-  // Notify all admins of new order
+  // Notify all admins of new order (push + WhatsApp)
   const adminDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)
   sendPushToRole('ADMIN' as any, '🔥 Novo pedido!', `R$ ${order.totalPrice.toFixed(2)} — ${order.guestCount} pessoas em ${adminDate}`, '/admin').catch(() => {})
+  prisma.user.findUnique({ where: { id: customerId }, select: { name: true, phone: true } }).then(customer => {
+    const adminEventDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
+    const msg =
+      `🔥 *Novo pedido — Tech Churras!*\n\n` +
+      `👤 Cliente: ${customer?.name ?? 'Cliente'}\n` +
+      `📞 ${customer?.phone ?? 'sem telefone'}\n` +
+      `💰 R$ ${order.totalPrice.toFixed(2)}\n` +
+      `📅 ${adminEventDate}\n` +
+      `👥 ${order.guestCount} convidados\n` +
+      `📍 ${order.eventAddress}\n\n` +
+      `👉 https://www.techchurras.com.br/admin`
+    sendWhatsAppToAdmin(msg).catch(() => {})
+  }).catch(() => {})
 
   // Notify boutique owner when a new order involves their boutique
   if (order.boutiqueId) {

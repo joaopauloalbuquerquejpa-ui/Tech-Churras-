@@ -1,5 +1,5 @@
 import { prisma } from '../../config/prisma'
-import { sendPushToUser } from '../push/push.service'
+import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { randomBytes } from 'crypto'
@@ -78,12 +78,20 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
     data: { userId, ...data, latitude, longitude, referralCode },
     include: { user: { select: { name: true, email: true } } },
   })
-  // Notify all admins of new partner registration
+  // Notify all admins of new partner registration (push + WhatsApp)
   prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } }).then(admins => {
     for (const admin of admins) {
       sendPushToUser(admin.id, '🥩 Novo açougue!', `${boutique.user?.name} cadastrou ${boutique.name} e aguarda aprovação.`, '/admin').catch(() => {})
     }
   }).catch(() => {})
+  sendWhatsAppToAdmin(
+    `🥩 *Novo açougue cadastrado — Tech Churras!*\n\n` +
+    `Açougue: ${boutique.name}\n` +
+    `Responsável: ${boutique.user?.name}\n` +
+    `Email: ${boutique.user?.email}\n` +
+    `Cidade: ${boutique.city}, ${boutique.state}\n\n` +
+    `⏳ Aguardando sua aprovação:\nhttps://www.techchurras.com.br/admin`
+  ).catch(() => {})
   return boutique
 }
 

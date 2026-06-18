@@ -2,6 +2,7 @@ import { prisma } from '../../config/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { emailWelcomeCustomer } from '../email/email.service'
+import { sendPushToRole, sendWhatsAppToAdmin } from '../push/push.service'
 
 export const registerSchema = z.object({
   name: z.string().min(2),
@@ -65,9 +66,17 @@ export async function registerUser(data: RegisterInput) {
     }
   }
 
-  // Fire-and-forget welcome email for customers only
+  // Fire-and-forget welcome email + admin notification for customers
   if (data.role === 'CUSTOMER') {
     emailWelcomeCustomer(user.email, user.name).catch(() => {})
+    sendPushToRole('ADMIN' as any, '👤 Novo cliente!', `${user.name} se cadastrou na plataforma.`, '/admin').catch(() => {})
+    sendWhatsAppToAdmin(
+      `👤 *Novo cliente cadastrado — Tech Churras!*\n\n` +
+      `Nome: ${user.name}\n` +
+      `Email: ${user.email}\n` +
+      `${data.phone ? `📞 ${data.phone}` : ''}\n\n` +
+      `👉 https://www.techchurras.com.br/admin`
+    ).catch(() => {})
   }
 
   return user
