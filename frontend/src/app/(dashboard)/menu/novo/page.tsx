@@ -647,6 +647,35 @@ function GuidedOrderForm() {
             <p className="text-sm text-gray-500">Preencha os dados do seu churrasco</p>
           </div>
 
+          {/* Pacotes pré-definidos */}
+          <div className="bg-gray-900 rounded-2xl p-5 border border-gray-800">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">Ou escolha um pacote pronto</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                { label: 'Kit Família', emoji: '🏠', guests: '10–15 pessoas', homens: 5, mulheres: 4, criancas: 3, hours: 4, desc: '4h de evento' },
+                { label: 'Kit Churrasquinho', emoji: '🔥', guests: '20–30 pessoas', homens: 12, mulheres: 8, criancas: 5, hours: 5, desc: '5h de evento' },
+                { label: 'Kit Evento', emoji: '🎉', guests: '40–60 pessoas', homens: 25, mulheres: 18, criancas: 10, hours: 6, desc: '6h de evento' },
+              ].map(pkg => (
+                <button
+                  key={pkg.label}
+                  type="button"
+                  onClick={() => {
+                    setHomens(pkg.homens)
+                    setMulheres(pkg.mulheres)
+                    setCriancas(pkg.criancas)
+                    setEventHours(pkg.hours)
+                  }}
+                  className="text-left bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-orange-500/50 rounded-xl p-4 transition-colors group"
+                >
+                  <div className="text-2xl mb-2">{pkg.emoji}</div>
+                  <p className="font-semibold text-white text-sm group-hover:text-orange-400 transition-colors">{pkg.label}</p>
+                  <p className="text-xs text-orange-400 font-medium mt-0.5">{pkg.guests}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{pkg.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-gray-900 rounded-2xl p-6 space-y-4 border border-gray-800">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

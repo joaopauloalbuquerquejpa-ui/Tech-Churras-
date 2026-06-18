@@ -492,6 +492,10 @@ export default function GrillmasterDashboardPage() {
   const earnedThisMonth = completedOrders.filter(o => new Date(o.eventDate) >= startOfMonth).reduce((s, o) => s + o.totalPrice * 0.93, 0)
   const earnedThisYear = completedOrders.filter(o => new Date(o.eventDate) >= startOfYear).reduce((s, o) => s + o.totalPrice * 0.93, 0)
   const totalEarningsAllTime = completedOrders.reduce((s, o) => s + o.totalPrice * 0.93, 0)
+  const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay()); startOfWeek.setHours(0, 0, 0, 0)
+  const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const earnedToday = completedOrders.filter(o => new Date(o.eventDate) >= todayMidnight).reduce((s, o) => s + o.totalPrice * 0.93, 0)
+  const earnedThisWeek = completedOrders.filter(o => new Date(o.eventDate) >= startOfWeek).reduce((s, o) => s + o.totalPrice * 0.93, 0)
   const last6Months = Array.from({ length: 6 }).map((_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
     const dEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 0, 23, 59, 59)
@@ -780,13 +784,13 @@ export default function GrillmasterDashboardPage() {
             </div>
           )}
 
-          {/* Stats */}
+          {/* Stats — Uber Driver style */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Ganhos este mes', value: 'R$ ' + fmt(earnedThisMonth), sub: 'liquido (93%)', color: 'text-orange-400' },
-              { label: 'Ganhos este ano', value: 'R$ ' + fmt(earnedThisYear), sub: 'liquido (93%)', color: 'text-green-400' },
-              { label: 'Proximos eventos', value: String(upcomingOrders.length), sub: 'confirmados', color: 'text-blue-400' },
-              { label: 'Avaliacao media', value: (profile?.rating ?? 0).toFixed(1) + ' / 5', sub: profile?.totalOrders + ' total', color: 'text-yellow-400' },
+              { label: 'Hoje', value: earnedToday > 0 ? 'R$ ' + fmt(earnedToday) : '—', sub: 'líquido (93%)', color: 'text-white' },
+              { label: 'Esta semana', value: earnedThisWeek > 0 ? 'R$ ' + fmt(earnedThisWeek) : '—', sub: 'líquido (93%)', color: 'text-orange-400' },
+              { label: 'Este mês', value: 'R$ ' + fmt(earnedThisMonth), sub: 'líquido (93%)', color: 'text-green-400' },
+              { label: 'Este ano', value: 'R$ ' + fmt(earnedThisYear), sub: new Date().getFullYear().toString(), color: 'text-blue-400' },
             ].map(c => (
               <div key={c.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <p className="text-xs text-gray-500 mb-1 leading-tight">{c.label}</p>

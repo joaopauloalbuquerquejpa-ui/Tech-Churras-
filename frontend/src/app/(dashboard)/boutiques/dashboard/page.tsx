@@ -1386,20 +1386,30 @@ export default function BoutiqueDashboardPage() {
             {boutique.products.map(p => {
               const active = isDiscountActive(p)
               return (
-                <div key={p.id} className="bg-gray-900 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                <div key={p.id} className={'rounded-xl px-4 py-3 flex items-center justify-between gap-3 transition-colors ' + (p.available ? 'bg-gray-900' : 'bg-gray-900/60 border border-red-900/40')}>
                   <div className="flex items-center gap-3 min-w-0">
-                    {p.imageUrl ? (
-                      <img src={p.imageUrl} alt={p.name} className="w-12 h-12 rounded-lg object-cover shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 text-xl">🥩</div>
-                    )}
-                    <button type="button" onClick={() => toggleProduct(p.id)} title={p.available ? 'Clique para desativar' : 'Clique para ativar'}
-                      className={'relative w-10 h-5 rounded-full transition-colors shrink-0 ' + (p.available ? 'bg-green-500' : 'bg-gray-600')}>
-                      <span className={'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ' + (p.available ? 'translate-x-5' : 'translate-x-0')} />
-                    </button>
+                    <div className="relative shrink-0">
+                      {p.imageUrl ? (
+                        <img src={p.imageUrl} alt={p.name} className={'w-12 h-12 rounded-lg object-cover ' + (!p.available ? 'opacity-40' : '')} />
+                      ) : (
+                        <div className={'w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center text-xl ' + (!p.available ? 'opacity-40' : '')}>🥩</div>
+                      )}
+                      {!p.available && (
+                        <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black px-1 py-0.5 rounded leading-none">FORA</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-1 shrink-0">
+                      <button type="button" onClick={() => toggleProduct(p.id)}
+                        className={'relative w-10 h-5 rounded-full transition-colors ' + (p.available ? 'bg-green-500' : 'bg-red-700')}>
+                        <span className={'absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ' + (p.available ? 'translate-x-5' : 'translate-x-0')} />
+                      </button>
+                      <span className={'text-[10px] text-center font-semibold ' + (p.available ? 'text-green-500' : 'text-red-500')}>
+                        {p.available ? 'OK' : 'ESGOT.'}
+                      </span>
+                    </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{p.name}</p>
+                        <p className={'font-medium truncate ' + (!p.available ? 'text-gray-500' : '')}>{p.name}</p>
                         {active && (
                           <span className="text-xs bg-orange-500 text-white px-1.5 py-0.5 rounded-full font-bold shrink-0">
                             {p.discountPercent}% OFF
