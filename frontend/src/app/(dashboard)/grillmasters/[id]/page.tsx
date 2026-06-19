@@ -1,7 +1,7 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import GrillmasterProfile from './GrillmasterProfile'
+import { API_URL } from '@/lib/api'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 interface Props {
   params: Promise<{ id: string }>
@@ -10,7 +10,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params
   try {
-    const res = await fetch(`${BASE}/grillmasters/${id}`, { next: { revalidate: 600 } })
+    const res = await fetch(`${API_URL}/grillmasters/${id}`, { next: { revalidate: 600 } })
     if (!res.ok) throw new Error()
     const gm = await res.json()
     const name: string = gm?.user?.name ?? 'Churrasqueiro'

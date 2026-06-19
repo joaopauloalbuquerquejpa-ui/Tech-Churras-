@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -35,7 +35,7 @@ export default function PerfilPage() {
   useEffect(() => {
     const token = getToken()
     if (!token) { router.push('/login'); return }
-    fetch(`${BASE}/auth/me`, { headers: { Authorization: 'Bearer ' + token } })
+    fetch(`${API_URL}/auth/me`, { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.json())
       .then(d => {
         setProfile(d)
@@ -52,7 +52,7 @@ export default function PerfilPage() {
     setSaving(true)
     const token = getToken()
     try {
-      const res = await fetch(`${BASE}/auth/profile`, {
+      const res = await fetch(`${API_URL}/auth/profile`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ name: form.name.trim(), phone: form.phone.trim() || null }),

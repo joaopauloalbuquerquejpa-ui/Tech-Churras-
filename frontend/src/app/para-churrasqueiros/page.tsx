@@ -1,5 +1,6 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import ParaChurrasqueirosClient from './ParaChurrasqueirosClient'
+import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Seja Churrasqueiro Parceiro — Tech Churras',
@@ -18,11 +19,10 @@ export const metadata: Metadata = {
   },
 }
 
-const API = 'https://tech-churras-production.up.railway.app'
 
 async function getGrillmasterCount(): Promise<number> {
   try {
-    const res = await fetch(API + '/grillmasters', { next: { revalidate: 3600 } })
+    const res = await fetch(API_URL + '/grillmasters', { next: { revalidate: 3600 } })
     if (!res.ok) return 0
     const data = await res.json()
     const list = Array.isArray(data) ? data : (data.grillmasters ?? [])

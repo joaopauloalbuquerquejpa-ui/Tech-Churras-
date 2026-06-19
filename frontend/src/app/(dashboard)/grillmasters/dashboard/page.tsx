@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -34,7 +34,7 @@ async function uploadImageFile(file: File): Promise<string> {
   const blob = await compressImage(file)
   const fd = new FormData()
   fd.append('file', blob, 'photo.jpg')
-  const res = await fetch(BASE + '/upload/image', {
+  const res = await fetch(API_URL + '/upload/image', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + getToken() },
     body: fd,
@@ -191,9 +191,9 @@ export default function GrillmasterDashboardPage() {
     try {
       const h = { Authorization: 'Bearer ' + getToken() }
       const [res, cRes, sRes] = await Promise.all([
-        fetch(`${BASE}/grillmasters/me/orders`, { headers: h }),
-        fetch(`${BASE}/contracts/my`, { headers: h }),
-        fetch(`${BASE}/grillmasters/schedule`, { headers: h }),
+        fetch(`${API_URL}/grillmasters/me/orders`, { headers: h }),
+        fetch(`${API_URL}/contracts/my`, { headers: h }),
+        fetch(`${API_URL}/grillmasters/schedule`, { headers: h }),
       ])
       if (!res.ok) { setNotFound(true); return }
       const data = await res.json()
@@ -236,7 +236,7 @@ export default function GrillmasterDashboardPage() {
     if (now - lastSentRef.current < 12000) return
     lastSentRef.current = now
     try {
-      await fetch(`${BASE}/orders/${orderId}/location`, {
+      await fetch(`${API_URL}/orders/${orderId}/location`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ lat, lng }),
@@ -252,7 +252,7 @@ export default function GrillmasterDashboardPage() {
 
     // Get share token to show the link
     try {
-      const res = await fetch(`${BASE}/orders/${orderId}/share`, {
+      const res = await fetch(`${API_URL}/orders/${orderId}/share`, {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + getToken() },
       })
@@ -264,7 +264,7 @@ export default function GrillmasterDashboardPage() {
 
     // Update status detail to "a caminho"
     try {
-      await fetch(`${BASE}/orders/${orderId}/status-detail`, {
+      await fetch(`${API_URL}/orders/${orderId}/status-detail`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ statusDetail: 'Churrasqueiro a caminho' }),
@@ -298,7 +298,7 @@ export default function GrillmasterDashboardPage() {
     if (!profile) return
     setTogglingAvail(true)
     try {
-      const res = await fetch(`${BASE}/grillmasters`, {
+      const res = await fetch(`${API_URL}/grillmasters`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ available: !profile.available }),
@@ -310,7 +310,7 @@ export default function GrillmasterDashboardPage() {
   async function handleAccept(orderId: string) {
     setActionLoading(orderId + '-accept')
     try {
-      const res = await fetch(`${BASE}/orders/${orderId}/status`, {
+      const res = await fetch(`${API_URL}/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ status: 'CONFIRMED' }),
@@ -322,7 +322,7 @@ export default function GrillmasterDashboardPage() {
   async function handleReject(orderId: string) {
     setActionLoading(orderId + '-reject')
     try {
-      const res = await fetch(`${BASE}/orders/${orderId}/cancel`, {
+      const res = await fetch(`${API_URL}/orders/${orderId}/cancel`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ reason: 'Churrasqueiro recusou o evento' }),
@@ -334,7 +334,7 @@ export default function GrillmasterDashboardPage() {
   async function handleToggleScheduleDay(dateStr: string) {
     setTogglingDate(dateStr)
     try {
-      const res = await fetch(`${BASE}/grillmasters/schedule/toggle`, {
+      const res = await fetch(`${API_URL}/grillmasters/schedule/toggle`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ date: dateStr }),
@@ -355,7 +355,7 @@ export default function GrillmasterDashboardPage() {
   async function handleSaveProfile() {
     setSavingProfile(true); setProfileMsg('')
     try {
-      const res = await fetch(`${BASE}/grillmasters`, {
+      const res = await fetch(`${API_URL}/grillmasters`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify(profileForm),
@@ -377,7 +377,7 @@ export default function GrillmasterDashboardPage() {
     try {
       const h = { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() }
       for (const id of [1, 2, 3, 4]) {
-        await fetch(`${BASE}/grillmasters/training/${id}/complete`, { method: 'POST', headers: h })
+        await fetch(`${API_URL}/grillmasters/training/${id}/complete`, { method: 'POST', headers: h })
       }
       await load()
     } finally { setCertifying(false) }
@@ -843,7 +843,7 @@ export default function GrillmasterDashboardPage() {
                               <button
                                 onClick={() => {
                                   setActionLoading(o.id + '-detail')
-                                  fetch(`${BASE}/orders/${o.id}/status-detail`, {
+                                  fetch(`${API_URL}/orders/${o.id}/status-detail`, {
                                     method: 'PATCH',
                                     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
                                     body: JSON.stringify({ statusDetail: 'Churrasqueiro a caminho' }),
@@ -858,7 +858,7 @@ export default function GrillmasterDashboardPage() {
                               <button
                                 onClick={() => {
                                   setActionLoading(o.id + '-start')
-                                  fetch(`${BASE}/orders/${o.id}/status`, {
+                                  fetch(`${API_URL}/orders/${o.id}/status`, {
                                     method: 'PATCH',
                                     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
                                     body: JSON.stringify({ status: 'IN_PROGRESS' }),
@@ -876,7 +876,7 @@ export default function GrillmasterDashboardPage() {
                             <button
                               onClick={() => {
                                 setActionLoading(o.id + '-complete')
-                                fetch(`${BASE}/orders/${o.id}/status`, {
+                                fetch(`${API_URL}/orders/${o.id}/status`, {
                                   method: 'PATCH',
                                   headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
                                   body: JSON.stringify({ status: 'COMPLETED' }),
@@ -919,7 +919,7 @@ export default function GrillmasterDashboardPage() {
                   {contract.acceptedAt && <div><p className="text-gray-500 text-xs">Aceito em</p><p className="text-white font-medium">{new Date(contract.acceptedAt).toLocaleDateString('pt-BR')}</p></div>}
                 </div>
                 <button onClick={async () => {
-                  const res = await fetch(BASE + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
+                  const res = await fetch(API_URL + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
                   if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
                 }} className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline">
                   Visualizar contrato

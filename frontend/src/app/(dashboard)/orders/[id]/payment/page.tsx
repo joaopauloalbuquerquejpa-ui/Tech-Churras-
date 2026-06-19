@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Events } from '@/lib/analytics'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -37,7 +37,7 @@ export default function PaymentPage() {
     const t = getToken()
     if (!t) { router.push('/login'); return }
 
-    fetch(BASE + '/orders/' + orderId, { headers: { Authorization: 'Bearer ' + t } })
+    fetch(API_URL + '/orders/' + orderId, { headers: { Authorization: 'Bearer ' + t } })
       .then(r => r.json())
       .then(d => {
         if (d.status === 'CONFIRMED' || d.status === 'COMPLETED') {
@@ -45,7 +45,7 @@ export default function PaymentPage() {
           return null
         }
         setOrder(d)
-        return fetch(BASE + '/payments/create-preference', {
+        return fetch(API_URL + '/payments/create-preference', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t },
           body: JSON.stringify({ orderId }),

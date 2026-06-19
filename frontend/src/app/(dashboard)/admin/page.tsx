@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -183,12 +183,12 @@ export default function AdminPage() {
     const h = { Authorization: 'Bearer ' + getToken() }
     try {
       const [s, o, pg, pb, c, allGms] = await Promise.all([
-        fetch(BASE + '/admin/stats', { headers: h }).then(r => r.json()),
-        fetch(BASE + '/admin/orders', { headers: h }).then(r => r.json()),
-        fetch(BASE + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
-        fetch(BASE + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
-        fetch(BASE + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
-        fetch(BASE + '/admin/grillmasters', { headers: h }).then(r => r.ok ? r.json() : []),
+        fetch(API_URL + '/admin/stats', { headers: h }).then(r => r.json()),
+        fetch(API_URL + '/admin/orders', { headers: h }).then(r => r.json()),
+        fetch(API_URL + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
+        fetch(API_URL + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
+        fetch(API_URL + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
+        fetch(API_URL + '/admin/grillmasters', { headers: h }).then(r => r.ok ? r.json() : []),
       ])
       setStats(s)
       setOrders(Array.isArray(o) ? o : o.orders || [])
@@ -211,7 +211,7 @@ export default function AdminPage() {
           bringsEquipment: tj.bringsEquipment, minGuests: tj.minGuests, maxGuests: tj.maxGuests,
           instagram: tj.instagram, available: tj.available,
         })
-        fetch(BASE + '/admin/grillmasters/' + tj.id + '/schedule', { headers: h })
+        fetch(API_URL + '/admin/grillmasters/' + tj.id + '/schedule', { headers: h })
           .then(r => r.ok ? r.json() : [])
           .then(sc => setTjSchedule(Array.isArray(sc) ? sc : []))
           .catch(() => {})
@@ -226,7 +226,7 @@ export default function AdminPage() {
     if (!teamJota) return
     setTjSaving(true)
     try {
-      const res = await fetch(BASE + '/admin/grillmasters/' + teamJota.id + '/profile', {
+      const res = await fetch(API_URL + '/admin/grillmasters/' + teamJota.id + '/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify(tjForm),
@@ -242,7 +242,7 @@ export default function AdminPage() {
     if (!teamJota || tjTogglingDay) return
     setTjTogglingDay(dateStr)
     try {
-      const res = await fetch(BASE + '/admin/grillmasters/' + teamJota.id + '/schedule/toggle', {
+      const res = await fetch(API_URL + '/admin/grillmasters/' + teamJota.id + '/schedule/toggle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ date: dateStr }),
@@ -259,7 +259,7 @@ export default function AdminPage() {
         }
         // Refresh schedule
         const h = { Authorization: 'Bearer ' + getToken() }
-        fetch(BASE + '/admin/grillmasters/' + teamJota.id + '/schedule', { headers: h })
+        fetch(API_URL + '/admin/grillmasters/' + teamJota.id + '/schedule', { headers: h })
           .then(r => r.ok ? r.json() : [])
           .then(sc => setTjSchedule(Array.isArray(sc) ? sc : []))
       }
@@ -269,7 +269,7 @@ export default function AdminPage() {
   async function toggleTjAvailable() {
     if (!teamJota) return
     const newVal = !teamJota.available
-    const res = await fetch(BASE + '/admin/grillmasters/' + teamJota.id + '/profile', {
+    const res = await fetch(API_URL + '/admin/grillmasters/' + teamJota.id + '/profile', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
       body: JSON.stringify({ available: newVal }),
@@ -287,7 +287,7 @@ export default function AdminPage() {
   }, [])
 
   async function updateStatus(id: string, status: string) {
-    await fetch(BASE + '/orders/' + id + '/status', {
+    await fetch(API_URL + '/orders/' + id + '/status', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
       body: JSON.stringify({ status }),
@@ -297,7 +297,7 @@ export default function AdminPage() {
 
   async function approveGrillmaster(id: string) {
     const state = gmApproveState[id] || { isChancelado: false, pricePerHour: 0 }
-    const res = await fetch(BASE + '/admin/grillmasters/' + id + '/approve', {
+    const res = await fetch(API_URL + '/admin/grillmasters/' + id + '/approve', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
       body: JSON.stringify({ isChancelado: state.isChancelado, pricePerHour: state.pricePerHour }),
@@ -306,7 +306,7 @@ export default function AdminPage() {
   }
 
   async function rejectGrillmaster(id: string) {
-    const res = await fetch(BASE + '/admin/grillmasters/' + id + '/reject', {
+    const res = await fetch(API_URL + '/admin/grillmasters/' + id + '/reject', {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
@@ -314,7 +314,7 @@ export default function AdminPage() {
   }
 
   async function markUniformSent(grillmasterId: string) {
-    const res = await fetch(BASE + '/admin/grillmasters/' + grillmasterId + '/uniform', {
+    const res = await fetch(API_URL + '/admin/grillmasters/' + grillmasterId + '/uniform', {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
@@ -326,7 +326,7 @@ export default function AdminPage() {
   }
 
   async function approveBoutique(id: string) {
-    const res = await fetch(BASE + '/admin/boutiques/' + id + '/approve', {
+    const res = await fetch(API_URL + '/admin/boutiques/' + id + '/approve', {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
@@ -334,7 +334,7 @@ export default function AdminPage() {
   }
 
   async function rejectBoutique(id: string) {
-    const res = await fetch(BASE + '/admin/boutiques/' + id + '/reject', {
+    const res = await fetch(API_URL + '/admin/boutiques/' + id + '/reject', {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })

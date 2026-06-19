@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -6,7 +7,6 @@ import dynamic from 'next/dynamic'
 
 const OrderMap = dynamic(() => import('./OrderMap'), { ssr: false })
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendente',
@@ -197,7 +197,7 @@ export default function OrderDetailPage() {
     const watchId = navigator.geolocation.watchPosition(
       pos => {
         const { token } = authRef.current
-        fetch(`${BASE}/orders/${id}/location`, {
+        fetch(`${API_URL}/orders/${id}/location`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
           body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
@@ -212,7 +212,7 @@ export default function OrderDetailPage() {
   async function fetchOrder() {
     const { token } = authRef.current
     try {
-      const res = await fetch(`${BASE}/orders/${id}`, { headers: { Authorization: 'Bearer ' + token } })
+      const res = await fetch(`${API_URL}/orders/${id}`, { headers: { Authorization: 'Bearer ' + token } })
       if (res.ok) setOrder(await res.json())
     } finally {
       setLoading(false)
@@ -222,7 +222,7 @@ export default function OrderDetailPage() {
   async function fetchMessages() {
     const { token } = authRef.current
     try {
-      const res = await fetch(`${BASE}/orders/${id}/messages`, { headers: { Authorization: 'Bearer ' + token } })
+      const res = await fetch(`${API_URL}/orders/${id}/messages`, { headers: { Authorization: 'Bearer ' + token } })
       if (res.ok) {
         const data = await res.json()
         if (Array.isArray(data)) setMessages(data)
@@ -234,7 +234,7 @@ export default function OrderDetailPage() {
 
   async function markRead() {
     const { token } = authRef.current
-    fetch(`${BASE}/orders/${id}/messages/read`, {
+    fetch(`${API_URL}/orders/${id}/messages/read`, {
       method: 'PATCH', headers: { Authorization: 'Bearer ' + token },
     }).catch(() => {})
   }
@@ -245,7 +245,7 @@ export default function OrderDetailPage() {
     setSending(true)
     const { token } = authRef.current
     try {
-      const res = await fetch(`${BASE}/orders/${id}/messages`, {
+      const res = await fetch(`${API_URL}/orders/${id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ content: msgInput.trim() }),
@@ -268,14 +268,14 @@ export default function OrderDetailPage() {
     setAdvancing(true)
     try {
       if (action.type === 'substate') {
-        const res = await fetch(`${BASE}/orders/${id}/status-detail`, {
+        const res = await fetch(`${API_URL}/orders/${id}/status-detail`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
           body: JSON.stringify({ statusDetail: action.value }),
         })
         if (res.ok) setOrder(prev => prev ? { ...prev, statusDetail: action.value } : prev)
       } else {
-        const res = await fetch(`${BASE}/orders/${id}/status`, {
+        const res = await fetch(`${API_URL}/orders/${id}/status`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
           body: JSON.stringify({ status: action.value }),
@@ -313,7 +313,7 @@ export default function OrderDetailPage() {
     setCancelling(true)
     const { token } = authRef.current
     try {
-      const res = await fetch(`${BASE}/orders/${id}/cancel`, {
+      const res = await fetch(`${API_URL}/orders/${id}/cancel`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ reason: cancelReason }),
@@ -338,7 +338,7 @@ export default function OrderDetailPage() {
 
   async function getShareToken(): Promise<string | null> {
     const { token } = authRef.current
-    const res = await fetch(`${BASE}/orders/${id}/share`, {
+    const res = await fetch(`${API_URL}/orders/${id}/share`, {
       method: 'POST',
       headers: { Authorization: 'Bearer ' + token },
     })
@@ -368,7 +368,7 @@ export default function OrderDetailPage() {
     setPayingNow(true)
     try {
       const { token } = authRef.current
-      const r = await fetch(`${BASE}/payments/create-preference`, {
+      const r = await fetch(`${API_URL}/payments/create-preference`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ orderId: order.id }),

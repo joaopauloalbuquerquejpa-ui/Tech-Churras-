@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -77,7 +78,7 @@ export default function GrillmastersPage() {
       if (maxPrice) params.set('maxPrice', maxPrice)
       if (minRating) params.set('minRating', minRating)
       if (specialty.trim()) params.set('specialty', specialty.trim())
-      const res = await fetch(`https://tech-churras-production.up.railway.app/grillmasters?${params}`, {
+      const res = await fetch(`${API_URL}/grillmasters?${params}`, {
         headers: { Authorization: 'Bearer ' + t }
       })
       const data = await res.json()

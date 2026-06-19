@@ -1,5 +1,6 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import ParaAcouguesClient from './ParaAcouguesClient'
+import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Parceria para Açougues — Tech Churras',
@@ -18,11 +19,10 @@ export const metadata: Metadata = {
   },
 }
 
-const API = 'https://tech-churras-production.up.railway.app'
 
 async function getBoutiqueCount(): Promise<number> {
   try {
-    const res = await fetch(API + '/boutiques', { next: { revalidate: 3600 } })
+    const res = await fetch(API_URL + '/boutiques', { next: { revalidate: 3600 } })
     if (!res.ok) return 0
     const data = await res.json()
     const list = Array.isArray(data) ? data : (data.boutiques ?? [])

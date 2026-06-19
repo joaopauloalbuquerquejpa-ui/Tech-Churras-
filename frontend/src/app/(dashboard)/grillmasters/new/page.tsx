@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useRef, useState } from 'react'
 import Link from 'next/link'
 import ContractModal from '@/components/ContractModal'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -13,7 +13,7 @@ function getToken() {
 async function uploadImage(file: File, token: string): Promise<string> {
   const fd = new FormData()
   fd.append('file', file)
-  const res = await fetch(BASE + '/upload/image', {
+  const res = await fetch(API_URL + '/upload/image', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + token },
     body: fd,
@@ -106,7 +106,7 @@ export default function NewGrillmasterPage() {
       }
       if (photoUrl) body.photoUrl = photoUrl
 
-      const res = await fetch(BASE + '/grillmasters', {
+      const res = await fetch(API_URL + '/grillmasters', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify(body),

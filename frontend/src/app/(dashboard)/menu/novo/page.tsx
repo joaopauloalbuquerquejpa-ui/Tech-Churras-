@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { useCartStore } from '@/store/cart'
 import { Events } from '@/lib/analytics'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -280,15 +280,15 @@ function GuidedOrderForm() {
   // Fetch grillmasters and boutiques
   useEffect(() => {
     const h = { Authorization: 'Bearer ' + getToken() }
-    fetch(BASE + '/grillmasters', { headers: h })
+    fetch(API_URL + '/grillmasters', { headers: h })
       .then(r => r.json())
       .then(d => setGrillmasters(Array.isArray(d) ? d : d.grillmasters ?? []))
       .catch(() => {})
-    fetch(BASE + '/boutiques', { headers: h })
+    fetch(API_URL + '/boutiques', { headers: h })
       .then(r => r.json())
       .then(d => setBoutiques(Array.isArray(d) ? d : d.boutiques ?? []))
       .catch(() => {})
-    fetch(BASE + '/addresses', { headers: h })
+    fetch(API_URL + '/addresses', { headers: h })
       .then(r => r.json())
       .then(d => { if (Array.isArray(d)) setSavedAddresses(d) })
       .catch(() => {})
@@ -298,7 +298,7 @@ function GuidedOrderForm() {
     if (!selectedBoutiqueId) { setBoutiqueProducts([]); return }
     setProductsLoading(true)
     setBoutiqueProducts([])
-    fetch(BASE + '/boutiques/' + selectedBoutiqueId + '/products')
+    fetch(API_URL + '/boutiques/' + selectedBoutiqueId + '/products')
       .then(r => r.json())
       .then(d => setBoutiqueProducts(Array.isArray(d) ? d : []))
       .catch(() => setBoutiqueProducts([]))
@@ -356,7 +356,7 @@ function GuidedOrderForm() {
     if (!saveNewAddress || !eventAddress.trim() || !newAddressLabel.trim()) return
     try {
       const parts = eventAddress.split(',').map(s => s.trim())
-      await fetch(BASE + '/addresses', {
+      await fetch(API_URL + '/addresses', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({
@@ -378,7 +378,7 @@ function GuidedOrderForm() {
     setCouponLoading(true)
     setCouponResult(null)
     try {
-      const res = await fetch(BASE + '/coupons/validate', {
+      const res = await fetch(API_URL + '/coupons/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: couponInput.trim(), orderValue: totalEstimate }),
@@ -503,7 +503,7 @@ function GuidedOrderForm() {
       }
       if (couponResult?.valid && couponInput) body.couponCode = couponInput.trim().toUpperCase()
 
-      const res = await fetch(BASE + '/orders', {
+      const res = await fetch(API_URL + '/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify(body),
@@ -1030,7 +1030,7 @@ function GuidedOrderForm() {
                     try {
                       const t = getToken()
                       const selectedGm = grillmasters.find(g => g.id === selectedGrillmasterId)
-                      const res = await fetch(BASE + '/ai/suggest-from-catalog', {
+                      const res = await fetch(API_URL + '/ai/suggest-from-catalog', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + t },
                         body: JSON.stringify({

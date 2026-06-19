@@ -1,6 +1,6 @@
-import { create } from 'zustand'
+﻿import { create } from 'zustand'
+import { API_URL } from '@/lib/api'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   if (typeof window === 'undefined') return null
@@ -29,7 +29,7 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => ({
     const token = getToken()
     if (!token) return
     try {
-      const res = await fetch(`${BASE}/favorites`, {
+      const res = await fetch(`${API_URL}/favorites`, {
         headers: { Authorization: 'Bearer ' + token },
       })
       if (!res.ok) return
@@ -69,12 +69,12 @@ export const useFavoritesStore = create<FavoritesStore>((set, get) => ({
 
     try {
       if (already) {
-        await fetch(`${BASE}/favorites/${targetType}/${targetId}`, {
+        await fetch(`${API_URL}/favorites/${targetType}/${targetId}`, {
           method: 'DELETE',
           headers: { Authorization: 'Bearer ' + token },
         })
       } else {
-        await fetch(`${BASE}/favorites`, {
+        await fetch(`${API_URL}/favorites`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
           body: JSON.stringify({ targetType, targetId }),

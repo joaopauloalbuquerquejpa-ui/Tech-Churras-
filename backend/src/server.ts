@@ -27,6 +27,11 @@ import { contractsRoutes } from './modules/contracts/contracts.routes'
 
 dotenv.config()
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET não configurado. Defina a variável de ambiente antes de iniciar.')
+  process.exit(1)
+}
+
 const app = Fastify({ logger: true })
 
 // Plugins
@@ -37,7 +42,7 @@ app.register(cors, {
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 })
-app.register(jwt, { secret: process.env.JWT_SECRET ?? 'supersecret' })
+app.register(jwt, { secret: process.env.JWT_SECRET! })
 app.register(cookie)
 
 // Decorator de autenticaÃ§Ã£o

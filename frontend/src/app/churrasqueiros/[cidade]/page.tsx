@@ -1,7 +1,7 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import { API_URL } from '@/lib/api'
 
-const API = 'https://tech-churras-production.up.railway.app'
 
 interface Grillmaster {
   id: string
@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: { params: Promise<{ cidade: s
 
 async function getGrillmasters(city: string): Promise<Grillmaster[]> {
   try {
-    const res = await fetch(`${API}/grillmasters?city=${encodeURIComponent(city)}&available=true&limit=50`, {
+    const res = await fetch(`${API_URL}/grillmasters?city=${encodeURIComponent(city)}&available=true&limit=50`, {
       next: { revalidate: 3600 },
     })
     if (!res.ok) return []

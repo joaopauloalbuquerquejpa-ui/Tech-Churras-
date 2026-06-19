@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useState, useRef } from 'react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import Link from 'next/link'
 import { useCartStore } from '@/store/cart'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -112,7 +112,7 @@ export default function AssistentePage() {
 
   async function fetchBoutiqueProducts(id: string) {
     try {
-      const r = await fetch(`${BASE}/boutiques/${id}/products`, {
+      const r = await fetch(`${API_URL}/boutiques/${id}/products`, {
         headers: { Authorization: `Bearer ${getToken()}` },
       })
       if (r.ok) {
@@ -130,7 +130,7 @@ export default function AssistentePage() {
     setAddedIds(new Set())
 
     try {
-      const r = await fetch(`${BASE}/ai/plan-event`, {
+      const r = await fetch(`${API_URL}/ai/plan-event`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ style, homens, mulheres, criancas, hours, restrictions, customerName: getCustomerName() }),

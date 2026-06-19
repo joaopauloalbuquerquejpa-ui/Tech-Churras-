@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useFavoritesStore } from '@/store/favorites'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -89,11 +89,11 @@ export default function GrillmasterProfilePage() {
     const h = token ? { Authorization: 'Bearer ' + token } : {} as Record<string, string>
     setLoading(true)
     Promise.all([
-      fetch(`${BASE}/grillmasters/${id}`, { headers: h }).then(r => {
+      fetch(`${API_URL}/grillmasters/${id}`, { headers: h }).then(r => {
         if (!r.ok) throw new Error('Nao encontrado')
         return r.json()
       }),
-      fetch(`${BASE}/reviews/grillmaster/${id}`).then(r => r.ok ? r.json() : []),
+      fetch(`${API_URL}/reviews/grillmaster/${id}`).then(r => r.ok ? r.json() : []),
     ])
       .then(([gmData, revData]) => {
         setGm(gmData)

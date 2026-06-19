@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 const SITE_URL = 'https://www.techchurras.com.br'
 
 function getToken() {
@@ -21,8 +21,8 @@ export default function QRCodeImpressaoPage() {
       try {
         const token = getToken()
         const [bRes, sRes] = await Promise.all([
-          fetch(`${BASE}/boutiques/my`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${BASE}/boutiques/dashboard/stats`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_URL}/boutiques/my`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_URL}/boutiques/dashboard/stats`, { headers: { Authorization: `Bearer ${token}` } }),
         ])
         if (bRes.ok) {
           const b = await bRes.json()

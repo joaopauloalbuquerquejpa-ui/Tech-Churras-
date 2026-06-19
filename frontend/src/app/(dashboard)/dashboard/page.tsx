@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 const VIDEO_CARNE = 'https://videos.pexels.com/video-files/5409634/5409634-uhd_2560_1440_25fps.mp4'
 
 function getToken() {
@@ -133,7 +133,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const h = { Authorization: 'Bearer ' + getToken() }
-    fetch(BASE + '/orders', { headers: h })
+    fetch(API_URL + '/orders', { headers: h })
       .then(r => r.json())
       .then(d => {
         const arr: Order[] = Array.isArray(d) ? d : []
@@ -148,7 +148,7 @@ export default function DashboardPage() {
       })
       .catch(() => {})
       .finally(() => setOrdersLoaded(true))
-    fetch(BASE + '/grillmasters', { headers: h })
+    fetch(API_URL + '/grillmasters', { headers: h })
       .then(r => r.json())
       .then(d => {
         const arr = Array.isArray(d) ? d : d.grillmasters ?? []
@@ -156,14 +156,14 @@ export default function DashboardPage() {
         setFeaturedGMs(arr.slice(0, 6))
       })
       .catch(() => {})
-    fetch(BASE + '/boutiques', { headers: h })
+    fetch(API_URL + '/boutiques', { headers: h })
       .then(r => r.json())
       .then(d => {
         const arr = Array.isArray(d) ? d : d.boutiques ?? []
         setRawStats(prev => ({ ...prev, boutiques: arr.length }))
       })
       .catch(() => {})
-    fetch(BASE + '/points/balance', { headers: h })
+    fetch(API_URL + '/points/balance', { headers: h })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setPoints(d.points) })
       .catch(() => {})
@@ -175,7 +175,7 @@ export default function DashboardPage() {
     if (!nextEvent) return
     try {
       const h = { Authorization: 'Bearer ' + getToken() }
-      const res = await fetch(`${BASE}/orders/${nextEvent.id}/share`, { method: 'POST', headers: h })
+      const res = await fetch(`${API_URL}/orders/${nextEvent.id}/share`, { method: 'POST', headers: h })
       if (res.ok) {
         const d = await res.json()
         const token = d.shareToken ?? d.publicShareToken

@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useFavoritesStore } from '@/store/favorites'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -65,7 +65,7 @@ export default function FavoritosPage() {
     const token = getToken()
     if (!token) { router.push('/login'); return }
     setLoading(true)
-    fetch(`${BASE}/favorites`, { headers: { Authorization: 'Bearer ' + token } })
+    fetch(`${API_URL}/favorites`, { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.json())
       .then(data => {
         setGrillmasters(data.grillmasters ?? [])
@@ -80,7 +80,7 @@ export default function FavoritosPage() {
     if (!loading) {
       const token = getToken()
       if (!token) return
-      fetch(`${BASE}/favorites`, { headers: { Authorization: 'Bearer ' + token } })
+      fetch(`${API_URL}/favorites`, { headers: { Authorization: 'Bearer ' + token } })
         .then(r => r.json())
         .then(data => {
           setGrillmasters(data.grillmasters ?? [])

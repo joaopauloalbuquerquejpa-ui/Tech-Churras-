@@ -1,7 +1,7 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -39,7 +39,7 @@ export default function EnderecosPage() {
   async function load() {
     setLoading(true)
     try {
-      const res = await fetch(`${BASE}/addresses`, {
+      const res = await fetch(`${API_URL}/addresses`, {
         headers: { Authorization: 'Bearer ' + getToken() },
       })
       setAddresses(await res.json())
@@ -96,7 +96,7 @@ export default function EnderecosPage() {
     setSaving(true)
     setError('')
     try {
-      const url = editingId ? `${BASE}/addresses/${editingId}` : `${BASE}/addresses`
+      const url = editingId ? `${API_URL}/addresses/${editingId}` : `${API_URL}/addresses`
       const method = editingId ? 'PATCH' : 'POST'
       const res = await fetch(url, {
         method,
@@ -112,7 +112,7 @@ export default function EnderecosPage() {
 
   async function handleDelete(id: string) {
     if (!confirm('Remover este endereço?')) return
-    await fetch(`${BASE}/addresses/${id}`, {
+    await fetch(`${API_URL}/addresses/${id}`, {
       method: 'DELETE',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
@@ -120,7 +120,7 @@ export default function EnderecosPage() {
   }
 
   async function handleSetDefault(id: string) {
-    await fetch(`${BASE}/addresses/${id}/default`, {
+    await fetch(`${API_URL}/addresses/${id}/default`, {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })

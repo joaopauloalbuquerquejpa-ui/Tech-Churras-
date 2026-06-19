@@ -75,8 +75,9 @@ export async function handleMPWebhook(payload: any) {
   let payment: any
   try {
     payment = await paymentClient.get({ id: paymentId })
-  } catch {
-    return { received: true }
+  } catch (err: any) {
+    console.error(`[webhook] Falha ao buscar pagamento ${paymentId} no MP:`, err?.message)
+    throw new Error(`Falha ao buscar pagamento ${paymentId}`)
   }
 
   if (payment.status === 'approved') {

@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 interface GalleryItem {
   id: string
@@ -25,7 +25,7 @@ export default function GaleriaClient() {
 
   const fetchPage = useCallback(async (p: number, append = false) => {
     try {
-      const res = await fetch(BASE + '/public/gallery?page=' + p)
+      const res = await fetch(API_URL + '/public/gallery?page=' + p)
       const data = await res.json()
       setItems(prev => append ? [...prev, ...data.items] : data.items)
       setTotal(data.total)

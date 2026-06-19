@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 const SITE_URL = 'https://www.techchurras.com.br'
 
 function getToken() {
@@ -20,7 +20,7 @@ export default function QRCodeEventosPage() {
     async function load() {
       try {
         const token = getToken()
-        const res = await fetch(`${BASE}/boutiques/my`, { headers: { Authorization: `Bearer ${token}` } })
+        const res = await fetch(`${API_URL}/boutiques/my`, { headers: { Authorization: `Bearer ${token}` } })
         if (res.ok) {
           const b = await res.json()
           setBoutiqueName(b.name ?? '')

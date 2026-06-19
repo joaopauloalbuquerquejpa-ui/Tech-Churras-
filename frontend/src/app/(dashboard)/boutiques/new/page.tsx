@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useRef, useState } from 'react'
 import Link from 'next/link'
 import ContractModal from '@/components/ContractModal'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -13,7 +13,7 @@ function getToken() {
 async function uploadImage(file: File, token: string): Promise<string> {
   const fd = new FormData()
   fd.append('file', file)
-  const res = await fetch(BASE + '/upload/image', {
+  const res = await fetch(API_URL + '/upload/image', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + token },
     body: fd,
@@ -109,7 +109,7 @@ export default function NewBoutiquePage() {
       if (logoUrl) body.logoUrl = logoUrl
       if (facadeUrl) body.facadeUrl = facadeUrl
 
-      const res = await fetch(BASE + '/boutiques', {
+      const res = await fetch(API_URL + '/boutiques', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify(body),

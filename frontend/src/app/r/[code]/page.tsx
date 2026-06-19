@@ -1,7 +1,7 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import ReferralClient from './ReferralClient'
+import { API_URL } from '@/lib/api'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 interface BoutiqueInfo {
   id: string; name: string; logoUrl: string | null; city: string; state: string
@@ -9,7 +9,7 @@ interface BoutiqueInfo {
 
 async function getBoutique(code: string): Promise<BoutiqueInfo | null> {
   try {
-    const res = await fetch(BASE + '/ref/' + code.toUpperCase(), { next: { revalidate: 300 } })
+    const res = await fetch(API_URL + '/ref/' + code.toUpperCase(), { next: { revalidate: 300 } })
     if (!res.ok) return null
     return res.json()
   } catch { return null }

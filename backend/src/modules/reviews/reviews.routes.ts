@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { createClient } from '@supabase/supabase-js'
+import { randomUUID } from 'crypto'
 import {
   createReviewHandler,
   listGrillmasterReviewsHandler,
@@ -27,7 +28,7 @@ export async function reviewsRoutes(app: FastifyInstance) {
       const supabase = createClient(supabaseUrl, supabaseKey)
       const buffer = await data.toBuffer()
       const ext = data.filename.split('.').pop() || 'jpg'
-      const fileName = `review-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const fileName = `review-${Date.now()}-${randomUUID()}.${ext}`
 
       const { error } = await supabase.storage
         .from('review-photos')

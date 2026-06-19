@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -63,8 +63,8 @@ export default function RepassesPage() {
     if (typeFilter) params.set('type', typeFilter)
 
     const [p, s] = await Promise.all([
-      fetch(`${BASE}/admin/payouts?${params}`, { headers: h() }).then(r => r.json()),
-      fetch(`${BASE}/admin/payouts/summary`, { headers: h() }).then(r => r.json()),
+      fetch(`${API_URL}/admin/payouts?${params}`, { headers: h() }).then(r => r.json()),
+      fetch(`${API_URL}/admin/payouts/summary`, { headers: h() }).then(r => r.json()),
     ]).catch(() => [[], null])
 
     setPayouts(Array.isArray(p) ? p : [])
@@ -78,7 +78,7 @@ export default function RepassesPage() {
     setGenerating(true)
     setGenerateMsg('')
     try {
-      const res = await fetch(`${BASE}/admin/payouts/generate`, {
+      const res = await fetch(`${API_URL}/admin/payouts/generate`, {
         method: 'POST',
         headers: h(),
       })
@@ -95,7 +95,7 @@ export default function RepassesPage() {
   async function markPaid(id: string) {
     setMarkingId(id)
     try {
-      await fetch(`${BASE}/admin/payouts/${id}/mark-paid`, {
+      await fetch(`${API_URL}/admin/payouts/${id}/mark-paid`, {
         method: 'PATCH',
         headers: h(),
       })

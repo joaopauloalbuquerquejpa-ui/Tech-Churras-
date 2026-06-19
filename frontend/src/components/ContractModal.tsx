@@ -1,7 +1,7 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useRef, useState } from 'react'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -34,7 +34,7 @@ export default function ContractModal({ partnerType, partnerAddress, onAccepted 
     setError('')
     setLoading(true)
     try {
-      const res = await fetch(BASE + '/contracts/generate', {
+      const res = await fetch(API_URL + '/contracts/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({ durationMonths: duration, partnerDocument: document.trim(), partnerAddress: address.trim() || undefined }),
@@ -63,7 +63,7 @@ export default function ContractModal({ partnerType, partnerAddress, onAccepted 
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(BASE + `/contracts/${contractId}/accept`, {
+      const res = await fetch(API_URL + `/contracts/${contractId}/accept`, {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + getToken() },
       })

@@ -1,7 +1,7 @@
-import type { MetadataRoute } from 'next'
+﻿import type { MetadataRoute } from 'next'
+import { API_URL } from '@/lib/api'
 
 const BASE_URL = 'https://www.techchurras.com.br'
-const API = 'https://tech-churras-production.up.railway.app'
 
 function toSlug(city: string) {
   return city
@@ -14,8 +14,8 @@ function toSlug(city: string) {
 async function getCities(): Promise<{ gmCities: string[]; boutiqueCities: string[] }> {
   try {
     const [gmRes, bRes] = await Promise.all([
-      fetch(`${API}/grillmasters?limit=200`, { next: { revalidate: 3600 } }),
-      fetch(`${API}/boutiques`, { next: { revalidate: 3600 } }),
+      fetch(`${API_URL}/grillmasters?limit=200`, { next: { revalidate: 3600 } }),
+      fetch(`${API_URL}/boutiques`, { next: { revalidate: 3600 } }),
     ])
     const gmData = gmRes.ok ? await gmRes.json() : { grillmasters: [] }
     const bData = bRes.ok ? await bRes.json() : []

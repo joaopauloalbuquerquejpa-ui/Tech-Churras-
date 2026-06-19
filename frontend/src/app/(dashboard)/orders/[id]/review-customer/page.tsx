@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -58,7 +58,7 @@ export default function ReviewCustomerPage() {
       return
     }
     const token = getToken()
-    fetch(`${BASE}/orders/${id}`, { headers: { Authorization: 'Bearer ' + token } })
+    fetch(`${API_URL}/orders/${id}`, { headers: { Authorization: 'Bearer ' + token } })
       .then(r => r.ok ? r.json() : null)
       .then(data => setOrder(data))
       .catch(() => {})
@@ -71,7 +71,7 @@ export default function ReviewCustomerPage() {
     setSubmitting(true)
     try {
       const token = getToken()
-      const res = await fetch(`${BASE}/reviews/customer`, {
+      const res = await fetch(`${API_URL}/reviews/customer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify({ orderId: id, customerRating: rating, customerComment: comment || undefined }),

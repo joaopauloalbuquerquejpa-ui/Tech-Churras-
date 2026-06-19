@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
@@ -23,7 +24,6 @@ async function compressImage(file: File): Promise<Blob> {
   })
 }
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 const SITE_URL = 'https://www.techchurras.com.br'
 
 const AreaChart = dynamic(() => import('recharts').then(m => m.AreaChart), { ssr: false })
@@ -42,7 +42,7 @@ async function uploadImageFile(file: File): Promise<string> {
   const blob = await compressImage(file)
   const fd = new FormData()
   fd.append('file', blob, 'photo.jpg')
-  const res = await fetch(BASE + '/upload/image', {
+  const res = await fetch(API_URL + '/upload/image', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + getToken() },
     body: fd,
@@ -177,11 +177,11 @@ export default function BoutiqueDashboardPage() {
     try {
       const h = { Authorization: 'Bearer ' + getToken() }
       const [bRes, sRes, dRes, cRes, rRes] = await Promise.all([
-        fetch(BASE + '/boutiques/my', { headers: h }),
-        fetch(BASE + '/boutiques/dashboard/stats', { headers: h }),
-        fetch(BASE + '/boutiques/dashboard/demand-forecast', { headers: h }),
-        fetch(BASE + '/contracts/my', { headers: h }),
-        fetch(BASE + '/boutiques/dashboard/referrals', { headers: h }),
+        fetch(API_URL + '/boutiques/my', { headers: h }),
+        fetch(API_URL + '/boutiques/dashboard/stats', { headers: h }),
+        fetch(API_URL + '/boutiques/dashboard/demand-forecast', { headers: h }),
+        fetch(API_URL + '/contracts/my', { headers: h }),
+        fetch(API_URL + '/boutiques/dashboard/referrals', { headers: h }),
       ])
       if (!bRes.ok) { setNotFound(true); return }
       const [b, s, d, contracts] = await Promise.all([
@@ -193,7 +193,7 @@ export default function BoutiqueDashboardPage() {
       if (Array.isArray(d)) setDemand(d)
       if (Array.isArray(contracts) && contracts.length > 0) setContract(contracts[0])
       if (rRes.ok) setReferralStats(await rRes.json())
-      const kRes = await fetch(BASE + '/boutiques/' + b.id + '/kits')
+      const kRes = await fetch(API_URL + '/boutiques/' + b.id + '/kits')
       if (kRes.ok) setKits(await kRes.json())
     } catch {
       setNotFound(true)
@@ -204,7 +204,7 @@ export default function BoutiqueDashboardPage() {
 
   async function toggleOpen() {
     if (!boutique) return
-    const res = await fetch(BASE + '/boutiques', {
+    const res = await fetch(API_URL + '/boutiques', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
       body: JSON.stringify({ open: !boutique.open }),
@@ -226,7 +226,7 @@ export default function BoutiqueDashboardPage() {
     }
     try {
       if (editingId) {
-        const res = await fetch(BASE + '/boutiques/products/' + editingId, {
+        const res = await fetch(API_URL + '/boutiques/products/' + editingId, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
           body: JSON.stringify(payload),
@@ -236,7 +236,7 @@ export default function BoutiqueDashboardPage() {
           setBoutique(prev => prev ? { ...prev, products: prev.products.map(p => p.id === updated.id ? updated : p) } : null)
         }
       } else {
-        const res = await fetch(BASE + '/boutiques/products', {
+        const res = await fetch(API_URL + '/boutiques/products', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
           body: JSON.stringify(payload),
@@ -253,7 +253,7 @@ export default function BoutiqueDashboardPage() {
   }
 
   async function toggleProduct(id: string) {
-    const res = await fetch(BASE + '/boutiques/products/' + id + '/toggle', {
+    const res = await fetch(API_URL + '/boutiques/products/' + id + '/toggle', {
       method: 'PATCH', headers: { Authorization: 'Bearer ' + getToken() },
     })
     if (res.ok) {
@@ -264,7 +264,7 @@ export default function BoutiqueDashboardPage() {
 
   async function removeProduct(id: string) {
     if (!confirm('Remover produto?')) return
-    const res = await fetch(BASE + '/boutiques/products/' + id, {
+    const res = await fetch(API_URL + '/boutiques/products/' + id, {
       method: 'DELETE', headers: { Authorization: 'Bearer ' + getToken() },
     })
     if (res.ok) setBoutique(prev => prev ? { ...prev, products: prev.products.filter(p => p.id !== id) } : null)
@@ -300,7 +300,7 @@ export default function BoutiqueDashboardPage() {
       const fd = new FormData()
       fd.append('file', compressed, 'produto.jpg')
 
-      const res = await fetch(BASE + '/ai/suggest-product', {
+      const res = await fetch(API_URL + '/ai/suggest-product', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + getToken() },
         body: fd,
@@ -384,7 +384,7 @@ export default function BoutiqueDashboardPage() {
     }
     try {
       if (editingKitId) {
-        const res = await fetch(BASE + '/boutiques/kits/' + editingKitId, {
+        const res = await fetch(API_URL + '/boutiques/kits/' + editingKitId, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
           body: JSON.stringify(payload),
@@ -394,7 +394,7 @@ export default function BoutiqueDashboardPage() {
           setKits(prev => prev.map(k => k.id === updated.id ? updated : k))
         }
       } else {
-        const res = await fetch(BASE + '/boutiques/kits', {
+        const res = await fetch(API_URL + '/boutiques/kits', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
           body: JSON.stringify(payload),
@@ -410,7 +410,7 @@ export default function BoutiqueDashboardPage() {
 
   async function removeKit(id: string) {
     if (!confirm('Remover pacote?')) return
-    const res = await fetch(BASE + '/boutiques/kits/' + id, {
+    const res = await fetch(API_URL + '/boutiques/kits/' + id, {
       method: 'DELETE', headers: { Authorization: 'Bearer ' + getToken() },
     })
     if (res.ok) setKits(prev => prev.filter(k => k.id !== id))
@@ -680,7 +680,7 @@ export default function BoutiqueDashboardPage() {
                 </div>
                 <button
                   onClick={async () => {
-                    const res = await fetch(BASE + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
+                    const res = await fetch(API_URL + '/contracts/' + contract.id, { headers: { Authorization: 'Bearer ' + getToken() } })
                     if (res.ok) { const c = await res.json(); setContractText(c.contractText); setShowContractText(true) }
                   }}
                   className="mt-2 text-sm text-orange-400 hover:text-orange-300 underline"

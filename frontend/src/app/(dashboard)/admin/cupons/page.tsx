@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -47,7 +47,7 @@ export default function AdminCuponsPage() {
   async function fetchCoupons() {
     setLoading(true)
     try {
-      const res = await fetch(`${BASE}/admin/coupons`, {
+      const res = await fetch(`${API_URL}/admin/coupons`, {
         headers: { Authorization: 'Bearer ' + getToken() },
       })
       if (res.status === 403) { router.push('/dashboard'); return }
@@ -79,7 +79,7 @@ export default function AdminCuponsPage() {
       if (form.maxUses) body.maxUses = Number(form.maxUses)
       if (form.validUntil) body.validUntil = form.validUntil
 
-      const res = await fetch(`${BASE}/admin/coupons`, {
+      const res = await fetch(`${API_URL}/admin/coupons`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify(body),
@@ -100,7 +100,7 @@ export default function AdminCuponsPage() {
   }
 
   async function toggleActive(id: string, active: boolean) {
-    await fetch(`${BASE}/admin/coupons/${id}`, {
+    await fetch(`${API_URL}/admin/coupons/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
       body: JSON.stringify({ active }),

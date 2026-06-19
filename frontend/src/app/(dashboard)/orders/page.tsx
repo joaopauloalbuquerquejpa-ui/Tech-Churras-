@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 interface Order {
   id: string
@@ -40,6 +40,7 @@ export default function OrdersPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [repeatLoading, setRepeatLoading] = useState<string | null>(null)
   const [repeatWarning, setRepeatWarning] = useState('')
   const cartStore = useCartStore()
@@ -51,12 +52,12 @@ export default function OrdersPage() {
       const raw = localStorage.getItem('auth-storage')
       const t = raw ? JSON.parse(raw)?.state?.token : null
       if (!t) { router.push('/login'); return }
-      const res = await fetch(BASE + '/orders', {
+      const res = await fetch(API_URL + '/orders', {
         headers: { Authorization: 'Bearer ' + t }
       })
       const data = await res.json()
       setOrders(Array.isArray(data) ? data : data.orders || [])
-    } catch (e) { console.error(e) }
+    } catch (e) { console.error(e); setError('Não foi possível carregar seus pedidos. Tente novamente.') }
     finally { setLoading(false) }
   }
 
@@ -66,7 +67,7 @@ export default function OrdersPage() {
     try {
       const raw = localStorage.getItem('auth-storage')
       const t = raw ? JSON.parse(raw)?.state?.token : null
-      const res = await fetch(`${BASE}/orders/${orderId}/repeat-data`, {
+      const res = await fetch(`${API_URL}/orders/${orderId}/repeat-data`, {
         headers: { Authorization: 'Bearer ' + t },
       })
       if (!res.ok) { setRepeatWarning('Nao foi possivel repetir este pedido.'); return }
@@ -99,6 +100,11 @@ export default function OrdersPage() {
           Novo Pedido
         </Link>
       </div>
+      {error && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl px-4 py-3">
+          {error}
+        </div>
+      )}
       {repeatWarning && (
         <div className="mb-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 text-sm rounded-xl px-4 py-3">
           {repeatWarning}

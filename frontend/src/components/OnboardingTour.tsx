@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 import type { Props as JoyrideProps, EventData } from 'react-joyride'
@@ -10,7 +11,6 @@ const Joyride = dynamic(
 
 import type React from 'react'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = typeof window !== 'undefined' ? localStorage.getItem('auth-storage') : null
@@ -64,7 +64,7 @@ export default function OnboardingTour({ userId, role }: Props) {
     localStorage.setItem(key, 'done')
     setRun(false)
     try {
-      await fetch(BASE + '/auth/onboarding-completed', {
+      await fetch(API_URL + '/auth/onboarding-completed', {
         method: 'PATCH',
         headers: { Authorization: 'Bearer ' + getToken() },
       })

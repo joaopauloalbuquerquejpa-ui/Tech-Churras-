@@ -1,10 +1,10 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 const OrderMap = dynamic(
   () => import('../../(dashboard)/orders/[id]/OrderMap'),
@@ -78,7 +78,7 @@ export default function AcompanharPage() {
 
   const fetchOrder = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE}/orders/public/${token}`)
+      const res = await fetch(`${API_URL}/orders/public/${token}`)
       if (!res.ok) throw new Error('Link expirado ou inválido')
       setOrder(await res.json())
     } catch {

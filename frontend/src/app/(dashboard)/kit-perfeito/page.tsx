@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getCustomerName(): string {
   try {
@@ -67,7 +67,7 @@ export default function KitPerfeitoPage() {
     setResult(null)
 
     try {
-      const res = await fetch(`${BASE}/ai/kit-perfeito`, {
+      const res = await fetch(`${API_URL}/ai/kit-perfeito`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

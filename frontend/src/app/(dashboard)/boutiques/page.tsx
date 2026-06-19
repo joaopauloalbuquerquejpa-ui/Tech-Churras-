@@ -1,4 +1,5 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useFavoritesStore } from '@/store/favorites'
@@ -38,11 +39,11 @@ function HeartButton({ targetType, targetId }: { targetType: string; targetId: s
   )
 }
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 export default function BoutiquesPage() {
   const [boutiques, setBoutiques] = useState<Boutique[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [cityFilter, setCityFilter] = useState('')
   const [minRating, setMinRating] = useState('')
@@ -58,12 +59,12 @@ export default function BoutiquesPage() {
       const params = new URLSearchParams({ sortBy })
       if (cityFilter.trim()) params.set('city', cityFilter.trim())
       if (minRating) params.set('minRating', minRating)
-      const res = await fetch(`${BASE}/boutiques?${params}`, {
+      const res = await fetch(`${API_URL}/boutiques?${params}`, {
         headers: { Authorization: 'Bearer ' + t },
       })
       const data = await res.json()
       setBoutiques(Array.isArray(data) ? data : data.boutiques || [])
-    } catch (e) { console.error(e) }
+    } catch (e) { console.error(e); setError('Não foi possível carregar os açougues. Tente novamente.') }
     finally { setLoading(false) }
   }
 
@@ -79,6 +80,11 @@ export default function BoutiquesPage() {
 
   return (
     <div>
+      {error && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl px-4 py-3">
+          {error}
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Boutiques de Carne</h1>

@@ -16,8 +16,17 @@ async function sendWhatsApp(phone: string, message: string, label: string) {
   } catch {}
 }
 
+const GRILLMASTER_EDITABLE_FIELDS = new Set([
+  'bio', 'experience', 'pricePerHour', 'city', 'state', 'specialties',
+  'available', 'isChancelado', 'photoUrl', 'churrascoStyle',
+  'bringsEquipment', 'minGuests', 'maxGuests', 'instagram', 'videoUrl',
+])
+
 export async function updateGrillmasterProfile(grillmasterId: string, data: Record<string, unknown>) {
-  return prisma.grillmaster.update({ where: { id: grillmasterId }, data })
+  const safe = Object.fromEntries(
+    Object.entries(data).filter(([k]) => GRILLMASTER_EDITABLE_FIELDS.has(k))
+  )
+  return prisma.grillmaster.update({ where: { id: grillmasterId }, data: safe })
 }
 
 export async function listUsers() {

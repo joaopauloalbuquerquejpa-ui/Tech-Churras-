@@ -1,7 +1,7 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function urlBase64ToUint8Array(base64: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4)
@@ -48,7 +48,7 @@ export function usePushNotifications() {
       const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
       await navigator.serviceWorker.ready
 
-      const keyRes = await fetch(`${BASE}/push/vapid-public-key`)
+      const keyRes = await fetch(`${API_URL}/push/vapid-public-key`)
       const { publicKey } = await keyRes.json()
       if (!publicKey) return
 
@@ -60,7 +60,7 @@ export function usePushNotifications() {
       const token = getToken()
       if (!token) return
 
-      await fetch(`${BASE}/push/subscribe`, {
+      await fetch(`${API_URL}/push/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
         body: JSON.stringify(sub.toJSON()),
@@ -79,7 +79,7 @@ export function usePushNotifications() {
       if (!sub) return
       const token = getToken()
       if (token) {
-        await fetch(`${BASE}/push/unsubscribe`, {
+        await fetch(`${API_URL}/push/unsubscribe`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
           body: JSON.stringify({ endpoint: sub.endpoint }),

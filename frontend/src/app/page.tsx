@@ -1,7 +1,8 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import PriceCalculator from '@/components/PriceCalculator'
 import HomeMobileMenu from '@/components/HomeMobileMenu'
+import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Contratar Churrasqueiro Profissional em São Paulo | Tech Churras',
@@ -28,7 +29,6 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.techchurras.com.br' },
 }
 
-const API = 'https://tech-churras-production.up.railway.app'
 
 const STATIC_TESTIMONIALS: Testimonial[] = [
   { id: 's1', rating: 5, comment: 'Experiência incrível! O Grillmaster chegou no horário, superou todas as expectativas e os convidados ficaram impressionados com a qualidade.', grillmasterName: 'Jota Albuquerque', customerFirstName: 'Rafael M.', city: 'São Paulo' },
@@ -51,7 +51,7 @@ interface Testimonial {
 
 async function getFeaturedGrillmasters(): Promise<Grillmaster[]> {
   try {
-    const res = await fetch(`${API}/grillmasters?available=true&limit=6`, { next: { revalidate: 1800 } })
+    const res = await fetch(`${API_URL}/grillmasters?available=true&limit=6`, { next: { revalidate: 1800 } })
     if (!res.ok) return []
     const data = await res.json()
     const list: Grillmaster[] = Array.isArray(data) ? data : (data.grillmasters ?? [])
@@ -61,7 +61,7 @@ async function getFeaturedGrillmasters(): Promise<Grillmaster[]> {
 
 async function getFeaturedBoutiques(): Promise<Boutique[]> {
   try {
-    const res = await fetch(`${API}/boutiques?limit=6`, { next: { revalidate: 1800 } })
+    const res = await fetch(`${API_URL}/boutiques?limit=6`, { next: { revalidate: 1800 } })
     if (!res.ok) return []
     const data = await res.json()
     const list: Boutique[] = Array.isArray(data) ? data : (data.boutiques ?? [])
@@ -71,7 +71,7 @@ async function getFeaturedBoutiques(): Promise<Boutique[]> {
 
 async function getTestimonials(): Promise<Testimonial[]> {
   try {
-    const res = await fetch(`${API}/public/testimonials`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_URL}/public/testimonials`, { next: { revalidate: 3600 } })
     if (!res.ok) return []
     return await res.json()
   } catch { return [] }

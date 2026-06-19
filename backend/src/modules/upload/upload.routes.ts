@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { createClient } from '@supabase/supabase-js'
+import { randomUUID } from 'crypto'
 
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp']
 const MAX_SIZE = 5 * 1024 * 1024
@@ -23,7 +24,7 @@ export async function uploadRoutes(app: FastifyInstance) {
       }
       const supabase = createClient(supabaseUrl, supabaseKey)
       const ext = data.filename.split('.').pop() || 'jpg'
-      const fileName = `partner-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const fileName = `partner-${Date.now()}-${randomUUID()}.${ext}`
       const { error } = await supabase.storage
         .from('partner-images')
         .upload(fileName, buffer, { contentType: data.mimetype, upsert: false })

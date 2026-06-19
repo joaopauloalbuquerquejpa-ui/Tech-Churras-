@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -35,8 +35,8 @@ export default function PontosPage() {
   async function load() {
     const h = { Authorization: 'Bearer ' + getToken() }
     const [balRes, redRes] = await Promise.all([
-      fetch(BASE + '/points/balance', { headers: h }),
-      fetch(BASE + '/points/redemptions', { headers: h }),
+      fetch(API_URL + '/points/balance', { headers: h }),
+      fetch(API_URL + '/points/redemptions', { headers: h }),
     ])
     if (balRes.ok) setBalance(await balRes.json())
     if (redRes.ok) setRedemptions(await redRes.json())
@@ -51,7 +51,7 @@ export default function PontosPage() {
     setError('')
     setNewCoupon('')
     try {
-      const res = await fetch(BASE + '/points/redeem', {
+      const res = await fetch(API_URL + '/points/redeem', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + getToken() },
       })

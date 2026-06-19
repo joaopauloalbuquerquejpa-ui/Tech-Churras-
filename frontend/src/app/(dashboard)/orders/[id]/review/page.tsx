@@ -1,9 +1,9 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -64,7 +64,7 @@ export default function ReviewPage() {
   useEffect(() => {
     const t = getToken()
     if (!t) { router.push('/login'); return }
-    fetch(BASE + '/orders/' + orderId, { headers: { Authorization: 'Bearer ' + t } })
+    fetch(API_URL + '/orders/' + orderId, { headers: { Authorization: 'Bearer ' + t } })
       .then(r => r.json())
       .then(d => {
         if (d.review) { router.push('/orders/' + orderId); return }
@@ -97,7 +97,7 @@ export default function ReviewPage() {
       setUploadProgress(`Enviando foto ${i + 1}/${photoFiles.length}...`)
       const fd = new FormData()
       fd.append('file', photoFiles[i])
-      const res = await fetch(BASE + '/reviews/upload-photo', {
+      const res = await fetch(API_URL + '/reviews/upload-photo', {
         method: 'POST',
         headers: { Authorization: 'Bearer ' + getToken() },
         body: fd,
@@ -130,7 +130,7 @@ export default function ReviewPage() {
         body.boutiqueRating = form.boutiqueRating
         body.boutiqueComment = form.boutiqueComment || undefined
       }
-      const res = await fetch(BASE + '/reviews', {
+      const res = await fetch(API_URL + '/reviews', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify(body),

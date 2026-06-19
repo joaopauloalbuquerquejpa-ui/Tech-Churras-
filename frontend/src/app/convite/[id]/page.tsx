@@ -1,7 +1,7 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import { API_URL } from '@/lib/api'
 
-const API = 'https://tech-churras-production.up.railway.app'
 
 interface Referrer {
   id: string
@@ -10,7 +10,7 @@ interface Referrer {
 
 async function getReferrer(userId: string): Promise<Referrer | null> {
   try {
-    const res = await fetch(`${API}/ref/user/${userId}`, { next: { revalidate: 3600 } })
+    const res = await fetch(`${API_URL}/ref/user/${userId}`, { next: { revalidate: 3600 } })
     if (!res.ok) return null
     return res.json()
   } catch {

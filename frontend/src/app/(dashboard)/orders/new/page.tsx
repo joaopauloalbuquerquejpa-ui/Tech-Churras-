@@ -1,8 +1,8 @@
-'use client'
+﻿'use client'
+import { API_URL } from '@/lib/api'
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
-const BASE = 'https://tech-churras-production.up.railway.app'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -66,9 +66,9 @@ function NewOrderForm() {
 
   useEffect(() => {
     const h = { Authorization: 'Bearer ' + getToken() }
-    fetch(BASE + '/grillmasters', { headers: h })
+    fetch(API_URL + '/grillmasters', { headers: h })
       .then(r => r.json()).then(d => setGrillmasters(Array.isArray(d) ? d : d.grillmasters ?? []))
-    fetch(BASE + '/boutiques', { headers: h })
+    fetch(API_URL + '/boutiques', { headers: h })
       .then(r => r.json()).then(d => setBoutiques(Array.isArray(d) ? d : d.boutiques ?? []))
   }, [])
 
@@ -80,11 +80,11 @@ function NewOrderForm() {
       return
     }
     const h = { headers: { Authorization: 'Bearer ' + getToken() } }
-    fetch(BASE + '/boutiques/' + form.boutiqueId, h)
+    fetch(API_URL + '/boutiques/' + form.boutiqueId, h)
       .then(r => r.json())
       .then(d => setBoutiqueProducts(d.products || []))
       .catch(() => setBoutiqueProducts([]))
-    fetch(BASE + '/boutiques/' + form.boutiqueId + '/kits', h)
+    fetch(API_URL + '/boutiques/' + form.boutiqueId + '/kits', h)
       .then(r => r.json())
       .then(d => setBoutiqueKits(Array.isArray(d) ? d : []))
       .catch(() => setBoutiqueKits([]))
@@ -125,7 +125,7 @@ function NewOrderForm() {
         notes = 'ACOMPANHAMENTOS: ' + acompanhamentosText.trim() + (notes ? '\n' + notes : '')
       }
 
-      const res = await fetch(BASE + '/orders', {
+      const res = await fetch(API_URL + '/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
         body: JSON.stringify({

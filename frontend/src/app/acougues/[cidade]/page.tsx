@@ -1,7 +1,7 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import { API_URL } from '@/lib/api'
 
-const API = 'https://tech-churras-production.up.railway.app'
 
 interface Boutique {
   id: string
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ cidade: s
 
 async function getBoutiques(city: string): Promise<Boutique[]> {
   try {
-    const res = await fetch(`${API}/boutiques?city=${encodeURIComponent(city)}`, {
+    const res = await fetch(`${API_URL}/boutiques?city=${encodeURIComponent(city)}`, {
       next: { revalidate: 3600 },
     })
     if (!res.ok) return []

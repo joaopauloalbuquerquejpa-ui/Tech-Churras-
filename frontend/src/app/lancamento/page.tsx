@@ -1,5 +1,6 @@
-import type { Metadata } from 'next'
+﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Tech Churras chegou na sua cidade!',
@@ -12,7 +13,6 @@ export const metadata: Metadata = {
   },
 }
 
-const API = 'https://tech-churras-production.up.railway.app'
 
 interface Grillmaster {
   id: string
@@ -28,7 +28,7 @@ interface Grillmaster {
 
 async function getGrillmasters(): Promise<Grillmaster[]> {
   try {
-    const res = await fetch(`${API}/grillmasters?available=true&limit=4`, {
+    const res = await fetch(`${API_URL}/grillmasters?available=true&limit=4`, {
       next: { revalidate: 1800 },
     })
     if (!res.ok) return []
