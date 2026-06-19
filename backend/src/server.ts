@@ -3,6 +3,7 @@ import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import cookie from '@fastify/cookie'
 import multipart from '@fastify/multipart'
+import rateLimit from '@fastify/rate-limit'
 import dotenv from 'dotenv'
 import { authRoutes } from './modules/auth/auth.routes'
 import { grillmastersRoutes } from './modules/grillmasters/grillmasters.routes'
@@ -35,6 +36,12 @@ if (!process.env.JWT_SECRET) {
 const app = Fastify({ logger: true })
 
 // Plugins
+app.register(rateLimit, {
+  global: true,
+  max: 120,
+  timeWindow: '1 minute',
+  errorResponseBuilder: () => ({ error: 'Muitas requisições. Tente novamente em alguns instantes.' }),
+})
 app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } })
 app.register(cors, {
   origin: true,

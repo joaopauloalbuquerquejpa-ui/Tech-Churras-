@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { useFavoritesStore } from '@/store/favorites'
 import { useCartStore } from '@/store/cart'
 
+const ALL_CATEGORIES = 'TODOS' as const
+
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -88,7 +90,7 @@ export default function BoutiqueProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
-  const [activeCategory, setActiveCategory] = useState<string>('TODOS')
+  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORIES)
   const [search, setSearch] = useState('')
 
   const { selectedQty, setSelectedQty, setBoutiqueId, boutiqueId: cartBoutiqueId } = useCartStore()
@@ -142,7 +144,7 @@ export default function BoutiqueProfilePage() {
   const availableCategories = [...new Set(allProducts.map(p => p.category))]
 
   const filteredProducts = allProducts.filter(p => {
-    const matchCat = activeCategory === 'TODOS' || p.category === activeCategory
+    const matchCat = activeCategory === ALL_CATEGORIES || p.category === activeCategory
     const matchSearch = !search || p.name.toLowerCase().includes(search.toLowerCase())
     return matchCat && matchSearch
   })
@@ -372,8 +374,8 @@ export default function BoutiqueProfilePage() {
           {availableCategories.length > 1 && (
             <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
               <button
-                onClick={() => setActiveCategory('TODOS')}
-                className={'shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ' + (activeCategory === 'TODOS' ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
+                onClick={() => setActiveCategory(ALL_CATEGORIES)}
+                className={'shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ' + (activeCategory === ALL_CATEGORIES ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
               >
                 Todos
               </button>
@@ -397,7 +399,7 @@ export default function BoutiqueProfilePage() {
             <div className="space-y-6">
               {Object.entries(productsByCategory).map(([cat, items]) => (
                 <div key={cat}>
-                  {activeCategory === 'TODOS' && (
+                  {activeCategory === ALL_CATEGORIES && (
                     <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
                       <span>{CATEGORY_EMOJI[cat] || '🛒'}</span>
                       {CATEGORY_LABELS[cat] || cat}

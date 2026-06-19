@@ -218,7 +218,6 @@ export default function RootLayout({
           </Script>
         )}
 
-        {/* ── GOOGLE ADS ── adicione NEXT_PUBLIC_GOOGLE_ADS_ID no Vercel quando criar a conta Google Ads (formato: AW-XXXXXXXXXX) ── */}
         {process.env.NEXT_PUBLIC_GOOGLE_ADS_ID && (
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GOOGLE_ADS_ID}`} strategy="afterInteractive" />
         )}

@@ -100,7 +100,7 @@ export async function publicRoutes(app: FastifyInstance) {
   })
 
   // Referral code lookup (boutique)
-  app.get('/ref/:code', async (req, reply) => {
+  app.get('/ref/:code', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
     const { code } = req.params as { code: string }
     const boutique = await prisma.boutique.findUnique({
       where: { referralCode: code.toUpperCase() },
@@ -111,7 +111,7 @@ export async function publicRoutes(app: FastifyInstance) {
   })
 
   // Customer referral lookup: GET /ref/user/:userId
-  app.get('/ref/user/:userId', async (req, reply) => {
+  app.get('/ref/user/:userId', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
     const { userId } = req.params as { userId: string }
     const user = await prisma.user.findUnique({
       where: { id: userId },

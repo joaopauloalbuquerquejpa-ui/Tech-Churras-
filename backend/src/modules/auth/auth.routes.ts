@@ -4,8 +4,8 @@ import { markOnboardingCompleted, updateUserProfile } from './auth.service'
 import { authenticate } from '../../middlewares/auth.middleware'
 
 export async function authRoutes(app: FastifyInstance) {
-  app.post('/auth/register', register)
-  app.post('/auth/login', login)
+  app.post('/auth/register', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, register)
+  app.post('/auth/login', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, login)
   app.patch('/auth/onboarding-completed', { preHandler: [authenticate] }, async (req, reply) => {
     try {
       await markOnboardingCompleted((req.user as any).id)
