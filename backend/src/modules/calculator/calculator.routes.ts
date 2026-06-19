@@ -1,5 +1,13 @@
-import { FastifyInstance } from 'fastify'
+﻿import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
 import { prisma } from '../../config/prisma'
+
+const meatSuggestionSchema = z.object({
+  men: z.number().int().min(0).default(0),
+  women: z.number().int().min(0).default(0),
+  children: z.number().int().min(0).default(0),
+  boutiqueId: z.string().optional(),
+})
 
 const BREAKDOWN_DEF = [
   { category: 'Carne Bovina Nobre', productCategory: 'CARNE', pct: 0.40, unit: 'kg' },
@@ -10,7 +18,9 @@ const BREAKDOWN_DEF = [
 
 export async function calculatorRoutes(app: FastifyInstance) {
   app.post('/calculator/meat-suggestion', async (req, reply) => {
-    const { men = 0, women = 0, children = 0, boutiqueId } = req.body as any
+    const parsed = meatSuggestionSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0].message })
+    const { men, women, children, boutiqueId } = parsed.data
 
     const totalGrams = men * 400 + women * 300 + children * 150
     const totalKg = +(totalGrams / 1000).toFixed(2)

@@ -1,4 +1,10 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
+import { z } from 'zod'
+
+const approveGrillmasterBodySchema = z.object({
+  isChancelado: z.boolean().optional(),
+  pricePerHour: z.number().positive().optional(),
+})
 import {
   listUsers,
   blockUser,
@@ -50,7 +56,7 @@ export async function listPendingGrillmastersHandler(req: FastifyRequest, reply:
 export async function approveGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { grillmasterId } = req.params as { grillmasterId: string }
-    const { isChancelado, pricePerHour } = (req.body as any) || {}
+    const { isChancelado, pricePerHour } = approveGrillmasterBodySchema.parse(req.body ?? {})
     return reply.send(await approveGrillmaster(grillmasterId, { isChancelado, pricePerHour }))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })

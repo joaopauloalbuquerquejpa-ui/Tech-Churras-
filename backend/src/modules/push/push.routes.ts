@@ -1,5 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
+import { z } from 'zod'
 import { prisma } from '../../config/prisma'
+
+const subscribeSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }),
+})
+const unsubscribeSchema = z.object({ endpoint: z.string().url() })
 
 export async function pushRoutes(app: FastifyInstance) {
   app.get('/push/vapid-public-key', async (_req, reply) => {
@@ -9,7 +16,7 @@ export async function pushRoutes(app: FastifyInstance) {
   app.post('/push/subscribe', { preHandler: [app.authenticate] }, async (req: FastifyRequest, reply: FastifyReply) => {
     try {
       const userId = (req.user as any).id
-      const { endpoint, keys } = req.body as { endpoint: string; keys: { p256dh: string; auth: string } }
+      const { endpoint, keys } = subscribeSchema.parse(req.body)
       await prisma.pushSubscription.upsert({
         where: { endpoint },
         create: { userId, endpoint, p256dh: keys.p256dh, auth: keys.auth },
@@ -23,7 +30,7 @@ export async function pushRoutes(app: FastifyInstance) {
 
   app.post('/push/unsubscribe', { preHandler: [app.authenticate] }, async (req: FastifyRequest, reply: FastifyReply) => {
     try {
-      const { endpoint } = req.body as { endpoint: string }
+      const { endpoint } = unsubscribeSchema.parse(req.body)
       await prisma.pushSubscription.deleteMany({ where: { endpoint } })
       return reply.send({ ok: true })
     } catch {

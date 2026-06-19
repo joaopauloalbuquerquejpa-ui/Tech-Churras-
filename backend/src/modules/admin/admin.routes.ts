@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+﻿import { FastifyInstance } from 'fastify'
 import { prisma } from '../../config/prisma'
 import {
   listUsersHandler,
@@ -22,6 +22,16 @@ import {
   markPayoutPaidHandler,
 } from './payouts/payouts.controller'
 import { listCoupons, createCoupon, toggleCoupon } from '../coupons/coupons.service'
+import { z } from 'zod'
+
+const createCouponSchema = z.object({
+  code: z.string().min(1).toUpperCase(),
+  discountType: z.enum(['PERCENT', 'FIXED']),
+  discountValue: z.number().positive(),
+  minOrderValue: z.number().min(0).optional(),
+  maxUses: z.number().int().positive().optional(),
+  validUntil: z.string().datetime().optional(),
+})
 import { getBoutiqueReferralStats } from './admin.service'
 
 async function requireAdmin(req: any, reply: any) {
@@ -112,12 +122,13 @@ export async function adminRoutes(app: FastifyInstance) {
   app.patch('/admin/payouts/:id/mark-paid', markPayoutPaidHandler)
 
   app.get('/admin/coupons', async () => listCoupons())
-  app.post('/admin/coupons', async (req) => {
-    const { code, discountType, discountValue, minOrderValue, maxUses, validUntil } = req.body as any
-    return createCoupon({ code, discountType, discountValue, minOrderValue, maxUses, validUntil })
+  app.post('/admin/coupons', async (req, reply) => {
+    const parsed = createCouponSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0].message })
+    return createCoupon(parsed.data)
   })
-  app.patch('/admin/coupons/:id', async (req) => {
-    const { active } = req.body as any
-    return toggleCoupon((req.params as any).id, Boolean(active))
+  app.patch('/admin/coupons/:id', async (req, reply) => {
+    const { active } = z.object({ active: z.boolean() }).parse(req.body)
+    return toggleCoupon((req.params as any).id, active)
   })
 }

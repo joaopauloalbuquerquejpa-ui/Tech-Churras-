@@ -1,4 +1,4 @@
-import { prisma } from '../../config/prisma'
+﻿import { prisma } from '../../config/prisma'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { validateCoupon } from '../coupons/coupons.service'
@@ -80,7 +80,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
 
   // Notify all admins of new order (push + WhatsApp)
   const adminDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)
-  sendPushToRole('ADMIN' as any, '🔥 Novo pedido!', `R$ ${order.totalPrice.toFixed(2)} — ${order.guestCount} pessoas em ${adminDate}`, '/admin').catch(() => {})
+  sendPushToRole('ADMIN' as any, '🔥 Novo pedido!', `R$ ${order.totalPrice.toFixed(2)} — ${order.guestCount} pessoas em ${adminDate}`, '/admin').catch((e) => console.error("[notif]", e?.message))
   prisma.user.findUnique({ where: { id: customerId }, select: { name: true, phone: true } }).then(customer => {
     const adminEventDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
     const msg =
@@ -92,8 +92,8 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       `👥 ${order.guestCount} convidados\n` +
       `📍 ${order.eventAddress}\n\n` +
       `👉 https://www.techchurras.com.br/admin`
-    sendWhatsAppToAdmin(msg).catch(() => {})
-  }).catch(() => {})
+    sendWhatsAppToAdmin(msg).catch((e) => console.error("[notif]", e?.message))
+  }).catch((e) => console.error("[notif]", e?.message))
 
   // Notify boutique owner when a new order involves their boutique
   if (order.boutiqueId) {
@@ -105,13 +105,13 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       include: { user: { select: { id: true, name: true, phone: true } } },
     }).then(b => {
       if (!b) return
-      sendPushToUser(b.userId, '🥩 Novo pedido no seu açougue!', `Evento em ${eventDateFmt} — acesse o dashboard.`, '/boutiques/dashboard').catch(() => {})
+      sendPushToUser(b.userId, '🥩 Novo pedido no seu açougue!', `Evento em ${eventDateFmt} — acesse o dashboard.`, '/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
       if (b.user?.phone) {
         const firstName = b.user.name.split(' ')[0]
         const msg = `🥩 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Chegou um pedido para o *${order.boutique?.name ?? 'seu açougue'}*.\n\n📅 Evento: ${eventDateFmt}\n👥 ${order.guestCount} convidados\n\nVeja os detalhes e prepare os cortes:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`
-        sendWhatsAppMessage(b.user.phone, msg, 'new-order-boutique').catch(() => {})
+        sendWhatsAppMessage(b.user.phone, msg, 'new-order-boutique').catch((e) => console.error("[notif]", e?.message))
       }
-    }).catch(() => {})
+    }).catch((e) => console.error("[notif]", e?.message))
   }
 
   // Notify grillmaster of incoming order
@@ -125,15 +125,15 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     ]).then(([gm, customer]) => {
       if (!gm?.user) return
       const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
-      sendPushToUser(gm.user.id, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch(() => {})
-      emailNewOrderGrillmaster(gm.user.email, gm.user.name, order.id, customer?.name ?? 'Cliente', order.eventDate, order.guestCount).catch(() => {})
+      sendPushToUser(gm.user.id, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message))
+      emailNewOrderGrillmaster(gm.user.email, gm.user.name, order.id, customer?.name ?? 'Cliente', order.eventDate, order.guestCount).catch((e) => console.error("[notif]", e?.message))
       if (gm.user.phone) {
         const firstName = gm.user.name.split(' ')[0]
         const customerName = customer?.name ?? 'Cliente'
         const msg = `🔥 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Você recebeu um novo pedido.\n\n👤 Cliente: ${customerName}\n📅 Data: ${date}\n👥 ${order.guestCount} convidados\n\nAcesse o painel para *confirmar agora*:\nhttps://www.techchurras.com.br/grillmasters/dashboard\n\n_Responda rápido — clientes preferem churrasqueiros ágeis! 🔥_`
-        sendWhatsAppMessage(gm.user.phone, msg, 'new-order-gm').catch(() => {})
+        sendWhatsAppMessage(gm.user.phone, msg, 'new-order-gm').catch((e) => console.error("[notif]", e?.message))
       }
-    }).catch(() => {})
+    }).catch((e) => console.error("[notif]", e?.message))
   }
 
   return order
@@ -218,7 +218,7 @@ export async function updateOrderStatusDetail(id: string, statusDetail: string, 
       'Churrasqueiro a caminho!',
       'Seu churrasqueiro esta se deslocando ao local do evento.',
       `/orders/${id}`
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
   return updated
 }
@@ -255,7 +255,7 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       'Pedido confirmado!',
       `Seu churrasco foi confirmado para ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updated.eventDate)}.`,
       `/orders/${updated.id}`
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
     emailOrderConfirmed(
       updated.customer.email,
       updated.customer.name,
@@ -263,12 +263,12 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       updated.grillmaster?.user?.name ?? 'churrasqueiro',
       updated.eventDate,
       updated.eventAddress ?? ''
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
   if (status === 'COMPLETED' && updated.grillmasterId) {
     prisma.grillmaster.findUnique({ where: { id: updated.grillmasterId } }).then(gm => {
-      if (gm) sendPushToUser(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch(() => {})
-    }).catch(() => {})
+      if (gm) sendPushToUser(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch((e) => console.error("[notif]", e?.message))
+    }).catch((e) => console.error("[notif]", e?.message))
 
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
     sendPushToUser(
@@ -276,7 +276,7 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       '🌟 Como foi o churrasco?',
       `Avalie ${gmName} e ajude outros clientes a encontrar os melhores!`,
       `/orders/${updated.id}/review`
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
 
     if (updated.paymentStatus === 'PAID') {
       const pts = Math.floor(updated.totalPrice / 10)
@@ -284,7 +284,7 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
         prisma.user.update({
           where: { id: updated.customerId },
           data: { points: { increment: pts } },
-        }).catch(() => {})
+        }).catch((e) => console.error("[notif]", e?.message))
       }
     }
   }
@@ -296,7 +296,7 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       updated.id,
       gmName,
       updated.eventDate
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
   // Notify boutique to prepare the order when GM confirms
   if (status === 'CONFIRMED') {
@@ -314,17 +314,17 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       const firstName = o.boutique.user.name.split(' ')[0]
       const gmName = o.grillmaster?.user?.name ?? 'churrasqueiro'
       const msg = `✅ *Pedido confirmado — separe os cortes!*\n\nOlá ${firstName}, o churrasqueiro *${gmName}* confirmou o pedido e passará no seu açougue.\n\n📅 Evento: ${date}\n👥 ${o.guestCount} convidados\n\nSepare os cortes e acompanhamentos para quando ele chegar:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`
-      sendWhatsAppMessage(o.boutique.user.phone, msg, 'order-confirmed-boutique').catch(() => {})
-    }).catch(() => {})
+      sendWhatsAppMessage(o.boutique.user.phone, msg, 'order-confirmed-boutique').catch((e) => console.error("[notif]", e?.message))
+    }).catch((e) => console.error("[notif]", e?.message))
   }
   if (status === 'COMPLETED' && updated.customer.phone) {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
     const msg = `⭐ Como foi o churrasco com ${gmName}?\n\nEsperamos que tenha sido incrível! Avalie o evento em 1 minuto e ajude outros clientes:\nhttps://www.techchurras.com.br/orders/${updated.id}/review\n\n🔥 Tech Churras`
-    sendWhatsAppMessage(updated.customer.phone, msg, 'review-pos-evento').catch(() => {})
+    sendWhatsAppMessage(updated.customer.phone, msg, 'review-pos-evento').catch((e) => console.error("[notif]", e?.message))
   }
   if (status === 'COMPLETED') {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
-    emailOrderCompleted(updated.customer.email, updated.customer.name, updated.id, gmName).catch(() => {})
+    emailOrderCompleted(updated.customer.email, updated.customer.name, updated.id, gmName).catch((e) => console.error("[notif]", e?.message))
     const completedDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(updated.eventDate)
     sendWhatsAppToAdmin(
       `✅ *Evento concluído — Tech Churras!*\n\n` +
@@ -333,7 +333,7 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
       `💰 R$ ${updated.totalPrice.toFixed(2)}\n` +
       `📅 ${completedDate} · ${updated.guestCount} pessoas\n\n` +
       `Aguarde a avaliação do cliente! ⭐\nhttps://www.techchurras.com.br/admin`
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
   return updated
 }
@@ -384,9 +384,9 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
   // Notify the other party about the cancellation
   const eventDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)
   if (cancelledBy === 'CUSTOMER' && updated.grillmaster?.userId) {
-    sendPushToUser(updated.grillmaster.userId, 'Pedido cancelado', `O cliente cancelou o pedido de ${eventDate}.`, '/grillmasters/dashboard').catch(() => {})
+    sendPushToUser(updated.grillmaster.userId, 'Pedido cancelado', `O cliente cancelou o pedido de ${eventDate}.`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message))
   } else if (cancelledBy === 'GRILLMASTER') {
-    sendPushToUser(order.customerId, 'Pedido cancelado', `Seu pedido de ${eventDate} foi cancelado pelo churrasqueiro.`, `/orders/${id}`).catch(() => {})
+    sendPushToUser(order.customerId, 'Pedido cancelado', `Seu pedido de ${eventDate} foi cancelado pelo churrasqueiro.`, `/orders/${id}`).catch((e) => console.error("[notif]", e?.message))
   }
 
   // Notify admin of cancellation
@@ -399,7 +399,7 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
     `${reason ? `📝 Motivo: ${reason}` : ''}\n` +
     `${cancellationFee > 0 ? `💸 Taxa de cancelamento: R$ ${cancellationFee.toFixed(2)}` : ''}\n\n` +
     `https://www.techchurras.com.br/admin`
-  ).catch(() => {})
+  ).catch((e) => console.error("[notif]", e?.message))
 
   return updated
 }

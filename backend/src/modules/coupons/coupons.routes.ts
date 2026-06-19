@@ -1,12 +1,16 @@
-import { FastifyInstance } from 'fastify'
+﻿import { FastifyInstance } from 'fastify'
+import { z } from 'zod'
 import { validateCoupon } from './coupons.service'
+
+const validateCouponSchema = z.object({
+  code: z.string().min(1),
+  orderValue: z.number().min(0),
+})
 
 export async function couponsRoutes(app: FastifyInstance) {
   app.post('/coupons/validate', async (req, reply) => {
-    const { code, orderValue } = req.body as any
-    if (!code || orderValue === undefined) {
-      return reply.code(400).send({ error: 'code e orderValue sao obrigatorios' })
-    }
-    return validateCoupon(code, Number(orderValue))
+    const parsed = validateCouponSchema.safeParse(req.body)
+    if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0].message })
+    return validateCoupon(parsed.data.code, parsed.data.orderValue)
   })
 }

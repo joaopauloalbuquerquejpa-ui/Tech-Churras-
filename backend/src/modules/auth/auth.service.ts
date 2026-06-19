@@ -1,4 +1,4 @@
-import { prisma } from '../../config/prisma'
+﻿import { prisma } from '../../config/prisma'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
 import { emailWelcomeCustomer } from '../email/email.service'
@@ -50,7 +50,7 @@ export async function registerUser(data: RegisterInput) {
     const couponCode = 'BEMVINDO-' + user.id.slice(0, 6).toUpperCase()
     await prisma.coupon.create({
       data: { code: couponCode, discountType: 'PERCENT', discountValue: 15, maxUses: 1, active: true },
-    }).catch(() => {})
+    }).catch((e) => console.error("[notif]", e?.message))
   }
 
   if (data.conviteId && !referredByBoutiqueId) {
@@ -62,21 +62,21 @@ export async function registerUser(data: RegisterInput) {
       const couponCode = 'CONVITE-' + user.id.slice(0, 6).toUpperCase()
       await prisma.coupon.create({
         data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true },
-      }).catch(() => {})
+      }).catch((e) => console.error("[notif]", e?.message))
     }
   }
 
   // Fire-and-forget welcome email + admin notification for customers
   if (data.role === 'CUSTOMER') {
-    emailWelcomeCustomer(user.email, user.name).catch(() => {})
-    sendPushToRole('ADMIN' as any, '👤 Novo cliente!', `${user.name} se cadastrou na plataforma.`, '/admin').catch(() => {})
+    emailWelcomeCustomer(user.email, user.name).catch((e) => console.error("[notif]", e?.message))
+    sendPushToRole('ADMIN' as any, '👤 Novo cliente!', `${user.name} se cadastrou na plataforma.`, '/admin').catch((e) => console.error("[notif]", e?.message))
     sendWhatsAppToAdmin(
       `👤 *Novo cliente cadastrado — Tech Churras!*\n\n` +
       `Nome: ${user.name}\n` +
       `Email: ${user.email}\n` +
       `${data.phone ? `📞 ${data.phone}` : ''}\n\n` +
       `👉 https://www.techchurras.com.br/admin`
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
 
   return user

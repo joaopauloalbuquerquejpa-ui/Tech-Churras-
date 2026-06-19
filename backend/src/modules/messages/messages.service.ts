@@ -1,4 +1,4 @@
-import { prisma } from '../../config/prisma'
+﻿import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
 
 export async function getMessages(orderId: string, userId: string) {
@@ -39,11 +39,11 @@ export async function sendMessage(orderId: string, senderId: string, content: st
     ? null // need grillmaster userId
     : order.customerId
   if (recipientId) {
-    sendPushToUser(recipientId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch(() => {})
+    sendPushToUser(recipientId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch((e) => console.error("[notif]", e?.message))
   } else if (order.grillmasterId) {
     prisma.grillmaster.findUnique({ where: { id: order.grillmasterId } }).then(gm => {
-      if (gm) sendPushToUser(gm.userId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch(() => {})
-    }).catch(() => {})
+      if (gm) sendPushToUser(gm.userId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch((e) => console.error("[notif]", e?.message))
+    }).catch((e) => console.error("[notif]", e?.message))
   }
   return msg
 }

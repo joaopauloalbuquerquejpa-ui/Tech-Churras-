@@ -1,4 +1,4 @@
-import { prisma } from '../../config/prisma'
+﻿import { prisma } from '../../config/prisma'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 
 export async function createReview(data: {
@@ -65,7 +65,7 @@ export async function createReview(data: {
       `${stars} Nova avaliação!`,
       `${firstName} te deu ${data.grillRating} estrela${data.grillRating !== 1 ? 's' : ''}${data.grillComment ? ': "' + data.grillComment.slice(0, 60) + '"' : ''}`,
       '/grillmasters/dashboard'
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
 
   if (order.boutiqueId && data.boutiqueRating) {
@@ -84,7 +84,7 @@ export async function createReview(data: {
       `${stars} Nova avaliação no açougue!`,
       `Você recebeu ${data.boutiqueRating} estrela${data.boutiqueRating !== 1 ? 's' : ''} por este evento.`,
       '/boutiques/dashboard'
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
 
   // Alert admin on low rating (≤ 3 stars)
@@ -99,7 +99,7 @@ export async function createReview(data: {
       `${data.grillComment ? `💬 "${data.grillComment}"` : ''}\n` +
       `${data.boutiqueComment ? `💬 Açougue: "${data.boutiqueComment}"` : ''}\n\n` +
       `Verifique e entre em contato:\nhttps://www.techchurras.com.br/admin`
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
 
   return review

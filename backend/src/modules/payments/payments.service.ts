@@ -1,4 +1,4 @@
-import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
+﻿import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
 import { prisma } from '../../config/prisma'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailOrderConfirmed } from '../email/email.service'
@@ -105,10 +105,10 @@ export async function handleMPWebhook(payload: any) {
     })
     if (order?.grillmaster?.user) {
       const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
-      sendPushToUser(order.grillmaster.user.id, '💳 Pagamento confirmado!', `${order.customer.name} pagou. Evento em ${date}. Confirme sua presença.`, '/grillmasters/dashboard').catch(() => {})
+      sendPushToUser(order.grillmaster.user.id, '💳 Pagamento confirmado!', `${order.customer.name} pagou. Evento em ${date}. Confirme sua presença.`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message))
     }
     if (order?.customer) {
-      sendPushToUser(order.customer.id, '✅ Pagamento confirmado!', 'Seu churrasco está confirmado! Acompanhe os detalhes no app.', `/orders/${orderId}`).catch(() => {})
+      sendPushToUser(order.customer.id, '✅ Pagamento confirmado!', 'Seu churrasco está confirmado! Acompanhe os detalhes no app.', `/orders/${orderId}`).catch((e) => console.error("[notif]", e?.message))
       emailOrderConfirmed(
         order.customer.email,
         order.customer.name,
@@ -116,8 +116,8 @@ export async function handleMPWebhook(payload: any) {
         order.grillmaster?.user?.name ?? 'churrasqueiro',
         order.eventDate,
         order.eventAddress ?? ''
-      ).catch(() => {})
-      triggerReferralBonus(order.customer.id, orderId).catch(() => {})
+      ).catch((e) => console.error("[notif]", e?.message))
+      triggerReferralBonus(order.customer.id, orderId).catch((e) => console.error("[notif]", e?.message))
     }
     if (order) {
       const date = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).format(order.eventDate)
@@ -128,7 +128,7 @@ export async function handleMPWebhook(payload: any) {
         `📅 ${date} · ${order.guestCount} pessoas\n` +
         `🔥 GM: ${order.grillmaster?.user?.name ?? '—'}\n\n` +
         `Dinheiro a caminho! 🎉\nhttps://www.techchurras.com.br/admin`
-      ).catch(() => {})
+      ).catch((e) => console.error("[notif]", e?.message))
     }
   }
 
@@ -183,6 +183,6 @@ async function triggerReferralBonus(customerId: string, orderId: string) {
       '🎉 Bônus de indicação!',
       'Você ganhou R$ 40 por converter um novo cliente para a Tech Churras.',
       '/boutiques/dashboard'
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
 }

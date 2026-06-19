@@ -1,5 +1,9 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
+import { z } from 'zod'
 import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken, getOrderByPublicToken } from './orders.service'
+
+const locationSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
+const cancelSchema = z.object({ reason: z.string().max(500).optional() })
 
 export async function createOrderHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -64,7 +68,7 @@ export async function updateLocationHandler(req: FastifyRequest, reply: FastifyR
   try {
     const userId = (req.user as any).id
     const { id } = req.params as { id: string }
-    const { lat, lng } = req.body as { lat: number; lng: number }
+    const { lat, lng } = locationSchema.parse(req.body)
     const result = await updateOrderLocation(id, lat, lng, userId)
     return reply.send(result)
   } catch (err: any) {
@@ -77,7 +81,7 @@ export async function cancelOrderHandler(req: FastifyRequest, reply: FastifyRepl
     const userId = (req.user as any).id
     const role = (req.user as any).role ?? 'CUSTOMER'
     const { id } = req.params as { id: string }
-    const { reason } = (req.body as any) ?? {}
+    const { reason } = cancelSchema.parse(req.body ?? {})
     const order = await cancelOrder(id, userId, role, reason ?? '')
     return reply.send(order)
   } catch (err: any) {

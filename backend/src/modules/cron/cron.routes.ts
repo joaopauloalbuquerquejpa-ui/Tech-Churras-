@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify'
+﻿import { FastifyInstance } from 'fastify'
 import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
 
@@ -97,7 +97,7 @@ export async function cronRoutes(app: FastifyInstance) {
           '⏰ Evento amanhã!',
           `Você tem churrasco com ${order.customer.name} amanhã às ${date.split(' ')[1]}. Prepare tudo!`,
           '/grillmasters/dashboard'
-        ).catch(() => {})
+        ).catch((e) => console.error("[notif]", e?.message))
         sentGm24++
       }
     }

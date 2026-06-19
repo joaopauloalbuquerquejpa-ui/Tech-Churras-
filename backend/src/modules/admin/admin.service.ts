@@ -1,4 +1,4 @@
-import { prisma } from '../../config/prisma'
+﻿import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
 import { emailPartnerApproved } from '../email/email.service'
 
@@ -79,14 +79,14 @@ export async function approveGrillmaster(
       '🎉 Perfil aprovado!',
       `Parabéns ${name}! Você já está ativo na Tech Churras e pode receber pedidos.`,
       '/grillmasters/dashboard'
-    ).catch(() => {})
-    emailPartnerApproved(gm.user.email, gm.user.name, 'GRILLMASTER', 'https://www.techchurras.com.br/grillmasters/dashboard').catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
+    emailPartnerApproved(gm.user.email, gm.user.name, 'GRILLMASTER', 'https://www.techchurras.com.br/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message))
     if (gm.user.phone) {
       sendWhatsApp(
         gm.user.phone,
         `🔥 Parabéns ${name}! Seu perfil de churrasqueiro foi *aprovado* na Tech Churras!\n\nVocê já pode receber pedidos. Acesse seu painel:\nhttps://www.techchurras.com.br/grillmasters/dashboard`,
         'gm-aprovado'
-      ).catch(() => {})
+      ).catch((e) => console.error("[notif]", e?.message))
     }
   }
   return updated
@@ -107,7 +107,7 @@ export async function rejectGrillmaster(grillmasterId: string) {
       'Perfil em revisão',
       'Precisamos de mais informações sobre seu perfil. Entre em contato com o suporte.',
       '/grillmasters/dashboard'
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
   return updated
 }
@@ -147,14 +147,14 @@ export async function approveBoutique(boutiqueId: string) {
       '🎉 Açougue aprovado!',
       `Parabéns ${name}! O açougue ${boutique.name} já está ativo na Tech Churras.`,
       '/boutiques/dashboard'
-    ).catch(() => {})
-    emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
+    emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
     if (boutique.user.phone) {
       sendWhatsApp(
         boutique.user.phone,
         `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\nVocê já pode receber pedidos. Acesse seu painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
         'boutique-aprovado'
-      ).catch(() => {})
+      ).catch((e) => console.error("[notif]", e?.message))
     }
   }
   return updated
@@ -172,7 +172,7 @@ export async function rejectBoutique(boutiqueId: string) {
       'Cadastro em revisão',
       'Precisamos de mais informações sobre seu açougue. Entre em contato com o suporte.',
       '/boutiques/dashboard'
-    ).catch(() => {})
+    ).catch((e) => console.error("[notif]", e?.message))
   }
   return updated
 }
