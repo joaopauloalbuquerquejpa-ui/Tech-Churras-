@@ -45,6 +45,7 @@ function NewOrderForm() {
   const [boutiqueKits, setBoutiqueKits] = useState<Kit[]>([])
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(false)
+  const [formError, setFormError] = useState('')
   const [acompanhamentos, setAcompanhamentos] = useState(false)
   const [acompanhamentosText, setAcompanhamentosText] = useState('')
   const [form, setForm] = useState({
@@ -106,11 +107,15 @@ function NewOrderForm() {
         )
       : null)
 
+  const today = new Date().toISOString().split('T')[0]
+
   async function handleSubmit() {
-    if (!form.grillmasterId || !form.eventDate || !form.eventAddress) {
-      alert('Preencha churrasqueiro, data e endereço do evento')
-      return
-    }
+    setFormError('')
+    if (!form.grillmasterId) { setFormError('Selecione um churrasqueiro'); return }
+    if (!form.eventDate) { setFormError('Informe a data do evento'); return }
+    if (form.eventDate < today) { setFormError('A data do evento não pode ser no passado'); return }
+    if (!form.eventAddress.trim()) { setFormError('Informe o endereço do evento'); return }
+    if (form.eventHours < 1) { setFormError('Mínimo de 1 hora de serviço'); return }
     setLoading(true)
     try {
       const items = Object.entries(selectedQty)
@@ -144,7 +149,7 @@ function NewOrderForm() {
         router.push('/orders/' + order.id + '/payment')
       } else {
         const err = await res.json()
-        alert('Erro: ' + (err.error || 'ao criar pedido'))
+        setFormError(err.error || 'Erro ao criar pedido. Tente novamente.')
       }
     } finally {
       setLoading(false)
@@ -262,6 +267,7 @@ function NewOrderForm() {
           <input
             type="date"
             value={form.eventDate}
+            min={today}
             onChange={e => setForm({ ...form, eventDate: e.target.value })}
             className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
           />
@@ -284,8 +290,10 @@ function NewOrderForm() {
           <label className="block text-sm text-gray-400 mb-1">Horas de Serviço</label>
           <input
             type="number"
+            min={1}
+            max={12}
             value={form.eventHours}
-            onChange={e => setForm({ ...form, eventHours: +e.target.value })}
+            onChange={e => setForm({ ...form, eventHours: Math.max(1, +e.target.value) })}
             className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white"
           />
         </div>
@@ -380,6 +388,12 @@ function NewOrderForm() {
           <div className="bg-gray-800 rounded-lg px-4 py-3 flex items-center justify-between">
             <span className="text-sm text-gray-400">Estimativa total</span>
             <span className="text-orange-400 font-bold text-lg">R$ {totalEstimate.toFixed(2)}</span>
+          </div>
+        )}
+
+        {formError && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-400">
+            {formError}
           </div>
         )}
 
