@@ -2,6 +2,7 @@
 import { API_URL } from '@/lib/api'
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Events } from '@/lib/analytics'
 
 
 function getToken() {
@@ -146,6 +147,7 @@ function NewOrderForm() {
       })
       if (res.ok) {
         const order = await res.json()
+        Events.orderCreated(insumos.totalPessoas, order.totalPrice, !!form.boutiqueId)
         router.push('/orders/' + order.id + '/payment')
       } else {
         const err = await res.json()

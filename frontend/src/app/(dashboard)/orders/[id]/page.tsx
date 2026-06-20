@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import { Events } from '@/lib/analytics'
 
 const OrderMap = dynamic(() => import('./OrderMap'), { ssr: false })
 
@@ -179,6 +180,13 @@ export default function OrderDetailPage() {
     const interval = setInterval(fetchOrder, 10000)
     return () => clearInterval(interval)
   }, [order?.statusDetail])
+
+  // Dispara Purchase para todos os canais quando pagamento é confirmado
+  useEffect(() => {
+    if (paymentResult === 'success' && order?.totalPrice) {
+      Events.purchase(order.id, order.totalPrice)
+    }
+  }, [paymentResult, order?.id, order?.totalPrice])
 
   // Auto-refresh status for customers on active (non-terminal) orders
   useEffect(() => {
