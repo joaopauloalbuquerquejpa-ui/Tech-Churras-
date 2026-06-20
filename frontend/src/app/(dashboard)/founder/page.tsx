@@ -261,6 +261,120 @@ function FireCursor() {
   )
 }
 
+// ── GrillBackground ─────────────────────────────────────────────────────────
+// Fundo CSS/SVG de churrasqueira — substitui o vídeo com mão no hero
+
+function SmokeWisp({ left, delay, duration, width = 70 }: { left: string; delay: number; duration: number; width?: number }) {
+  return (
+    <motion.div
+      style={{
+        position: 'absolute',
+        left,
+        bottom: '8%',
+        width,
+        height: width * 3.8,
+        borderRadius: '50%',
+        background: 'radial-gradient(ellipse, rgba(90,60,40,0.35) 0%, transparent 70%)',
+        filter: 'blur(22px)',
+        transformOrigin: 'bottom center',
+        pointerEvents: 'none',
+      }}
+      animate={{
+        y: [0, -110, -280],
+        x: [0, 14, -9],
+        scaleX: [1, 1.4, 0.65],
+        opacity: [0.22, 0.12, 0],
+      }}
+      transition={{ duration, delay, repeat: Infinity, ease: 'easeOut' }}
+    />
+  )
+}
+
+function GrillBackground() {
+  return (
+    <>
+      {/* ── Camada 0: base carvão + grelha SVG ── */}
+      <div className="absolute inset-0 overflow-hidden" style={{ zIndex: 0 }}>
+        <div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse at 50% 110%, #1c0900 0%, #090300 55%, #030100 100%)' }}
+        />
+        <svg
+          className="absolute inset-0 w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+          style={{ opacity: 0.55 }}
+        >
+          {/* Barras horizontais da grelha */}
+          {[38, 50, 62, 74, 86].map((y) => (
+            <g key={`h${y}`}>
+              <rect x="0" y={`calc(${y}% - 5px)`} width="100%" height="10" fill="#2e1600" rx="3" />
+              {/* borda superior laranja — efeito de brasa aquecendo o ferro */}
+              <rect x="0" y={`calc(${y}% - 5px)`} width="100%" height="2" fill="#7a3800" opacity="0.7" rx="1" />
+            </g>
+          ))}
+          {/* Barras verticais */}
+          {[9, 20, 31, 42, 53, 64, 75, 86, 97].map((x) => (
+            <rect key={`v${x}`} x={`${x}%`} y="30%" width="4" height="65%" fill="#1c0d00" opacity="0.8" rx="1" />
+          ))}
+        </svg>
+      </div>
+
+      {/* ── Camada 2: brasas pulsantes + fumaça — ACIMA do overlay escuro ── */}
+      <div className="absolute inset-0" style={{ zIndex: 2, pointerEvents: 'none' }}>
+        {/* Brilho de brasa principal */}
+        <motion.div
+          className="absolute inset-x-0 bottom-0"
+          style={{
+            height: '65%',
+            background:
+              'radial-gradient(ellipse 85% 75% at 50% 100%, rgba(210,65,0,0.52) 0%, rgba(130,28,0,0.22) 50%, transparent 76%)',
+          }}
+          animate={{ opacity: [0.7, 1, 0.78, 1, 0.7] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        {/* Núcleo incandescente */}
+        <motion.div
+          className="absolute inset-x-0 bottom-0"
+          style={{
+            height: '32%',
+            background:
+              'radial-gradient(ellipse 55% 50% at 50% 100%, rgba(255,130,0,0.38) 0%, rgba(200,60,0,0.12) 60%, transparent 82%)',
+          }}
+          animate={{ opacity: [0.5, 0.92, 0.62, 0.88, 0.5] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+        />
+        {/* Glow lateral esquerdo */}
+        <motion.div
+          className="absolute left-0 bottom-0"
+          style={{
+            width: '35%', height: '45%',
+            background: 'radial-gradient(ellipse at 0% 100%, rgba(180,50,0,0.3) 0%, transparent 70%)',
+          }}
+          animate={{ opacity: [0.6, 0.9, 0.6] }}
+          transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }}
+        />
+        {/* Glow lateral direito */}
+        <motion.div
+          className="absolute right-0 bottom-0"
+          style={{
+            width: '35%', height: '45%',
+            background: 'radial-gradient(ellipse at 100% 100%, rgba(180,50,0,0.28) 0%, transparent 70%)',
+          }}
+          animate={{ opacity: [0.55, 0.85, 0.55] }}
+          transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+        />
+        {/* Fumaça subindo */}
+        <SmokeWisp left="10%" delay={0}   duration={9}    width={62} />
+        <SmokeWisp left="26%" delay={2.8} duration={11.5} width={85} />
+        <SmokeWisp left="47%" delay={1.2} duration={10}   width={78} />
+        <SmokeWisp left="65%" delay={3.8} duration={8.5}  width={68} />
+        <SmokeWisp left="83%" delay={0.6} duration={12}   width={55} />
+      </div>
+    </>
+  )
+}
+
 // ── Data ─────────────────────────────────────────────────────────────────────
 
 const timeline: TimelineEntry[] = [
@@ -352,36 +466,21 @@ export default function FounderPage() {
         className="-mx-6 -mt-6 relative overflow-hidden flex flex-col"
         style={{ minHeight: '91vh' }}
       >
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 0 }}
-        >
-          <source src={VIDEO_BRASA} type="video/mp4" />
-        </video>
+        {/* Churrasqueira animada: brasas + grelha SVG + fumaça */}
+        <GrillBackground />
 
+        {/* Overlay escuro preservado */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.88) 100%)',
+              'linear-gradient(to bottom, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 55%, rgba(0,0,0,0.78) 100%)',
             zIndex: 1,
           }}
         />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 65%, rgba(249,115,22,0.15) 0%, transparent 62%)',
-            zIndex: 2,
-          }}
-        />
+        {/* zIndex 2 é ocupado pela GrillBackground (brasas + fumaça) */}
 
-        {/* Ember particles atrás do nome */}
+        {/* Ember particles */}
         <div className="absolute inset-0" style={{ zIndex: 3 }}>
           <EmberParticles className="w-full h-full" />
         </div>
