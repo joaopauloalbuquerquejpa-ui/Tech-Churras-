@@ -16,7 +16,7 @@ export async function ordersRoutes(app: FastifyInstance) {
   // rota publica — sem autenticacao, deve vir antes de /:id
   app.get('/orders/public/:token', getOrderByPublicTokenHandler)
 
-  app.post('/orders', { preHandler: [app.authenticate] }, createOrderHandler)
+  app.post('/orders', { preHandler: [app.authenticate], config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, createOrderHandler)
   app.get('/orders', { preHandler: [app.authenticate] }, listOrdersHandler)
   app.get('/orders/:id', { preHandler: [app.authenticate] }, getOrderHandler)
   app.patch('/orders/:id/status', { preHandler: [app.authenticate] }, updateOrderStatusHandler)
