@@ -63,4 +63,23 @@ export const Events = {
     metaTrack('ViewContent', { content_name: page })
     tiktokTrack('ViewContent', { content_name: page })
   },
+
+  boutiquePageView: () => {
+    track('boutique_page_view', {})
+    metaTrack('ViewContent', { content_name: 'para-acougues', content_category: 'boutique' })
+    tiktokTrack('ViewContent', { content_name: 'para-acougues' })
+  },
+
+  boutiqueInterest: (source: string) => {
+    track('boutique_lead', { source })
+    metaTrack('Lead', { content_name: source })
+    tiktokTrack('Subscribe', { content_name: source })
+    window.gtag?.('event', 'generate_lead', { source })
+  },
+
+  boutiqueFounderClick: (source: string) => {
+    track('boutique_founder_click', { source })
+    metaTrack('Lead', { content_name: `founder_${source}`, value: 1107, currency: 'BRL' })
+    tiktokTrack('Subscribe', { content_name: `founder_${source}` })
+  },
 }

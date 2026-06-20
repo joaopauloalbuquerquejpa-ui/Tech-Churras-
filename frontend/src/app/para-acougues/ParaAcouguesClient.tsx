@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useSpring, useMotionValue, useTransform, animate } from 'framer-motion'
 import Link from 'next/link'
+import { Events } from '@/lib/analytics'
 
 const MENSALIDADE = 369
 const COMISSAO_RATE = 0.07
@@ -85,6 +86,10 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: number }) {
   const [clientes, setClientes] = useState(20)
   const [ticket, setTicket] = useState(180)
+
+  useEffect(() => {
+    Events.boutiquePageView()
+  }, [])
 
   const faturamento = clientes * ticket
   const comissao = faturamento * COMISSAO_RATE
@@ -178,6 +183,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   href="/register?role=boutique"
+                  onClick={() => Events.boutiqueInterest('para-acougues-hero-cta')}
                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-8 py-4 rounded-xl text-base transition-all shadow-lg shadow-orange-500/25"
                 >
                   🥩 Quero ser parceiro
@@ -185,6 +191,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 <a
                   href={WHATSAPP}
                   target="_blank" rel="noopener noreferrer"
+                  onClick={() => Events.clickWhatsApp('para-acougues-hero')}
                   className="flex items-center justify-center gap-2 border border-gray-700 hover:border-gray-500 text-white font-medium px-8 py-4 rounded-xl text-base transition-colors"
                 >
                   💬 Falar no WhatsApp
@@ -229,6 +236,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                     <a
                       href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero uma das vagas de Parceiro Fundador do açougue na Tech Churras.')}`}
                       target="_blank" rel="noopener noreferrer"
+                      onClick={() => Events.boutiqueFounderClick('para-acougues-hero')}
                       className="mt-4 inline-block text-xs bg-amber-500 hover:bg-amber-400 text-black font-black px-4 py-2 rounded-lg transition-colors"
                     >
                       Quero uma vaga de Fundador →
@@ -368,6 +376,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 <a
                   href={WHATSAPP}
                   target="_blank" rel="noopener noreferrer"
+                  onClick={() => Events.boutiqueInterest('para-acougues-qrcode')}
                   className="mt-5 inline-block bg-green-500 hover:bg-green-400 text-black font-black px-6 py-3 rounded-xl transition-colors text-sm"
                 >
                   Quero meu QR code exclusivo →
@@ -834,6 +843,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/register?role=boutique"
+                onClick={() => Events.boutiqueInterest('para-acougues-footer-cta')}
                 className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-10 py-4 rounded-xl text-lg transition-all shadow-xl shadow-orange-500/25"
               >
                 🥩 Quero ser parceiro
@@ -841,6 +851,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               <a
                 href={WHATSAPP}
                 target="_blank" rel="noopener noreferrer"
+                onClick={() => Events.clickWhatsApp('para-acougues-footer')}
                 className="flex items-center justify-center gap-2 border border-gray-700 hover:border-orange-500/50 hover:bg-orange-500/5 text-white font-medium px-10 py-4 rounded-xl text-lg transition-colors"
               >
                 💬 Falar no WhatsApp

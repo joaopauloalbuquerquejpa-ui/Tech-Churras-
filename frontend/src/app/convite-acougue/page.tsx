@@ -1,4 +1,5 @@
 'use client'
+import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
@@ -54,6 +55,10 @@ function ConviteContent() {
   const params = useSearchParams()
   const nome = params.get('nome') ?? 'seu açougue'
   const nomeFormatado = decodeURIComponent(nome.replace(/\+/g, ' '))
+
+  useEffect(() => {
+    Events.boutiquePageView()
+  }, [])
 
   const waMsg = encodeURIComponent(
     `Olá Jota! Recebi o convite exclusivo para o ${nomeFormatado} ser Parceiro Fundador da Tech Churras. Quero saber mais!`
@@ -435,12 +440,13 @@ function ConviteContent() {
         {/* CTAs */}
         <div className="space-y-3 mb-4">
           <a href={waUrl} target="_blank" rel="noopener noreferrer"
-            onClick={() => Events.clickWhatsApp('convite-acougue-cta')}
+            onClick={() => { Events.clickWhatsApp('convite-acougue-cta'); Events.boutiqueFounderClick('convite-whatsapp') }}
             className="flex items-center justify-center gap-3 w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-2xl text-base transition-colors shadow-lg shadow-green-900/30">
             <WaIcon />
             Falar com Jota no WhatsApp
           </a>
           <Link href={cadastroUrl}
+            onClick={() => Events.boutiqueInterest('convite-acougue-cadastro')}
             className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 text-white font-black py-4 rounded-2xl text-base transition-colors shadow-lg shadow-orange-900/30">
             🥩 Cadastrar {nomeFormatado} agora
           </Link>
