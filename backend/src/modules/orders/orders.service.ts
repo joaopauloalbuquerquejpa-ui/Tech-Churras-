@@ -8,15 +8,21 @@ import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } fr
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
   boutiqueId: z.string().optional(),
-  eventDate: z.string().transform(s => new Date(s)),
+  eventDate: z.string()
+    .transform(s => new Date(s))
+    .refine(d => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      return d >= today
+    }, { message: 'A data do evento não pode ser no passado' }),
   eventAddress: z.string().min(5),
   eventHours: z.number().int().min(1).default(4),
   guestCount: z.number().int().min(1),
-  notes: z.string().optional(),
+  notes: z.string().max(1000).optional(),
   couponCode: z.string().optional(),
   items: z.array(z.object({
-    productId: z.string(),
-    quantity: z.number().positive(),
+    productId: z.string().uuid(),
+    quantity: z.number().positive().max(1000),
   })).optional(),
 })
 

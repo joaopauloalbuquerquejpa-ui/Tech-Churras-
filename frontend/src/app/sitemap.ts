@@ -32,6 +32,10 @@ async function getCities(): Promise<{ gmCities: string[]; boutiqueCities: string
   }
 }
 
+// SP priority city pages — always in sitemap regardless of API state
+const SP_CITIES_GM = ['sao-paulo', 'guarulhos', 'campinas', 'osasco', 'santo-andre', 'sao-bernardo-do-campo']
+const SP_CITIES_BOUTIQUE = ['sao-paulo', 'guarulhos', 'campinas', 'osasco']
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const { gmCities, boutiqueCities } = await getCities()
 
@@ -39,29 +43,60 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: BASE_URL, lastModified: new Date(), changeFrequency: 'daily', priority: 1 },
     { url: `${BASE_URL}/grillmasters`, lastModified: new Date(), changeFrequency: 'hourly', priority: 0.9 },
     { url: `${BASE_URL}/boutiques`, lastModified: new Date(), changeFrequency: 'hourly', priority: 0.9 },
+    { url: `${BASE_URL}/churrasqueiros/sao-paulo`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.95 },
+    { url: `${BASE_URL}/acougues/sao-paulo`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.95 },
     { url: `${BASE_URL}/kit-perfeito`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
     { url: `${BASE_URL}/parceiros`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${BASE_URL}/para-acougues`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+    { url: `${BASE_URL}/convite-acougue`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.75 },
     { url: `${BASE_URL}/para-churrasqueiros`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE_URL}/para-acougues`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE_URL}/register`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
     { url: `${BASE_URL}/login`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+    { url: `${BASE_URL}/galeria`, lastModified: new Date(), changeFrequency: 'weekly', priority: 0.5 },
     { url: `${BASE_URL}/termos-de-uso`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
     { url: `${BASE_URL}/politica-de-privacidade`, lastModified: new Date(), changeFrequency: 'yearly', priority: 0.3 },
   ]
 
-  const gmCityRoutes: MetadataRoute.Sitemap = gmCities.map(city => ({
-    url: `${BASE_URL}/churrasqueiros/${toSlug(city)}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.8,
-  }))
+  // SP priority city pages always included
+  const spGmRoutes: MetadataRoute.Sitemap = SP_CITIES_GM
+    .filter(slug => slug !== 'sao-paulo') // SP already in staticRoutes
+    .map(slug => ({
+      url: `${BASE_URL}/churrasqueiros/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    }))
 
-  const boutiqueCityRoutes: MetadataRoute.Sitemap = boutiqueCities.map(city => ({
-    url: `${BASE_URL}/acougues/${toSlug(city)}`,
-    lastModified: new Date(),
-    changeFrequency: 'daily',
-    priority: 0.8,
-  }))
+  const spBoutiqueRoutes: MetadataRoute.Sitemap = SP_CITIES_BOUTIQUE
+    .filter(slug => slug !== 'sao-paulo')
+    .map(slug => ({
+      url: `${BASE_URL}/acougues/${slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.85,
+    }))
 
-  return [...staticRoutes, ...gmCityRoutes, ...boutiqueCityRoutes]
+  // Dynamic routes from API, skip any already in hardcoded SP lists
+  const spGmSlugs = new Set(SP_CITIES_GM)
+  const spBoutiqueSlugs = new Set(SP_CITIES_BOUTIQUE)
+
+  const gmCityRoutes: MetadataRoute.Sitemap = gmCities
+    .filter(city => !spGmSlugs.has(toSlug(city)))
+    .map(city => ({
+      url: `${BASE_URL}/churrasqueiros/${toSlug(city)}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    }))
+
+  const boutiqueCityRoutes: MetadataRoute.Sitemap = boutiqueCities
+    .filter(city => !spBoutiqueSlugs.has(toSlug(city)))
+    .map(city => ({
+      url: `${BASE_URL}/acougues/${toSlug(city)}`,
+      lastModified: new Date(),
+      changeFrequency: 'daily' as const,
+      priority: 0.8,
+    }))
+
+  return [...staticRoutes, ...spGmRoutes, ...spBoutiqueRoutes, ...gmCityRoutes, ...boutiqueCityRoutes]
 }

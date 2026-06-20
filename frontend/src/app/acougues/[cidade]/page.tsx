@@ -24,10 +24,17 @@ function cityLabel(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ cidade: string }> }): Promise<Metadata> {
   const { cidade } = await params
   const city = cityLabel(decodeURIComponent(cidade))
+  const isSP = decodeURIComponent(cidade) === 'sao-paulo'
   return {
-    title: `Açougues em ${city}`,
-    description: `Os melhores açougues parceiros em ${city}. Carnes premium selecionadas, entrega no evento e integração com churrasqueiros profissionais via Tech Churras.`,
-    keywords: [`açougue ${city}`, `carne ${city}`, `churrasco ${city}`, 'Tech Churras', `acougue parceiro ${city}`],
+    title: isSP
+      ? 'Açougues em São Paulo — Carnes Premium para Churrasco | Tech Churras'
+      : `Açougues em ${city} — Tech Churras`,
+    description: isSP
+      ? 'Os melhores açougues parceiros em São Paulo. Picanha, fraldinha, costela e cortes premium selecionados para churrasco. Entrega organizada para o seu evento com churrasqueiro profissional.'
+      : `Os melhores açougues parceiros em ${city}. Carnes premium selecionadas, entrega no evento e integração com churrasqueiros profissionais via Tech Churras.`,
+    keywords: isSP
+      ? ['açougue São Paulo', 'açougue SP', 'carne para churrasco SP', 'açougue parceiro São Paulo', 'picanha São Paulo', 'corte nobre SP', 'comprar carne churrasco São Paulo', 'Tech Churras açougue']
+      : [`açougue ${city}`, `carne ${city}`, `churrasco ${city}`, 'Tech Churras', `acougue parceiro ${city}`],
     openGraph: {
       title: `Açougues em ${city} — Tech Churras`,
       description: `Encontre açougues premium em ${city} com entrega para seu evento de churrasco.`,
@@ -69,13 +76,24 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
   const citySlug = decodeURIComponent(cidade)
   const cityName = cityLabel(citySlug)
   const boutiques = await getBoutiques(cityName)
+  const isSP = citySlug === 'sao-paulo'
 
-  const jsonLd = {
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.techchurras.com.br' },
+      { '@type': 'ListItem', position: 2, name: 'Açougues', item: 'https://www.techchurras.com.br/boutiques' },
+      { '@type': 'ListItem', position: 3, name: `Açougues em ${cityName}`, item: `https://www.techchurras.com.br/acougues/${citySlug}` },
+    ],
+  }
+
+  const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: `Açougues em ${cityName}`,
     description: `Lista de açougues premium em ${cityName} parceiros da Tech Churras`,
-    numberOfItems: boutiques.length,
+    numberOfItems: boutiques.length || (isSP ? 1 : 0),
     itemListElement: boutiques.slice(0, 10).map((b, i) => ({
       '@type': 'ListItem',
       position: i + 1,
@@ -89,9 +107,33 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
     })),
   }
 
+  const faqLd = isSP ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Como comprar carne para churrasco em São Paulo pela Tech Churras?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Ao criar um pedido no app Tech Churras, você pode selecionar produtos de açougues parceiros em São Paulo. As carnes chegam preparadas e organizadas para o seu churrasqueiro trabalhar no evento.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Quais cortes de carne estão disponíveis nos açougues parceiros em São Paulo?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Os açougues parceiros oferecem picanha, fraldinha, costela bovina, frango inteiro, linguiça artesanal, entre outros cortes premium. A seleção varia por açougue.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Como um açougue em São Paulo pode se tornar parceiro da Tech Churras?',
+        acceptedAnswer: { '@type': 'Answer', text: 'O açougue se cadastra em techchurras.com.br/para-acougues. A mensalidade é R$ 369/mês com comissão de 7% sobre pedidos. Açougues fundadores têm condições especiais. Entre em contato via WhatsApp pelo botão na página.' },
+      },
+    ],
+  } : null
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listLd) }} />
+      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
 
       {/* Nav */}
       <nav className="border-b border-gray-900 px-4 py-3 flex items-center justify-between max-w-5xl mx-auto">
@@ -189,6 +231,34 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
             concluído. Em troca, ganham visibilidade na plataforma, acesso a clientes premium e integração
             com o sistema de gestão de pedidos.
           </p>
+          {isSP && (
+            <>
+              <h3 className="text-lg font-bold text-white mt-6 mb-2">Açougues em São Paulo que aceitam pedidos digitais</h3>
+              <p className="text-gray-400">
+                São Paulo conta com uma rede crescente de açougues parceiros Tech Churras que oferecem carnes
+                premium integradas ao serviço de churrasqueiro. Picanha, fraldinha, costela, linguiça artesanal
+                e acompanhamentos — tudo selecionado pelo Kit Perfeito com IA e entregue organizado para o evento.
+              </p>
+              <h3 className="text-lg font-bold text-white mt-6 mb-2">Seu açougue em São Paulo pode ser parceiro</h3>
+              <p className="text-gray-400">
+                A Tech Churras abre parceria com açougues em toda São Paulo. O açougue ganha um canal digital
+                com QR code no balcão, pedidos via app e repasse semanal via PIX. Mensalidade a partir de
+                R$ 369/mês com comissão de apenas 7% por pedido.{' '}
+                <a href="/para-acougues" className="text-orange-400 hover:underline">Saiba mais sobre a parceria para açougues</a>.
+              </p>
+              <h3 className="text-lg font-bold text-white mt-6 mb-2">Dúvidas frequentes</h3>
+              <dl className="space-y-4">
+                <div>
+                  <dt className="font-semibold text-white">Como comprar carne para churrasco em São Paulo pela Tech Churras?</dt>
+                  <dd className="text-gray-400 mt-1">Ao criar um pedido no app, você seleciona produtos de açougues parceiros em SP. As carnes chegam preparadas para o churrasqueiro trabalhar no evento.</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-white">Quais cortes estão disponíveis?</dt>
+                  <dd className="text-gray-400 mt-1">Picanha, fraldinha, costela bovina, frango, linguiça artesanal e outros cortes premium. A seleção varia por açougue parceiro.</dd>
+                </div>
+              </dl>
+            </>
+          )}
         </div>
       </main>
 

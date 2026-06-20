@@ -26,10 +26,17 @@ function cityLabel(slug: string) {
 export async function generateMetadata({ params }: { params: Promise<{ cidade: string }> }): Promise<Metadata> {
   const { cidade } = await params
   const city = cityLabel(decodeURIComponent(cidade))
+  const isSP = decodeURIComponent(cidade) === 'sao-paulo'
   return {
-    title: `Churrasqueiros em ${city}`,
-    description: `Encontre churrasqueiros profissionais em ${city}. Contrate via app, acompanhe ao vivo e receba churrasco de qualidade no seu evento.`,
-    keywords: [`churrasqueiro ${city}`, `churrasco ${city}`, `grillmaster ${city}`, 'Tech Churras', `contratar churrasqueiro ${city}`],
+    title: isSP
+      ? 'Churrasqueiros em São Paulo — Contrate Profissionais Certificados | Tech Churras'
+      : `Churrasqueiros em ${city} — Tech Churras`,
+    description: isSP
+      ? 'Churrasqueiros profissionais certificados em São Paulo. Contrate pelo app, acompanhe ao vivo no mapa e receba churrasco de qualidade no seu evento. 93% do valor vai direto ao churrasqueiro.'
+      : `Encontre churrasqueiros profissionais em ${city}. Contrate via app, acompanhe ao vivo e receba churrasco de qualidade no seu evento.`,
+    keywords: isSP
+      ? ['churrasqueiro São Paulo', 'churrasqueiro SP', 'churrasco São Paulo', 'grillmaster São Paulo', 'contratar churrasqueiro SP', 'churrasqueiro zona sul SP', 'churrasqueiro Pinheiros', 'churrasqueiro Moema', 'Tech Churras SP']
+      : [`churrasqueiro ${city}`, `churrasco ${city}`, `grillmaster ${city}`, 'Tech Churras', `contratar churrasqueiro ${city}`],
     openGraph: {
       title: `Churrasqueiros em ${city} — Tech Churras`,
       description: `${city} tem churrasqueiros certificados Tech Churras disponíveis para o seu evento.`,
@@ -71,13 +78,24 @@ export default async function ChurrasqueirosPage({ params }: { params: Promise<{
   const citySlug = decodeURIComponent(cidade)
   const cityName = cityLabel(citySlug)
   const grillmasters = await getGrillmasters(cityName)
+  const isSP = citySlug === 'sao-paulo'
 
-  const jsonLd = {
+  const breadcrumbLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.techchurras.com.br' },
+      { '@type': 'ListItem', position: 2, name: 'Churrasqueiros', item: 'https://www.techchurras.com.br/grillmasters' },
+      { '@type': 'ListItem', position: 3, name: `Churrasqueiros em ${cityName}`, item: `https://www.techchurras.com.br/churrasqueiros/${citySlug}` },
+    ],
+  }
+
+  const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: `Churrasqueiros em ${cityName}`,
     description: `Lista de churrasqueiros profissionais em ${cityName} disponíveis via Tech Churras`,
-    numberOfItems: grillmasters.length,
+    numberOfItems: grillmasters.length || (isSP ? 1 : 0),
     itemListElement: grillmasters.slice(0, 10).map((gm, i) => ({
       '@type': 'ListItem',
       position: i + 1,
@@ -90,9 +108,38 @@ export default async function ChurrasqueirosPage({ params }: { params: Promise<{
     })),
   }
 
+  const faqLd = isSP ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'Como contratar um churrasqueiro em São Paulo?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Acesse o app Tech Churras, escolha um churrasqueiro certificado em São Paulo, defina a data e endereço do evento e finalize o pagamento pelo app. O churrasqueiro aparece no mapa ao sair para o seu evento.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Quanto custa um churrasqueiro profissional em São Paulo?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Os churrasqueiros certificados Tech Churras em São Paulo cobram por hora de serviço. O valor varia conforme o profissional. Você pode comparar preços e avaliações diretamente no app antes de contratar.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'O churrasqueiro inclui os ingredientes?',
+        acceptedAnswer: { '@type': 'Answer', text: 'Não, o churrasqueiro fornece o serviço de preparo. Os insumos (carnes, carvão, sal, etc.) são selecionados separadamente via açougue parceiro na mesma plataforma, utilizando a funcionalidade Kit Perfeito com IA.' },
+      },
+      {
+        '@type': 'Question',
+        name: 'Quais regiões de São Paulo são atendidas?',
+        acceptedAnswer: { '@type': 'Answer', text: 'A Tech Churras atende toda a cidade de São Paulo, incluindo Zona Sul (Moema, Vila Mariana, Ipiranga), Zona Oeste (Pinheiros, Lapa, Perdizes), Zona Norte e Zona Leste. Verifique a disponibilidade para a sua região no app.' },
+      },
+    ],
+  } : null
+
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listLd) }} />
+      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
 
       {/* Nav */}
       <nav className="border-b border-gray-900 px-4 py-3 flex items-center justify-between max-w-5xl mx-auto">
@@ -187,6 +234,36 @@ export default async function ChurrasqueirosPage({ params }: { params: Promise<{
             em padrões de corte, postura profissional e uso da plataforma. O pagamento é feito pelo app e o
             churrasqueiro recebe 93% do valor — garantindo uma parceria justa e transparente.
           </p>
+          {isSP && (
+            <>
+              <h3 className="text-lg font-bold text-white mt-6 mb-2">Churrasqueiros profissionais em São Paulo</h3>
+              <p className="text-gray-400">
+                São Paulo concentra os melhores churrasqueiros certificados Tech Churras da plataforma.
+                Profissionais experientes atendem desde festas íntimas em apartamentos até eventos corporativos
+                e confraternizações. Toda a Grande SP — da Zona Sul à Zona Norte, de Pinheiros ao ABC paulista.
+              </p>
+              <p className="text-gray-400 mt-3">
+                A funcionalidade <strong className="text-white">Kit Perfeito com IA</strong> calcula automaticamente
+                as quantidades certas de carne, carvão e acompanhamentos para o número de convidados, integrando
+                direto com açougues parceiros em São Paulo para entrega no evento.
+              </p>
+              <h3 className="text-lg font-bold text-white mt-6 mb-2">Perguntas frequentes</h3>
+              <dl className="space-y-4">
+                <div>
+                  <dt className="font-semibold text-white">Como contratar um churrasqueiro em São Paulo?</dt>
+                  <dd className="text-gray-400 mt-1">Acesse o app, escolha um profissional certificado, defina data e endereço e pague pelo app. O churrasqueiro aparece no mapa ao sair para o seu evento.</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-white">O churrasqueiro inclui os ingredientes?</dt>
+                  <dd className="text-gray-400 mt-1">Não — o churrasqueiro cuida do preparo. As carnes e insumos vêm do açougue parceiro selecionado no mesmo pedido.</dd>
+                </div>
+                <div>
+                  <dt className="font-semibold text-white">Quais regiões de São Paulo são atendidas?</dt>
+                  <dd className="text-gray-400 mt-1">Toda a cidade de SP: Zona Sul (Moema, Vila Mariana, Ipiranga), Zona Oeste (Pinheiros, Lapa, Perdizes), Zona Norte, Zona Leste e Grande ABC.</dd>
+                </div>
+              </dl>
+            </>
+          )}
         </div>
       </main>
 
