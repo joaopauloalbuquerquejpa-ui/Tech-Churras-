@@ -1,7 +1,9 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { API_URL } from '@/lib/api'
 
+const CityMap = dynamic(() => import('@/components/CityMap'), { ssr: false })
 
 interface Boutique {
   id: string
@@ -15,6 +17,8 @@ interface Boutique {
   openingHours?: string
   deliveryOrPickup?: string
   open: boolean
+  latitude?: number | null
+  longitude?: number | null
 }
 
 function cityLabel(slug: string) {
@@ -167,6 +171,24 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
             Montar kit com IA
           </Link>
         </div>
+
+        {/* Mapa */}
+        {boutiques.length > 0 && (
+          <CityMap
+            items={boutiques.map(b => ({
+              id: b.id,
+              name: b.name,
+              latitude: b.latitude,
+              longitude: b.longitude,
+              photoUrl: b.logoUrl,
+              rating: b.rating,
+              href: `/boutiques/${b.id}`,
+              badge: b.open ? '🟢 Aberto agora' : undefined,
+            }))}
+            type="boutique"
+            cityName={cityName}
+          />
+        )}
 
         {/* Grid */}
         {boutiques.length > 0 ? (

@@ -169,6 +169,19 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
 
           <div className="grid lg:grid-cols-2 gap-10 items-center">
             <div>
+              {/* Prova concreta antes do headline */}
+              <div className="inline-flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-3 mb-6">
+                <div>
+                  <p className="text-2xl font-black text-orange-400 leading-none">R$ 3.779<span className="text-base font-bold text-orange-300">/mês</span></p>
+                  <p className="text-xs text-gray-500 mt-0.5">renda extra com 20 pedidos · cálculo transparente abaixo</p>
+                </div>
+                <div className="w-px h-10 bg-gray-800" />
+                <div>
+                  <p className="text-sm font-bold text-white leading-none">R$ 15 bi</p>
+                  <p className="text-xs text-gray-500 mt-0.5">mercado de churrasco/ano</p>
+                </div>
+              </div>
+
               <h1 className="text-4xl sm:text-5xl font-black leading-tight mb-5">
                 Transforme seu balcão em uma{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
@@ -576,6 +589,44 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   <p className="text-xs text-gray-600">{s.obs}</p>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── DOR DO DONO ──────────────────────────────────────────────── */}
+      <section className="py-16 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid sm:grid-cols-3 gap-4 mb-12">
+            {[
+              { stat: '68%', label: 'dos clientes de açougue pesquisam preço online antes de comprar', color: 'red' },
+              { stat: '3x', label: 'mais pedidos por cliente quando o açougue está presente em apps', color: 'orange' },
+              { stat: 'R$ 15 bi', label: 'movimentados por churrasco no Brasil — sem app, você fica fora', color: 'amber' },
+            ].map(({ stat, label, color }) => (
+              <div key={stat} className={`bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center`}>
+                <p className={`text-3xl font-black mb-2 ${color === 'red' ? 'text-red-400' : color === 'orange' ? 'text-orange-400' : 'text-amber-400'}`}>{stat}</p>
+                <p className="text-sm text-gray-400 leading-relaxed">{label}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-gradient-to-r from-gray-900 to-gray-900/60 border border-red-500/20 rounded-2xl p-6 sm:p-8">
+            <div className="flex gap-4 items-start">
+              <span className="text-3xl mt-1">⚠️</span>
+              <div>
+                <h3 className="text-lg font-black text-white mb-2">O que acontece com o açougue que não digitaliza</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                  O churrasqueiro profissional compra onde já tem parceria. Se o seu concorrente está na plataforma e você não está, <strong className="text-white">o churrasqueiro vai comprar no concorrente</strong> — semana que vem, mês que vem, e para sempre. Sem fidelidade, sem visibilidade, sem dados de demanda.
+                </p>
+                <a
+                  href={WHATSAPP}
+                  target="_blank" rel="noopener noreferrer"
+                  onClick={() => Events.clickWhatsApp('para-acougues-dor')}
+                  className="inline-flex items-center gap-2 text-sm font-bold text-orange-400 hover:text-orange-300 transition-colors"
+                >
+                  Garantir minha vaga agora →
+                </a>
+              </div>
             </div>
           </div>
         </div>

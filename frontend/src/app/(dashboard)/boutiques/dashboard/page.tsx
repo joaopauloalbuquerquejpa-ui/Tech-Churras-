@@ -152,6 +152,8 @@ export default function BoutiqueDashboardPage() {
   const [copied, setCopied] = useState(false)
   const [copiedReferral, setCopiedReferral] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [readyOrderIds, setReadyOrderIds] = useState<Set<string>>(new Set())
+  const [confirmingReadyId, setConfirmingReadyId] = useState<string | null>(null)
   const qrRef = useRef<HTMLDivElement>(null)
   const qrBalcaoRef = useRef<HTMLDivElement>(null)
   const qrIndicacaoRef = useRef<HTMLDivElement>(null)
@@ -757,18 +759,42 @@ export default function BoutiqueDashboardPage() {
               <p className="text-sm font-semibold text-white mb-4">Pedidos Recentes</p>
               <div className="space-y-2">
                 {stats.recentOrders.map(o => (
-                  <Link key={o.id} href={'/orders/' + o.id} className="flex items-center justify-between gap-3 px-4 py-3 bg-gray-800 hover:bg-gray-750 rounded-xl transition-colors">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className={'text-xs text-white px-2 py-0.5 rounded-full font-medium shrink-0 ' + (STATUS_COLOR[o.status] || 'bg-gray-500')}>
-                        {STATUS_LABEL[o.status] || o.status}
-                      </span>
-                      <p className="text-sm font-medium text-gray-300 truncate">{o.customerName}</p>
+                  <div key={o.id} className="px-4 py-3 bg-gray-800 rounded-xl">
+                    <div className="flex items-center justify-between gap-3">
+                      <Link href={'/orders/' + o.id} className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className={'text-xs text-white px-2 py-0.5 rounded-full font-medium shrink-0 ' + (STATUS_COLOR[o.status] || 'bg-gray-500')}>
+                          {STATUS_LABEL[o.status] || o.status}
+                        </span>
+                        <p className="text-sm font-medium text-gray-300 truncate">{o.customerName}</p>
+                      </Link>
+                      <div className="shrink-0 text-right">
+                        <p className="text-sm font-bold text-orange-400">R$ {o.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                        <p className="text-xs text-gray-600">{new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</p>
+                      </div>
                     </div>
-                    <div className="shrink-0 text-right">
-                      <p className="text-sm font-bold text-orange-400">R$ {o.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                      <p className="text-xs text-gray-600">{new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</p>
-                    </div>
-                  </Link>
+                    {['PENDING', 'CONFIRMED'].includes(o.status) && !readyOrderIds.has(o.id) && (
+                      <button
+                        onClick={async () => {
+                          setConfirmingReadyId(o.id)
+                          try {
+                            await fetch(`${API_URL}/boutiques/orders/${o.id}/ready`, {
+                              method: 'PATCH',
+                              headers: { Authorization: 'Bearer ' + getToken() },
+                            })
+                            setReadyOrderIds(prev => new Set([...prev, o.id]))
+                          } catch { /* silently fail */ }
+                          finally { setConfirmingReadyId(null) }
+                        }}
+                        disabled={confirmingReadyId === o.id}
+                        className="mt-2 w-full text-xs font-semibold text-white bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg py-1.5 transition-colors"
+                      >
+                        {confirmingReadyId === o.id ? 'Confirmando...' : '✅ Cortes prontos — avisar churrasqueiro'}
+                      </button>
+                    )}
+                    {readyOrderIds.has(o.id) && (
+                      <p className="mt-2 text-xs text-green-400 text-center">Churrasqueiro notificado!</p>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>

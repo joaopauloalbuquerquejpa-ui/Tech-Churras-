@@ -12,9 +12,10 @@ const OrderMap = dynamic(
 )
 
 const STATUS_STEPS = [
-  { key: 'CONFIRMED',   detail: null,                        label: 'Pedido confirmado',             icon: '✅' },
-  { key: 'CONFIRMED',   detail: 'Acougue separando carnes',  label: 'Açougue preparando os cortes',  icon: '🥩' },
-  { key: 'CONFIRMED',   detail: 'Churrasqueiro a caminho',   label: 'Churrasqueiro a caminho!',       icon: '🚗' },
+  { key: 'CONFIRMED',   detail: null,                              label: 'Pedido confirmado',             icon: '✅' },
+  { key: 'CONFIRMED',   detail: 'Acougue separando carnes',        label: 'Açougue preparando os cortes',  icon: '🥩' },
+  { key: 'CONFIRMED',   detail: 'Cortes prontos — retire no balcão', label: 'Cortes prontos no açougue!',  icon: '🏪' },
+  { key: 'CONFIRMED',   detail: 'Churrasqueiro a caminho',         label: 'Churrasqueiro a caminho!',      icon: '🚗' },
   { key: 'IN_PROGRESS', detail: 'Churrasqueiro chegou',      label: 'Churrasqueiro chegou!',          icon: '👨‍🍳' },
   { key: 'IN_PROGRESS', detail: 'Preparando o churrasco',    label: 'Preparando o churrasco',        icon: '🔥' },
   { key: 'IN_PROGRESS', detail: 'Servindo',                  label: 'Servindo!',                     icon: '🍖' },
@@ -115,7 +116,7 @@ export default function AcompanharPage() {
     <div className="min-h-screen bg-gray-950 text-white">
       {/* Header */}
       <div className="bg-gray-900 border-b border-gray-800 px-5 py-4 flex items-center justify-between">
-        <Link href="/boutiques" className="text-xl font-black text-orange-500">
+        <Link href="/" className="text-xl font-black text-orange-500">
           Tech Churras
         </Link>
         {isLive && (
@@ -138,7 +139,7 @@ export default function AcompanharPage() {
           <div className="text-center py-20">
             <div className="text-5xl mb-4">🔗</div>
             <p className="text-gray-400 mb-6">{error}</p>
-            <Link href="/boutiques" className="text-orange-400 hover:underline text-sm">
+            <Link href="/grillmasters" className="text-orange-400 hover:underline text-sm">
               Montar meu churrasco
             </Link>
           </div>
@@ -301,7 +302,7 @@ export default function AcompanharPage() {
                 A Tech Churras conecta você com churrasqueiros certificados e açougues premium.
               </p>
               <Link
-                href="/boutiques"
+                href="/grillmasters"
                 className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-colors"
               >
                 Montar meu churrasco →

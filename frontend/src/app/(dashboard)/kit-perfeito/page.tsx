@@ -5,12 +5,15 @@ import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
 
 
-function getCustomerName(): string {
+function getAuthData(): { name: string; token: string } {
   try {
     const raw = localStorage.getItem('auth-storage')
-    return JSON.parse(raw ?? '{}')?.state?.user?.name ?? ''
-  } catch { return '' }
+    const state = JSON.parse(raw ?? '{}')?.state ?? {}
+    return { name: state.user?.name ?? '', token: state.token ?? '' }
+  } catch { return { name: '', token: '' } }
 }
+
+function getCustomerName(): string { return getAuthData().name }
 
 const OCCASIONS = [
   { value: 'churrasco em familia', label: 'Churrasco em Família' },
@@ -67,9 +70,10 @@ export default function KitPerfeitoPage() {
     setResult(null)
 
     try {
+      const { token } = getAuthData()
       const res = await fetch(`${API_URL}/ai/kit-perfeito`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
         body: JSON.stringify({
           eventAddress: form.eventAddress,
           guests: Number(form.guests),

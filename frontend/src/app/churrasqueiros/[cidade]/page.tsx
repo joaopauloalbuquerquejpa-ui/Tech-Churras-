@@ -1,7 +1,9 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import { API_URL } from '@/lib/api'
 
+const CityMap = dynamic(() => import('@/components/CityMap'), { ssr: false })
 
 interface Grillmaster {
   id: string
@@ -16,6 +18,8 @@ interface Grillmaster {
   photoUrl?: string
   certifiedAt?: string
   experience: number
+  latitude?: number | null
+  longitude?: number | null
   user: { name: string }
 }
 
@@ -173,6 +177,24 @@ export default async function ChurrasqueirosPage({ params }: { params: Promise<{
             Kit Perfeito com IA
           </Link>
         </div>
+
+        {/* Mapa */}
+        {grillmasters.length > 0 && (
+          <CityMap
+            items={grillmasters.map(gm => ({
+              id: gm.id,
+              name: gm.user.name,
+              latitude: gm.latitude,
+              longitude: gm.longitude,
+              photoUrl: gm.photoUrl,
+              rating: gm.rating,
+              href: `/grillmasters/${gm.id}`,
+              badge: gm.certifiedAt ? '✓ Certificado' : undefined,
+            }))}
+            type="grillmaster"
+            cityName={cityName}
+          />
+        )}
 
         {/* Grid */}
         {grillmasters.length > 0 ? (

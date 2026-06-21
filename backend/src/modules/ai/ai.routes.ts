@@ -139,7 +139,7 @@ No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre
 
   // ── POST /ai/suggest-product ─────────────────────────────────────────
   app.post('/ai/suggest-product', { preHandler: [authenticate] }, async (request, reply) => {
-    const userId = (request as any).user?.userId as string
+    const userId = (request as any).user?.id as string
 
     // Rate limiting
     const now = Date.now()
@@ -237,7 +237,7 @@ Regras:
   })
 
   // ── POST /ai/kit-perfeito ────────────────────────────────────────────
-  app.post('/ai/kit-perfeito', async (request, reply) => {
+  app.post('/ai/kit-perfeito', { preHandler: [authenticate] }, async (request, reply) => {
     const { eventAddress, guests, occasion = 'churrasco', budget, eventDate, customerName = '' } = request.body as {
       eventAddress: string; guests: number; occasion?: string; budget?: number; eventDate?: string; customerName?: string
     }
@@ -368,6 +368,71 @@ REGRAS:
       grillmaster: { id: grillmaster.id, name: grillmaster.user.name, rating: grillmaster.rating, distanceKm: grillmaster.distanceKm, photoUrl: grillmaster.photoUrl, pricePerHour: grillmaster.pricePerHour },
       eventCoords: coords,
     })
+  })
+
+  // ── POST /ai/generate-bio ────────────────────────────────────────────
+  app.post('/ai/generate-bio', { preHandler: [authenticate] }, async (request, reply) => {
+    const { role, name, city, specialties, churrascoStyle, experience, products } = request.body as {
+      role: 'grillmaster' | 'boutique'
+      name?: string
+      city?: string
+      specialties?: string
+      churrascoStyle?: string
+      experience?: number
+      products?: string[]
+    }
+
+    if (!role) return reply.status(400).send({ error: 'role é obrigatório' })
+    if (role === 'boutique' && !name) return reply.status(400).send({ error: 'name é obrigatório para açougue' })
+
+    let prompt: string
+    if (role === 'grillmaster') {
+      prompt = `Você é especialista em marketing pessoal para churrasqueiros profissionais.
+Crie uma bio curta e vendedora para o app Tech Churras.
+
+${name ? `CHURRASQUEIRO: ${name}` : 'CHURRASQUEIRO: (nome não informado)'}
+${city ? `Cidade: ${city}` : ''}
+${experience ? `Experiência: ${experience} anos` : ''}
+${specialties ? `Especialidades: ${specialties}` : ''}
+${churrascoStyle ? `Estilo: ${churrascoStyle}` : ''}
+
+REGRAS:
+- 2-3 frases máximo (40-60 palavras)
+- Tom profissional mas humano — não robótico
+- Destaque o diferencial do churrasqueiro
+- Fale na primeira pessoa
+- NÃO use emojis
+- NÃO mencione preço
+Retorne SOMENTE o texto da bio, nada mais.`
+    } else {
+      const productList = products?.length ? products.join(', ') : ''
+      prompt = `Você é especialista em marketing para açougues artesanais.
+Crie uma descrição curta e atrativa para o app Tech Churras.
+
+AÇOUGUE: ${name}
+${city ? `Cidade: ${city}` : ''}
+${productList ? `Produtos em destaque: ${productList}` : ''}
+${specialties ? `Especialidades: ${specialties}` : ''}
+
+REGRAS:
+- 2-3 frases máximo (40-60 palavras)
+- Tom artesanal, de qualidade — não genérico
+- Destaque os cortes ou diferenciais do açougue
+- NÃO use emojis
+- NÃO mencione preço
+Retorne SOMENTE o texto da descrição, nada mais.`
+    }
+
+    const message = await client.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 200,
+      messages: [{ role: 'user', content: prompt }],
+    })
+
+    const bio = message.content[0].type === 'text' ? message.content[0].text.trim() : ''
+    if (!bio) return reply.status(500).send({ error: 'Falha ao gerar bio' })
+
+    return reply.send({ bio })
   })
 
   // ── POST /ai/suggest-from-catalog ────────────────────────────────────

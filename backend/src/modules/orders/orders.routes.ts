@@ -10,6 +10,7 @@ import {
   cancelOrderHandler,
   shareOrderHandler,
   getOrderByPublicTokenHandler,
+  getOrderEtaHandler,
 } from './orders.controller'
 
 export async function ordersRoutes(app: FastifyInstance) {
@@ -19,6 +20,7 @@ export async function ordersRoutes(app: FastifyInstance) {
   app.post('/orders', { preHandler: [app.authenticate], config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, createOrderHandler)
   app.get('/orders', { preHandler: [app.authenticate] }, listOrdersHandler)
   app.get('/orders/:id', { preHandler: [app.authenticate] }, getOrderHandler)
+  app.get('/orders/:id/eta', { preHandler: [app.authenticate] }, getOrderEtaHandler)
   app.patch('/orders/:id/status', { preHandler: [app.authenticate] }, updateOrderStatusHandler)
   app.patch('/orders/:id/status-detail', { preHandler: [app.authenticate] }, updateStatusDetailHandler)
   app.patch('/orders/:id/location', { preHandler: [app.authenticate] }, updateLocationHandler)

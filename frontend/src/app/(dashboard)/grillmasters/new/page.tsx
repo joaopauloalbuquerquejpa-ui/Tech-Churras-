@@ -4,10 +4,26 @@ import { useRef, useState } from 'react'
 import Link from 'next/link'
 import ContractModal from '@/components/ContractModal'
 
+async function generateBio(token: string, params: { name?: string; city?: string; specialties?: string; churrascoStyle?: string; experience?: number }): Promise<string> {
+  const res = await fetch(API_URL + '/ai/generate-bio', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ role: 'grillmaster', ...params }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Erro ao gerar bio')
+  return data.bio as string
+}
+
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
   return raw ? JSON.parse(raw)?.state?.token : null
+}
+
+function getAuthName(): string {
+  const raw = localStorage.getItem('auth-storage')
+  return raw ? (JSON.parse(raw)?.state?.user?.name ?? '') : ''
 }
 
 async function uploadImage(file: File, token: string): Promise<string> {
@@ -31,6 +47,7 @@ export default function NewGrillmasterPage() {
   const [showContract, setShowContract] = useState(false)
   const [gmAddress, setGmAddress] = useState('')
   const [uploadError, setUploadError] = useState('')
+  const [bioLoading, setBioLoading] = useState(false)
   const [form, setForm] = useState({
     bio: '',
     experience: 1,
@@ -212,7 +229,33 @@ export default function NewGrillmasterPage() {
         <div className="bg-gray-900 rounded-xl p-6 space-y-4">
           <h2 className="text-sm font-semibold text-gray-300 mb-2 uppercase tracking-wide">Informacoes basicas</h2>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Bio *</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm text-gray-400">Bio *</label>
+              <button
+                type="button"
+                onClick={async () => {
+                  const token = getToken()
+                  if (!token) return
+                  setBioLoading(true)
+                  try {
+                    const bio = await generateBio(token, {
+                      name: getAuthName(),
+                      city: form.city,
+                      specialties: form.specialties,
+                      churrascoStyle: form.churrascoStyle,
+                      experience: form.experience,
+                    })
+                    setForm(f => ({ ...f, bio }))
+                  } catch { /* silently fail */ }
+                  finally { setBioLoading(false) }
+                }}
+                disabled={bioLoading || (!form.city && !form.specialties)}
+                title={!form.city && !form.specialties ? 'Preencha cidade ou especialidades primeiro' : ''}
+                className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
+              >
+                {bioLoading ? 'Gerando...' : '✨ Gerar com IA'}
+              </button>
+            </div>
             <textarea
               value={form.bio}
               onChange={e => setForm({ ...form, bio: e.target.value })}

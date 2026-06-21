@@ -4,6 +4,16 @@ import { useRef, useState } from 'react'
 import Link from 'next/link'
 import ContractModal from '@/components/ContractModal'
 
+async function generateBoutiqueDesc(token: string, params: { name: string; city?: string; specialties?: string }): Promise<string> {
+  const res = await fetch(API_URL + '/ai/generate-bio', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ role: 'boutique', ...params }),
+  })
+  const data = await res.json()
+  if (!res.ok) throw new Error(data.error || 'Erro ao gerar descrição')
+  return data.bio as string
+}
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -29,6 +39,7 @@ export default function NewBoutiquePage() {
   const [showContract, setShowContract] = useState(false)
   const [boutiqueAddress, setBoutiqueAddress] = useState('')
   const [uploadError, setUploadError] = useState('')
+  const [descLoading, setDescLoading] = useState(false)
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -233,7 +244,30 @@ export default function NewBoutiquePage() {
               className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1">Descricao</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm text-gray-400">Descricao</label>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!form.name) return
+                  const token = getToken()
+                  if (!token) return
+                  setDescLoading(true)
+                  try {
+                    const desc = await generateBoutiqueDesc(token, {
+                      name: form.name,
+                      city: form.city,
+                    })
+                    setForm(f => ({ ...f, description: desc }))
+                  } catch { /* silently fail */ }
+                  finally { setDescLoading(false) }
+                }}
+                disabled={descLoading || !form.name}
+                className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
+              >
+                {descLoading ? 'Gerando...' : '✨ Gerar com IA'}
+              </button>
+            </div>
             <textarea value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
               placeholder="Conte sobre o acougue..."

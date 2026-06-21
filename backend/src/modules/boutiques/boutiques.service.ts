@@ -122,7 +122,7 @@ export async function listBoutiques(params: {
   const where: any = { approved: true }
   if (city) where.city = { contains: city, mode: 'insensitive' }
   if (minRating != null) where.rating = { gte: minRating }
-  const orderBy: any = sortBy === 'rating_desc' ? { rating: 'desc' } : { rating: 'desc' }
+  const orderBy: any = sortBy === 'name_asc' ? { name: 'asc' } : { rating: 'desc' }
   const boutiques = await prisma.boutique.findMany({
     where,
     include: { user: { select: { name: true, email: true } } },
@@ -324,4 +324,46 @@ export async function deleteKit(kitId: string, userId: string) {
   const kit = await prisma.kitChurrasco.findFirst({ where: { id: kitId, boutiqueId: boutique.id } })
   if (!kit) throw new Error('Kit nao encontrado')
   await prisma.kitChurrasco.delete({ where: { id: kitId } })
+}
+
+export async function confirmBoutiqueOrderReady(orderId: string, userId: string) {
+  const boutique = await prisma.boutique.findUnique({ where: { userId } })
+  if (!boutique) throw new Error('Acougue nao encontrado')
+
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, boutiqueId: boutique.id },
+    include: {
+      grillmaster: { include: { user: { select: { id: true, name: true } } } },
+      customer: { select: { id: true } },
+    },
+  })
+  if (!order) throw new Error('Pedido nao encontrado')
+  if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
+    throw new Error('Pedido nao pode ser confirmado neste status')
+  }
+
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { statusDetail: 'Cortes prontos — retire no balcão' },
+  })
+
+  // Push para o churrasqueiro
+  if (order.grillmaster?.user?.id) {
+    sendPushToUser(
+      order.grillmaster.user.id,
+      '🥩 Cortes prontos!',
+      `${boutique.name} confirmou que os cortes estão prontos. Pode passar no balcão!`,
+      `/orders/${orderId}`
+    ).catch((e) => console.error('[notif]', e?.message))
+  }
+
+  // Push para o cliente (transparência)
+  sendPushToUser(
+    order.customer.id,
+    '🔥 Churrasco se formando!',
+    `O açougue confirmou os cortes. Seu churrasqueiro está a caminho do balcão.`,
+    `/orders/${orderId}`
+  ).catch((e) => console.error('[notif]', e?.message))
+
+  return { ok: true }
 }
