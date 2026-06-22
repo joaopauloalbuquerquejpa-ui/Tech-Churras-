@@ -664,6 +664,49 @@ export default function FounderPage() {
           <AnimatedCounter value={100} suffix="%" label="aprovação" />
         </div>
 
+        {/* ── BAHARI OF BRAZIL ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.8 }}
+          className="mb-24 rounded-2xl overflow-hidden border border-amber-500/20"
+          style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08) 0%, #0a0a0a 100%)' }}
+        >
+          <div className="grid md:grid-cols-[340px_1fr]">
+            <div className="relative h-60 md:h-auto bg-gray-900">
+              <img
+                src="/bahari-restaurante.jpg"
+                alt="Bahari of Brazil — Zanzibar"
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950/70 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-950/40" />
+              <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-xs text-amber-300 px-2.5 py-1 rounded-full font-semibold">
+                🌍 Zanzibar, Tanzânia
+              </div>
+            </div>
+            <div className="p-8 flex flex-col justify-center">
+              <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-2">Expansão internacional</p>
+              <h3 className="text-2xl font-black text-white mb-3">Bahari of Brazil</h3>
+              <p className="text-gray-400 leading-relaxed mb-5">
+                PPP formal com o Governo de Zanzibar (MCITI) — 428m² cedidos pelo Ministério de TI e Inovação da Tanzânia para um hub culinário com restaurante, centro de treinamento e food innovation lab. Jota atua como BBQ Master oficial, e o <strong className="text-amber-300">Sábado = Brazilian BBQ Day</strong> está no calendário permanente do projeto.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  '🏛️ PPP com Gov. Zanzibar',
+                  '📐 428m² cedidos pelo MCITI',
+                  '🍖 Brazilian BBQ Day permanente',
+                  '👨‍🍳 BBQ Master oficial',
+                ].map(t => (
+                  <span key={t} className="text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 px-3 py-1 rounded-full">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {/* ── TIMELINE ── */}
         <div className="mb-24">
           <motion.h2
