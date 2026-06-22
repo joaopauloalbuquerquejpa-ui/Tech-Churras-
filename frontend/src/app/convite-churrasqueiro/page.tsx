@@ -16,19 +16,19 @@ const ESCALA_GANHOS = [
   return { ...e, bruto, liquido }
 })
 
-const BENEFICIOS_CHANCELAMENTO = [
-  { icon: '👨‍🏫', titulo: 'Treinamento com Jota', desc: 'Presencial. Técnicas de 1.800+ eventos: corte, fogo, temperos, postura.' },
-  { icon: '🏅', titulo: 'Badge Chancelado', desc: 'Aparece no seu perfil. O cliente vê antes de contratar — diferencial imediato.' },
-  { icon: '📍', titulo: 'Prioridade nas buscas', desc: 'Churrasqueiros Fundadores aparecem em primeiro por 6 meses.' },
-  { icon: '🤝', titulo: 'Acesso direto ao Jota', desc: 'WhatsApp direto com o fundador para dúvidas e crescimento.' },
-  { icon: '🥩', titulo: 'Carne + acompanhamentos', desc: 'Açougues parceiros preparam os cortes e os acompanhamentos — você retira tudo em uma parada e vai pro evento.' },
-  { icon: '💸', titulo: 'PIX toda sexta', desc: '93% do valor do evento cai na sua conta sem precisar cobrar ninguém.' },
+const O_QUE_VOCE_APRENDE = [
+  { icon: '🔪', titulo: 'Cortes com propósito', desc: 'Picanha, maminha, fraldinha — técnica de espessura, direção da faca e apresentação no prato. Padrão que Jota levou ao Bahari of Brazil em Zanzibar.' },
+  { icon: '🔥', titulo: 'Controle absoluto do fogo', desc: 'Temperatura por zona, gestão de brasa vs chama, timing de carnes simultâneas. O que leva anos sozinho, você aprende em dias com quem já fez isso em 3 continentes.' },
+  { icon: '🌿', titulo: 'Temperos que diferenciam', desc: 'Blend exclusivo de sal grosso e ervas, marinadas regionais, molhos de origem. Com identidade de quem viajou de São Paulo a Zanzibar.' },
+  { icon: '🎤', titulo: 'Postura e experiência do cliente', desc: 'Churrasco não é só carne — é performance. Como se apresentar, conduzir o evento e fazer o cliente te recomendar antes de você ir embora.' },
+  { icon: '📱', titulo: 'Gestão digital do seu negócio', desc: 'Perfil na plataforma, resposta a pedidos, acompanhamento do evento. Sistema pronto — você foca no fogo, não na burocracia.' },
+  { icon: '🤝', titulo: 'Acesso direto ao Jota', desc: 'WhatsApp direto com o fundador para dúvida, feedback e crescimento. Não é suporte — é mentoria de quem já fez isso em escala.' },
 ]
 
 const COMO_FUNCIONA = [
   { n: '1', texto: 'Você cria seu perfil com fotos, especialidades e preço por hora — leva 10 minutos' },
   { n: '2', texto: 'Cliente encontra seu perfil, vê suas avaliações e contrata pelo app' },
-  { n: '3', texto: 'Você confirma, retira a carne E os acompanhamentos prontos no açougue parceiro em uma única parada, e vai pro evento' },
+  { n: '3', texto: 'Você confirma, retira a carne e os acompanhamentos prontos no açougue parceiro em uma única parada, e vai pro evento' },
   { n: '4', texto: '93% do valor cai no seu PIX toda sexta-feira, automático' },
 ]
 
@@ -77,7 +77,7 @@ function ConviteContent() {
         <div className="flex justify-center mb-8">
           <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 rounded-full px-5 py-2 text-sm text-orange-400 font-bold">
             <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-            Convite exclusivo · Churrasqueiro Fundador · São Paulo
+            Convite pessoal · Churrasqueiro Fundador · São Paulo
           </div>
         </div>
 
@@ -93,19 +93,45 @@ function ConviteContent() {
               <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-2">Mensagem pessoal</p>
               <p className="text-3xl text-orange-500 font-black leading-none mb-2">"</p>
               <p className="text-gray-200 text-base leading-relaxed mb-5">
-                {primeiroNome}, estou montando o time de churrasqueiros que vai definir o padrão da Tech Churras em São Paulo.
-                Quero você como um dos primeiros — e quero treinar você pessoalmente com tudo que aprendi em 1.800 eventos pelo mundo.
+                {primeiroNome}, você me conhece. Sabe o que eu cobro de técnica e de postura.
+                Estou montando meu time no Brasil com o mesmo padrão que levei pra Zanzibar — e quero você como um dos primeiros.
               </p>
               <div>
                 <p className="text-white font-bold text-sm">Jota Albuquerque</p>
                 <p className="text-gray-500 text-xs">Fundador & CEO, Tech Churras</p>
-                <p className="text-gray-600 text-xs mt-0.5">13+ anos · 1.800+ eventos · Madonna, Lady Gaga, Neymar</p>
+                <p className="text-gray-600 text-xs mt-0.5">BBQ Master · PPP Governo de Zanzibar · 1.800+ eventos</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Credenciais */}
+        {/* Bloco Bahari — credencial principal */}
+        <div className="bg-gradient-to-br from-amber-500/10 to-gray-900 border border-amber-500/20 rounded-2xl overflow-hidden mb-6">
+          <div className="grid sm:grid-cols-[240px_1fr]">
+            <div className="relative h-48 sm:h-auto bg-gray-800">
+              <img src="/bahari-restaurante.jpg" alt="Bahari of Brazil — Zanzibar"
+                className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-gray-900/20" />
+              <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-xs text-amber-300 px-2.5 py-1 rounded-full font-semibold">
+                🌍 Zanzibar, Tanzânia
+              </div>
+            </div>
+            <div className="p-6 flex flex-col justify-center">
+              <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">De onde vem o padrão</p>
+              <h3 className="font-black text-white text-lg mb-2">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
+              <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                O Ministério de TI e Inovação da Tanzânia (MCITI) cedeu 428m² ao projeto Bahari of Brazil — hub culinário com restaurante, centro de treinamento e food innovation lab. Jota é BBQ Master oficial nos documentos do Ministério. O <strong className="text-amber-300">Sábado = Brazilian BBQ Day</strong> está no calendário permanente.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {['428m² cedidos pelo governo', 'Hub culinário oficial', 'BBQ Day permanente', 'Reconhecido pelo MCITI'].map(t => (
+                  <span key={t} className="text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-1 rounded-full">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Credenciais compactas */}
         <div className="flex flex-wrap gap-2 mb-10">
           {[
             { icon: '🔥', label: '1.800+ eventos realizados' },
@@ -119,7 +145,28 @@ function ConviteContent() {
           ))}
         </div>
 
-        {/* O problema que resolvemos para o churrasqueiro */}
+        {/* Treinamento — proposta central */}
+        <div className="mb-10">
+          <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">O que você recebe</p>
+          <h2 className="text-2xl font-black mb-2">Treinamento pessoal — com o que aprendi em 3 continentes</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            Não é um curso online. Não é apostila. É treinamento presencial, com quem fez isso em Zanzibar, nos EUA e em São Paulo — e agora está montando o time Fundador da Tech Churras.
+          </p>
+
+          <div className="grid sm:grid-cols-2 gap-3">
+            {O_QUE_VOCE_APRENDE.map(b => (
+              <div key={b.titulo} className="bg-gray-900 border border-orange-500/20 rounded-xl p-4 flex gap-3">
+                <span className="text-xl shrink-0">{b.icon}</span>
+                <div>
+                  <p className="font-bold text-white text-sm mb-1">{b.titulo}</p>
+                  <p className="text-xs text-gray-400 leading-relaxed">{b.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Oportunidade */}
         <div className="mb-10">
           <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">A oportunidade</p>
           <h2 className="text-2xl font-black mb-4">O talento que você tem merece mais do que indicação boca a boca</h2>
@@ -134,7 +181,7 @@ function ConviteContent() {
           <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5">
             <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-2">Como a Tech Churras muda isso</p>
             <p className="text-gray-300 leading-relaxed text-sm mb-4">
-              Seu perfil aparece para clientes que já estão procurando um churrasqueiro — não para pessoas que você conhece. Você define o preço, a disponibilidade e recebe 93% de cada evento direto no PIX toda sexta. Sem cobrar, sem negociar, sem depender de ninguém.
+              Seu perfil aparece para clientes que já estão procurando um churrasqueiro. Você define o preço, a disponibilidade e recebe 93% de cada evento direto no PIX toda sexta. Sem cobrar, sem negociar, sem depender de ninguém.
             </p>
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
@@ -151,34 +198,15 @@ function ConviteContent() {
           </div>
         </div>
 
-        {/* Chancelamento */}
-        <div className="bg-gradient-to-br from-orange-500/5 to-gray-900 border border-orange-500/20 rounded-2xl p-6 mb-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-2xl shrink-0">🏅</div>
-            <div>
-              <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-1">Diferencial único</p>
-              <h3 className="font-black text-white text-lg mb-2">Programa de Chancelamento Tech Churras</h3>
-              <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                Não é um app de freelas. É uma rede de profissionais certificados. Você passa por treinamento presencial com Jota — técnicas de corte, controle de fogo, temperos e postura profissional — e recebe o selo que o cliente vê antes de contratar. Isso justifica um preço maior e gera mais confiança.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {['Técnicas de corte', 'Controle de fogo', 'Temperos regionais', 'Postura profissional', 'Equipamentos'].map(t => (
-                  <span key={t} className="text-xs bg-orange-500/10 text-orange-300 border border-orange-500/20 px-2.5 py-1 rounded-full">{t}</span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Insumos parceiros */}
+        {/* Insumos */}
         <div className="bg-gradient-to-br from-green-500/5 to-gray-900 border border-green-500/20 rounded-2xl p-6 mb-10">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center text-2xl shrink-0">🥩</div>
             <div>
               <p className="text-xs text-green-400 font-bold uppercase tracking-widest mb-1">Logística totalmente resolvida</p>
-              <h3 className="font-black text-white text-lg mb-2">Açougues parceiros: carne + acompanhamentos prontos</h3>
+              <h3 className="font-black text-white text-lg mb-2">Carne + acompanhamentos prontos no açougue parceiro</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                Quando o cliente fecha o pedido, os cortes e os acompanhamentos (pão de alho, farofa, vinagrete...) ficam prontos no açougue parceiro. Você retira tudo em uma única parada no dia do evento — sem comprar, sem negociar, sem carregar geladeira. Zero trabalho extra, churrasco completo para o cliente.
+                Quando o cliente fecha o pedido, os cortes e os acompanhamentos ficam prontos no açougue parceiro. Você retira tudo em uma única parada — sem comprar, sem negociar, sem carregar geladeira. Zero logística extra, churrasco completo para o cliente.
               </p>
               <div className="flex flex-wrap gap-2">
                 {['Carne já separada', 'Acompanhamentos prontos', 'Uma parada só', 'Zero logística extra'].map(t => (
@@ -237,28 +265,6 @@ function ConviteContent() {
             })}
           </div>
           <p className="text-xs text-gray-700 mt-3">* Estimativa. Resultado real depende dos eventos confirmados.</p>
-        </div>
-
-        {/* Benefícios Fundador */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3 mb-5">
-            <span className="text-2xl">🏅</span>
-            <div>
-              <h2 className="text-2xl font-black">Pacote Churrasqueiro Fundador</h2>
-              <p className="text-xs text-amber-400 font-semibold">Somente para os primeiros 10 churrasqueiros em São Paulo</p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {BENEFICIOS_CHANCELAMENTO.map(b => (
-              <div key={b.titulo} className="bg-gray-900 border border-orange-500/20 rounded-xl p-4 flex gap-3">
-                <span className="text-xl shrink-0">{b.icon}</span>
-                <div>
-                  <p className="font-bold text-white text-sm mb-1">{b.titulo}</p>
-                  <p className="text-xs text-gray-400 leading-relaxed">{b.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Custos */}

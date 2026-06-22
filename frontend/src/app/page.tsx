@@ -288,6 +288,9 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+          <p className="text-center text-xs text-gray-600 mt-8">
+            Fundada por{' '}<span className="text-gray-400 font-semibold">Jota Albuquerque</span>{' '}— BBQ Master reconhecido pelo Governo de Zanzibar · 1.800+ eventos em 3 continentes
+          </p>
         </div>
       </section>
 

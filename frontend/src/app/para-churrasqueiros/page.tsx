@@ -4,18 +4,18 @@ import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Seja Churrasqueiro Parceiro — Tech Churras',
-  description: 'Transforme seu talento no churrasco em renda recorrente. Receba pedidos pelo app, gerencie sua agenda e receba 85% por PIX toda semana. Zero mensalidade.',
+  description: 'Transforme seu talento no churrasco em renda recorrente. Receba pedidos pelo app, gerencie sua agenda e receba 93% por PIX toda semana. Zero mensalidade.',
   keywords: ['churrasqueiro parceiro', 'trabalhar como churrasqueiro', 'grillmaster freelance', 'Tech Churras churrasqueiro', 'renda extra churrasco'],
   openGraph: {
     title: 'Seja Churrasqueiro Parceiro do Tech Churras',
-    description: 'Zero mensalidade. Receba pedidos pelo app e ganhe 85% de cada evento diretamente no seu PIX toda semana.',
+    description: 'Zero mensalidade. Receba pedidos pelo app e ganhe 93% de cada evento diretamente no seu PIX toda semana.',
     type: 'website',
     images: [{ url: '/jota.jpg', width: 800, height: 800, alt: 'Tech Churras — Churrasqueiro Parceiro' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Seja Churrasqueiro Parceiro do Tech Churras',
-    description: 'Zero mensalidade. 85% de cada pedido vai para você via PIX.',
+    description: 'Zero mensalidade. 93% de cada pedido vai para você via PIX.',
   },
 }
 
