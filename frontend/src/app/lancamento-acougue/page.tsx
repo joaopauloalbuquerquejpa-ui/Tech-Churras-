@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Events } from '@/lib/analytics'
 
 const LAUNCH_DATE = new Date('2026-07-06T10:00:00-03:00')
 
@@ -41,10 +42,15 @@ export default function LancamentoAcouguePage() {
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
 
+  useEffect(() => {
+    Events.viewContent('lancamento_acougue')
+  }, [])
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim() || !phone.trim()) return
     setLoading(true)
+    Events.boutiqueInterest('lancamento_acougue_form')
     const params = new URLSearchParams({ name, phone, role: 'BOUTIQUE', utm_source: 'lancamento_acougue' })
     window.location.href = `/register?${params}`
   }
@@ -63,6 +69,7 @@ export default function LancamentoAcouguePage() {
       <nav className="flex items-center justify-between px-6 py-4 max-w-5xl mx-auto">
         <p className="text-xl font-black">Tech <span className="text-orange-500">Churras</span></p>
         <Link href="/register?role=BOUTIQUE&utm_source=nav_lancamento"
+          onClick={() => Events.boutiqueFounderClick('nav')}
           className="text-xs sm:text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl transition-colors hidden sm:block">
           Cadastrar açougue →
         </Link>
@@ -299,6 +306,7 @@ export default function LancamentoAcouguePage() {
               Cancele quando quiser, sem multa.
             </p>
             <Link href="/register?role=BOUTIQUE&utm_source=lancamento_freemium"
+              onClick={() => Events.boutiqueFounderClick('freemium')}
               className="inline-block font-black text-white text-lg px-10 py-5 rounded-2xl transition-all hover:scale-105"
               style={{ background: 'linear-gradient(90deg,#f97316,#ea580c)', boxShadow: '0 0 40px rgba(249,115,22,0.4)' }}>
               Cadastrar meu açougue agora →
@@ -340,6 +348,7 @@ export default function LancamentoAcouguePage() {
           Seja um açougue fundador. Os primeiros terão vantagem competitiva, suporte prioritário e acesso ao programa de indicação com <strong className="text-white">R$ 200 de bônus por indicação</strong>.
         </p>
         <Link href="/register?role=BOUTIQUE&utm_source=lancamento_final_cta"
+          onClick={() => Events.boutiqueFounderClick('final_cta')}
           className="inline-block font-black text-white text-xl px-12 py-6 rounded-3xl transition-all hover:scale-105 active:scale-95"
           style={{ background: 'linear-gradient(90deg,#f97316,#ea580c)', boxShadow: '0 0 60px rgba(249,115,22,0.4)' }}>
           🔥 Quero ser açougue fundador →
