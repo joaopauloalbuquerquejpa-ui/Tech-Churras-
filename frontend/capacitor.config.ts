@@ -3,7 +3,9 @@ import type { CapacitorConfig } from '@capacitor/cli'
 const config: CapacitorConfig = {
   appId: 'com.techchurras.app',
   appName: 'Tech Churras',
-  webDir: 'out',
+  // 'public' sempre existe no Next.js; satisfaz o cap sync sem precisar de next build.
+  // O app em runtime ignora webDir e carrega via server.url abaixo.
+  webDir: 'public',
   server: {
     url: 'https://www.techchurras.com.br',
     cleartext: false,
