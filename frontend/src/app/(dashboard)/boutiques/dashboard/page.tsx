@@ -849,7 +849,7 @@ export default function BoutiqueDashboardPage() {
                             onClick={async () => {
                               setProcessingOrderId(o.id)
                               try {
-                                await fetch(`${API_URL}/boutiques/orders/${o.id}/reject`, { method: 'PATCH', headers: { Authorization: 'Bearer ' + getToken() }, body: JSON.stringify({ reason: 'Sem estoque no momento' }), headers: { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' } })
+                                await fetch(`${API_URL}/boutiques/orders/${o.id}/reject`, { method: 'PATCH', headers: { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'Sem estoque no momento' }) })
                                 setRejectedOrderIds(prev => new Set([...prev, o.id]))
                               } catch { /* silently fail */ }
                               finally { setProcessingOrderId(null) }
