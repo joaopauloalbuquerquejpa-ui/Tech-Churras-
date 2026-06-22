@@ -1,0 +1,7 @@
+.vercel
+
+# Android keystore — NUNCA commitar
+*.keystore
+*.jks
+frontend/android/keystore.properties
+frontend/android/.keystore-info.txt
