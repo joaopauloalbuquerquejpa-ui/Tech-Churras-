@@ -689,7 +689,7 @@ export default function FounderPage() {
               <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-2">Expansão internacional</p>
               <h3 className="text-2xl font-black text-white mb-3">Bahari of Brazil</h3>
               <p className="text-gray-400 leading-relaxed mb-5">
-                PPP formal com o Governo de Zanzibar (MCITI) — 428m² cedidos pelo Ministério de TI e Inovação da Tanzânia para um hub culinário com restaurante, centro de treinamento e food innovation lab. Jota atua como BBQ Master oficial, e o <strong className="text-amber-300">Sábado = Brazilian BBQ Day</strong> está no calendário permanente do projeto.
+                Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
               </p>
               <div className="flex flex-wrap gap-2">
                 {[

@@ -120,7 +120,7 @@ function ConviteContent() {
               <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">De onde vem o padrão</p>
               <h3 className="font-black text-white text-lg mb-2">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                O Ministério de TI e Inovação da Tanzânia (MCITI) cedeu 428m² ao projeto Bahari of Brazil — hub culinário com restaurante, centro de treinamento e food innovation lab. Jota é BBQ Master oficial nos documentos do Ministério. O <strong className="text-amber-300">Sábado = Brazilian BBQ Day</strong> está no calendário permanente.
+                Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
               </p>
               <div className="flex flex-wrap gap-2">
                 {['428m² cedidos pelo governo', 'Hub culinário oficial', 'BBQ Day permanente', 'Reconhecido pelo MCITI'].map(t => (
