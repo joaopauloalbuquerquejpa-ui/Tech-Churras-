@@ -1147,7 +1147,7 @@ export default function GrillmasterDashboardPage() {
                         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
                         body: JSON.stringify({
                           role: 'grillmaster',
-                          name: profile?.user?.name,
+                          name: user?.name,
                           city: profileForm.city,
                           specialties: profileForm.specialties,
                           churrascoStyle: profileForm.churrascoStyle,

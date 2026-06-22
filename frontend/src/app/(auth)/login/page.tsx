@@ -8,10 +8,12 @@ import { useAuthStore } from '@/store/authStore'
 const VIDEO_FOGO = 'https://videos.pexels.com/video-files/4763824/4763824-uhd_2560_1440_25fps.mp4'
 
 const TRUST_BADGES = [
-  '+500 eventos realizados',
-  'Churrasqueiros Chancelados',
-  'Preço fechado sem surpresas',
+  '+1.800 eventos realizados em São Paulo',
+  'Churrasqueiros certificados e avaliados pela comunidade',
+  'Carne entregue pelo próprio churrasqueiro no dia do evento',
 ]
+
+const PAYMENT_METHODS = ['Mercado Pago', 'Pix', 'Cartão de crédito']
 
 export default function LoginPage() {
   const router = useRouter()
@@ -44,15 +46,12 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex">
 
-      {/* ── Lado esquerdo: vídeo (apenas md+) ── */}
+      {/* ── Lado esquerdo: vídeo + conteúdo (apenas md+) ── */}
       <div className="hidden md:flex md:w-1/2 relative flex-col items-center justify-between overflow-hidden py-12 px-10">
-        {/* Vídeo */}
+
+        {/* Vídeo de fundo */}
         <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
+          autoPlay muted loop playsInline preload="auto"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ zIndex: 0 }}
         >
@@ -62,45 +61,42 @@ export default function LoginPage() {
         {/* Overlay escuro */}
         <div
           className="absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.80) 100%)', zIndex: 1 }}
+          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.85) 100%)', zIndex: 1 }}
         />
 
         {/* Overlay laranja radial */}
         <div
           className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(ellipse at 50% 80%, rgba(249,115,22,0.18) 0%, transparent 65%)',
-            zIndex: 2,
-          }}
+          style={{ background: 'radial-gradient(ellipse at 50% 80%, rgba(249,115,22,0.22) 0%, transparent 65%)', zIndex: 2 }}
         />
 
-        {/* Conteúdo */}
+        {/* Logo */}
         <div className="relative w-full text-center" style={{ zIndex: 3 }}>
-          <div
-            className="animate-fadeInUp"
-            style={{ animationDelay: '0.2s', opacity: 0 }}
-          >
+          <div className="animate-fadeInUp" style={{ animationDelay: '0.2s', opacity: 0 }}>
             <span className="text-3xl font-black text-white tracking-tight">
               Tech <span className="text-orange-500">Churras</span>
             </span>
           </div>
         </div>
 
+        {/* Headline + subtítulo */}
         <div className="relative text-center px-4" style={{ zIndex: 3 }}>
           <h2
-            className="text-3xl md:text-4xl font-black text-white mb-3 leading-snug animate-fadeInUp"
+            className="text-4xl font-black text-white mb-4 leading-tight animate-fadeInUp"
             style={{ animationDelay: '0.4s', opacity: 0 }}
           >
-            A revolução do churrasco<br />começa aqui
+            O churrasco perfeito<br />
+            <span className="text-orange-400">começa em 3 cliques</span>
           </h2>
           <p
-            className="text-gray-300 text-base animate-fadeInUp"
+            className="text-gray-300 text-base leading-relaxed animate-fadeInUp"
             style={{ animationDelay: '0.6s', opacity: 0 }}
           >
-            Grillmasters chancelados. Cortes premium. Experiência completa.
+            Contrate churrasqueiros certificados e compre carnes selecionadas — tudo em um lugar.
           </p>
         </div>
 
+        {/* Trust badges + urgência + pagamentos */}
         <div
           className="relative w-full flex flex-col gap-2 animate-fadeInUp"
           style={{ zIndex: 3, animationDelay: '0.8s', opacity: 0 }}
@@ -109,14 +105,36 @@ export default function LoginPage() {
             <div
               key={i}
               className="flex items-center gap-3 bg-black/40 backdrop-blur-sm border border-orange-500/20 rounded-xl px-4 py-2.5 text-sm text-white"
-              style={{ animation: `slideInFromBottom 0.5s ease forwards`, animationDelay: `${0.9 + i * 0.15}s`, opacity: 0 }}
+              style={{ animation: 'slideInFromBottom 0.5s ease forwards', animationDelay: `${0.9 + i * 0.15}s`, opacity: 0 }}
             >
               <span className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-xs font-bold shrink-0">
-                &#10003;
+                ✓
               </span>
               {badge}
             </div>
           ))}
+
+          {/* Urgência */}
+          <div
+            className="flex items-center gap-2 px-4 py-2 text-xs text-orange-300/80"
+            style={{ animation: 'slideInFromBottom 0.5s ease forwards', animationDelay: '1.35s', opacity: 0 }}
+          >
+            <span>🔥</span>
+            <span>47 churrascos agendados essa semana em SP</span>
+          </div>
+
+          {/* Métodos de pagamento */}
+          <div
+            className="flex items-center gap-2 px-4 pt-1 pb-0"
+            style={{ animation: 'slideInFromBottom 0.5s ease forwards', animationDelay: '1.5s', opacity: 0 }}
+          >
+            <span className="text-gray-600 text-xs">Aceito por:</span>
+            {PAYMENT_METHODS.map((m, i) => (
+              <span key={i} className="text-xs text-gray-400 bg-white/5 border border-white/10 rounded-md px-2 py-0.5">
+                {m}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -127,16 +145,32 @@ export default function LoginPage() {
           style={{ animationDelay: '0.3s', opacity: 0 }}
         >
           {/* Logo mobile */}
-          <div className="md:hidden text-center mb-8">
+          <div className="md:hidden text-center mb-6">
             <span className="text-2xl font-black text-white">
               Tech <span className="text-orange-500">Churras</span>
             </span>
           </div>
 
+          {/* Trust strip — só mobile */}
+          <div className="md:hidden flex flex-col gap-1.5 mb-6">
+            {TRUST_BADGES.map((badge, i) => (
+              <div key={i} className="flex items-center gap-2 text-xs text-gray-400">
+                <span className="w-4 h-4 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-[10px] shrink-0">✓</span>
+                {badge}
+              </div>
+            ))}
+            <p className="text-xs text-orange-400/70 mt-1 flex items-center gap-1">
+              <span>🔥</span> 47 churrascos agendados essa semana em SP
+            </p>
+          </div>
+
+          {/* Header do form */}
           <h1 className="text-3xl font-black text-white mb-1">
-            Bem-vindo de volta
+            Entre e peça seu churrasco
           </h1>
-          <p className="text-gray-500 mb-8 text-sm">Entre na sua conta para continuar</p>
+          <p className="text-gray-500 mb-8 text-sm">
+            Ou crie sua conta em 1 minuto — é grátis
+          </p>
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-5 text-sm">
@@ -181,7 +215,7 @@ export default function LoginPage() {
                 background: loading
                   ? 'rgb(249,115,22)'
                   : 'linear-gradient(135deg, rgb(249,115,22) 0%, rgb(234,88,12) 100%)',
-                boxShadow: loading ? 'none' : '0 4px 20px rgba(249,115,22,0.35)',
+                boxShadow: loading ? 'none' : '0 4px 24px rgba(249,115,22,0.40)',
               }}
             >
               {loading ? (
@@ -196,17 +230,33 @@ export default function LoginPage() {
                 'Entrar'
               )}
             </button>
+
+            {/* Badge de segurança */}
+            <p className="text-center text-xs text-gray-600 pt-1">
+              🔒 Pagamento 100% seguro via Pix ou cartão
+            </p>
           </form>
 
-          <p className="text-gray-500 text-sm text-center mt-6">
-            Não tem conta?{' '}
+          {/* CTA de criação de conta */}
+          <div className="mt-6 text-center">
             <a
               href="/register"
-              className="text-orange-500 font-medium relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-orange-500 hover:after:w-full after:transition-all"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-orange-400 hover:text-orange-300 transition-colors group"
             >
-              Criar conta
+              Primeira vez? Crie sua conta grátis
+              <span className="group-hover:translate-x-1 transition-transform">→</span>
             </a>
-          </p>
+          </div>
+
+          {/* Pagamentos — mobile */}
+          <div className="md:hidden mt-6 flex items-center justify-center gap-2 flex-wrap">
+            <span className="text-gray-600 text-xs">Aceito por:</span>
+            {PAYMENT_METHODS.map((m, i) => (
+              <span key={i} className="text-xs text-gray-400 bg-white/5 border border-white/10 rounded-md px-2 py-0.5">
+                {m}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
