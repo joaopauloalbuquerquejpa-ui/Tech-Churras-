@@ -1,9 +1,7 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
-import dynamic from 'next/dynamic'
 import { API_URL } from '@/lib/api'
-
-const CityMap = dynamic(() => import('@/components/CityMap'), { ssr: false })
+import CityMap from '@/components/CityMapClient'
 
 interface Grillmaster {
   id: string
