@@ -5,9 +5,10 @@ const orders_controller_1 = require("./orders.controller");
 async function ordersRoutes(app) {
     // rota publica — sem autenticacao, deve vir antes de /:id
     app.get('/orders/public/:token', orders_controller_1.getOrderByPublicTokenHandler);
-    app.post('/orders', { preHandler: [app.authenticate] }, orders_controller_1.createOrderHandler);
+    app.post('/orders', { preHandler: [app.authenticate], config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, orders_controller_1.createOrderHandler);
     app.get('/orders', { preHandler: [app.authenticate] }, orders_controller_1.listOrdersHandler);
     app.get('/orders/:id', { preHandler: [app.authenticate] }, orders_controller_1.getOrderHandler);
+    app.get('/orders/:id/eta', { preHandler: [app.authenticate] }, orders_controller_1.getOrderEtaHandler);
     app.patch('/orders/:id/status', { preHandler: [app.authenticate] }, orders_controller_1.updateOrderStatusHandler);
     app.patch('/orders/:id/status-detail', { preHandler: [app.authenticate] }, orders_controller_1.updateStatusDetailHandler);
     app.patch('/orders/:id/location', { preHandler: [app.authenticate] }, orders_controller_1.updateLocationHandler);

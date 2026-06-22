@@ -78,6 +78,14 @@ export declare function createBoutique(userId: string, data: CreateBoutiqueInput
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
+}>;
+export declare function getReferralStats(userId: string): Promise<{
+    referralCode: string | null;
+    referralLink: string;
+    totalReferrals: number;
+    pendingBonus: number;
+    paidBonus: number;
 }>;
 export declare function listBoutiques(params?: {
     city?: string;
@@ -117,6 +125,7 @@ export declare function listBoutiques(params?: {
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
 })[]>;
 export declare function findNearbyBoutiques(lat: number, lng: number, radiusKm?: number): Promise<{
     distanceKm: number;
@@ -161,6 +170,7 @@ export declare function findNearbyBoutiques(lat: number, lng: number, radiusKm?:
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
 }[]>;
 export declare function getBoutiqueById(id: string): Promise<{
     user: {
@@ -209,6 +219,7 @@ export declare function getBoutiqueById(id: string): Promise<{
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
 }>;
 export declare function getMyBoutique(userId: string): Promise<{
     user: {
@@ -257,6 +268,7 @@ export declare function getMyBoutique(userId: string): Promise<{
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
 }>;
 export declare function updateBoutique(userId: string, data: UpdateBoutiqueInput): Promise<{
     name: string;
@@ -284,6 +296,7 @@ export declare function updateBoutique(userId: string, data: UpdateBoutiqueInput
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
 }>;
 export declare function getKitsByBoutique(boutiqueId: string): Promise<{
     name: string;
@@ -335,9 +348,13 @@ export declare function getBoutiqueDashboardStats(userId: string): Promise<{
     recentOrders: {
         id: string;
         customerName: any;
+        customerPhone: any;
+        grillmasterName: any;
         totalPrice: number;
         status: import("@prisma/client").$Enums.OrderStatus;
         eventDate: Date;
+        guestCount: number;
+        items: any;
     }[];
     referralCode: string | null;
     referralCount: number;
@@ -350,4 +367,13 @@ export declare function getBoutiqueDemandForecast(userId: string): Promise<{
     nextEventDate: Date;
 }[]>;
 export declare function deleteKit(kitId: string, userId: string): Promise<void>;
+export declare function confirmBoutiqueOrderReady(orderId: string, userId: string): Promise<{
+    ok: boolean;
+}>;
+export declare function acceptBoutiqueOrder(orderId: string, userId: string): Promise<{
+    ok: boolean;
+}>;
+export declare function rejectBoutiqueOrder(orderId: string, userId: string, reason?: string): Promise<{
+    ok: boolean;
+}>;
 //# sourceMappingURL=boutiques.service.d.ts.map

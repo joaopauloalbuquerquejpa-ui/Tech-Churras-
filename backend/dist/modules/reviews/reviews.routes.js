@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reviewsRoutes = reviewsRoutes;
 const supabase_js_1 = require("@supabase/supabase-js");
+const crypto_1 = require("crypto");
 const reviews_controller_1 = require("./reviews.controller");
 async function reviewsRoutes(app) {
     app.post('/reviews', { preHandler: [app.authenticate] }, reviews_controller_1.createReviewHandler);
@@ -21,7 +22,7 @@ async function reviewsRoutes(app) {
             const supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseKey);
             const buffer = await data.toBuffer();
             const ext = data.filename.split('.').pop() || 'jpg';
-            const fileName = `review-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const fileName = `review-${Date.now()}-${(0, crypto_1.randomUUID)()}.${ext}`;
             const { error } = await supabase.storage
                 .from('review-photos')
                 .upload(fileName, buffer, { contentType: data.mimetype, upsert: false });

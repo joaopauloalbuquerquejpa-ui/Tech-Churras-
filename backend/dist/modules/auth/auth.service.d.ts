@@ -10,6 +10,7 @@ export declare const registerSchema: z.ZodObject<{
         BOUTIQUE: "BOUTIQUE";
     }>>;
     referralCode: z.ZodOptional<z.ZodString>;
+    conviteId: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>;
 export declare const loginSchema: z.ZodObject<{
     email: z.ZodString;
@@ -46,5 +47,25 @@ export declare function markOnboardingCompleted(userId: string): Promise<{
     firstOrderCouponUsed: boolean;
     createdAt: Date;
     updatedAt: Date;
+}>;
+export declare function registerGuest(data: {
+    name: string;
+    phone: string;
+}): Promise<{
+    name: string;
+    id: string;
+    email: string;
+    role: import("@prisma/client").$Enums.Role;
+    onboardingCompleted: boolean;
+}>;
+export declare function updateUserProfile(userId: string, data: {
+    name?: string;
+    phone?: string;
+}): Promise<{
+    name: string;
+    id: string;
+    email: string;
+    phone: string | null;
+    role: import("@prisma/client").$Enums.Role;
 }>;
 //# sourceMappingURL=auth.service.d.ts.map

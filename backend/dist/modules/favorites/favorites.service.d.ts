@@ -71,6 +71,7 @@ export declare function listFavorites(userId: string): Promise<{
         openingHours: string | null;
         deliveryOrPickup: string | null;
         referralCode: string | null;
+        trialEndsAt: Date | null;
     }[];
     raw: {
         id: string;

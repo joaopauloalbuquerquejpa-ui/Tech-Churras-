@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createKitSchema = exports.updateBoutiqueSchema = exports.createBoutiqueSchema = void 0;
 exports.createBoutique = createBoutique;
+exports.getReferralStats = getReferralStats;
 exports.listBoutiques = listBoutiques;
 exports.findNearbyBoutiques = findNearbyBoutiques;
 exports.getBoutiqueById = getBoutiqueById;
@@ -13,9 +14,19 @@ exports.updateKit = updateKit;
 exports.getBoutiqueDashboardStats = getBoutiqueDashboardStats;
 exports.getBoutiqueDemandForecast = getBoutiqueDemandForecast;
 exports.deleteKit = deleteKit;
+exports.confirmBoutiqueOrderReady = confirmBoutiqueOrderReady;
+exports.acceptBoutiqueOrder = acceptBoutiqueOrder;
+exports.rejectBoutiqueOrder = rejectBoutiqueOrder;
 const prisma_1 = require("../../config/prisma");
+const push_service_1 = require("../push/push.service");
 const zod_1 = require("zod");
 const geo_1 = require("../../utils/geo");
+const crypto_1 = require("crypto");
+function generateReferralCode(name) {
+    const prefix = name.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X');
+    const suffix = (0, crypto_1.randomBytes)(3).toString('hex').toUpperCase();
+    return `${prefix}${suffix}`;
+}
 exports.createBoutiqueSchema = zod_1.z.object({
     name: zod_1.z.string().min(2),
     description: zod_1.z.string().optional(),
@@ -74,10 +85,40 @@ async function createBoutique(userId, data) {
             longitude = coords.lng;
         }
     }
-    return prisma_1.prisma.boutique.create({
-        data: { userId, ...data, latitude, longitude },
+    const referralCode = generateReferralCode(data.name);
+    const boutique = await prisma_1.prisma.boutique.create({
+        data: { userId, ...data, latitude, longitude, referralCode },
         include: { user: { select: { name: true, email: true } } },
     });
+    // Notify all admins of new partner registration (push + WhatsApp)
+    prisma_1.prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } }).then(admins => {
+        for (const admin of admins) {
+            (0, push_service_1.sendPushToUser)(admin.id, '🥩 Novo açougue!', `${boutique.user?.name} cadastrou ${boutique.name} e aguarda aprovação.`, '/admin').catch((e) => console.error("[notif]", e?.message));
+        }
+    }).catch((e) => console.error("[notif]", e?.message));
+    (0, push_service_1.sendWhatsAppToAdmin)(`🥩 *Novo açougue cadastrado — Tech Churras!*\n\n` +
+        `Açougue: ${boutique.name}\n` +
+        `Responsável: ${boutique.user?.name}\n` +
+        `Email: ${boutique.user?.email}\n` +
+        `Cidade: ${boutique.city}, ${boutique.state}\n\n` +
+        `⏳ Aguardando sua aprovação:\nhttps://www.techchurras.com.br/admin`).catch((e) => console.error("[notif]", e?.message));
+    return boutique;
+}
+async function getReferralStats(userId) {
+    const boutique = await prisma_1.prisma.boutique.findUnique({ where: { userId }, select: { id: true, referralCode: true } });
+    if (!boutique)
+        throw new Error('Açougue não encontrado');
+    const [referredUsers, bonuses] = await Promise.all([
+        prisma_1.prisma.user.count({ where: { referredByBoutiqueId: boutique.id } }),
+        prisma_1.prisma.payout.findMany({
+            where: { type: 'REFERRAL_BONUS', recipientId: boutique.id },
+            select: { amount: true, status: true },
+        }),
+    ]);
+    const pendingBonus = bonuses.filter(b => b.status === 'PENDING').reduce((s, b) => s + b.amount, 0);
+    const paidBonus = bonuses.filter(b => b.status === 'PAID').reduce((s, b) => s + b.amount, 0);
+    const referralLink = `https://www.techchurras.com.br/register?ref=${boutique.referralCode}`;
+    return { referralCode: boutique.referralCode, referralLink, totalReferrals: referredUsers, pendingBonus, paidBonus };
 }
 async function listBoutiques(params = {}) {
     const { city, minRating, sortBy, lat, lng, radiusKm = 15 } = params;
@@ -86,7 +127,7 @@ async function listBoutiques(params = {}) {
         where.city = { contains: city, mode: 'insensitive' };
     if (minRating != null)
         where.rating = { gte: minRating };
-    const orderBy = sortBy === 'rating_desc' ? { rating: 'desc' } : { rating: 'desc' };
+    const orderBy = sortBy === 'name_asc' ? { name: 'asc' } : { rating: 'desc' };
     const boutiques = await prisma_1.prisma.boutique.findMany({
         where,
         include: { user: { select: { name: true, email: true } } },
@@ -184,11 +225,15 @@ async function getBoutiqueDashboardStats(userId) {
             select: { totalPrice: true, createdAt: true },
         }),
         prisma_1.prisma.order.count({
-            where: { boutiqueId: boutique.id, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
+            where: { boutiqueId: boutique.id, status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] } },
         }),
         prisma_1.prisma.order.findMany({
             where: { boutiqueId: boutique.id },
-            include: { customer: { select: { name: true } } },
+            include: {
+                customer: { select: { name: true, phone: true } },
+                items: { include: { product: { select: { name: true, unit: true } } } },
+                grillmaster: { include: { user: { select: { name: true } } } },
+            },
             orderBy: { createdAt: 'desc' },
             take: 10,
         }),
@@ -213,9 +258,17 @@ async function getBoutiqueDashboardStats(userId) {
         recentOrders: recentOrders.map(o => ({
             id: o.id,
             customerName: o.customer.name,
+            customerPhone: o.customer.phone,
+            grillmasterName: o.grillmaster?.user?.name ?? null,
             totalPrice: o.totalPrice,
             status: o.status,
             eventDate: o.eventDate,
+            guestCount: o.guestCount,
+            items: (o.items ?? []).map((i) => ({
+                name: i.product?.name ?? '',
+                quantity: i.quantity,
+                unit: i.product?.unit ?? 'kg',
+            })),
         })),
         referralCode: boutique.referralCode,
         referralCount,
@@ -273,5 +326,70 @@ async function deleteKit(kitId, userId) {
     if (!kit)
         throw new Error('Kit nao encontrado');
     await prisma_1.prisma.kitChurrasco.delete({ where: { id: kitId } });
+}
+async function confirmBoutiqueOrderReady(orderId, userId) {
+    const boutique = await prisma_1.prisma.boutique.findUnique({ where: { userId } });
+    if (!boutique)
+        throw new Error('Acougue nao encontrado');
+    const order = await prisma_1.prisma.order.findFirst({
+        where: { id: orderId, boutiqueId: boutique.id },
+        include: {
+            grillmaster: { include: { user: { select: { id: true, name: true } } } },
+            customer: { select: { id: true } },
+        },
+    });
+    if (!order)
+        throw new Error('Pedido nao encontrado');
+    if (!['PENDING', 'CONFIRMED'].includes(order.status)) {
+        throw new Error('Pedido nao pode ser confirmado neste status');
+    }
+    await prisma_1.prisma.order.update({
+        where: { id: orderId },
+        data: { statusDetail: 'Cortes prontos — retire no balcão' },
+    });
+    // Push para o churrasqueiro
+    if (order.grillmaster?.user?.id) {
+        (0, push_service_1.sendPushToUser)(order.grillmaster.user.id, '🥩 Cortes prontos!', `${boutique.name} confirmou que os cortes estão prontos. Pode passar no balcão!`, `/orders/${orderId}`).catch((e) => console.error('[notif]', e?.message));
+    }
+    // Push para o cliente (transparência)
+    (0, push_service_1.sendPushToUser)(order.customer.id, '🔥 Churrasco se formando!', `O açougue confirmou os cortes. Seu churrasqueiro está a caminho do balcão.`, `/orders/${orderId}`).catch((e) => console.error('[notif]', e?.message));
+    return { ok: true };
+}
+async function acceptBoutiqueOrder(orderId, userId) {
+    const boutique = await prisma_1.prisma.boutique.findUnique({ where: { userId } });
+    if (!boutique)
+        throw new Error('Acougue nao encontrado');
+    const order = await prisma_1.prisma.order.findFirst({
+        where: { id: orderId, boutiqueId: boutique.id, status: 'PENDING' },
+        include: {
+            customer: { select: { id: true, name: true } },
+            grillmaster: { include: { user: { select: { id: true } } } },
+        },
+    });
+    if (!order)
+        throw new Error('Pedido nao encontrado ou ja processado');
+    await prisma_1.prisma.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } });
+    (0, push_service_1.sendPushToUser)(order.customer.id, '✅ Pedido aceito!', `${boutique.name} aceitou seu pedido. Estão separando suas carnes!`, `/orders/${orderId}`).catch(() => { });
+    if (order.grillmaster?.user?.id) {
+        (0, push_service_1.sendPushToUser)(order.grillmaster.user.id, '🥩 Açougue confirmou!', `${boutique.name} confirmou os itens do evento. Prepare-se!`, `/orders/${orderId}`).catch(() => { });
+    }
+    return { ok: true };
+}
+async function rejectBoutiqueOrder(orderId, userId, reason) {
+    const boutique = await prisma_1.prisma.boutique.findUnique({ where: { userId } });
+    if (!boutique)
+        throw new Error('Acougue nao encontrado');
+    const order = await prisma_1.prisma.order.findFirst({
+        where: { id: orderId, boutiqueId: boutique.id, status: { in: ['PENDING', 'CONFIRMED'] } },
+        include: { customer: { select: { id: true } } },
+    });
+    if (!order)
+        throw new Error('Pedido nao encontrado ou ja processado');
+    await prisma_1.prisma.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED', cancelledBy: 'BOUTIQUE', cancellationReason: reason ?? 'Açougue não pode atender este pedido' },
+    });
+    (0, push_service_1.sendPushToUser)(order.customer.id, '❌ Pedido cancelado', `${boutique.name} não pode atender este pedido. Estamos buscando alternativas.`, `/orders/${orderId}`).catch(() => { });
+    return { ok: true };
 }
 //# sourceMappingURL=boutiques.service.js.map

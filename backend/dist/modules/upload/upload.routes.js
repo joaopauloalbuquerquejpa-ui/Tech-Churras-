@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadRoutes = uploadRoutes;
 const supabase_js_1 = require("@supabase/supabase-js");
+const crypto_1 = require("crypto");
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_SIZE = 5 * 1024 * 1024;
 async function uploadRoutes(app) {
@@ -24,7 +25,7 @@ async function uploadRoutes(app) {
             }
             const supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseKey);
             const ext = data.filename.split('.').pop() || 'jpg';
-            const fileName = `partner-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+            const fileName = `partner-${Date.now()}-${(0, crypto_1.randomUUID)()}.${ext}`;
             const { error } = await supabase.storage
                 .from('partner-images')
                 .upload(fileName, buffer, { contentType: data.mimetype, upsert: false });

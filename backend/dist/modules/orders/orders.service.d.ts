@@ -90,6 +90,7 @@ export declare function createOrder(customerId: string, data: CreateOrderInput):
         openingHours: string | null;
         deliveryOrPickup: string | null;
         referralCode: string | null;
+        trialEndsAt: Date | null;
     } | null;
     items: {
         id: string;
@@ -210,6 +211,7 @@ export declare function listOrders(customerId: string): Promise<{
         openingHours: string | null;
         deliveryOrPickup: string | null;
         referralCode: string | null;
+        trialEndsAt: Date | null;
     } | null;
     items: ({
         product: {
@@ -381,6 +383,10 @@ export declare function updateOrderStatus(id: string, status: string, userId?: s
     publicShareToken: string | null;
 }>;
 export declare function cancelOrder(id: string, userId: string, role: string, reason: string): Promise<{
+    grillmaster: {
+        userId: string;
+    } | null;
+} & {
     id: string;
     createdAt: Date;
     updatedAt: Date;
@@ -454,6 +460,9 @@ export declare function getOrderById(id: string, userId: string, role?: string):
         name: string;
         id: string;
         averageRating: number | null;
+        _count: {
+            orders: number;
+        };
     };
     grillmaster: ({
         user: {
@@ -530,6 +539,7 @@ export declare function getOrderById(id: string, userId: string, role?: string):
         openingHours: string | null;
         deliveryOrPickup: string | null;
         referralCode: string | null;
+        trialEndsAt: Date | null;
     } | null;
     items: ({
         product: {
@@ -585,5 +595,28 @@ export declare function getOrderById(id: string, userId: string, role?: string):
     reminder48hSent: boolean;
     reminder24hSent: boolean;
     publicShareToken: string | null;
+}>;
+export declare function getOrderEta(id: string, userId: string, role: string): Promise<{
+    available: boolean;
+    reason: string;
+    distanceKm?: undefined;
+    etaMinutes?: undefined;
+    etaLabel?: undefined;
+    gmLat?: undefined;
+    gmLng?: undefined;
+    eventLat?: undefined;
+    eventLng?: undefined;
+    lastUpdate?: undefined;
+} | {
+    available: boolean;
+    distanceKm: number;
+    etaMinutes: number;
+    etaLabel: string;
+    gmLat: number;
+    gmLng: number;
+    eventLat: number;
+    eventLng: number;
+    lastUpdate: Date | null;
+    reason?: undefined;
 }>;
 //# sourceMappingURL=orders.service.d.ts.map

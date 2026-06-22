@@ -14,23 +14,32 @@ exports.generateShareToken = generateShareToken;
 exports.getOrderByPublicToken = getOrderByPublicToken;
 exports.getRepeatData = getRepeatData;
 exports.getOrderById = getOrderById;
+exports.getOrderEta = getOrderEta;
 const prisma_1 = require("../../config/prisma");
 const zod_1 = require("zod");
 const crypto_1 = __importDefault(require("crypto"));
 const coupons_service_1 = require("../coupons/coupons.service");
 const push_service_1 = require("../push/push.service");
+const email_service_1 = require("../email/email.service");
+const geo_1 = require("../../utils/geo");
 exports.createOrderSchema = zod_1.z.object({
     grillmasterId: zod_1.z.string().optional(),
     boutiqueId: zod_1.z.string().optional(),
-    eventDate: zod_1.z.string().transform(s => new Date(s)),
+    eventDate: zod_1.z.string()
+        .transform(s => new Date(s))
+        .refine(d => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return d >= today;
+    }, { message: 'A data do evento não pode ser no passado' }),
     eventAddress: zod_1.z.string().min(5),
     eventHours: zod_1.z.number().int().min(1).default(4),
     guestCount: zod_1.z.number().int().min(1),
-    notes: zod_1.z.string().optional(),
+    notes: zod_1.z.string().max(1000).optional(),
     couponCode: zod_1.z.string().optional(),
     items: zod_1.z.array(zod_1.z.object({
-        productId: zod_1.z.string(),
-        quantity: zod_1.z.number().positive(),
+        productId: zod_1.z.string().uuid(),
+        quantity: zod_1.z.number().positive().max(1000),
     })).optional(),
 });
 async function createOrder(customerId, data) {
@@ -80,12 +89,61 @@ async function createOrder(customerId, data) {
             data: { usedCount: { increment: 1 } },
         });
     }
+    // Notify all admins of new order (push + WhatsApp)
+    const adminDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate);
+    (0, push_service_1.sendPushToRole)('ADMIN', '🔥 Novo pedido!', `R$ ${order.totalPrice.toFixed(2)} — ${order.guestCount} pessoas em ${adminDate}`, '/admin').catch((e) => console.error("[notif]", e?.message));
+    prisma_1.prisma.user.findUnique({ where: { id: customerId }, select: { name: true, phone: true } }).then(customer => {
+        const adminEventDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate);
+        const msg = `🔥 *Novo pedido — Tech Churras!*\n\n` +
+            `👤 Cliente: ${customer?.name ?? 'Cliente'}\n` +
+            `📞 ${customer?.phone ?? 'sem telefone'}\n` +
+            `💰 R$ ${order.totalPrice.toFixed(2)}\n` +
+            `📅 ${adminEventDate}\n` +
+            `👥 ${order.guestCount} convidados\n` +
+            `📍 ${order.eventAddress}\n\n` +
+            `👉 https://www.techchurras.com.br/admin`;
+        (0, push_service_1.sendWhatsAppToAdmin)(msg).catch((e) => console.error("[notif]", e?.message));
+    }).catch((e) => console.error("[notif]", e?.message));
     // Notify boutique owner when a new order involves their boutique
     if (order.boutiqueId) {
-        prisma_1.prisma.boutique.findUnique({ where: { id: order.boutiqueId } }).then(b => {
-            if (b)
-                (0, push_service_1.sendPushToUser)(b.userId, 'Novo pedido no seu açougue!', 'Um novo pedido foi criado envolvendo seu açougue.', '/boutiques/dashboard').catch(() => { });
-        }).catch(() => { });
+        const eventDateFmt = new Intl.DateTimeFormat('pt-BR', {
+            weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+        }).format(order.eventDate);
+        prisma_1.prisma.boutique.findUnique({
+            where: { id: order.boutiqueId },
+            include: { user: { select: { id: true, name: true, phone: true } } },
+        }).then(b => {
+            if (!b)
+                return;
+            (0, push_service_1.sendPushToUser)(b.userId, '🥩 Novo pedido no seu açougue!', `Evento em ${eventDateFmt} — acesse o dashboard.`, '/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message));
+            if (b.user?.phone) {
+                const firstName = b.user.name.split(' ')[0];
+                const msg = `🥩 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Chegou um pedido para o *${order.boutique?.name ?? 'seu açougue'}*.\n\n📅 Evento: ${eventDateFmt}\n👥 ${order.guestCount} convidados\n\nVeja os detalhes e prepare os cortes:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`;
+                sendWhatsAppMessage(b.user.phone, msg, 'new-order-boutique').catch((e) => console.error("[notif]", e?.message));
+            }
+        }).catch((e) => console.error("[notif]", e?.message));
+    }
+    // Notify grillmaster of incoming order
+    if (order.grillmasterId) {
+        Promise.all([
+            prisma_1.prisma.grillmaster.findUnique({
+                where: { id: order.grillmasterId },
+                include: { user: { select: { id: true, email: true, name: true, phone: true } } },
+            }),
+            prisma_1.prisma.user.findUnique({ where: { id: customerId }, select: { name: true } }),
+        ]).then(([gm, customer]) => {
+            if (!gm?.user)
+                return;
+            const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate);
+            (0, push_service_1.sendPushToUser)(gm.user.id, '🔥 Novo pedido!', `Você recebeu um novo pedido para ${date}. Confirme agora.`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message));
+            (0, email_service_1.emailNewOrderGrillmaster)(gm.user.email, gm.user.name, order.id, customer?.name ?? 'Cliente', order.eventDate, order.guestCount).catch((e) => console.error("[notif]", e?.message));
+            if (gm.user.phone) {
+                const firstName = gm.user.name.split(' ')[0];
+                const customerName = customer?.name ?? 'Cliente';
+                const msg = `🔥 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Você recebeu um novo pedido.\n\n👤 Cliente: ${customerName}\n📅 Data: ${date}\n👥 ${order.guestCount} convidados\n\nAcesse o painel para *confirmar agora*:\nhttps://www.techchurras.com.br/grillmasters/dashboard\n\n_Responda rápido — clientes preferem churrasqueiros ágeis! 🔥_`;
+                sendWhatsAppMessage(gm.user.phone, msg, 'new-order-gm').catch((e) => console.error("[notif]", e?.message));
+            }
+        }).catch((e) => console.error("[notif]", e?.message));
     }
     return order;
 }
@@ -112,6 +170,23 @@ async function listOrders(customerId) {
     unreadGroups.forEach(g => { unreadMap[g.orderId] = g._count.id; });
     return orders.map(o => ({ ...o, _unreadMessages: unreadMap[o.id] ?? 0 }));
 }
+async function sendWhatsAppMessage(phone, message, label) {
+    const instance = process.env.ZAPI_INSTANCE;
+    const token = process.env.ZAPI_TOKEN;
+    if (!instance || !token)
+        return;
+    const cleanPhone = phone.replace(/\D/g, '');
+    try {
+        const res = await fetch(`https://api.z-api.io/instances/${instance}/token/${token}/send-text`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: cleanPhone, message }) });
+        if (!res.ok)
+            console.log(`[WhatsApp] ${label} erro:`, res.status);
+        else
+            console.log(`[WhatsApp] ${label} enviado para`, cleanPhone);
+    }
+    catch (err) {
+        console.log(`[WhatsApp] ${label} falha:`, err);
+    }
+}
 async function sendWhatsAppConfirmation(phone, customerName, orderId, grillmasterName, eventDate) {
     const instance = process.env.ZAPI_INSTANCE;
     const token = process.env.ZAPI_TOKEN;
@@ -119,26 +194,11 @@ async function sendWhatsAppConfirmation(phone, customerName, orderId, grillmaste
         console.log('[WhatsApp] ZAPI_INSTANCE/ZAPI_TOKEN nao configurados — pulando envio');
         return;
     }
-    const cleanPhone = phone.replace(/\D/g, '');
     const date = new Intl.DateTimeFormat('pt-BR', {
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit',
+        day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
     }).format(eventDate);
     const message = `🔥 Seu churrasco está confirmado! Olá ${customerName}, seu pedido #${orderId.slice(0, 8)} com ${grillmasterName} foi confirmado para ${date}. Acompanhe em: https://www.techchurras.com.br/orders/${orderId}`;
-    try {
-        const res = await fetch(`https://api.z-api.io/instances/${instance}/token/${token}/send-text`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: cleanPhone, message }),
-        });
-        if (!res.ok)
-            console.log('[WhatsApp] Erro:', res.status, await res.text());
-        else
-            console.log('[WhatsApp] Mensagem enviada para', cleanPhone);
-    }
-    catch (err) {
-        console.log('[WhatsApp] Falha na requisicao:', err);
-    }
+    await sendWhatsAppMessage(phone, message, 'confirmacao');
 }
 async function updateOrderStatusDetail(id, statusDetail, userId, role) {
     let authorized = false;
@@ -156,7 +216,7 @@ async function updateOrderStatusDetail(id, statusDetail, userId, role) {
         throw new Error('Nao autorizado');
     const updated = await prisma_1.prisma.order.update({ where: { id }, data: { statusDetail } });
     if (statusDetail === 'Churrasqueiro a caminho') {
-        (0, push_service_1.sendPushToUser)(updated.customerId, 'Churrasqueiro a caminho!', 'Seu churrasqueiro esta se deslocando ao local do evento.', `/orders/${id}`).catch(() => { });
+        (0, push_service_1.sendPushToUser)(updated.customerId, 'Churrasqueiro a caminho!', 'Seu churrasqueiro esta se deslocando ao local do evento.', `/orders/${id}`).catch((e) => console.error("[notif]", e?.message));
     }
     return updated;
 }
@@ -189,26 +249,65 @@ async function updateOrderStatus(id, status, userId, role) {
         },
     });
     if (status === 'CONFIRMED') {
-        (0, push_service_1.sendPushToUser)(updated.customerId, 'Pedido confirmado!', `Seu churrasco foi confirmado para ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updated.eventDate)}.`, `/orders/${updated.id}`).catch(() => { });
+        (0, push_service_1.sendPushToUser)(updated.customerId, 'Pedido confirmado!', `Seu churrasco foi confirmado para ${new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(updated.eventDate)}.`, `/orders/${updated.id}`).catch((e) => console.error("[notif]", e?.message));
+        (0, email_service_1.emailOrderConfirmed)(updated.customer.email, updated.customer.name, updated.id, updated.grillmaster?.user?.name ?? 'churrasqueiro', updated.eventDate, updated.eventAddress ?? '').catch((e) => console.error("[notif]", e?.message));
     }
     if (status === 'COMPLETED' && updated.grillmasterId) {
         prisma_1.prisma.grillmaster.findUnique({ where: { id: updated.grillmasterId } }).then(gm => {
             if (gm)
-                (0, push_service_1.sendPushToUser)(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch(() => { });
-        }).catch(() => { });
+                (0, push_service_1.sendPushToUser)(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch((e) => console.error("[notif]", e?.message));
+        }).catch((e) => console.error("[notif]", e?.message));
+        const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro';
+        (0, push_service_1.sendPushToUser)(updated.customerId, '🌟 Como foi o churrasco?', `Avalie ${gmName} e ajude outros clientes a encontrar os melhores!`, `/orders/${updated.id}/review`).catch((e) => console.error("[notif]", e?.message));
         if (updated.paymentStatus === 'PAID') {
             const pts = Math.floor(updated.totalPrice / 10);
             if (pts > 0) {
                 prisma_1.prisma.user.update({
                     where: { id: updated.customerId },
                     data: { points: { increment: pts } },
-                }).catch(() => { });
+                }).catch((e) => console.error("[notif]", e?.message));
             }
         }
     }
     if (status === 'CONFIRMED' && updated.customer.phone) {
         const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro';
-        sendWhatsAppConfirmation(updated.customer.phone, updated.customer.name, updated.id, gmName, updated.eventDate).catch(err => console.log('[WhatsApp] Erro:', err));
+        sendWhatsAppConfirmation(updated.customer.phone, updated.customer.name, updated.id, gmName, updated.eventDate).catch((e) => console.error("[notif]", e?.message));
+    }
+    // Notify boutique to prepare the order when GM confirms
+    if (status === 'CONFIRMED') {
+        prisma_1.prisma.order.findUnique({
+            where: { id },
+            include: {
+                boutique: { include: { user: { select: { name: true, phone: true } } } },
+                grillmaster: { include: { user: { select: { name: true } } } },
+            },
+        }).then(o => {
+            if (!o?.boutique?.user?.phone)
+                return;
+            const date = new Intl.DateTimeFormat('pt-BR', {
+                weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+            }).format(o.eventDate);
+            const firstName = o.boutique.user.name.split(' ')[0];
+            const gmName = o.grillmaster?.user?.name ?? 'churrasqueiro';
+            const msg = `✅ *Pedido confirmado — separe os cortes!*\n\nOlá ${firstName}, o churrasqueiro *${gmName}* confirmou o pedido e passará no seu açougue.\n\n📅 Evento: ${date}\n👥 ${o.guestCount} convidados\n\nSepare os cortes e acompanhamentos para quando ele chegar:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`;
+            sendWhatsAppMessage(o.boutique.user.phone, msg, 'order-confirmed-boutique').catch((e) => console.error("[notif]", e?.message));
+        }).catch((e) => console.error("[notif]", e?.message));
+    }
+    if (status === 'COMPLETED' && updated.customer.phone) {
+        const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro';
+        const msg = `⭐ Como foi o churrasco com ${gmName}?\n\nEsperamos que tenha sido incrível! Avalie o evento em 1 minuto e ajude outros clientes:\nhttps://www.techchurras.com.br/orders/${updated.id}/review\n\n🔥 Tech Churras`;
+        sendWhatsAppMessage(updated.customer.phone, msg, 'review-pos-evento').catch((e) => console.error("[notif]", e?.message));
+    }
+    if (status === 'COMPLETED') {
+        const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro';
+        (0, email_service_1.emailOrderCompleted)(updated.customer.email, updated.customer.name, updated.id, gmName).catch((e) => console.error("[notif]", e?.message));
+        const completedDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(updated.eventDate);
+        (0, push_service_1.sendWhatsAppToAdmin)(`✅ *Evento concluído — Tech Churras!*\n\n` +
+            `👤 Cliente: ${updated.customer.name}\n` +
+            `🔥 GM: ${gmName}\n` +
+            `💰 R$ ${updated.totalPrice.toFixed(2)}\n` +
+            `📅 ${completedDate} · ${updated.guestCount} pessoas\n\n` +
+            `Aguarde a avaliação do cliente! ⭐\nhttps://www.techchurras.com.br/admin`).catch((e) => console.error("[notif]", e?.message));
     }
     return updated;
 }
@@ -244,7 +343,7 @@ async function cancelOrder(id, userId, role, reason) {
     }
     const refundAmount = order.paymentStatus === 'PAID' ? order.totalPrice - cancellationFee : null;
     const cancelledBy = role === 'ADMIN' ? 'ADMIN' : role === 'GRILLMASTER' ? 'GRILLMASTER' : 'CUSTOMER';
-    return prisma_1.prisma.order.update({
+    const updated = await prisma_1.prisma.order.update({
         where: { id },
         data: {
             status: 'CANCELLED',
@@ -253,7 +352,26 @@ async function cancelOrder(id, userId, role, reason) {
             cancellationFee: cancellationFee > 0 ? cancellationFee : null,
             refundAmount: refundAmount !== null ? refundAmount : undefined,
         },
+        include: { grillmaster: { select: { userId: true } } },
     });
+    // Notify the other party about the cancellation
+    const eventDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate);
+    if (cancelledBy === 'CUSTOMER' && updated.grillmaster?.userId) {
+        (0, push_service_1.sendPushToUser)(updated.grillmaster.userId, 'Pedido cancelado', `O cliente cancelou o pedido de ${eventDate}.`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message));
+    }
+    else if (cancelledBy === 'GRILLMASTER') {
+        (0, push_service_1.sendPushToUser)(order.customerId, 'Pedido cancelado', `Seu pedido de ${eventDate} foi cancelado pelo churrasqueiro.`, `/orders/${id}`).catch((e) => console.error("[notif]", e?.message));
+    }
+    // Notify admin of cancellation
+    const cancelledByLabel = cancelledBy === 'CUSTOMER' ? 'cliente' : cancelledBy === 'GRILLMASTER' ? 'churrasqueiro' : 'admin';
+    (0, push_service_1.sendWhatsAppToAdmin)(`🚨 *Pedido cancelado — Tech Churras!*\n\n` +
+        `📅 Evento: ${eventDate}\n` +
+        `💰 R$ ${order.totalPrice.toFixed(2)}\n` +
+        `❌ Cancelado por: ${cancelledByLabel}\n` +
+        `${reason ? `📝 Motivo: ${reason}` : ''}\n` +
+        `${cancellationFee > 0 ? `💸 Taxa de cancelamento: R$ ${cancellationFee.toFixed(2)}` : ''}\n\n` +
+        `https://www.techchurras.com.br/admin`).catch((e) => console.error("[notif]", e?.message));
+    return updated;
 }
 async function updateOrderLocation(id, lat, lng, userId) {
     const gm = await prisma_1.prisma.grillmaster.findUnique({ where: { userId } });
@@ -355,11 +473,60 @@ async function getOrderById(id, userId, role = 'CUSTOMER') {
             grillmaster: { include: { user: true } },
             boutique: true,
             review: { select: { id: true, customerRating: true } },
-            customer: { select: { id: true, name: true, averageRating: true } },
+            customer: { select: { id: true, name: true, averageRating: true, _count: { select: { orders: true } } } },
         },
     });
     if (!order)
         throw new Error('Pedido nao encontrado');
     return order;
+}
+async function getOrderEta(id, userId, role) {
+    let whereClause = { id, customerId: userId };
+    if (role === 'ADMIN') {
+        whereClause = { id };
+    }
+    else if (role === 'GRILLMASTER') {
+        const gm = await prisma_1.prisma.grillmaster.findUnique({ where: { userId } });
+        if (!gm)
+            throw new Error('Churrasqueiro nao encontrado');
+        whereClause = { id, grillmasterId: gm.id };
+    }
+    const order = await prisma_1.prisma.order.findFirst({
+        where: whereClause,
+        select: {
+            eventAddress: true,
+            grillmasterLat: true,
+            grillmasterLng: true,
+            grillmasterLastUpdate: true,
+            status: true,
+        },
+    });
+    if (!order)
+        throw new Error('Pedido nao encontrado');
+    if (!order.grillmasterLat || !order.grillmasterLng) {
+        return { available: false, reason: 'Localizacao do churrasqueiro nao disponivel' };
+    }
+    // Geocode event address (cached per-request, no DB storage needed)
+    const eventCoords = await (0, geo_1.geocodeAddress)(order.eventAddress);
+    if (!eventCoords) {
+        return { available: false, reason: 'Nao foi possivel geocodificar o endereco do evento' };
+    }
+    const distanceKm = (0, geo_1.haversineKm)(order.grillmasterLat, order.grillmasterLng, eventCoords.lat, eventCoords.lng);
+    // Speed: 30 km/h urban average + 5 min buffer
+    const etaMinutes = Math.round((distanceKm / 30) * 60) + 5;
+    const etaLabel = etaMinutes < 2 ? 'chegando' : etaMinutes < 60
+        ? `~${etaMinutes} min`
+        : `~${Math.round(etaMinutes / 60)}h`;
+    return {
+        available: true,
+        distanceKm: +distanceKm.toFixed(2),
+        etaMinutes,
+        etaLabel,
+        gmLat: order.grillmasterLat,
+        gmLng: order.grillmasterLng,
+        eventLat: eventCoords.lat,
+        eventLng: eventCoords.lng,
+        lastUpdate: order.grillmasterLastUpdate,
+    };
 }
 //# sourceMappingURL=orders.service.js.map

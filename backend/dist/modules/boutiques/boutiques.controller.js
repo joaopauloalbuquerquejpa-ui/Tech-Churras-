@@ -16,6 +16,10 @@ exports.deleteProductHandler = deleteProductHandler;
 exports.toggleProductHandler = toggleProductHandler;
 exports.getBoutiqueDashboardStatsHandler = getBoutiqueDashboardStatsHandler;
 exports.getBoutiqueDemandForecastHandler = getBoutiqueDemandForecastHandler;
+exports.getBoutiqueReferralStatsHandler = getBoutiqueReferralStatsHandler;
+exports.confirmBoutiqueOrderReadyHandler = confirmBoutiqueOrderReadyHandler;
+exports.acceptBoutiqueOrderHandler = acceptBoutiqueOrderHandler;
+exports.rejectBoutiqueOrderHandler = rejectBoutiqueOrderHandler;
 const boutiques_service_1 = require("./boutiques.service");
 const products_service_1 = require("./products.service");
 async function createBoutiqueHandler(req, reply) {
@@ -188,6 +192,48 @@ async function getBoutiqueDemandForecastHandler(req, reply) {
         const userId = req.user.id;
         const forecast = await (0, boutiques_service_1.getBoutiqueDemandForecast)(userId);
         return reply.send(forecast);
+    }
+    catch (err) {
+        return reply.status(400).send({ error: err.message });
+    }
+}
+async function getBoutiqueReferralStatsHandler(req, reply) {
+    try {
+        const userId = req.user.id;
+        const stats = await (0, boutiques_service_1.getReferralStats)(userId);
+        return reply.send(stats);
+    }
+    catch (err) {
+        return reply.status(400).send({ error: err.message });
+    }
+}
+async function confirmBoutiqueOrderReadyHandler(req, reply) {
+    try {
+        const userId = req.user.id;
+        const { orderId } = req.params;
+        const result = await (0, boutiques_service_1.confirmBoutiqueOrderReady)(orderId, userId);
+        return reply.send(result);
+    }
+    catch (err) {
+        return reply.status(400).send({ error: err.message });
+    }
+}
+async function acceptBoutiqueOrderHandler(req, reply) {
+    try {
+        const userId = req.user.id;
+        const { orderId } = req.params;
+        return reply.send(await (0, boutiques_service_1.acceptBoutiqueOrder)(orderId, userId));
+    }
+    catch (err) {
+        return reply.status(400).send({ error: err.message });
+    }
+}
+async function rejectBoutiqueOrderHandler(req, reply) {
+    try {
+        const userId = req.user.id;
+        const { orderId } = req.params;
+        const { reason } = (req.body ?? {});
+        return reply.send(await (0, boutiques_service_1.rejectBoutiqueOrder)(orderId, userId, reason));
     }
     catch (err) {
         return reply.status(400).send({ error: err.message });

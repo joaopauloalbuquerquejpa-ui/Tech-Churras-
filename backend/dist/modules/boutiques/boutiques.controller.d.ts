@@ -15,4 +15,8 @@ export declare function deleteProductHandler(req: FastifyRequest, reply: Fastify
 export declare function toggleProductHandler(req: FastifyRequest, reply: FastifyReply): Promise<never>;
 export declare function getBoutiqueDashboardStatsHandler(req: FastifyRequest, reply: FastifyReply): Promise<never>;
 export declare function getBoutiqueDemandForecastHandler(req: FastifyRequest, reply: FastifyReply): Promise<never>;
+export declare function getBoutiqueReferralStatsHandler(req: FastifyRequest, reply: FastifyReply): Promise<never>;
+export declare function confirmBoutiqueOrderReadyHandler(req: FastifyRequest, reply: FastifyReply): Promise<never>;
+export declare function acceptBoutiqueOrderHandler(req: FastifyRequest, reply: FastifyReply): Promise<never>;
+export declare function rejectBoutiqueOrderHandler(req: FastifyRequest, reply: FastifyReply): Promise<never>;
 //# sourceMappingURL=boutiques.controller.d.ts.map

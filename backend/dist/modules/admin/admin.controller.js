@@ -12,6 +12,11 @@ exports.rejectBoutiqueHandler = rejectBoutiqueHandler;
 exports.listAllOrdersHandler = listAllOrdersHandler;
 exports.markOrderPaidHandler = markOrderPaidHandler;
 exports.getDashboardStatsHandler = getDashboardStatsHandler;
+const zod_1 = require("zod");
+const approveGrillmasterBodySchema = zod_1.z.object({
+    isChancelado: zod_1.z.boolean().optional(),
+    pricePerHour: zod_1.z.number().positive().optional(),
+});
 const admin_service_1 = require("./admin.service");
 async function listUsersHandler(req, reply) {
     try {
@@ -49,7 +54,7 @@ async function listPendingGrillmastersHandler(req, reply) {
 async function approveGrillmasterHandler(req, reply) {
     try {
         const { grillmasterId } = req.params;
-        const { isChancelado, pricePerHour } = req.body || {};
+        const { isChancelado, pricePerHour } = approveGrillmasterBodySchema.parse(req.body ?? {});
         return reply.send(await (0, admin_service_1.approveGrillmaster)(grillmasterId, { isChancelado, pricePerHour }));
     }
     catch (err) {

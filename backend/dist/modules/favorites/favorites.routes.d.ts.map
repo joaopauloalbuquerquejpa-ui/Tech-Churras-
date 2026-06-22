@@ -1,1 +1,1 @@
-{"version":3,"file":"favorites.routes.d.ts","sourceRoot":"","sources":["../../../src/modules/favorites/favorites.routes.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,SAAS,CAAA;AAGzC,wBAAsB,eAAe,CAAC,GAAG,EAAE,eAAe,iBAuBzD"}
+{"version":3,"file":"favorites.routes.d.ts","sourceRoot":"","sources":["../../../src/modules/favorites/favorites.routes.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,eAAe,EAAE,MAAM,SAAS,CAAA;AASzC,wBAAsB,eAAe,CAAC,GAAG,EAAE,eAAe,iBAqBzD"}

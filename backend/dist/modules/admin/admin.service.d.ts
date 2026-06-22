@@ -1,3 +1,36 @@
+export declare function updateGrillmasterProfile(grillmasterId: string, data: Record<string, unknown>): Promise<{
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+    userId: string;
+    bio: string | null;
+    experience: number;
+    pricePerHour: number;
+    available: boolean;
+    city: string;
+    state: string;
+    rating: number;
+    approved: boolean;
+    totalOrders: number;
+    isChancelado: boolean;
+    specialties: string | null;
+    photoUrl: string | null;
+    galleryUrls: string[];
+    instagram: string | null;
+    churrascoStyle: string | null;
+    bringsEquipment: boolean;
+    minGuests: number | null;
+    maxGuests: number | null;
+    latitude: number | null;
+    longitude: number | null;
+    pixKey: string | null;
+    videoUrl: string | null;
+    certificationCode: string | null;
+    certifiedAt: Date | null;
+    trainingModules: number[];
+    uniformSent: boolean;
+    uniformSentAt: Date | null;
+}>;
 export declare function listUsers(): Promise<{
     name: string;
     id: string;
@@ -62,6 +95,7 @@ export declare function listPendingGrillmasters(): Promise<({
     user: {
         name: string;
         email: string;
+        phone: string | null;
     };
 } & {
     id: string;
@@ -169,6 +203,7 @@ export declare function listPendingBoutiques(): Promise<({
     user: {
         name: string;
         email: string;
+        phone: string | null;
     };
 } & {
     name: string;
@@ -196,6 +231,7 @@ export declare function listPendingBoutiques(): Promise<({
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
 })[]>;
 export declare function approveBoutique(boutiqueId: string): Promise<{
     name: string;
@@ -223,11 +259,7 @@ export declare function approveBoutique(boutiqueId: string): Promise<{
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
-}>;
-export declare function getBoutiqueReferralStats(boutiqueId: string): Promise<{
-    boutiqueId: string;
-    referred: number;
-    converted: number;
+    trialEndsAt: Date | null;
 }>;
 export declare function rejectBoutique(boutiqueId: string): Promise<{
     name: string;
@@ -255,15 +287,23 @@ export declare function rejectBoutique(boutiqueId: string): Promise<{
     openingHours: string | null;
     deliveryOrPickup: string | null;
     referralCode: string | null;
+    trialEndsAt: Date | null;
+}>;
+export declare function getBoutiqueReferralStats(boutiqueId: string): Promise<{
+    boutiqueId: string;
+    referred: number;
+    converted: number;
 }>;
 export declare function listAllOrders(): Promise<({
     customer: {
         name: string;
         email: string;
+        phone: string | null;
     };
     grillmaster: ({
         user: {
             name: string;
+            phone: string | null;
         };
     } & {
         id: string;
@@ -301,6 +341,19 @@ export declare function listAllOrders(): Promise<({
     boutique: {
         name: string;
     } | null;
+    items: ({
+        product: {
+            name: string;
+            price: number;
+            unit: string;
+        };
+    } & {
+        id: string;
+        orderId: string;
+        productId: string;
+        quantity: number;
+        unitPrice: number;
+    })[];
 } & {
     id: string;
     createdAt: Date;
@@ -369,5 +422,10 @@ export declare function getDashboardStats(): Promise<{
     totalBoutiques: number;
     totalGrillmasters: number;
     totalRevenue: number;
+    ordersToday: number;
+    revenueToday: number;
+    usersToday: number;
+    activeOrders: number;
+    revenueWeek: number;
 }>;
 //# sourceMappingURL=admin.service.d.ts.map

@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cronRoutes = cronRoutes;
 const prisma_1 = require("../../config/prisma");
+const push_service_1 = require("../push/push.service");
+const whatsapp_routes_1 = require("../webhooks/whatsapp.routes");
 async function sendWhatsAppReminder(phone, customerName, orderId, eventDate, hoursLabel) {
     const instance = process.env.ZAPI_INSTANCE;
     const token = process.env.ZAPI_TOKEN;
@@ -72,7 +74,26 @@ async function cronRoutes(app) {
             await prisma_1.prisma.order.update({ where: { id: order.id }, data: { reminder24hSent: true } });
             sent24++;
         }
-        return { ok: true, sent48, sent24 };
+        // Push para churrasqueiros com evento em 24h
+        const gmReminder24 = await prisma_1.prisma.order.findMany({
+            where: {
+                status: 'CONFIRMED',
+                eventDate: { gte: window24start, lte: window24end },
+                grillmasterId: { not: null },
+            },
+            include: { grillmaster: { select: { userId: true } }, customer: { select: { name: true } } },
+        });
+        let sentGm24 = 0;
+        for (const order of gmReminder24) {
+            if (order.grillmaster?.userId) {
+                const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate);
+                await (0, push_service_1.sendPushToUser)(order.grillmaster.userId, '⏰ Evento amanhã!', `Você tem churrasco com ${order.customer.name} amanhã às ${date.split(' ')[1]}. Prepare tudo!`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message));
+                sentGm24++;
+            }
+        }
+        // Follow-ups automáticos para leads captados via WhatsApp
+        await (0, whatsapp_routes_1.sendFollowUps)().catch((e) => console.error('[FollowUp]', e?.message));
+        return { ok: true, sent48, sent24, sentGm24 };
     });
 }
 //# sourceMappingURL=cron.routes.js.map

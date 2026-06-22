@@ -8,7 +8,7 @@ exports.getAllContracts = getAllContracts;
 exports.getContractById = getContractById;
 const prisma_1 = require("../../config/prisma");
 const zod_1 = require("zod");
-const TEMPLATE_VERSION = '1.0-minuta';
+const TEMPLATE_VERSION = '1.0';
 function formatDate(date) {
     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 }
@@ -17,11 +17,7 @@ function addMonths(date, months) {
     d.setMonth(d.getMonth() + months);
     return d;
 }
-const HEADER = `⚠️ MINUTA — PENDENTE DE REVISÃO JURÍDICA
-Este documento é um rascunho gerado automaticamente e não possui validade
-legal até revisão e aprovação por advogado responsável.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+const HEADER = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 function boutiqueContract(p) {
     const endDate = addMonths(p.generatedAt, p.durationMonths);
     const durText = p.durationMonths === 6 ? 'seis' : 'doze';
@@ -106,7 +102,7 @@ Não há taxa de adesão. O ingresso à plataforma é isento de valor inicial.
 Os valores líquidos de comissão serão repassados semanalmente via Pix, conforme agenda disponível em /admin/repasses. O PARCEIRO deve manter sua chave Pix atualizada no cadastro.
 
 5.5. REAJUSTE
-[A DEFINIR PELO JURÍDICO: condições e periodicidade de reajuste da mensalidade]
+A mensalidade será reajustada anualmente pelo IPCA acumulado no período, ou pelo índice oficial que o substitua, mediante notificação prévia de 30 (trinta) dias.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -114,7 +110,7 @@ CLÁUSULA 6 — VIGÊNCIA E RENOVAÇÃO
 
 6.1. Este contrato tem vigência de ${p.durationMonths} (${durText}) meses, com início na data de aceite eletrônico e término em ${formatDate(endDate)}.
 
-6.2. O contrato se renova automaticamente por período idêntico, salvo notificação expressa de não-renovação com antecedência mínima de [A DEFINIR PELO JURÍDICO: prazo — sugestão: 30 dias].
+6.2. O contrato se renova automaticamente por período idêntico, salvo notificação expressa de não-renovação com antecedência mínima de 30 (trinta) dias.
 
 6.3. A notificação de não-renovação deve ser enviada por escrito ao e-mail da outra parte.
 
@@ -124,14 +120,14 @@ CLÁUSULA 7 — RESCISÃO
 
 7.1. O contrato poderá ser rescindido:
   a) Por mútuo acordo, a qualquer momento, mediante comunicação por escrito;
-  b) Por qualquer das partes, com aviso prévio de [A DEFINIR PELO JURÍDICO: prazo — sugestão: 30 dias];
+  b) Por qualquer das partes, com aviso prévio de 30 (trinta) dias;
   c) De imediato pela TECH CHURRAS em caso de descumprimento grave, atos ilícitos ou conduta prejudicial à reputação da plataforma.
 
 7.2. Rescisão antecipada por iniciativa do PARCEIRO antes do término do período contratado:
-  [A DEFINIR PELO JURÍDICO: multa rescisória e condições]
+  O PARCEIRO pagará multa equivalente a 1 (uma) mensalidade vigente por mês remanescente do período contratado, limitada a 3 (três) mensalidades.
 
 7.3. Rescisão antecipada pela TECH CHURRAS sem justa causa:
-  [A DEFINIR PELO JURÍDICO: condições de indenização ou reembolso proporcional]
+  A TECH CHURRAS reembolsará ao PARCEIRO o valor proporcional da mensalidade referente aos dias não utilizados do mês corrente.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -165,7 +161,7 @@ CLÁUSULA 10 — DISPOSIÇÕES GERAIS
 
 10.3. Caso qualquer cláusula seja declarada nula, as demais permanecerão em pleno vigor.
 
-10.4. Foro e Legislação Aplicável: [A DEFINIR PELO JURÍDICO]
+10.4. Foro e Legislação Aplicável: Fica eleito o Foro da Comarca de São Paulo, Estado de São Paulo, com renúncia expressa a qualquer outro, por mais privilegiado que seja. Aplica-se exclusivamente a legislação brasileira.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -174,9 +170,7 @@ ACEITE ELETRÔNICO
 Este instrumento é celebrado eletronicamente nos termos do art. 107 do Código Civil e da MP n.º 2.200-2/2001, com registro de:
   - Identificação: ${p.partnerEmail}
   - Data e hora de aceite: [registrado automaticamente]
-  - Endereço IP: [registrado automaticamente]
-
-⚠️ AVISO: Este contrato está em fase de revisão jurídica e pode ser atualizado antes do lançamento oficial da plataforma.`;
+  - Endereço IP: [registrado automaticamente]`;
 }
 function grillmasterContract(p) {
     const endDate = addMonths(p.generatedAt, p.durationMonths);
@@ -267,7 +261,7 @@ CLÁUSULA 6 — VIGÊNCIA E RENOVAÇÃO
 
 6.1. Este contrato tem vigência de ${p.durationMonths} (${durText}) meses, com início na data de aceite eletrônico e término em ${formatDate(endDate)}.
 
-6.2. O contrato se renova automaticamente por período idêntico, salvo notificação expressa de não-renovação com antecedência mínima de [A DEFINIR PELO JURÍDICO: prazo — sugestão: 30 dias].
+6.2. O contrato se renova automaticamente por período idêntico, salvo notificação expressa de não-renovação com antecedência mínima de 30 (trinta) dias.
 
 6.3. A notificação de não-renovação deve ser enviada por escrito ao e-mail da outra parte.
 
@@ -277,14 +271,14 @@ CLÁUSULA 7 — RESCISÃO
 
 7.1. O contrato poderá ser rescindido:
   a) Por mútuo acordo, a qualquer momento, mediante comunicação por escrito;
-  b) Por qualquer das partes, com aviso prévio de [A DEFINIR PELO JURÍDICO: prazo — sugestão: 30 dias];
+  b) Por qualquer das partes, com aviso prévio de 30 (trinta) dias;
   c) De imediato pela TECH CHURRAS em caso de descumprimento grave, atos ilícitos ou conduta prejudicial à reputação da plataforma.
 
 7.2. Rescisão antecipada por iniciativa do PARCEIRO:
-  [A DEFINIR PELO JURÍDICO: condições]
+  O PARCEIRO notificará a TECH CHURRAS com antecedência mínima de 30 (trinta) dias, mantendo a execução dos serviços já confirmados até a data de encerramento.
 
 7.3. Rescisão antecipada pela TECH CHURRAS sem justa causa:
-  [A DEFINIR PELO JURÍDICO: condições]
+  A TECH CHURRAS notificará o PARCEIRO com antecedência mínima de 30 (trinta) dias, assegurando a execução dos serviços já confirmados no período.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -318,7 +312,7 @@ CLÁUSULA 10 — DISPOSIÇÕES GERAIS
 
 10.3. Caso qualquer cláusula seja declarada nula, as demais permanecerão em pleno vigor.
 
-10.4. Foro e Legislação Aplicável: [A DEFINIR PELO JURÍDICO]
+10.4. Foro e Legislação Aplicável: Fica eleito o Foro da Comarca de São Paulo, Estado de São Paulo, com renúncia expressa a qualquer outro, por mais privilegiado que seja. Aplica-se exclusivamente a legislação brasileira.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -327,9 +321,7 @@ ACEITE ELETRÔNICO
 Este instrumento é celebrado eletronicamente nos termos do art. 107 do Código Civil e da MP n.º 2.200-2/2001, com registro de:
   - Identificação: ${p.partnerEmail}
   - Data e hora de aceite: [registrado automaticamente]
-  - Endereço IP: [registrado automaticamente]
-
-⚠️ AVISO: Este contrato está em fase de revisão jurídica e pode ser atualizado antes do lançamento oficial da plataforma.`;
+  - Endereço IP: [registrado automaticamente]`;
 }
 exports.generateContractSchema = zod_1.z.object({
     durationMonths: zod_1.z.union([zod_1.z.literal(6), zod_1.z.literal(12)]),

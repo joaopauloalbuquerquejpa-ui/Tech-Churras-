@@ -9,8 +9,12 @@ exports.updateLocationHandler = updateLocationHandler;
 exports.cancelOrderHandler = cancelOrderHandler;
 exports.getRepeatDataHandler = getRepeatDataHandler;
 exports.getOrderByPublicTokenHandler = getOrderByPublicTokenHandler;
+exports.getOrderEtaHandler = getOrderEtaHandler;
 exports.shareOrderHandler = shareOrderHandler;
+const zod_1 = require("zod");
 const orders_service_1 = require("./orders.service");
+const locationSchema = zod_1.z.object({ lat: zod_1.z.number().min(-90).max(90), lng: zod_1.z.number().min(-180).max(180) });
+const cancelSchema = zod_1.z.object({ reason: zod_1.z.string().max(500).optional() });
 async function createOrderHandler(req, reply) {
     try {
         const customerId = req.user.id;
@@ -74,7 +78,7 @@ async function updateLocationHandler(req, reply) {
     try {
         const userId = req.user.id;
         const { id } = req.params;
-        const { lat, lng } = req.body;
+        const { lat, lng } = locationSchema.parse(req.body);
         const result = await (0, orders_service_1.updateOrderLocation)(id, lat, lng, userId);
         return reply.send(result);
     }
@@ -87,7 +91,7 @@ async function cancelOrderHandler(req, reply) {
         const userId = req.user.id;
         const role = req.user.role ?? 'CUSTOMER';
         const { id } = req.params;
-        const { reason } = req.body ?? {};
+        const { reason } = cancelSchema.parse(req.body ?? {});
         const order = await (0, orders_service_1.cancelOrder)(id, userId, role, reason ?? '');
         return reply.send(order);
     }
@@ -115,6 +119,18 @@ async function getOrderByPublicTokenHandler(req, reply) {
     }
     catch (err) {
         return reply.status(404).send({ error: err.message });
+    }
+}
+async function getOrderEtaHandler(req, reply) {
+    try {
+        const userId = req.user.id;
+        const role = req.user.role ?? 'CUSTOMER';
+        const { id } = req.params;
+        const eta = await (0, orders_service_1.getOrderEta)(id, userId, role);
+        return reply.send(eta);
+    }
+    catch (err) {
+        return reply.status(400).send({ error: err.message });
     }
 }
 async function shareOrderHandler(req, reply) {

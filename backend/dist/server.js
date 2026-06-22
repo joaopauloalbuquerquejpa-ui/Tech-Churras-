@@ -8,6 +8,7 @@ const cors_1 = __importDefault(require("@fastify/cors"));
 const jwt_1 = __importDefault(require("@fastify/jwt"));
 const cookie_1 = __importDefault(require("@fastify/cookie"));
 const multipart_1 = __importDefault(require("@fastify/multipart"));
+const rate_limit_1 = __importDefault(require("@fastify/rate-limit"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const auth_routes_1 = require("./modules/auth/auth.routes");
 const grillmasters_routes_1 = require("./modules/grillmasters/grillmasters.routes");
@@ -29,9 +30,20 @@ const upload_routes_1 = require("./modules/upload/upload.routes");
 const calculator_routes_1 = require("./modules/calculator/calculator.routes");
 const ai_routes_1 = require("./modules/ai/ai.routes");
 const contracts_routes_1 = require("./modules/contracts/contracts.routes");
+const whatsapp_routes_1 = require("./modules/webhooks/whatsapp.routes");
 dotenv_1.default.config();
+if (!process.env.JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET não configurado. Defina a variável de ambiente antes de iniciar.');
+    process.exit(1);
+}
 const app = (0, fastify_1.default)({ logger: true });
 // Plugins
+app.register(rate_limit_1.default, {
+    global: true,
+    max: 120,
+    timeWindow: '1 minute',
+    errorResponseBuilder: () => ({ error: 'Muitas requisições. Tente novamente em alguns instantes.' }),
+});
 app.register(multipart_1.default, { limits: { fileSize: 10 * 1024 * 1024 } });
 app.register(cors_1.default, {
     origin: true,
@@ -39,7 +51,7 @@ app.register(cors_1.default, {
     methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 });
-app.register(jwt_1.default, { secret: process.env.JWT_SECRET ?? 'supersecret' });
+app.register(jwt_1.default, { secret: process.env.JWT_SECRET });
 app.register(cookie_1.default);
 // Decorator de autenticaÃ§Ã£o
 app.decorate('authenticate', auth_middleware_1.authenticate);
@@ -63,6 +75,7 @@ app.register(upload_routes_1.uploadRoutes);
 app.register(calculator_routes_1.calculatorRoutes);
 app.register(ai_routes_1.aiRoutes);
 app.register(contracts_routes_1.contractsRoutes);
+app.register(whatsapp_routes_1.whatsappWebhookRoutes);
 // Health check
 app.get('/health', async () => {
     return { status: 'ok', message: 'Tech Churras API rodando! ðŸ”¥' };

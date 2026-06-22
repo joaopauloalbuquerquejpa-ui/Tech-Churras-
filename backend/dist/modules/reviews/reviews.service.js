@@ -5,6 +5,7 @@ exports.createCustomerReview = createCustomerReview;
 exports.listGrillmasterReviews = listGrillmasterReviews;
 exports.listBoutiqueReviews = listBoutiqueReviews;
 const prisma_1 = require("../../config/prisma");
+const push_service_1 = require("../push/push.service");
 async function createReview(data) {
     const order = await prisma_1.prisma.order.findUnique({
         where: { id: data.orderId },
@@ -51,20 +52,40 @@ async function createReview(data) {
             where: { grillmasterId: order.grillmasterId, grillRating: { not: null } },
         });
         const avg = reviews.reduce((acc, r) => acc + (r.grillRating ?? 0), 0) / reviews.length;
-        await prisma_1.prisma.grillmaster.update({
+        const updatedGm = await prisma_1.prisma.grillmaster.update({
             where: { id: order.grillmasterId },
             data: { rating: Math.round(avg * 10) / 10 },
+            select: { userId: true },
         });
+        const stars = '⭐'.repeat(data.grillRating);
+        const customerName = await prisma_1.prisma.user.findUnique({ where: { id: data.customerId }, select: { name: true } });
+        const firstName = customerName?.name?.split(' ')[0] ?? 'Um cliente';
+        (0, push_service_1.sendPushToUser)(updatedGm.userId, `${stars} Nova avaliação!`, `${firstName} te deu ${data.grillRating} estrela${data.grillRating !== 1 ? 's' : ''}${data.grillComment ? ': "' + data.grillComment.slice(0, 60) + '"' : ''}`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message));
     }
     if (order.boutiqueId && data.boutiqueRating) {
         const reviews = await prisma_1.prisma.review.findMany({
             where: { boutiqueId: order.boutiqueId, boutiqueRating: { not: null } },
         });
         const avg = reviews.reduce((acc, r) => acc + (r.boutiqueRating ?? 0), 0) / reviews.length;
-        await prisma_1.prisma.boutique.update({
+        const updatedBoutique = await prisma_1.prisma.boutique.update({
             where: { id: order.boutiqueId },
             data: { rating: Math.round(avg * 10) / 10 },
+            select: { userId: true },
         });
+        const stars = '⭐'.repeat(data.boutiqueRating);
+        (0, push_service_1.sendPushToUser)(updatedBoutique.userId, `${stars} Nova avaliação no açougue!`, `Você recebeu ${data.boutiqueRating} estrela${data.boutiqueRating !== 1 ? 's' : ''} por este evento.`, '/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message));
+    }
+    // Alert admin on low rating (≤ 3 stars)
+    const minRating = Math.min(data.grillRating, data.boutiqueRating ?? 5);
+    if (minRating <= 3) {
+        const customerName = await prisma_1.prisma.user.findUnique({ where: { id: data.customerId }, select: { name: true } }).catch(() => null);
+        const stars = '⭐'.repeat(minRating);
+        (0, push_service_1.sendWhatsAppToAdmin)(`⚠️ *Review negativo — Tech Churras!*\n\n` +
+            `${stars} ${minRating}/5 estrelas\n` +
+            `👤 Cliente: ${customerName?.name ?? 'Desconhecido'}\n` +
+            `${data.grillComment ? `💬 "${data.grillComment}"` : ''}\n` +
+            `${data.boutiqueComment ? `💬 Açougue: "${data.boutiqueComment}"` : ''}\n\n` +
+            `Verifique e entre em contato:\nhttps://www.techchurras.com.br/admin`).catch((e) => console.error("[notif]", e?.message));
     }
     return review;
 }

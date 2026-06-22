@@ -44,13 +44,13 @@ async function sendMessage(orderId, senderId, content) {
         ? null // need grillmaster userId
         : order.customerId;
     if (recipientId) {
-        (0, push_service_1.sendPushToUser)(recipientId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch(() => { });
+        (0, push_service_1.sendPushToUser)(recipientId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch((e) => console.error("[notif]", e?.message));
     }
     else if (order.grillmasterId) {
         prisma_1.prisma.grillmaster.findUnique({ where: { id: order.grillmasterId } }).then(gm => {
             if (gm)
-                (0, push_service_1.sendPushToUser)(gm.userId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch(() => { });
-        }).catch(() => { });
+                (0, push_service_1.sendPushToUser)(gm.userId, 'Nova mensagem', msg.sender.name + ': ' + content.slice(0, 60), `/orders/${orderId}`).catch((e) => console.error("[notif]", e?.message));
+        }).catch((e) => console.error("[notif]", e?.message));
     }
     return msg;
 }

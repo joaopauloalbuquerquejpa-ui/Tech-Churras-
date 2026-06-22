@@ -16,7 +16,16 @@ async function createPreferenceHandler(req, reply) {
 }
 async function mpWebhookHandler(req, reply) {
     try {
-        const result = await (0, payments_service_1.handleMPWebhook)(req.body);
+        // MP pode enviar type/data.id no body OU nos query params dependendo da versão
+        const query = req.query;
+        const body = req.body ?? {};
+        const payload = {
+            type: body.type ?? query['type'],
+            data: {
+                id: body.data?.id ?? query['data.id'] ?? query['id'],
+            },
+        };
+        const result = await (0, payments_service_1.handleMPWebhook)(payload);
         return reply.send(result);
     }
     catch (err) {

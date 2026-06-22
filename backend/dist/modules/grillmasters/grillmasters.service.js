@@ -47,6 +47,7 @@ exports.markUniformSent = markUniformSent;
 const prisma_1 = require("../../config/prisma");
 const zod_1 = require("zod");
 const geo_1 = require("../../utils/geo");
+const push_service_1 = require("../push/push.service");
 exports.createGrillmasterSchema = zod_1.z.object({
     bio: zod_1.z.string().optional(),
     experience: zod_1.z.number().int().min(0).default(0),
@@ -77,10 +78,22 @@ async function createGrillmaster(userId, data) {
             longitude = coords.lng;
         }
     }
-    return prisma_1.prisma.grillmaster.create({
+    const gm = await prisma_1.prisma.grillmaster.create({
         data: { userId, ...data, latitude, longitude },
         include: { user: { select: { name: true, email: true } } },
     });
+    // Notify all admins of new partner registration (push + WhatsApp)
+    prisma_1.prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } }).then(admins => {
+        for (const admin of admins) {
+            (0, push_service_1.sendPushToUser)(admin.id, '👨‍🍳 Novo churrasqueiro!', `${gm.user?.name} cadastrou perfil e aguarda aprovação.`, '/admin').catch((e) => console.error("[notif]", e?.message));
+        }
+    }).catch((e) => console.error("[notif]", e?.message));
+    (0, push_service_1.sendWhatsAppToAdmin)(`👨‍🍳 *Novo churrasqueiro cadastrado — Tech Churras!*\n\n` +
+        `Nome: ${gm.user?.name}\n` +
+        `Email: ${gm.user?.email}\n` +
+        `Cidade: ${gm.city}, ${gm.state}\n\n` +
+        `⏳ Aguardando sua aprovação:\nhttps://www.techchurras.com.br/admin`).catch((e) => console.error("[notif]", e?.message));
+    return gm;
 }
 async function listGrillmasters(params = {}) {
     const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9, lat, lng, radiusKm = 20 } = params;

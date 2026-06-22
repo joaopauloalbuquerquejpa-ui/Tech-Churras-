@@ -12,7 +12,21 @@ const boutiques_service_1 = require("../boutiques/boutiques.service");
 const grillmasters_service_1 = require("../grillmasters/grillmasters.service");
 // Rate limit: max 10 req/min por usuário
 const suggestRateLimits = new Map();
-const SYSTEM_PROMPT = `Você é a Tech Churras IA — especialista em churrasco brasileiro com 20 anos de experiência, chancelada por Jota Albuquerque (Jota Grillmaster).
+const SYSTEM_PROMPT = `Você é a assistente da Tech Churras — parceira do Jota Albuquerque (Jota Grillmaster, fundador da plataforma) e especialista apaixonada por churrasco brasileiro.
+
+PERSONALIDADE E VOZ:
+- Fale como uma amiga de confiança que entende muito de churrasco e genuinamente quer que o evento seja incrível
+- Use linguagem brasileira natural e calorosa — "olha", "perfeito", "adorei a ideia", nunca robótico
+- Chame o cliente pelo primeiro nome quando souber (ex: "João, para o seu evento...")
+- Demonstre empolgação real pelo evento: aniversário, confraternização, casamento — cada um é especial
+- Emojis com moderação: máximo 2 por resposta; 🔥 e 🥩 funcionam bem
+- NUNCA comece com "Claro!" ou "Certamente!"
+
+QUANDO MENCIONAR O JOTA:
+- Cortes nobres (picanha, tomahawk, wagyu): "o Jota garante que essa picanha é o destaque de qualquer churrasco"
+- Menu Especialidade Jota: "essa é a experiência premium que o Jota criou pessoalmente"
+- Eventos especiais (casamento, corporativo grande): "o Jota trataria esse evento com atenção especial"
+- Seja natural — não force em todo lugar, apenas onde fizer sentido
 
 REGRAS DE CÁLCULO DE QUANTIDADE:
 - Homens adultos: 400g de carne por pessoa
@@ -47,7 +61,7 @@ REGRAS ESTRITAS DO JSON:
 - "reason": máximo 6 palavras por item
 - "tips": exatamente 3 dicas, cada uma com máximo 10 palavras
 - "schedule": máximo 20 palavras
-- "intro": máximo 25 palavras
+- "intro": máximo 30 palavras — comece com o nome do cliente se disponível, tom caloroso (ex: "Lucas, para o seu aniversário de 30 pessoas, montei um kit que vai impressionar! 🔥")
 - "howItsMade": exatamente 2-3 objetos
 - Responda SOMENTE com JSON válido, SEM markdown, SEM backticks, SEM qualquer texto fora do JSON
 
@@ -78,13 +92,18 @@ function normalizeItem(item) {
 async function aiRoutes(app) {
     const client = new sdk_1.default({ apiKey: process.env.ANTHROPIC_API_KEY });
     app.post('/ai/plan-event', { preHandler: [auth_middleware_1.authenticate] }, async (request, reply) => {
-        const { style = 'tradicional', homens = 5, mulheres = 3, criancas = 0, restrictions = '', hours = 4, } = request.body;
+        const { style = 'tradicional', homens = 5, mulheres = 3, criancas = 0, restrictions = '', hours = 4, customerName = '', occasion = '', } = request.body;
         const totalPessoas = Number(homens) + Number(mulheres) + Number(criancas);
         if (totalPessoas < 1)
             return reply.status(400).send({ error: 'Informe pelo menos 1 convidado' });
-        const userPrompt = `Churrasco ${style}: ${homens}h ${mulheres}m ${criancas}c, ${hours}h.${restrictions ? ` Restrições: ${restrictions}.` : ''} Máximo 8 itens, respostas curtas. JSON puro.`;
+        const firstName = customerName?.trim().split(' ')[0] || '';
+        const clientCtx = firstName ? `Cliente: ${firstName}` : '';
+        const occasionCtx = occasion ? `Ocasião: ${occasion}` : '';
+        const userPrompt = `${clientCtx}${occasionCtx ? ' | ' + occasionCtx : ''}
+Churrasco estilo ${style}: ${homens} homens, ${mulheres} mulheres, ${criancas} crianças — ${hours}h de evento.${restrictions ? ` Restrições: ${restrictions}.` : ''}
+No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre o evento. Máximo 8 itens. JSON puro.`;
         const message = await client.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: 'claude-opus-4-8',
             max_tokens: 2500,
             system: SYSTEM_PROMPT,
             messages: [{ role: 'user', content: userPrompt }],
@@ -107,7 +126,7 @@ async function aiRoutes(app) {
     });
     // ── POST /ai/suggest-product ─────────────────────────────────────────
     app.post('/ai/suggest-product', { preHandler: [auth_middleware_1.authenticate] }, async (request, reply) => {
-        const userId = request.user?.userId;
+        const userId = request.user?.id;
         // Rate limiting
         const now = Date.now();
         const rl = suggestRateLimits.get(userId);
@@ -151,7 +170,7 @@ async function aiRoutes(app) {
             const base64 = buffer.toString('base64');
             const mediaType = data.mimetype;
             const message = await client.messages.create({
-                model: 'claude-sonnet-4-6',
+                model: 'claude-opus-4-8',
                 max_tokens: 400,
                 messages: [{
                         role: 'user',
@@ -201,19 +220,33 @@ Regras:
         return reply.send(coords);
     });
     // ── POST /ai/kit-perfeito ────────────────────────────────────────────
-    app.post('/ai/kit-perfeito', async (request, reply) => {
-        const { eventAddress, guests, occasion = 'churrasco', budget, eventDate } = request.body;
+    app.post('/ai/kit-perfeito', { preHandler: [auth_middleware_1.authenticate] }, async (request, reply) => {
+        const { eventAddress, guests, occasion = 'churrasco', budget, eventDate, customerName = '' } = request.body;
         if (!eventAddress || !guests || guests < 1) {
             return reply.status(400).send({ error: 'Informe endereco e numero de convidados' });
         }
         const coords = await (0, geo_1.geocodeAddress)(eventAddress);
         if (!coords)
             return reply.status(400).send({ error: 'Nao conseguimos localizar esse endereco. Tente ser mais especifico.' });
-        const [nearbyBoutiques, nearbyGrillmasters] = await Promise.all([
-            (0, boutiques_service_1.findNearbyBoutiques)(coords.lat, coords.lng, 15),
-            (0, grillmasters_service_1.findNearbyGrillmasters)(coords.lat, coords.lng, 20),
-        ]);
-        const boutiquesWithProducts = nearbyBoutiques.filter((b) => b.products.length > 0);
+        // Busca progressiva: 15km → 40km → 100km → qualquer disponível
+        async function findWithFallback() {
+            for (const r of [15, 40, 100]) {
+                const [b, g] = await Promise.all([
+                    (0, boutiques_service_1.findNearbyBoutiques)(coords.lat, coords.lng, r),
+                    (0, grillmasters_service_1.findNearbyGrillmasters)(coords.lat, coords.lng, r),
+                ]);
+                const bWithProd = b.filter((x) => x.products.length > 0);
+                if (bWithProd.length > 0 && g.length > 0)
+                    return { boutiques: bWithProd, grillmasters: g };
+            }
+            // Fallback final: retorna qualquer parceiro disponível, ignorando distância
+            const [b, g] = await Promise.all([
+                (0, boutiques_service_1.findNearbyBoutiques)(coords.lat, coords.lng, 9999),
+                (0, grillmasters_service_1.findNearbyGrillmasters)(coords.lat, coords.lng, 9999),
+            ]);
+            return { boutiques: b.filter((x) => x.products.length > 0), grillmasters: g };
+        }
+        const { boutiques: boutiquesWithProducts, grillmasters: nearbyGrillmasters } = await findWithFallback();
         if (boutiquesWithProducts.length === 0 || nearbyGrillmasters.length === 0) {
             return reply.status(404).send({
                 error: 'Ainda nao temos parceiros nessa regiao. Estamos expandindo!',
@@ -222,34 +255,61 @@ Regras:
         }
         const boutique = boutiquesWithProducts[0];
         const grillmaster = nearbyGrillmasters[0];
-        const catalog = boutique.products.map((p) => {
+        function formatCatalogItem(p) {
             const discountActive = p.discountPercent && (!p.discountValidUntil || new Date(p.discountValidUntil) > new Date());
             const finalPrice = discountActive ? p.price * (1 - p.discountPercent / 100) : p.price;
-            return `[${p.id}] ${p.name} — R$${finalPrice.toFixed(2)}/${p.unit} (${p.category})`;
-        }).join('\n');
-        const kitPrompt = `Voce e o assistente de churrasco da Tech Churras. Monte o kit perfeito para este evento.
+            return `[${p.id}] ${p.name} — R$${finalPrice.toFixed(2)}/${p.unit}`;
+        }
+        const carneProducts = boutique.products.filter((p) => p.category === 'CARNE');
+        const acompProducts = boutique.products.filter((p) => p.category === 'ACOMPANHAMENTO');
+        const otherProducts = boutique.products.filter((p) => p.category !== 'CARNE' && p.category !== 'ACOMPANHAMENTO');
+        const catalogCarnes = carneProducts.map(formatCatalogItem).join('\n') || '(nenhuma carne cadastrada)';
+        const catalogAcomp = acompProducts.map(formatCatalogItem).join('\n') || '(nenhum acompanhamento — pule essa secao)';
+        const catalogOther = otherProducts.map(formatCatalogItem).join('\n') || '(nenhum)';
+        const gmSpecialties = grillmaster.specialties || 'churrasco tradicional';
+        const gmStyle = grillmaster.churrascoStyle || 'tradicional brasileiro';
+        const gmExperience = grillmaster.experience ? `${grillmaster.experience} anos` : 'experiente';
+        const gmBio = grillmaster.bio ? `Bio: ${grillmaster.bio}` : '';
+        const firstName = customerName?.trim().split(' ')[0] || '';
+        const kitPrompt = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte o kit perfeito com personalidade — fale de forma calorosa e natural, como uma especialista amiga.
+${firstName ? `O cliente se chama ${firstName} — chame pelo nome no campo summary.` : ''}
 
 DADOS DO EVENTO:
 - Convidados: ${guests} pessoas
-- Ocasiao: ${occasion}
-- Orcamento: ${budget ? `R$ ${budget}` : 'sem limite definido'}
+- Ocasião: ${occasion}
+- Orçamento: ${budget ? `R$ ${budget}` : 'sem limite definido'}
 - Data: ${eventDate || 'a confirmar'}
 
-PRODUTOS DISPONIVEIS no acougue "${boutique.name}" (${boutique.distanceKm.toFixed(1)} km do evento):
-${catalog}
+CHURRASQUEIRO SELECIONADO: ${grillmaster.user.name}
+- Especialidades: ${gmSpecialties}
+- Estilo: ${gmStyle}
+- Experiencia: ${gmExperience}
+${gmBio}
+- Preco: R$${grillmaster.pricePerHour}/hora | Avaliacao: ${grillmaster.rating.toFixed(1)}/5
+INSTRUCAO CRITICA: Escolha os cortes do catalogo que COMBINAM com as especialidades deste churrasqueiro. Ex: especialista em parrilla argentina -> prefira fraldinha/asado; especialista em cortes nobres -> prefira picanha/tomahawk; estilo gaucho -> prefira costela/linguica; tradicional paulista -> picanha e carvao abundante.
 
-CHURRASQUEIRO SELECIONADO: ${grillmaster.user.name} — R$${grillmaster.pricePerHour}/hora — avaliacao ${grillmaster.rating.toFixed(1)}/5
+ACOUGUE PARCEIRO: "${boutique.name}" (${boutique.distanceKm.toFixed(1)} km do evento)
+
+CARNES DISPONIVEIS:
+${catalogCarnes}
+
+ACOMPANHAMENTOS (preparados pelo acougue, churrasqueiro retira tudo em UMA visita):
+${catalogAcomp}
+
+OUTROS PRODUTOS:
+${catalogOther}
 
 REGRAS:
-- Use SOMENTE produtos da lista acima pelos IDs exatos
-- Calcule ~400g de carne por pessoa
-- Inclua sempre carne principal, carvao e ao menos um acompanhamento
+- Use SOMENTE os IDs exatos da lista acima — nunca invente produtos
+- ~400g de carne por pessoa
+- Inclua carne principal + carvao + acompanhamento se disponivel
+- Mencione no summary que os acompanhamentos ja vem prontos do acougue (zero trabalho extra pro churrasqueiro)
 - Recomende 3-4h de churrasqueiro para ate 15 pessoas, 5-6h para mais
 - Responda SOMENTE JSON valido, sem markdown
 
 {"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"Kit ideal em 1 frase","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`;
         const message = await client.messages.create({
-            model: 'claude-sonnet-4-6',
+            model: 'claude-opus-4-8',
             max_tokens: 1200,
             messages: [{ role: 'user', content: kitPrompt }],
         });
@@ -263,12 +323,128 @@ REGRAS:
         catch {
             return reply.status(500).send({ error: 'Falha ao montar kit', raw: rawText.slice(0, 300) });
         }
+        // Enrich items with product category from boutique catalog
+        const productCategoryMap = new Map(boutique.products.map((p) => [p.id, p.category]));
+        if (Array.isArray(kit.items)) {
+            kit.items = kit.items.map((item) => ({
+                ...item,
+                category: productCategoryMap.get(item.productId) ?? 'OUTRO',
+            }));
+        }
         return reply.send({
             kit,
             boutique: { id: boutique.id, name: boutique.name, distanceKm: boutique.distanceKm, logoUrl: boutique.logoUrl },
             grillmaster: { id: grillmaster.id, name: grillmaster.user.name, rating: grillmaster.rating, distanceKm: grillmaster.distanceKm, photoUrl: grillmaster.photoUrl, pricePerHour: grillmaster.pricePerHour },
             eventCoords: coords,
         });
+    });
+    // ── POST /ai/generate-bio ────────────────────────────────────────────
+    app.post('/ai/generate-bio', { preHandler: [auth_middleware_1.authenticate] }, async (request, reply) => {
+        const { role, name, city, specialties, churrascoStyle, experience, products } = request.body;
+        if (!role)
+            return reply.status(400).send({ error: 'role é obrigatório' });
+        if (role === 'boutique' && !name)
+            return reply.status(400).send({ error: 'name é obrigatório para açougue' });
+        let prompt;
+        if (role === 'grillmaster') {
+            prompt = `Você é especialista em marketing pessoal para churrasqueiros profissionais.
+Crie uma bio curta e vendedora para o app Tech Churras.
+
+${name ? `CHURRASQUEIRO: ${name}` : 'CHURRASQUEIRO: (nome não informado)'}
+${city ? `Cidade: ${city}` : ''}
+${experience ? `Experiência: ${experience} anos` : ''}
+${specialties ? `Especialidades: ${specialties}` : ''}
+${churrascoStyle ? `Estilo: ${churrascoStyle}` : ''}
+
+REGRAS:
+- 2-3 frases máximo (40-60 palavras)
+- Tom profissional mas humano — não robótico
+- Destaque o diferencial do churrasqueiro
+- Fale na primeira pessoa
+- NÃO use emojis
+- NÃO mencione preço
+Retorne SOMENTE o texto da bio, nada mais.`;
+        }
+        else {
+            const productList = products?.length ? products.join(', ') : '';
+            prompt = `Você é especialista em marketing para açougues artesanais.
+Crie uma descrição curta e atrativa para o app Tech Churras.
+
+AÇOUGUE: ${name}
+${city ? `Cidade: ${city}` : ''}
+${productList ? `Produtos em destaque: ${productList}` : ''}
+${specialties ? `Especialidades: ${specialties}` : ''}
+
+REGRAS:
+- 2-3 frases máximo (40-60 palavras)
+- Tom artesanal, de qualidade — não genérico
+- Destaque os cortes ou diferenciais do açougue
+- NÃO use emojis
+- NÃO mencione preço
+Retorne SOMENTE o texto da descrição, nada mais.`;
+        }
+        const message = await client.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 200,
+            messages: [{ role: 'user', content: prompt }],
+        });
+        const bio = message.content[0].type === 'text' ? message.content[0].text.trim() : '';
+        if (!bio)
+            return reply.status(500).send({ error: 'Falha ao gerar bio' });
+        return reply.send({ bio });
+    });
+    // ── POST /ai/suggest-from-catalog ────────────────────────────────────
+    // Recebe os produtos reais do açougue já selecionado e retorna sugestões
+    // com productId exato para preencher o carrinho diretamente.
+    app.post('/ai/suggest-from-catalog', { preHandler: [auth_middleware_1.authenticate] }, async (request, reply) => {
+        const { homens = 5, mulheres = 3, criancas = 2, hours = 4, style = 'tradicional', grillmasterSpecialties = '', customerName = '', occasion = '', products } = request.body;
+        if (!Array.isArray(products) || products.length === 0) {
+            return reply.status(400).send({ error: 'Lista de produtos obrigatória' });
+        }
+        const totalPessoas = Number(homens) + Number(mulheres) + Number(criancas);
+        const firstName = customerName?.trim().split(' ')[0] || '';
+        const catalogLines = products
+            .filter(p => p.id && p.name)
+            .map(p => `[${p.id}] ${p.name} — ${p.category} — R$${Number(p.price).toFixed(2)}/${p.unit}`)
+            .join('\n');
+        const totalKg = ((Number(homens) * 400 + Number(mulheres) * 300 + Number(criancas) * 150) / 1000).toFixed(1);
+        const prompt = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte o kit ideal de forma calorosa e personalizada.
+${firstName ? `Cliente: ${firstName}${occasion ? ` | Ocasião: ${occasion}` : ''}` : occasion ? `Ocasião: ${occasion}` : ''}
+
+EVENTO: ${homens} homens, ${mulheres} mulheres, ${criancas} crianças — ${hours}h — estilo: ${style}
+${grillmasterSpecialties ? `ESPECIALIDADES DO CHURRASQUEIRO: ${grillmasterSpecialties}` : ''}
+
+PRODUTOS DO AÇOUGUE — use SOMENTE estes IDs exatos:
+${catalogLines}
+
+REGRAS:
+- Meta: ~${totalKg}kg de carne (400g/h, 300g/m, 150g/c)
+- Carvão: 1 saco por 5 pessoas se disponível
+- Priorize cortes que combinam com as especialidades do churrasqueiro
+- Máximo 8 itens; reason em até 5 palavras
+- summary: frase calorosa${firstName ? ` dirigida ao ${firstName}` : ''}, comente algo específico do evento (ocasião, nº de pessoas). Se escolheu corte nobre, mencione que o Jota aprova. 1-2 frases, tom amigo.
+- Responda SOMENTE JSON válido sem markdown:
+{"items":[{"productId":"id_exato","quantity":2.5,"unit":"kg","reason":"curta razao"}],"summary":"frase calorosa personalizada","totalKg":${totalKg}}`;
+        const message = await client.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 800,
+            messages: [{ role: 'user', content: prompt }],
+        });
+        const raw = message.content[0].type === 'text' ? message.content[0].text : '';
+        try {
+            const cleaned = raw.replace(/```json\s*/g, '').replace(/```/g, '').trim();
+            const match = cleaned.match(/\{[\s\S]*\}/);
+            const parsed = JSON.parse(match ? match[0] : cleaned);
+            // Validate that returned productIds exist in the catalog
+            const validIds = new Set(products.map(p => p.id));
+            if (Array.isArray(parsed.items)) {
+                parsed.items = parsed.items.filter((item) => validIds.has(item.productId));
+            }
+            return reply.send(parsed);
+        }
+        catch {
+            return reply.status(500).send({ error: 'Falha ao processar sugestão', raw: raw.slice(0, 300) });
+        }
     });
 }
 //# sourceMappingURL=ai.routes.js.map
