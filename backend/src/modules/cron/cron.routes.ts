@@ -1,6 +1,7 @@
 ﻿import { FastifyInstance } from 'fastify'
 import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
+import { sendFollowUps } from '../webhooks/whatsapp.routes'
 
 async function sendWhatsAppReminder(phone: string, customerName: string, orderId: string, eventDate: Date, hoursLabel: string) {
   const instance = process.env.ZAPI_INSTANCE
@@ -101,6 +102,9 @@ export async function cronRoutes(app: FastifyInstance) {
         sentGm24++
       }
     }
+
+    // Follow-ups automáticos para leads captados via WhatsApp
+    await sendFollowUps().catch((e) => console.error('[FollowUp]', e?.message))
 
     return { ok: true, sent48, sent24, sentGm24 }
   })

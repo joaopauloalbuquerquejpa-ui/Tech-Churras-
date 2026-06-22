@@ -329,6 +329,21 @@ model Message {
   sender User  @relation("SentMessages", fields: [senderId], references: [id])
 }
 
+model Lead {
+  id          String    @id @default(uuid())
+  phone       String    @unique
+  name        String?
+  boutique    String?
+  neighborhood String?
+  status      String    @default("new")
+  source      String    @default("whatsapp")
+  followUpAt  DateTime?
+  followUpSent Boolean  @default(false)
+  notes       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
 model Review {
   id              String   @id @default(uuid())
   orderId         String   @unique

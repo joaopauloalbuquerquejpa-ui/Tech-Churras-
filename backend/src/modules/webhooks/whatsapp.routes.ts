@@ -1,15 +1,15 @@
 import { FastifyInstance } from 'fastify'
 import Anthropic from '@anthropic-ai/sdk'
+import { prisma } from '../../config/prisma'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 interface Conversation {
   messages: Anthropic.MessageParam[]
   lastActivity: number
-  notifiedAdmin: boolean
+  leadSaved: boolean
 }
 
-// Conversa em memória por número de telefone — TTL 24h
 const conversations = new Map<string, Conversation>()
 
 setInterval(() => {
@@ -19,47 +19,51 @@ setInterval(() => {
   }
 }, 60 * 60 * 1000)
 
-const SYSTEM_PROMPT = `Você é a assistente da Tech Churras, respondendo WhatsApp em nome de Jota Albuquerque.
+const SYSTEM_PROMPT = `Você é a equipe da Tech Churras respondendo WhatsApp em nome de Jota Albuquerque.
 
-SOBRE JOTA ALBUQUERQUE (o fundador):
-Jota Albuquerque é churrasqueiro profissional e fundador da Tech Churras. Atualmente está em Zanzibar, na Tanzânia (África), onde é sócio e BBQ Master do Bahari of Brazil — um hub culinário criado em parceria oficial com o Governo de Zanzibar (Ministério de Comunicação, Tecnologia e Inovação). De lá, está lançando a Tech Churras no Brasil. Essa história de um brasileiro em Zanzibar lançando uma plataforma de churrasco no Brasil é um diferencial real e pode ser mencionada quando o lead perguntar sobre quem está por trás da Tech Churras ou quando precisar de credibilidade.
+SOBRE JOTA ALBUQUERQUE:
+Jota Albuquerque é churrasqueiro profissional e fundador da Tech Churras. É sócio executivo do Bahari of Brazil — 500m² dentro do Ministério de TI e Inovação da Tanzânia, parceria PPP oficial com o Governo de Zanzibar. Assinou o cardápio de cortes nobres para uma experiência única no continente africano. De Zanzibar, está lançando a Tech Churras no Brasil porque acredita que o churrasco merece estrutura profissional.
 
 SOBRE A TECH CHURRAS:
-Plataforma que conecta churrasqueiros certificados e açougues premium em São Paulo. Clientes contratam tudo pelo app — churrasqueiro + carnes — e acompanham ao vivo no mapa.
+Plataforma que transforma açougues em hubs de eventos de churrasco em São Paulo.
+- QR code no balcão do açougue → cliente escaneia → escolhe cortes + churrasqueiro → paga no celular
+- Açougue recebe no Pix toda semana
+- Igual ao iFood, mas para açougues
 
-SEU FOCO AGORA:
-Converter donos de açougue em São Paulo em Parceiros Fundadores.
-
-MODELO DE PARCERIA AÇOUGUE:
-- Mensalidade: R$ 369/mês
-- Comissão: apenas 7% por pedido concluído
-- O açougue ganha QR code personalizado para o balcão
-- Cliente escaneia → monta kit → escolhe cortes do açougue → paga no app
-- Repasse semanal via PIX, sem delivery próprio necessário
-- Programa Parceiro Fundador: começa dia 06/07/2026, dura apenas 1 mês (até 06/08/2026)
-- Apenas 1 Parceiro Fundador por região — vagas extremamente limitadas
-- Parceiros Fundadores têm condição especial exclusiva — detalhes só com o Jota pessoalmente
+OFERTA DE LANÇAMENTO (06/07/2026):
+- 60 dias 100% GRÁTIS para os primeiros açougues
+- Depois: R$ 369/mês + 7% de comissão só quando vender
+- Cancela quando quiser, sem multa
+- R$ 200 de bônus por cada açougue indicado
+- Landing page: techchurras.com.br/lancamento-acougue
 
 FLUXO DA CONVERSA:
-1. Entenda o que a pessoa quer (cliente ou açougue?)
-2. Se açougue ou interessado em parceria: apresente com entusiasmo e clareza
-3. Colete naturalmente: nome, nome do açougue e bairro em SP
-4. Quando demonstrar interesse real: ofereça conectar com o Jota Albuquerque pessoalmente para fechar
-5. Se for cliente final buscando churrasqueiro: direcione para techchurras.com.br
+1. Entenda se é dono de açougue ou cliente final
+2. Se açougue: apresente com entusiasmo — foque nos 60 dias grátis e na dor de perder cliente para o supermercado na sexta
+3. Colete naturalmente: nome, nome do açougue, bairro em SP
+4. Quando demonstrar interesse real: mande o link techchurras.com.br/lancamento-acougue e ofereça conectar com o Jota
+5. Se for cliente final: direcione para techchurras.com.br
+
+RESPOSTAS PARA OBJEÇÕES COMUNS:
+- "não tenho tempo": 20 minutos para cadastrar, tudo pelo celular, igual iFood
+- "quanto custa?": 60 dias grátis, depois R$ 369/mês, 1 pedido já paga o mês
+- "não sei mexer com tecnologia": mais simples que o iFood, tem suporte direto
+- "já tenho clientes fixos": esses clientes vão gastar mais comprando kit completo em vez de só o corte
+- "vou pensar": os 60 dias grátis só valem para quem entrar antes de 06/07, vagas limitadas
 
 ESTILO:
-- Respostas curtas e diretas — máximo 3 parágrafos
-- Tom caloroso e humano, nunca robótico
-- Português brasileiro natural
-- Nunca diga que é IA ou assistente virtual — você é a equipe da Tech Churras
-- Use emojis com moderação: 🔥 🥩 funcionam bem
+- Respostas CURTAS — máximo 3 parágrafos pequenos
+- Tom caloroso e direto, nunca robótico
+- Português brasileiro natural, pode usar alguns emojis (🔥 🥩)
+- NUNCA diga que é IA ou bot — você é a equipe da Tech Churras
+- Nunca invente informações que não estão aqui
 
-QUANDO QUALIFICAR COMO LEAD:
-Coloque "LEAD_QUALIFICADO: [nome] | [açougue] | [bairro/SP]" na PRIMEIRA LINHA da resposta (será removido antes de enviar) quando:
-- A pessoa confirmou que tem açougue em SP E demonstrou interesse real
-- Pediu para falar com o Jota Albuquerque ou perguntou como fechar parceria
+QUALIFICAÇÃO DE LEAD:
+Coloque exatamente "LEAD_QUALIFICADO: [nome] | [açougue] | [bairro]" na PRIMEIRA LINHA da resposta (será removido antes de enviar) quando:
+- A pessoa confirmou que tem açougue em SP E demonstrou interesse (pediu mais info, perguntou o preço, pediu para falar com o Jota)
 
-Após essa linha, escreva a resposta normal ao cliente.`
+FOLLOW-UP (quando a pessoa para de responder por mais de 1 mensagem):
+Coloque "REENGAJAR" na primeira linha para indicar que é hora de uma mensagem mais direta sobre urgência do lançamento.`
 
 async function zapiSend(phone: string, message: string): Promise<void> {
   const instance = process.env.ZAPI_INSTANCE
@@ -85,15 +89,42 @@ async function notifyAdmin(leadInfo: string, phone: string): Promise<void> {
   if (!adminPhone) return
   await zapiSend(
     adminPhone,
-    `🔥 *LEAD — AÇOUGUE SP*\n\n${leadInfo}\nTel: wa.me/${phone.replace(/\D/g, '')}\n\n_Responsa para fechar parceria Fundador!_`
+    `🔥 *LEAD QUALIFICADO — AÇOUGUE SP*\n\n${leadInfo}\nTel: wa.me/55${phone.replace(/\D/g, '')}\n\n_Acesse o painel: techchurras.com.br/admin_`
   )
 }
 
+async function saveLead(phone: string, info: string): Promise<void> {
+  const parts = info.split('|').map(s => s.trim())
+  const name         = parts[0] || null
+  const boutique     = parts[1] || null
+  const neighborhood = parts[2] || null
+  const followUpAt   = new Date(Date.now() + 48 * 60 * 60 * 1000)
+  try {
+    await prisma.lead.upsert({
+      where: { phone },
+      update: { name, boutique, neighborhood, status: 'qualified', followUpAt, followUpSent: false },
+      create: { phone, name, boutique, neighborhood, status: 'qualified', source: 'whatsapp', followUpAt },
+    })
+  } catch (err: any) {
+    console.error('[Lead] save error:', err?.message)
+  }
+}
+
+async function markLeadContacted(phone: string): Promise<void> {
+  try {
+    await prisma.lead.upsert({
+      where: { phone },
+      update: { updatedAt: new Date() },
+      create: { phone, status: 'new', source: 'whatsapp' },
+    })
+  } catch {}
+}
+
 export async function whatsappWebhookRoutes(app: FastifyInstance) {
+  // ── Incoming message webhook
   app.post('/webhooks/whatsapp', {
     config: { rateLimit: { max: 120, timeWindow: '1 minute' } },
   }, async (request, reply) => {
-    // Validação do token secreto passado pela Z-API
     const { token } = request.query as { token?: string }
     if (!process.env.WEBHOOK_SECRET || token !== process.env.WEBHOOK_SECRET) {
       return reply.status(401).send({ error: 'Unauthorized' })
@@ -101,7 +132,6 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
 
     const body = request.body as any
 
-    // Ignorar mensagens enviadas por nós, grupos, status e não-texto
     if (
       body.fromMe === true ||
       body.isGroup === true ||
@@ -113,20 +143,26 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
       return reply.send({ ok: true })
     }
 
-    const phone = String(body.phone || '').trim()
+    const phone       = String(body.phone || '').trim()
     const userMessage = String(body.text.message || '').trim()
     if (!phone || !userMessage) return reply.send({ ok: true })
 
-    // Obter ou criar conversa
+    // Registra o contato no banco (novo lead)
+    markLeadContacted(phone).catch(() => {})
+
+    // Atualiza o followUpAt para evitar disparo enquanto está respondendo
+    prisma.lead.updateMany({
+      where: { phone },
+      data: { followUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000), followUpSent: false },
+    }).catch(() => {})
+
     const now = Date.now()
     if (!conversations.has(phone)) {
-      conversations.set(phone, { messages: [], lastActivity: now, notifiedAdmin: false })
+      conversations.set(phone, { messages: [], lastActivity: now, leadSaved: false })
     }
     const conv = conversations.get(phone)!
     conv.lastActivity = now
     conv.messages.push({ role: 'user', content: userMessage })
-
-    // Janela de contexto: últimas 20 mensagens (~10 trocas)
     if (conv.messages.length > 20) conv.messages = conv.messages.slice(-20)
 
     try {
@@ -138,14 +174,15 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
       })
 
       const rawText = aiResp.content[0].type === 'text' ? aiResp.content[0].text.trim() : ''
-
       let replyText = rawText
+
       if (rawText.startsWith('LEAD_QUALIFICADO:')) {
         const [leadLine, ...rest] = rawText.split('\n')
         replyText = rest.join('\n').trim()
-        if (!conv.notifiedAdmin) {
-          conv.notifiedAdmin = true
+        if (!conv.leadSaved) {
+          conv.leadSaved = true
           const leadInfo = leadLine.replace('LEAD_QUALIFICADO:', '').trim()
+          saveLead(phone, leadInfo).catch(() => {})
           notifyAdmin(leadInfo, phone).catch(() => {})
         }
       }
@@ -154,10 +191,42 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
       await zapiSend(phone, replyText)
     } catch (err: any) {
       console.error('[WhatsApp AI] error:', err?.message)
-      // Fallback humano para não deixar cliente sem resposta
       await zapiSend(phone, 'Oi! Recebi sua mensagem. Vou verificar aqui e já te retorno! 🔥')
     }
 
     return reply.send({ ok: true })
   })
+
+  // ── Admin: lista de leads captados
+  app.get('/webhooks/leads', async (request, reply) => {
+    const { token } = request.query as { token?: string }
+    if (token !== process.env.WEBHOOK_SECRET) return reply.status(401).send({ error: 'Unauthorized' })
+    const leads = await prisma.lead.findMany({ orderBy: { createdAt: 'desc' }, take: 100 })
+    return reply.send(leads)
+  })
+}
+
+// ── Follow-up automático 48h — chamado pelo cron
+export async function sendFollowUps(): Promise<void> {
+  const due = await prisma.lead.findMany({
+    where: {
+      status: { in: ['new', 'qualified'] },
+      followUpAt: { lte: new Date() },
+      followUpSent: false,
+    },
+  })
+
+  for (const lead of due) {
+    const msg = lead.status === 'qualified'
+      ? `Oi${lead.name ? ` ${lead.name.split(' ')[0]}` : ''}! 👋\n\nPassando pra lembrar que o lançamento da Tech Churras é no dia *06/07* e as vagas de açougue fundador estão acabando.\n\nQuem entrar antes do lançamento garante *60 dias grátis* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/lancamento-acougue`
+      : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nEstamos lançando em *13 dias* em São Paulo — QR code no balcão do açougue para vender carne + churrasqueiro pelo celular.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
+
+    await zapiSend(lead.phone, msg)
+    await prisma.lead.update({
+      where: { id: lead.id },
+      data: { followUpSent: true, followUpAt: new Date(Date.now() + 72 * 60 * 60 * 1000) },
+    })
+  }
+
+  if (due.length > 0) console.log(`[Follow-up] ${due.length} mensagens enviadas`)
 }
