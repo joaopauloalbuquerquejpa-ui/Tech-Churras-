@@ -151,7 +151,19 @@ interface ScheduleDay {
   available: boolean
 }
 
-type Tab = 'stats' | 'orders' | 'pending' | 'financeiro' | 'contracts' | 'equipe'
+type Tab = 'stats' | 'orders' | 'pending' | 'financeiro' | 'contracts' | 'equipe' | 'leads'
+
+interface Lead {
+  id: string
+  phone: string
+  name: string | null
+  boutique: string | null
+  neighborhood: string | null
+  status: string
+  source: string
+  followUpSent: boolean
+  createdAt: string
+}
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -163,6 +175,7 @@ export default function AdminPage() {
   const [viewContract, setViewContract] = useState<AdminContract | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('stats')
+  const [leads, setLeads] = useState<Lead[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
@@ -182,13 +195,14 @@ export default function AdminPage() {
     else setRefreshing(true)
     const h = { Authorization: 'Bearer ' + getToken() }
     try {
-      const [s, o, pg, pb, c, allGms] = await Promise.all([
+      const [s, o, pg, pb, c, allGms, lds] = await Promise.all([
         fetch(API_URL + '/admin/stats', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/orders', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/grillmasters', { headers: h }).then(r => r.ok ? r.json() : []),
+        fetch(API_URL + '/admin/leads', { headers: h }).then(r => r.ok ? r.json() : []),
       ])
       setStats(s)
       setOrders(Array.isArray(o) ? o : o.orders || [])
@@ -199,6 +213,7 @@ export default function AdminPage() {
       setGmApproveState(prev => ({ ...init, ...prev }))
       setPendingBoutiques(Array.isArray(pb) ? pb : [])
       setContracts(Array.isArray(c) ? c : [])
+      setLeads(Array.isArray(lds) ? lds : [])
       setLastUpdated(new Date())
 
       // Team Jota
@@ -378,6 +393,7 @@ export default function AdminPage() {
           { key: 'financeiro', label: 'Financeiro' },
           { key: 'contracts', label: 'Contratos (' + contracts.length + ')' },
           { key: 'equipe', label: 'Minha Equipe' },
+          { key: 'leads', label: leads.length > 0 ? 'Leads (' + leads.length + ')' : 'Leads' },
         ] as { key: Tab; label: string }[]).map(t => (
           <button
             key={t.key}
@@ -1166,6 +1182,92 @@ export default function AdminPage() {
                   <pre className="font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{viewContract.contractText}</pre>
                 </div>
               </div>
+            </div>
+          )}
+        </div>
+      )}
+      {tab === 'leads' && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="font-bold text-lg">Leads WhatsApp</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Captados pelo bot de captação de açougues</p>
+            </div>
+            <button
+              onClick={async () => {
+                const h = { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' }
+                if (!confirm('Rodar migração trialEndsAt para boutiques aprovadas sem trial?')) return
+                const r = await fetch(API_URL + '/admin/migrate/trial-ends-at', { method: 'POST', headers: h })
+                const d = await r.json()
+                alert(`Migração OK: ${d.updated} boutiques atualizadas`)
+              }}
+              className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg"
+            >
+              Migrar trialEndsAt
+            </button>
+          </div>
+
+          {leads.length === 0 ? (
+            <p className="text-gray-500 text-sm">Nenhum lead captado ainda. O bot vai popular aqui automaticamente.</p>
+          ) : (
+            <div className="space-y-2">
+              {leads.map(lead => {
+                const statusColors: Record<string, string> = {
+                  new:       'bg-gray-700 text-gray-300',
+                  qualified: 'bg-orange-500/20 text-orange-400',
+                  contacted: 'bg-blue-500/20 text-blue-400',
+                  converted: 'bg-green-500/20 text-green-400',
+                  dead:      'bg-red-500/20 text-red-400',
+                }
+                const statusLabels: Record<string, string> = {
+                  new: 'Novo', qualified: 'Qualificado', contacted: 'Contatado', converted: 'Convertido', dead: 'Frio',
+                }
+                return (
+                  <div key={lead.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-start justify-between gap-4">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm">{lead.name || 'Sem nome'}</span>
+                        {lead.boutique && <span className="text-orange-400 text-xs">{lead.boutique}</span>}
+                        {lead.neighborhood && <span className="text-gray-500 text-xs">{lead.neighborhood}</span>}
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[lead.status] || 'bg-gray-700 text-gray-300'}`}>
+                          {statusLabels[lead.status] || lead.status}
+                        </span>
+                        {lead.followUpSent && <span className="text-xs text-blue-400">follow-up enviado</span>}
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {lead.phone} · {new Date(lead.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                    <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+                      <a
+                        href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`}
+                        target="_blank" rel="noreferrer"
+                        className="text-xs text-green-400 hover:text-green-300 border border-green-900 px-2 py-1 rounded"
+                      >
+                        WhatsApp
+                      </a>
+                      {(['qualified','contacted','converted','dead'] as const).filter(s => s !== lead.status).map(s => (
+                        <button key={s}
+                          onClick={async () => {
+                            const r = await fetch(API_URL + '/admin/leads/' + lead.id + '/status', {
+                              method: 'PATCH',
+                              headers: { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ status: s }),
+                            })
+                            if (r.ok) {
+                              const updated = await r.json()
+                              setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status: updated.status } : l))
+                            }
+                          }}
+                          className="text-xs text-gray-400 hover:text-white border border-gray-700 px-2 py-1 rounded"
+                        >
+                          {statusLabels[s]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
