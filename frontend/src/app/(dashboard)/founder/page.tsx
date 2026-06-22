@@ -693,10 +693,10 @@ export default function FounderPage() {
               </p>
               <div className="flex flex-wrap gap-2">
                 {[
-                  '🏛️ PPP com Gov. Zanzibar',
-                  '📐 428m² cedidos pelo MCITI',
-                  '🍖 Brazilian BBQ Day permanente',
-                  '👨‍🍳 BBQ Master oficial',
+                  '🏛️ Parceria oficial com o Governo',
+                  '📐 500m² dentro do Ministério',
+                  '👨‍💼 Sócio executivo',
+                  '🍖 Cardápio assinado',
                 ].map(t => (
                   <span key={t} className="text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 px-3 py-1 rounded-full">
                     {t}

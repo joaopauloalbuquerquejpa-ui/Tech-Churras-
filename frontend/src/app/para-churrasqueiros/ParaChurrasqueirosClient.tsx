@@ -343,7 +343,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                   Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {['428m² gov. Zanzibar', 'BBQ Master oficial', 'Hub culinário + treinamento', 'BBQ Day permanente'].map(t => (
+                  {['🏛️ Parceria oficial com o Governo', '📐 500m² dentro do Ministério', '👨‍💼 Sócio executivo', '🍖 Cardápio assinado'].map(t => (
                     <span key={t} className="text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-1 rounded-full">{t}</span>
                   ))}
                 </div>
