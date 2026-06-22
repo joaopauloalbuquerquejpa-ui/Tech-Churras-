@@ -174,6 +174,7 @@ export default function BoutiqueDashboardPage() {
   const [kitForm, setKitForm] = useState(emptyKitForm)
   const [kitItems, setKitItems] = useState<KitItem[]>([])
   const [submittingKit, setSubmittingKit] = useState(false)
+  const [generatingKitItems, setGeneratingKitItems] = useState(false)
   const [uploadingKitPhoto, setUploadingKitPhoto] = useState(false)
   const kitPhotoRef = useRef<HTMLInputElement>(null)
 
@@ -1257,7 +1258,52 @@ export default function BoutiqueDashboardPage() {
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-xs text-gray-400">Itens do pacote</label>
-                    <button type="button" onClick={addKitItem} className="text-xs text-orange-400 hover:text-orange-300">+ Adicionar item</button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={generatingKitItems || !boutique || boutique.products.length === 0}
+                        title={!boutique || boutique.products.length === 0 ? 'Cadastre produtos primeiro' : 'Sugerir itens com IA baseado no seu catálogo'}
+                        onClick={async () => {
+                          if (!boutique) return
+                          setGeneratingKitItems(true)
+                          try {
+                            const guests = kitForm.minGuests || 10
+                            const homens = Math.round(guests * 0.55)
+                            const mulheres = Math.round(guests * 0.30)
+                            const criancas = guests - homens - mulheres
+                            const res = await fetch(API_URL + '/ai/suggest-from-catalog', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+                              body: JSON.stringify({
+                                homens, mulheres, criancas,
+                                occasion: kitForm.name || 'churrasco',
+                                products: boutique.products
+                                  .filter(p => p.available)
+                                  .map(p => ({ id: p.id, name: p.name, category: p.category, price: p.price, unit: p.unit })),
+                              }),
+                            })
+                            if (!res.ok) return
+                            const data = await res.json()
+                            if (Array.isArray(data.items)) {
+                              const productMap = new Map(boutique.products.map(p => [p.id, p]))
+                              const suggested: KitItem[] = data.items
+                                .map((item: { productId: string; quantity: number; unit?: string }) => {
+                                  const p = productMap.get(item.productId)
+                                  if (!p) return null
+                                  return { productName: p.name, quantity: item.quantity, unit: item.unit || p.unit }
+                                })
+                                .filter(Boolean) as KitItem[]
+                              if (suggested.length > 0) setKitItems(suggested)
+                            }
+                          } catch { /* silently fail */ }
+                          finally { setGeneratingKitItems(false) }
+                        }}
+                        className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-40 flex items-center gap-1"
+                      >
+                        {generatingKitItems ? '⏳ Gerando...' : '✨ Sugerir com IA'}
+                      </button>
+                      <button type="button" onClick={addKitItem} className="text-xs text-gray-400 hover:text-gray-300">+ Adicionar item</button>
+                    </div>
                   </div>
                   {kitItems.length === 0 && (
                     <p className="text-xs text-gray-600 py-2 text-center">Nenhum item adicionado</p>
