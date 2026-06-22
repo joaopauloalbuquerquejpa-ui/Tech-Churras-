@@ -5,3 +5,8 @@
 *.jks
 frontend/android/keystore.properties
 frontend/android/.keystore-info.txt
+
+# Credenciais OAuth Google — NUNCA commitar
+client_secret*.json
+credentials.json
+token.json
