@@ -421,6 +421,12 @@ function PedidoForm() {
                 <span>Evento</span>
                 <span className="text-white">{eventDate ? new Date(eventDate + 'T12:00').toLocaleDateString('pt-BR') : '—'} às {eventTime}</span>
               </div>
+              {eventAddress && (
+                <div className="flex justify-between text-gray-400 gap-4">
+                  <span className="shrink-0">Endereço</span>
+                  <span className="text-white text-right text-xs">{eventAddress}</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
               {productsCost > 0 && <div className="flex justify-between text-gray-400"><span>Cortes</span><span className="text-orange-400">R$ {productsCost.toFixed(2)}</span></div>}
               {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h)</span><span className="text-orange-400">R$ {gmCost.toFixed(2)}</span></div>}
