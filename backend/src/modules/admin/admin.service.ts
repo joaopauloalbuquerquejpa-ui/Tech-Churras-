@@ -139,20 +139,22 @@ export async function approveBoutique(boutiqueId: string) {
     if (existing) code = generateReferralCode(boutique.name)
     referralCode = code
   }
-  const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true, referralCode } })
+  const trialEndsAt = new Date()
+  trialEndsAt.setDate(trialEndsAt.getDate() + 60)
+  const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true, referralCode, trialEndsAt } })
   if (boutique.user) {
     const name = boutique.user.name.split(' ')[0]
     sendPushToUser(
       boutique.user.id,
-      '🎉 Açougue aprovado!',
-      `Parabéns ${name}! O açougue ${boutique.name} já está ativo na Tech Churras.`,
+      '🎉 Açougue aprovado! 60 dias grátis iniciados.',
+      `Parabéns ${name}! O açougue ${boutique.name} está ativo. Aproveite seus 60 dias de uso gratuito!`,
       '/boutiques/dashboard'
     ).catch((e) => console.error("[notif]", e?.message))
     emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
     if (boutique.user.phone) {
       sendWhatsApp(
         boutique.user.phone,
-        `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\nVocê já pode receber pedidos. Acesse seu painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
+        `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n🎁 Você tem *60 dias GRÁTIS* para testar tudo.\nAcesse seu painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
         'boutique-aprovado'
       ).catch((e) => console.error("[notif]", e?.message))
     }

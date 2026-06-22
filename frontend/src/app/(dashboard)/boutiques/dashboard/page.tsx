@@ -60,13 +60,14 @@ interface Product {
 
 interface Boutique {
   id: string; name: string; city: string; state: string; approved: boolean
-  open: boolean; products: Product[]
+  open: boolean; products: Product[]; trialEndsAt?: string | null
 }
 
+interface OrderItem { name: string; quantity: number; unit: string }
 interface Stats {
   totalRevenue30days: number; totalOrders30days: number; pendingOrdersCount: number
   revenueByDay: { date: string; revenue: number }[]
-  recentOrders: { id: string; customerName: string; totalPrice: number; status: string; eventDate: string }[]
+  recentOrders: { id: string; customerName: string; customerPhone?: string | null; grillmasterName?: string | null; totalPrice: number; status: string; eventDate: string; guestCount?: number; items?: OrderItem[] }[]
   referralCode: string | null; referralCount: number
 }
 
@@ -154,6 +155,9 @@ export default function BoutiqueDashboardPage() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
   const [readyOrderIds, setReadyOrderIds] = useState<Set<string>>(new Set())
   const [confirmingReadyId, setConfirmingReadyId] = useState<string | null>(null)
+  const [acceptedOrderIds, setAcceptedOrderIds] = useState<Set<string>>(new Set())
+  const [rejectedOrderIds, setRejectedOrderIds] = useState<Set<string>>(new Set())
+  const [processingOrderId, setProcessingOrderId] = useState<string | null>(null)
   const qrRef = useRef<HTMLDivElement>(null)
   const qrBalcaoRef = useRef<HTMLDivElement>(null)
   const qrIndicacaoRef = useRef<HTMLDivElement>(null)
@@ -563,6 +567,34 @@ export default function BoutiqueDashboardPage() {
         </button>
       </div>
 
+      {boutique.trialEndsAt && (() => {
+        const daysLeft = Math.max(0, Math.ceil((new Date(boutique.trialEndsAt).getTime() - Date.now()) / 86400000))
+        if (daysLeft === 0) return (
+          <div className="bg-red-500/15 border border-red-500/40 rounded-xl px-5 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse shrink-0" />
+              <p className="text-red-300 font-semibold text-sm">Seu período gratuito encerrou. Assine para continuar recebendo pedidos.</p>
+            </div>
+            <a href="mailto:techchurras@gmail.com?subject=Assinar Tech Churras" className="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-lg whitespace-nowrap transition-colors">Assinar agora</a>
+          </div>
+        )
+        if (daysLeft <= 7) return (
+          <div className="bg-yellow-500/15 border border-yellow-500/40 rounded-xl px-5 py-3 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shrink-0" />
+              <p className="text-yellow-300 font-semibold text-sm">Seu período gratuito encerra em <span className="font-black">{daysLeft} {daysLeft === 1 ? 'dia' : 'dias'}</span>. Continue sem parar!</p>
+            </div>
+            <a href="mailto:techchurras@gmail.com?subject=Assinar Tech Churras" className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs px-4 py-2 rounded-lg whitespace-nowrap transition-colors">Assinar agora</a>
+          </div>
+        )
+        return (
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-5 py-3 flex items-center gap-3">
+            <span className="text-green-400">🎁</span>
+            <p className="text-green-300 text-sm"><span className="font-bold">{daysLeft} dias gratuitos</span> restantes — aproveite sem custo!</p>
+          </div>
+        )
+      })()}
+
       {stats && stats.pendingOrdersCount > 0 && (
         <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-5 py-3 flex items-center gap-3">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-orange-400 animate-pulse shrink-0" />
@@ -756,46 +788,107 @@ export default function BoutiqueDashboardPage() {
 
           {stats && stats.recentOrders.length > 0 && (
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-              <p className="text-sm font-semibold text-white mb-4">Pedidos Recentes</p>
-              <div className="space-y-2">
-                {stats.recentOrders.map(o => (
-                  <div key={o.id} className="px-4 py-3 bg-gray-800 rounded-xl">
-                    <div className="flex items-center justify-between gap-3">
-                      <Link href={'/orders/' + o.id} className="flex items-center gap-3 min-w-0 flex-1">
-                        <span className={'text-xs text-white px-2 py-0.5 rounded-full font-medium shrink-0 ' + (STATUS_COLOR[o.status] || 'bg-gray-500')}>
-                          {STATUS_LABEL[o.status] || o.status}
-                        </span>
-                        <p className="text-sm font-medium text-gray-300 truncate">{o.customerName}</p>
-                      </Link>
-                      <div className="shrink-0 text-right">
-                        <p className="text-sm font-bold text-orange-400">R$ {o.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-                        <p className="text-xs text-gray-600">{new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</p>
+              <p className="text-sm font-semibold text-white mb-4">Pedidos</p>
+              <div className="space-y-3">
+                {stats.recentOrders.map(o => {
+                  const isPending = o.status === 'PENDING' && !acceptedOrderIds.has(o.id) && !rejectedOrderIds.has(o.id)
+                  const isAccepted = o.status === 'CONFIRMED' || acceptedOrderIds.has(o.id)
+                  const isRejected = o.status === 'CANCELLED' || rejectedOrderIds.has(o.id)
+                  return (
+                    <div key={o.id} className={'rounded-xl border ' + (isPending ? 'border-orange-500/50 bg-orange-500/5' : 'border-gray-700 bg-gray-800')}>
+                      <div className="px-4 py-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={'text-xs text-white px-2 py-0.5 rounded-full font-medium shrink-0 ' + (STATUS_COLOR[o.status] || 'bg-gray-500')}>
+                                {acceptedOrderIds.has(o.id) ? 'Aceito' : rejectedOrderIds.has(o.id) ? 'Recusado' : (STATUS_LABEL[o.status] || o.status)}
+                              </span>
+                              {isPending && <span className="inline-block w-2 h-2 rounded-full bg-orange-400 animate-pulse" />}
+                            </div>
+                            <p className="text-sm font-bold text-white mt-1">{o.customerName}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                              {o.guestCount ? ` · ${o.guestCount} convidados` : ''}
+                            </p>
+                            {o.grillmasterName && <p className="text-xs text-gray-600 mt-0.5">👨‍🍳 {o.grillmasterName}</p>}
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-sm font-bold text-orange-400">R$ {o.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                            <Link href={'/orders/' + o.id} className="text-xs text-gray-600 hover:text-gray-400 underline">Ver detalhes</Link>
+                          </div>
+                        </div>
+
+                        {o.items && o.items.length > 0 && (
+                          <div className="mt-2 bg-gray-900 rounded-lg px-3 py-2 space-y-0.5">
+                            {o.items.map((item, idx) => (
+                              <p key={idx} className="text-xs text-gray-400">
+                                <span className="font-semibold text-white">{item.quantity} {item.unit}</span> {item.name}
+                              </p>
+                            ))}
+                          </div>
+                        )}
                       </div>
+
+                      {isPending && (
+                        <div className="px-4 pb-3 flex gap-2">
+                          <button
+                            onClick={async () => {
+                              setProcessingOrderId(o.id)
+                              try {
+                                await fetch(`${API_URL}/boutiques/orders/${o.id}/accept`, { method: 'PATCH', headers: { Authorization: 'Bearer ' + getToken() } })
+                                setAcceptedOrderIds(prev => new Set([...prev, o.id]))
+                              } catch { /* silently fail */ }
+                              finally { setProcessingOrderId(null) }
+                            }}
+                            disabled={processingOrderId === o.id}
+                            className="flex-1 text-xs font-bold text-white bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-xl py-2.5 transition-colors"
+                          >
+                            ✅ Aceitar pedido
+                          </button>
+                          <button
+                            onClick={async () => {
+                              setProcessingOrderId(o.id)
+                              try {
+                                await fetch(`${API_URL}/boutiques/orders/${o.id}/reject`, { method: 'PATCH', headers: { Authorization: 'Bearer ' + getToken() }, body: JSON.stringify({ reason: 'Sem estoque no momento' }), headers: { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' } })
+                                setRejectedOrderIds(prev => new Set([...prev, o.id]))
+                              } catch { /* silently fail */ }
+                              finally { setProcessingOrderId(null) }
+                            }}
+                            disabled={processingOrderId === o.id}
+                            className="text-xs font-bold text-gray-400 hover:text-red-400 border border-gray-700 hover:border-red-500 rounded-xl px-4 py-2.5 transition-colors"
+                          >
+                            Recusar
+                          </button>
+                        </div>
+                      )}
+
+                      {isAccepted && !readyOrderIds.has(o.id) && !rejectedOrderIds.has(o.id) && (
+                        <div className="px-4 pb-3">
+                          <button
+                            onClick={async () => {
+                              setConfirmingReadyId(o.id)
+                              try {
+                                await fetch(`${API_URL}/boutiques/orders/${o.id}/ready`, { method: 'PATCH', headers: { Authorization: 'Bearer ' + getToken() } })
+                                setReadyOrderIds(prev => new Set([...prev, o.id]))
+                              } catch { /* silently fail */ }
+                              finally { setConfirmingReadyId(null) }
+                            }}
+                            disabled={confirmingReadyId === o.id}
+                            className="w-full text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 disabled:opacity-50 rounded-xl py-2.5 transition-colors"
+                          >
+                            {confirmingReadyId === o.id ? 'Confirmando...' : '📦 Cortes prontos — avisar churrasqueiro'}
+                          </button>
+                        </div>
+                      )}
+
+                      {readyOrderIds.has(o.id) && (
+                        <div className="px-4 pb-3">
+                          <p className="text-xs text-green-400 text-center bg-green-500/10 rounded-lg py-2">✓ Churrasqueiro notificado para buscar os cortes</p>
+                        </div>
+                      )}
                     </div>
-                    {['PENDING', 'CONFIRMED'].includes(o.status) && !readyOrderIds.has(o.id) && (
-                      <button
-                        onClick={async () => {
-                          setConfirmingReadyId(o.id)
-                          try {
-                            await fetch(`${API_URL}/boutiques/orders/${o.id}/ready`, {
-                              method: 'PATCH',
-                              headers: { Authorization: 'Bearer ' + getToken() },
-                            })
-                            setReadyOrderIds(prev => new Set([...prev, o.id]))
-                          } catch { /* silently fail */ }
-                          finally { setConfirmingReadyId(null) }
-                        }}
-                        disabled={confirmingReadyId === o.id}
-                        className="mt-2 w-full text-xs font-semibold text-white bg-green-600 hover:bg-green-500 disabled:opacity-50 rounded-lg py-1.5 transition-colors"
-                      >
-                        {confirmingReadyId === o.id ? 'Confirmando...' : '✅ Cortes prontos — avisar churrasqueiro'}
-                      </button>
-                    )}
-                    {readyOrderIds.has(o.id) && (
-                      <p className="mt-2 text-xs text-green-400 text-center">Churrasqueiro notificado!</p>
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

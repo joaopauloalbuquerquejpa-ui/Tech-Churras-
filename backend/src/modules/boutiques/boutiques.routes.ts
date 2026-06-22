@@ -19,6 +19,8 @@ import {
   getBoutiqueDemandForecastHandler,
   getBoutiqueReferralStatsHandler,
   confirmBoutiqueOrderReadyHandler,
+  acceptBoutiqueOrderHandler,
+  rejectBoutiqueOrderHandler,
 } from './boutiques.controller'
 
 export async function boutiqueRoutes(app: FastifyInstance) {
@@ -43,4 +45,6 @@ export async function boutiqueRoutes(app: FastifyInstance) {
   app.patch('/boutiques/products/:productId/toggle', { preHandler: [authenticate] }, toggleProductHandler)
 
   app.patch('/boutiques/orders/:orderId/ready', { preHandler: [authenticate] }, confirmBoutiqueOrderReadyHandler)
+  app.patch('/boutiques/orders/:orderId/accept', { preHandler: [authenticate] }, acceptBoutiqueOrderHandler)
+  app.patch('/boutiques/orders/:orderId/reject', { preHandler: [authenticate] }, rejectBoutiqueOrderHandler)
 }

@@ -16,6 +16,8 @@ import {
   getBoutiqueDemandForecast,
   getReferralStats,
   confirmBoutiqueOrderReady,
+  acceptBoutiqueOrder,
+  rejectBoutiqueOrder,
 } from './boutiques.service'
 import {
   createProduct,
@@ -217,6 +219,27 @@ export async function confirmBoutiqueOrderReadyHandler(req: FastifyRequest, repl
     const { orderId } = req.params as { orderId: string }
     const result = await confirmBoutiqueOrderReady(orderId, userId)
     return reply.send(result)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function acceptBoutiqueOrderHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const { orderId } = req.params as { orderId: string }
+    return reply.send(await acceptBoutiqueOrder(orderId, userId))
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function rejectBoutiqueOrderHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const { orderId } = req.params as { orderId: string }
+    const { reason } = (req.body ?? {}) as { reason?: string }
+    return reply.send(await rejectBoutiqueOrder(orderId, userId, reason))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

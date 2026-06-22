@@ -6,6 +6,8 @@ import { API_URL } from '@/lib/api'
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
 interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; user: { name: string } }
+interface KitItem { productName: string; quantity: number; unit: string }
+interface Kit { id: string; name: string; description: string; price: number; discountPrice?: number | null; minGuests: number; maxGuests: number; items: string }
 
 const CATEGORY_LABELS: Record<string, string> = {
   CARNE: 'Bovinos e Suínos', SAL_TEMPERO: 'Sal e Temperos', CARVAO: 'Carvão',
@@ -70,6 +72,8 @@ function PedidoForm() {
 
   const [boutique, setBoutique] = useState<Boutique | null>(null)
   const [products, setProducts] = useState<Product[]>([])
+  const [kits, setKits] = useState<Kit[]>([])
+  const [selectedKit, setSelectedKit] = useState<string | null>(null)
   const [grillmasters, setGrillmasters] = useState<Grillmaster[]>([])
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -109,11 +113,13 @@ function PedidoForm() {
       fetch(`${API_URL}/boutiques/${boutiqueId}`).then(r => r.ok ? r.json() : null),
       fetch(`${API_URL}/boutiques/${boutiqueId}/products`).then(r => r.json()),
       fetch(`${API_URL}/grillmasters`).then(r => r.json()),
-    ]).then(([b, prods, gms]) => {
+      fetch(`${API_URL}/boutiques/${boutiqueId}/kits`).then(r => r.ok ? r.json() : []),
+    ]).then(([b, prods, gms, k]) => {
       setBoutique(b)
       const available = (Array.isArray(prods) ? prods : []).filter((p: Product) => p.available)
       setProducts(available)
       setGrillmasters(Array.isArray(gms) ? gms : gms.grillmasters ?? [])
+      setKits(Array.isArray(k) ? k : [])
     }).catch(() => {}).finally(() => setLoading(false))
   }, [boutiqueId])
 
@@ -128,6 +134,23 @@ function PedidoForm() {
 
   function applySuggested() {
     setQty(buildSuggested(products, men, women, kids))
+    setSelectedKit(null)
+  }
+
+  function applyKit(kit: Kit) {
+    try {
+      const items: KitItem[] = JSON.parse(kit.items)
+      const newQty: Record<string, number> = {}
+      for (const item of items) {
+        const match = products.find(p =>
+          p.name.toLowerCase().includes(item.productName.toLowerCase()) ||
+          item.productName.toLowerCase().includes(p.name.toLowerCase())
+        )
+        if (match) newQty[match.id] = item.quantity
+      }
+      setQty(newQty)
+      setSelectedKit(kit.id)
+    } catch {}
   }
 
   function next() {
@@ -298,6 +321,41 @@ function PedidoForm() {
                 ✨ Sugerir quantidades
               </button>
             </div>
+
+            {kits.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Kits prontos do açougue</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {kits.map(kit => {
+                    const sel = selectedKit === kit.id
+                    const displayPrice = kit.discountPrice && kit.discountPrice < kit.price ? kit.discountPrice : kit.price
+                    return (
+                      <button key={kit.id} onClick={() => applyKit(kit)}
+                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all ' +
+                          (sel ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 bg-gray-900 hover:border-orange-500/40')}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-bold text-white text-sm">{kit.name}</p>
+                              {sel && <span className="text-xs text-green-400 font-medium">✓ Selecionado</span>}
+                            </div>
+                            <p className="text-xs text-gray-400 mt-0.5">{kit.description}</p>
+                            <p className="text-xs text-gray-500 mt-1">{kit.minGuests}–{kit.maxGuests} convidados</p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            {kit.discountPrice && kit.discountPrice < kit.price && (
+                              <p className="text-xs text-gray-500 line-through">R$ {kit.price.toFixed(0)}</p>
+                            )}
+                            <p className="text-orange-400 font-bold text-sm">R$ {displayPrice.toFixed(0)}</p>
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-gray-600 text-center">Ou monte manualmente abaixo ↓</p>
+              </div>
+            )}
 
             {products.length === 0 ? (
               <div className="bg-gray-900 border border-yellow-500/30 rounded-2xl p-6 text-center">

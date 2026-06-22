@@ -224,11 +224,15 @@ export async function getBoutiqueDashboardStats(userId: string) {
       select: { totalPrice: true, createdAt: true },
     }),
     prisma.order.count({
-      where: { boutiqueId: boutique.id, status: { in: ['CONFIRMED', 'IN_PROGRESS'] } },
+      where: { boutiqueId: boutique.id, status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] } },
     }),
     prisma.order.findMany({
       where: { boutiqueId: boutique.id },
-      include: { customer: { select: { name: true } } },
+      include: {
+        customer: { select: { name: true, phone: true } },
+        items: { include: { product: { select: { name: true, unit: true } } } },
+        grillmaster: { include: { user: { select: { name: true } } } },
+      },
       orderBy: { createdAt: 'desc' },
       take: 10,
     }),
@@ -255,9 +259,17 @@ export async function getBoutiqueDashboardStats(userId: string) {
     recentOrders: recentOrders.map(o => ({
       id: o.id,
       customerName: (o.customer as any).name,
+      customerPhone: (o.customer as any).phone,
+      grillmasterName: (o as any).grillmaster?.user?.name ?? null,
       totalPrice: o.totalPrice,
       status: o.status,
       eventDate: o.eventDate,
+      guestCount: o.guestCount,
+      items: ((o as any).items ?? []).map((i: any) => ({
+        name: i.product?.name ?? '',
+        quantity: i.quantity,
+        unit: i.product?.unit ?? 'kg',
+      })),
     })),
     referralCode: boutique.referralCode,
     referralCount,
@@ -365,5 +377,40 @@ export async function confirmBoutiqueOrderReady(orderId: string, userId: string)
     `/orders/${orderId}`
   ).catch((e) => console.error('[notif]', e?.message))
 
+  return { ok: true }
+}
+
+export async function acceptBoutiqueOrder(orderId: string, userId: string) {
+  const boutique = await prisma.boutique.findUnique({ where: { userId } })
+  if (!boutique) throw new Error('Acougue nao encontrado')
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, boutiqueId: boutique.id, status: 'PENDING' },
+    include: {
+      customer: { select: { id: true, name: true } },
+      grillmaster: { include: { user: { select: { id: true } } } },
+    },
+  })
+  if (!order) throw new Error('Pedido nao encontrado ou ja processado')
+  await prisma.order.update({ where: { id: orderId }, data: { status: 'CONFIRMED' } })
+  sendPushToUser(order.customer.id, '✅ Pedido aceito!', `${boutique.name} aceitou seu pedido. Estão separando suas carnes!`, `/orders/${orderId}`).catch(() => {})
+  if (order.grillmaster?.user?.id) {
+    sendPushToUser(order.grillmaster.user.id, '🥩 Açougue confirmou!', `${boutique.name} confirmou os itens do evento. Prepare-se!`, `/orders/${orderId}`).catch(() => {})
+  }
+  return { ok: true }
+}
+
+export async function rejectBoutiqueOrder(orderId: string, userId: string, reason?: string) {
+  const boutique = await prisma.boutique.findUnique({ where: { userId } })
+  if (!boutique) throw new Error('Acougue nao encontrado')
+  const order = await prisma.order.findFirst({
+    where: { id: orderId, boutiqueId: boutique.id, status: { in: ['PENDING', 'CONFIRMED'] } },
+    include: { customer: { select: { id: true } } },
+  })
+  if (!order) throw new Error('Pedido nao encontrado ou ja processado')
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { status: 'CANCELLED', cancelledBy: 'BOUTIQUE', cancellationReason: reason ?? 'Açougue não pode atender este pedido' },
+  })
+  sendPushToUser(order.customer.id, '❌ Pedido cancelado', `${boutique.name} não pode atender este pedido. Estamos buscando alternativas.`, `/orders/${orderId}`).catch(() => {})
   return { ok: true }
 }
