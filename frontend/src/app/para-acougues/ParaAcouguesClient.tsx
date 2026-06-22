@@ -8,7 +8,7 @@ const MENSALIDADE = 369
 const COMISSAO_RATE = 0.07
 const BONUS_POR_CLIENTE = 40
 const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
-const FUNDADOR_VAGAS = 3
+const FUNDADOR_DEADLINE = '06/08/2026'
 
 // ── Animated number counter ──────────────────────────────────────────
 function AnimatedNumber({ value, prefix = '', suffix = '', decimals = 0 }: {
@@ -226,19 +226,21 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">🏅</span>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center justify-between gap-2 mb-1">
                       <p className="font-black text-white text-sm">Pacote Parceiro Fundador</p>
-                      <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-                        {FUNDADOR_VAGAS} vagas
+                      <span className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-bold whitespace-nowrap animate-pulse">
+                        1 por região
                       </span>
                     </div>
-                    <p className="text-xs text-gray-400 mb-3">Primeiros {FUNDADOR_VAGAS} açougues parceiros em São Paulo:</p>
+                    <p className="text-xs text-amber-400/80 mb-3">
+                      Aberto de <strong>06/07</strong> a <strong>06/08/2026</strong> — apenas 1 açougue fundador por região de SP
+                    </p>
                     <div className="space-y-1.5">
                       {[
                         '3 meses sem mensalidade (economia de R$ 1.107)',
                         'Badge "Açougue Fundador" permanente na plataforma',
                         'Destaque nas buscas por 6 meses',
-                        'Acesso direto ao fundador via WhatsApp',
+                        'Acesso direto ao Jota Albuquerque via WhatsApp',
                       ].map(b => (
                         <div key={b} className="flex items-start gap-2 text-xs text-gray-300">
                           <span className="text-amber-400 mt-0.5">✦</span>
@@ -247,12 +249,12 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                       ))}
                     </div>
                     <a
-                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero uma das vagas de Parceiro Fundador do açougue na Tech Churras.')}`}
+                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero ser Parceiro Fundador do Tech Churras na minha região.')}`}
                       target="_blank" rel="noopener noreferrer"
                       onClick={() => Events.boutiqueFounderClick('para-acougues-hero')}
                       className="mt-4 inline-block text-xs bg-amber-500 hover:bg-amber-400 text-black font-black px-4 py-2 rounded-lg transition-colors"
                     >
-                      Quero uma vaga de Fundador →
+                      Garantir minha vaga de Fundador →
                     </a>
                   </div>
                 </div>
@@ -296,6 +298,70 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               {/* Glow */}
               <div className="absolute -inset-4 rounded-3xl pointer-events-none"
                 style={{ background: 'radial-gradient(ellipse at center, rgba(249,115,22,0.06) 0%, transparent 70%)' }} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── QUEM ESTÁ POR TRÁS DISSO ─────────────────────────────────── */}
+      <section className="py-16 px-4 sm:px-6 border-t border-gray-900">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-4">Quem está por trás disso</p>
+              <h2 className="text-2xl sm:text-3xl font-black mb-4 leading-tight">
+                O fundador está em{' '}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
+                  Zanzibar, na África
+                </span>{' '}
+                — e está lançando a Tech Churras daqui
+              </h2>
+              <p className="text-gray-400 text-base leading-relaxed mb-5">
+                Jota Albuquerque é churrasqueiro profissional e o fundador da Tech Churras. Hoje ele está na Tanzânia como sócio e BBQ Master do <strong className="text-white">Bahari of Brazil</strong> — hub culinário criado em parceria oficial com o <strong className="text-white">Governo de Zanzibar</strong>.
+              </p>
+              <p className="text-gray-400 text-base leading-relaxed mb-6">
+                De lá, ele está lançando a Tech Churras no Brasil — porque acredita que o churrasco brasileiro merece a mesma estrutura profissional que está construindo na África. Ele vai conversar pessoalmente com cada açougue parceiro fundador.
+              </p>
+              <a
+                href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Vi que você está em Zanzibar e quero saber mais sobre a Tech Churras.')}`}
+                target="_blank" rel="noopener noreferrer"
+                onClick={() => Events.clickWhatsApp('para-acougues-fundador')}
+                className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm"
+              >
+                Falar com o Jota Albuquerque →
+              </a>
+            </div>
+
+            <div className="space-y-4">
+              {/* Card Bahari */}
+              <div className="bg-gray-900 border border-amber-500/20 rounded-2xl p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl">🌍</div>
+                  <div>
+                    <p className="font-bold text-white text-sm">Bahari of Brazil</p>
+                    <p className="text-xs text-amber-400">Zanzibar, Tanzânia · Hub Culinário Oficial</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  PPP com o Ministério de Comunicação, Tecnologia e Inovação do Governo de Zanzibar. Restaurante + centro de treinamento + inovação digital. Jota Albuquerque como BBQ Master.
+                </p>
+              </div>
+
+              {/* Stats credibilidade */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { valor: 'Gov. Zanzibar', label: 'Parceiro institucional', icon: '🏛️' },
+                  { valor: '06/07/2026', label: 'Lançamento Tech Churras', icon: '🚀' },
+                  { valor: '1 por região', label: 'Vagas Parceiro Fundador', icon: '🏅' },
+                  { valor: 'R$ 15 bi', label: 'Mercado de churrasco/ano', icon: '📈' },
+                ].map(s => (
+                  <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+                    <span className="text-lg">{s.icon}</span>
+                    <p className="font-black text-white text-sm mt-1">{s.valor}</p>
+                    <p className="text-xs text-gray-500">{s.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
