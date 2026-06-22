@@ -134,6 +134,30 @@ function ConviteContent() {
           ))}
         </div>
 
+        {/* Bloco Bahari */}
+        <div className="bg-gradient-to-br from-amber-500/10 to-gray-900 border border-amber-500/20 rounded-2xl overflow-hidden mb-10">
+          <div className="grid sm:grid-cols-[240px_1fr]">
+            <div className="relative h-48 sm:h-auto bg-gray-800">
+              <img src="/bahari-restaurante.jpg" alt="Bahari of Brazil — Zanzibar"
+                className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-gray-900/20" />
+              <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-xs text-amber-300 px-2.5 py-1 rounded-full font-semibold">
+                🌍 Zanzibar, Tanzânia
+              </div>
+            </div>
+            <div className="p-6 flex flex-col justify-center">
+              <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">Por que o padrão Tech Churras é diferente</p>
+              <h3 className="font-black text-white text-lg mb-2">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
+              <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                O Ministério de TI e Inovação da Tanzânia (MCITI) cedeu 428m² ao projeto Bahari of Brazil — hub culinário com restaurante, centro de treinamento e food innovation lab. Jota atua como BBQ Master oficial nos documentos do Ministério. O <strong className="text-amber-300">Sábado = Brazilian BBQ Day</strong> está no calendário permanente do projeto.
+              </p>
+              <p className="text-xs text-gray-600">
+                Essa é a credencial de quem está construindo a Tech Churras — e quem vai trazer clientes para o seu açougue.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* O que é */}
         <div className="mb-10">
           <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">A plataforma</p>
