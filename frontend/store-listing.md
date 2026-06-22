@@ -104,10 +104,9 @@ churrasco aniversário, Tech Churras, rastreamento churrasqueiro
 ## Política de privacidade
 URL obrigatória para publicação:
 ```
-https://www.techchurras.com.br/privacidade
+https://www.techchurras.com.br/politica-de-privacidade
 ```
-> ⚠️ Essa página precisa existir antes do envio para revisão.
-> Se não existir, crie uma rota simples em /privacidade com texto de LGPD básico.
+> ✅ Página já existe com conteúdo completo (LGPD). `/privacidade` redireciona para ela.
 
 ---
 
@@ -160,9 +159,11 @@ https://www.techchurras.com.br/privacidade
 - [x] `keystore.properties.template` criado
 - [x] `.keystore-info.txt` criado (gitignored)
 - [x] `store-listing.md` criado
-- [ ] Instalar Android Studio (developer.android.com/studio) — ~1.2 GB
+- [x] `capacitor.config.ts` corrigido (`webDir: 'public'`)
+- [x] `/privacidade` → redireciona para `/politica-de-privacidade` (LGPD completo)
+- [ ] **Instalar Android Studio** (developer.android.com/studio) — ~1.2 GB
 - [ ] Abrir Android Studio uma vez para baixar SDK components (~800 MB)
-- [ ] Abrir terminal com Java no PATH (Android Studio inclui JDK em seu diretório)
+- [ ] Terminal com Java no PATH (Android Studio inclui JDK em `jbr/bin/`)
 
 ### Fase 2 — Keystore (após instalar Android Studio)
 ```bash
