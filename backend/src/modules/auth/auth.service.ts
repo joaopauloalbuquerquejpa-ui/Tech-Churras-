@@ -1,5 +1,6 @@
 ﻿import { prisma } from '../../config/prisma'
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 import { z } from 'zod'
 import { emailWelcomeCustomer } from '../email/email.service'
 import { sendPushToRole, sendWhatsAppToAdmin } from '../push/push.service'
@@ -108,6 +109,31 @@ export async function loginUser(data: LoginInput) {
 
 export async function markOnboardingCompleted(userId: string) {
   return prisma.user.update({ where: { id: userId }, data: { onboardingCompleted: true } })
+}
+
+export async function registerGuest(data: { name: string; phone: string }) {
+  const email = `guest_${randomUUID()}@guest.techchurras.com`
+  const password = randomUUID()
+  const hashedPassword = await bcrypt.hash(password, 10)
+
+  const user = await prisma.user.create({
+    data: {
+      name: data.name.trim(),
+      email,
+      password: hashedPassword,
+      phone: data.phone.trim(),
+      role: 'CUSTOMER',
+    },
+    select: { id: true, name: true, email: true, role: true, onboardingCompleted: true },
+  })
+
+  sendWhatsAppToAdmin(
+    `📱 *Pedido via QR Code (guest) — Tech Churras!*\n\n` +
+    `Nome: ${user.name}\n` +
+    `WhatsApp: ${data.phone}`
+  ).catch(() => {})
+
+  return user
 }
 
 export async function updateUserProfile(userId: string, data: { name?: string; phone?: string }) {

@@ -33,7 +33,7 @@ export default function QRCodeEventosPage() {
   }, [])
 
   const balcaoUrl = boutiqueId
-    ? `${SITE_URL}/menu/novo?boutiqueId=${boutiqueId}&utm_source=qr_balcao`
+    ? `${SITE_URL}/pedido?boutiqueId=${boutiqueId}&utm_source=qr_balcao`
     : ''
 
   return (
