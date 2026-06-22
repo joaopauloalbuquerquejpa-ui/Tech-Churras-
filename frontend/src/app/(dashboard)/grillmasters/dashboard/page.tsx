@@ -155,6 +155,7 @@ export default function GrillmasterDashboardPage() {
   // Profile form
   const [profileForm, setProfileForm] = useState<Partial<GrillmasterProfile>>({})
   const [savingProfile, setSavingProfile] = useState(false)
+  const [generatingBio, setGeneratingBio] = useState(false)
   const [profileMsg, setProfileMsg] = useState('')
   const [uploadingGallery, setUploadingGallery] = useState(false)
 
@@ -1132,7 +1133,38 @@ export default function GrillmasterDashboardPage() {
             </div>
 
             <div>
-              <label className="block text-xs text-gray-500 mb-1">Bio (apresentação)</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs text-gray-500">Bio (apresentação)</label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const token = getToken()
+                    if (!token) return
+                    setGeneratingBio(true)
+                    try {
+                      const res = await fetch(API_URL + '/ai/generate-bio', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+                        body: JSON.stringify({
+                          role: 'grillmaster',
+                          name: profile?.user?.name,
+                          city: profileForm.city,
+                          specialties: profileForm.specialties,
+                          churrascoStyle: profileForm.churrascoStyle,
+                          experience: profileForm.experience,
+                        }),
+                      })
+                      const data = await res.json()
+                      if (data.bio) setProfileForm(f => ({ ...f, bio: data.bio }))
+                    } catch { /* silently fail */ }
+                    finally { setGeneratingBio(false) }
+                  }}
+                  disabled={generatingBio}
+                  className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
+                >
+                  {generatingBio ? 'Gerando...' : '✨ Gerar com IA'}
+                </button>
+              </div>
               <textarea value={profileForm.bio ?? ''} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} rows={3}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 resize-none" />
             </div>

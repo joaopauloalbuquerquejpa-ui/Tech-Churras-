@@ -257,6 +257,7 @@ export default function NewBoutiquePage() {
                     const desc = await generateBoutiqueDesc(token, {
                       name: form.name,
                       city: form.city,
+                      specialties: [form.address, form.deliveryOrPickup].filter(Boolean).join(' — ') || undefined,
                     })
                     setForm(f => ({ ...f, description: desc }))
                   } catch { /* silently fail */ }
