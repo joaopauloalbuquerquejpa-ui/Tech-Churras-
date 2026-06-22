@@ -154,7 +154,7 @@ export async function approveBoutique(boutiqueId: string) {
     if (boutique.user.phone) {
       sendWhatsApp(
         boutique.user.phone,
-        `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n🎁 Você tem *60 dias GRÁTIS* para testar tudo.\nAcesse seu painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
+        `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n🎁 Você tem *60 dias GRÁTIS* para testar tudo.\n\n*QR code do seu balcão:*\nhttps://www.techchurras.com.br/pedido?boutique=${boutique.id}\n\nAcesse seu painel completo:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
         'boutique-aprovado'
       ).catch((e) => console.error("[notif]", e?.message))
     }

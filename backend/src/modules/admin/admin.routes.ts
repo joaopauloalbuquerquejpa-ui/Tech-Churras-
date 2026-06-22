@@ -131,4 +131,28 @@ export async function adminRoutes(app: FastifyInstance) {
     const { active } = z.object({ active: z.boolean() }).parse(req.body)
     return toggleCoupon((req.params as any).id, active)
   })
+
+  // ── Leads captados via WhatsApp bot
+  app.get('/admin/leads', async (_req, reply) => {
+    const leads = await prisma.lead.findMany({ orderBy: { createdAt: 'desc' }, take: 200 })
+    return reply.send(leads)
+  })
+
+  app.patch('/admin/leads/:id/status', async (req, reply) => {
+    const { id } = req.params as { id: string }
+    const { status } = z.object({ status: z.string() }).parse(req.body)
+    const updated = await prisma.lead.update({ where: { id }, data: { status } })
+    return reply.send(updated)
+  })
+
+  // ── Migração única: setar trialEndsAt em boutiques aprovadas sem trial
+  app.post('/admin/migrate/trial-ends-at', async (_req, reply) => {
+    const trialEndsAt = new Date()
+    trialEndsAt.setDate(trialEndsAt.getDate() + 60)
+    const result = await prisma.boutique.updateMany({
+      where: { approved: true, trialEndsAt: null },
+      data: { trialEndsAt },
+    })
+    return reply.send({ updated: result.count, trialEndsAt })
+  })
 }
