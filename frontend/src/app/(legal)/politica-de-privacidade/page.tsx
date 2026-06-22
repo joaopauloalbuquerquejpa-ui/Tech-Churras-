@@ -59,19 +59,29 @@ export default function PoliticaDePrivacidadePage() {
         Base legal: execucao de contrato (Art. 7, V, LGPD), cumprimento de obrigacao legal (Art. 7, II), consentimento (Art. 7, I) e legitimo interesse (Art. 7, IX).
       </P>
 
-      <H2>3. Compartilhamento de Dados</H2>
+      <H2>3. Compartilhamento de Dados e Terceiros</H2>
       <P>
-        A Tech Churras compartilha seus dados <strong className="text-white">apenas quando necessario</strong> para a prestacao dos servicos:
+        A Tech Churras compartilha seus dados <strong className="text-white">apenas quando necessario</strong> para a prestacao dos servicos ou por exigencia legal. Listamos abaixo todos os terceiros envolvidos:
       </P>
+      <H3>3.1 Parceiros operacionais</H3>
       <ul className="space-y-1 mb-4">
         <Li><strong className="text-white">Churrasqueiros parceiros:</strong> recebem nome, telefone, endereco do evento e detalhes do pedido para execucao do servico contratado.</Li>
         <Li><strong className="text-white">Acougues parceiros:</strong> recebem os itens do pedido e endereco de entrega quando aplicavel.</Li>
-        <Li><strong className="text-white">Parceiros de pagamento:</strong> processadores de pagamento homologados recebem os dados necessarios para autorizacao da transacao.</Li>
-        <Li><strong className="text-white">Parceiro de notificacao:</strong> o numero de telefone pode ser compartilhado com servico de mensageria (Z-API) para envio de notificacoes via WhatsApp, com base no consentimento do usuario.</Li>
+        <Li><strong className="text-white">Mercado Pago (MercadoLibre S.A.):</strong> processador de pagamentos. Recebe os dados necessarios para autorizacao e antifraude das transacoes financeiras. A Tech Churras nao armazena dados de cartao de credito — estes ficam sob custodia exclusiva do Mercado Pago, sujeito a sua propria Politica de Privacidade.</Li>
+        <Li><strong className="text-white">Z-API (Notificacoes WhatsApp):</strong> o numero de telefone e compartilhado para envio de notificacoes sobre status do pedido via WhatsApp, mediante consentimento do usuario.</Li>
+        <Li><strong className="text-white">Anthropic (Claude AI):</strong> textos de descricao inseridos pelo usuario (bio de churrasqueiro, descricao de acougue) podem ser processados pela API da Anthropic para geracao de sugestoes com Inteligencia Artificial. Nenhum dado de identificacao pessoal sensivel e enviado nessa chamada.</Li>
         <Li><strong className="text-white">Autoridades:</strong> dados podem ser compartilhados com autoridades publicas mediante requisicao legal fundamentada.</Li>
       </ul>
+      <H3>3.2 Ferramentas de analitica e marketing</H3>
+      <P>Utilizamos as seguintes ferramentas para entender o uso da plataforma e melhorar nossos servicos:</P>
+      <ul className="space-y-1 mb-4">
+        <Li><strong className="text-white">Google Analytics 4 (Google LLC):</strong> coleta dados anonimizados de navegacao (paginas visitadas, origem do acesso, tempo de sessao). Dados processados nos EUA com clausulas contratuais padrao. Voce pode optar por nao participar em myaccount.google.com/data-and-privacy.</Li>
+        <Li><strong className="text-white">Meta Pixel (Meta Platforms, Inc. — Facebook/Instagram):</strong> registra acoes realizadas na plataforma (visualizacoes de pagina, conversoes) para medicao de eficacia de anuncios. Dados processados conforme a Politica de Dados da Meta. Voce pode optar por nao participar nas configuracoes de anuncios do Facebook.</Li>
+        <Li><strong className="text-white">TikTok Pixel (TikTok Inc.):</strong> utilizado para medicao de campanhas publicitarias no TikTok. Dados processados conforme a Politica de Privacidade do TikTok.</Li>
+        <Li><strong className="text-white">Google Ads (Google LLC):</strong> utilizado para medicao de conversoes oriundas de anuncios no Google Search e Display.</Li>
+      </ul>
       <P>
-        Nao vendemos, alugamos ou cedemos seus dados pessoais a terceiros para fins comerciais.
+        Nao vendemos, alugamos ou cedemos seus dados pessoais a terceiros para fins comerciais proprios.
       </P>
 
       <H2>4. Armazenamento e Seguranca</H2>
@@ -111,10 +121,20 @@ export default function PoliticaDePrivacidadePage() {
 
       <H2>7. Cookies e Armazenamento Local</H2>
       <P>
-        A Plataforma utiliza <strong className="text-white">localStorage</strong> do navegador para armazenar informacoes de sessao (token de autenticacao), preferencias do carrinho e favoritos. Esses dados permanecem no dispositivo do usuario e nao sao transmitidos a terceiros.
+        A Plataforma utiliza <strong className="text-white">localStorage</strong> do navegador para armazenar informacoes de sessao (token de autenticacao JWT), preferencias do carrinho e favoritos. Esses dados permanecem no dispositivo do usuario e nao sao transmitidos a terceiros.
       </P>
+      <H3>7.1 Cookies proprios</H3>
+      <P>Cookies estritamente necessarios para autenticacao e funcionamento da sessao. Sem eles, o login e o carrinho nao funcionam.</P>
+      <H3>7.2 Cookies de analitica e publicidade (terceiros)</H3>
+      <P>Utilizamos cookies de terceiros para analitica e medicao de marketing. Voce pode gerencia-los ou recusa-los nas configuracoes do seu navegador ou app:</P>
+      <ul className="space-y-1 mb-4">
+        <Li><strong className="text-white">Google Analytics 4</strong> (_ga, _ga_*) — analitica de uso anonimizada.</Li>
+        <Li><strong className="text-white">Meta Pixel</strong> (_fbp, _fbc) — medicao de conversoes Facebook/Instagram.</Li>
+        <Li><strong className="text-white">TikTok Pixel</strong> (ttclid, _ttp) — medicao de conversoes TikTok.</Li>
+        <Li><strong className="text-white">Google Ads</strong> (_gcl_*) — medicao de conversoes Google.</Li>
+      </ul>
       <P>
-        Utilizamos cookies proprios estritamente necessarios para o funcionamento da Plataforma. Nao utilizamos cookies de rastreamento de terceiros para fins publicitarios.
+        No aplicativo movel (Android/iOS), nao utilizamos cookies de navegador. Os SDKs de analitica podem coletar o identificador de publicidade do dispositivo (GAID/IDFA), que voce pode redefinir ou desativar nas configuracoes do seu celular.
       </P>
 
       <H2>8. Retencao de Dados</H2>
