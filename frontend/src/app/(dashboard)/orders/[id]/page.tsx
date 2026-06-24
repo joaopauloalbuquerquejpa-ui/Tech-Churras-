@@ -538,7 +538,7 @@ export default function OrderDetailPage() {
       })()}
 
       {/* Payment CTA for customer — when confirmed but not yet paid */}
-      {!isGrillmaster && order.status === 'CONFIRMED' && order.paymentStatus !== 'approved' && (
+      {!isGrillmaster && order.status === 'CONFIRMED' && order.paymentStatus !== 'PAID' && (
         <div className="bg-orange-500/10 border border-orange-500/40 rounded-2xl p-5 mb-5">
           <div className="flex items-center gap-3 mb-3">
             <span className="text-2xl">💳</span>

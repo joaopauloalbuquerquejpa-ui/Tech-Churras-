@@ -55,7 +55,7 @@ export default function PaymentPage() {
       .then(d => {
         if (!d) return
         if (d.error) { setError(d.error); return }
-        if (d.checkout_url) Events.beginCheckout(orderId, d.totalPrice ?? 0)
+        if (d.checkout_url) Events.beginCheckout(orderId, d.amount ?? 0)
         setCheckoutUrl(d.checkout_url ?? '')
       })
       .catch(() => setError('Erro ao preparar pagamento. Tente novamente.'))
@@ -148,8 +148,8 @@ export default function PaymentPage() {
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 text-xs text-gray-500 space-y-1.5">
             <p className="text-gray-400 font-medium text-sm mb-2">Política de cancelamento</p>
             <p>• Cancelamento até 48h antes do evento: <span className="text-green-400">reembolso integral</span></p>
-            <p>• Cancelamento entre 24h e 48h antes: <span className="text-yellow-400">reembolso de 50%</span></p>
-            <p>• Cancelamento com menos de 24h: <span className="text-red-400">sem reembolso</span></p>
+            <p>• Cancelamento entre 24h e 48h antes: <span className="text-yellow-400">multa de 30% (reembolso de 70%)</span></p>
+            <p>• Cancelamento com menos de 24h: <span className="text-red-400">multa de 50% (reembolso de 50%)</span></p>
             <p className="text-gray-600 pt-1">Ao pagar você concorda com nossa política de cancelamento e com os <a href="/termos" className="underline hover:text-gray-400">termos de uso</a>.</p>
           </div>
 

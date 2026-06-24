@@ -85,7 +85,7 @@ export async function handleMPWebhook(payload: any) {
     if (!orderId) return { received: true }
 
     await prisma.order.updateMany({
-      where: { id: orderId },
+      where: { id: orderId, paymentStatus: { not: 'PAID' } },
       data: {
         paymentId: String(paymentId),
         paymentStatus: 'PAID',
