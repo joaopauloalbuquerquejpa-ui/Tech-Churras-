@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify'
 import { register, login } from './auth.controller'
-import { markOnboardingCompleted, updateUserProfile, registerGuest } from './auth.service'
+import { markOnboardingCompleted, updateUserProfile, registerGuest, deleteAccount } from './auth.service'
 import { authenticate } from '../../middlewares/auth.middleware'
 
 export async function authRoutes(app: FastifyInstance) {
@@ -47,6 +47,17 @@ export async function authRoutes(app: FastifyInstance) {
       const { name, phone } = req.body as { name?: string; phone?: string }
       const updated = await updateUserProfile((req.user as any).id, { name, phone })
       return reply.send(updated)
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+
+  app.delete('/auth/account', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (req, reply) => {
+    try {
+      const { email, password } = req.body as { email: string; password: string }
+      if (!email || !password) return reply.status(400).send({ error: 'Email e senha são obrigatórios' })
+      await deleteAccount(email, password)
+      return reply.send({ success: true, message: 'Conta excluída com sucesso' })
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
     }

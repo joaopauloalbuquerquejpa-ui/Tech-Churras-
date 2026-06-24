@@ -146,3 +146,23 @@ export async function updateUserProfile(userId: string, data: { name?: string; p
     select: { id: true, name: true, email: true, phone: true, role: true },
   })
 }
+
+export async function deleteAccount(email: string, password: string) {
+  const user = await prisma.user.findUnique({ where: { email } })
+  if (!user) throw new Error('Credenciais inválidas')
+
+  const valid = await bcrypt.compare(password, user.password)
+  if (!valid) throw new Error('Credenciais inválidas')
+
+  await prisma.$transaction([
+    prisma.message.deleteMany({ where: { senderId: user.id } }),
+    prisma.review.deleteMany({ where: { customerId: user.id } }),
+    prisma.orderItem.deleteMany({ where: { order: { customerId: user.id } } }),
+    prisma.order.deleteMany({ where: { customerId: user.id } }),
+    prisma.pushSubscription.deleteMany({ where: { userId: user.id } }),
+    prisma.address.deleteMany({ where: { userId: user.id } }),
+    prisma.pointsRedemption.deleteMany({ where: { userId: user.id } }),
+    prisma.favorite.deleteMany({ where: { userId: user.id } }),
+    prisma.user.delete({ where: { id: user.id } }),
+  ])
+}
