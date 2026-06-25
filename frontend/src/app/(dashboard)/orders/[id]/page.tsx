@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { Events } from '@/lib/analytics'
+import { OrderInviteCard } from '@/components/OrderInviteCard'
 
 const OrderMap = dynamic(() => import('./OrderMap'), { ssr: false })
 
@@ -142,6 +143,7 @@ export default function OrderDetailPage() {
   const [shareLoading, setShareLoading] = useState(false)
   const [shareToast, setShareToast] = useState('')
   const [payingNow, setPayingNow] = useState(false)
+  const [inviteCardOpen, setInviteCardOpen] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const authRef = useRef<ReturnType<typeof getAuth>>({ token: null, user: null })
 
@@ -467,6 +469,16 @@ export default function OrderDetailPage() {
             </p>
           </div>
           <div className="flex gap-2 flex-wrap">
+            {/* Convite visual — card para compartilhar nos grupos */}
+            <button
+              onClick={() => setInviteCardOpen(true)}
+              className="w-full inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-3 rounded-xl transition-colors mb-1"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/>
+              </svg>
+              Criar convite para compartilhar
+            </button>
             <button
               onClick={() => {
                 const gmName = order.grillmaster?.user?.name ?? 'churrasqueiro'
@@ -883,6 +895,17 @@ export default function OrderDetailPage() {
 
       {/* Share buttons */}
       <div className="mb-4 space-y-2 relative">
+        {!isGrillmaster && order.status !== 'CANCELLED' && (
+          <button
+            onClick={() => setInviteCardOpen(true)}
+            className="w-full flex items-center justify-center gap-2 bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/40 text-orange-300 hover:text-orange-200 font-bold py-2.5 rounded-xl text-sm transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18"/>
+            </svg>
+            Criar convite para compartilhar
+          </button>
+        )}
         <button
           onClick={shareWhatsApp}
           disabled={shareLoading}
@@ -975,6 +998,23 @@ export default function OrderDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Invite card modal */}
+      {inviteCardOpen && order && (
+        <OrderInviteCard
+          data={{
+            customerName: order.customer?.name ?? (user?.name ?? 'Convidado'),
+            eventDate: order.eventDate,
+            guestCount: order.guestCount,
+            eventAddress: order.eventAddress,
+            grillmasterName: order.grillmaster?.user?.name,
+            grillmasterRating: order.grillmaster ? undefined : undefined,
+            items: order.items?.map(i => ({ name: i.product?.name ?? '' })).filter(i => i.name),
+            boutiqueName: order.boutique?.name,
+          }}
+          onClose={() => setInviteCardOpen(false)}
+        />
       )}
 
       {/* Cancel modal */}
