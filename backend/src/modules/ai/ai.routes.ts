@@ -114,7 +114,7 @@ No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre
     const message = await client.messages.create({
       model: 'claude-opus-4-8',
       max_tokens: 2500,
-      system: SYSTEM_PROMPT,
+      system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: userPrompt }],
     })
 
@@ -186,28 +186,22 @@ No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre
       const base64 = buffer.toString('base64')
       const mediaType = data.mimetype as 'image/jpeg' | 'image/png' | 'image/webp'
 
-      const message = await client.messages.create({
-        model: 'claude-opus-4-8',
-        max_tokens: 400,
-        messages: [{
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mediaType, data: base64 },
-            },
-            {
-              type: 'text',
-              text: `Você é especialista em produtos de açougue brasileiro. Analise esta imagem e identifique o produto.
+      const PRODUCT_SYSTEM = `Você é especialista em produtos de açougue brasileiro. Analise a imagem enviada e identifique o produto.
 Responda SOMENTE com JSON válido, sem markdown, sem texto extra:
 {"name":"nome comercial do corte ou produto","category":"CARNE|SAL_TEMPERO|CARVAO|ACOMPANHAMENTO|BEBIDA|OUTRO","description":"descrição comercial curta e atrativa em 1-2 frases","suggestedUnit":"kg|un|L","confidence":"alta|media|baixa"}
 Regras:
 - name: nome popular brasileiro (ex: Picanha, Fraldinha, Linguiça Artesanal)
 - category: use EXATAMENTE um dos valores listados
 - description: focada em venda, mencionando características do produto
-- Se não reconhecer com confiança, retorne campos name/description vazios mas mantenha JSON válido`,
-            }
-          ],
+- Se não reconhecer com confiança, retorne campos name/description vazios mas mantenha JSON válido`
+
+      const message = await client.messages.create({
+        model: 'claude-opus-4-8',
+        max_tokens: 400,
+        system: [{ type: 'text', text: PRODUCT_SYSTEM, cache_control: { type: 'ephemeral' } }],
+        messages: [{
+          role: 'user',
+          content: [{ type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } }],
         }],
       })
 
@@ -337,9 +331,12 @@ REGRAS:
 
 {"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"Kit ideal em 1 frase","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`
 
+    const KIT_SYSTEM = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte kits de churrasco ideais com personalidade — fale de forma calorosa e natural, como uma especialista amiga. Use SOMENTE os IDs exatos fornecidos no catálogo. Responda SOMENTE com JSON válido, sem markdown.`
+
     const message = await client.messages.create({
       model: 'claude-opus-4-8',
       max_tokens: 1200,
+      system: [{ type: 'text', text: KIT_SYSTEM, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: kitPrompt }],
     })
 
