@@ -77,6 +77,7 @@ interface OrderDetail {
   eventHours: number
   guestCount: number
   notes?: string
+  gmAccompaniments?: { name: string; laborPrice: number }[]
   couponCode?: string
   discountAmount?: number
   paymentStatus?: string | null
@@ -448,6 +449,7 @@ export default function OrderDetailPage() {
     ? order.grillmaster.pricePerHour * order.eventHours
     : null
   const itemsCost = order.items?.reduce((s, i) => s + i.quantity * i.unitPrice, 0) ?? 0
+  const accompCost = (order.gmAccompaniments ?? []).reduce((s, a) => s + a.laborPrice, 0)
   const otherPersonName = isOrderGrillmaster
     ? (order.customer?.name ?? 'o cliente')
     : (order.grillmaster?.user?.name ?? 'o churrasqueiro')
@@ -795,6 +797,27 @@ export default function OrderDetailPage() {
           </div>
         )}
 
+        {order.gmAccompaniments && order.gmAccompaniments.length > 0 && (
+          <div className="p-5 border-t border-gray-800">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">
+              Acompanhamentos feitos pelo churrasqueiro
+            </p>
+            <div className="space-y-2">
+              {order.gmAccompaniments.map((a, i) => (
+                <div key={i} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-300">{a.name}</span>
+                  <span className="text-orange-400 font-medium">
+                    {a.laborPrice > 0
+                      ? `+R$ ${a.laborPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+                      : 'Incluído'}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-3">Os ingredientes ficam por conta do cliente</p>
+          </div>
+        )}
+
         {order.notes && (
           <div className="p-5">
             <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Observacoes</p>
@@ -815,6 +838,12 @@ export default function OrderDetailPage() {
               <div className="flex justify-between text-gray-400">
                 <span>Insumos{order.boutique ? ' — ' + order.boutique.name : ''}</span>
                 <span>R$ {itemsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+              </div>
+            )}
+            {accompCost > 0 && (
+              <div className="flex justify-between text-gray-400">
+                <span>Acompanhamentos (mão de obra)</span>
+                <span>R$ {accompCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
             )}
             {(order.discountAmount ?? 0) > 0 && (
