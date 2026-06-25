@@ -112,7 +112,7 @@ Churrasco estilo ${style}: ${homens} homens, ${mulheres} mulheres, ${criancas} c
 No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre o evento. Máximo 8 itens. JSON puro.`
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-8',
+      model: 'claude-fable-5',
       max_tokens: 2500,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userPrompt }],
@@ -187,7 +187,7 @@ No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre
       const mediaType = data.mimetype as 'image/jpeg' | 'image/png' | 'image/webp'
 
       const message = await client.messages.create({
-        model: 'claude-opus-4-8',
+        model: 'claude-fable-5',
         max_tokens: 400,
         messages: [{
           role: 'user',
@@ -338,7 +338,7 @@ REGRAS:
 {"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"Kit ideal em 1 frase","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-8',
+      model: 'claude-fable-5',
       max_tokens: 1200,
       messages: [{ role: 'user', content: kitPrompt }],
     })

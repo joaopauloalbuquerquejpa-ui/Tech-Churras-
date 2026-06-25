@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import Script from 'next/script'
+import { PostHogProvider } from '@/components/PostHogProvider'
 import './globals.css'
 
 const geistSans = Geist({
@@ -80,6 +81,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+        <PostHogProvider>
         {/* ── JSON-LD Schema Markup ── */}
         <script
           type="application/ld+json"
@@ -227,10 +229,21 @@ export default function RootLayout({
           </Script>
         )}
 
+        {/* ── PLAUSIBLE ANALYTICS (LGPD-friendly, sem cookies) ── */}
+        {process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN && (
+          <Script
+            defer
+            data-domain={process.env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN}
+            src="https://plausible.io/js/script.js"
+            strategy="afterInteractive"
+          />
+        )}
+
         {children}
         <Script id="sw-register" strategy="afterInteractive">
           {`if ('serviceWorker' in navigator) { navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function(){}); }`}
         </Script>
+        </PostHogProvider>
       </body>
     </html>
   )
