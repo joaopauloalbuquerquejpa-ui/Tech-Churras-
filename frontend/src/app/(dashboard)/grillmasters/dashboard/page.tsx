@@ -914,9 +914,6 @@ export default function GrillmasterDashboardPage() {
           </div>
 
           {/* Contrato */}
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
-            <p className="text-xs text-yellow-300">⚠️ <strong>Contratos em revisao juridica</strong> — os termos podem ser atualizados antes do lancamento oficial.</p>
-          </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide">Meu Contrato</h2>

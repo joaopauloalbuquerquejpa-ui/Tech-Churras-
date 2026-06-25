@@ -647,12 +647,6 @@ export default function BoutiqueDashboardPage() {
             </div>
           )}
 
-          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-5 py-3">
-            <p className="text-xs text-yellow-300">
-              ⚠️ <strong>Contratos em revisão jurídica</strong> — os termos de parceria podem ser atualizados antes do lançamento oficial da plataforma.
-            </p>
-          </div>
-
           {boutique.products.length === 0 && (
             <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/40 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-4">
@@ -1620,9 +1614,6 @@ export default function BoutiqueDashboardPage() {
                 <span className="ml-2 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full">MINUTA — REV. JURÍDICA PENDENTE</span>
               </div>
               <button onClick={() => setShowContractText(false)} className="text-gray-500 hover:text-white text-xl leading-none">&times;</button>
-            </div>
-            <div className="p-4 bg-yellow-500/10 border-b border-yellow-500/20">
-              <p className="text-xs text-yellow-300">Este contrato está em fase de revisão jurídica e pode ser atualizado antes do lançamento oficial.</p>
             </div>
             <div className="flex-1 overflow-y-auto p-5">
               <pre className="font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">{contractText}</pre>
