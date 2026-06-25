@@ -511,6 +511,40 @@ export async function getOrderById(id: string, userId: string, role: string = 'C
   return order
 }
 
+export async function rescheduleOrder(id: string, newDate: Date, userId: string, role: string) {
+  let whereClause: Record<string, any> = { id, customerId: userId }
+  if (role === 'ADMIN') whereClause = { id }
+
+  const order = await prisma.order.findFirst({ where: whereClause })
+  if (!order) throw new Error('Pedido não encontrado')
+  if (['IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(order.status)) {
+    throw new Error('Não é possível remarcar um pedido em andamento, concluído ou cancelado')
+  }
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  if (newDate < today) throw new Error('A nova data não pode ser no passado')
+
+  const updated = await prisma.order.update({
+    where: { id },
+    data: { eventDate: newDate },
+    include: {
+      grillmaster: { include: { user: { select: { id: true, name: true } } } },
+      customer: { select: { name: true, phone: true } },
+    },
+  })
+
+  if (updated.grillmaster?.user?.id) {
+    const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(newDate)
+    sendPushToUser(
+      updated.grillmaster.user.id,
+      '📅 Pedido remarcado',
+      `${updated.customer.name} remarcou o evento para ${date}.`,
+      '/grillmasters/dashboard'
+    ).catch((e) => console.error("[notif]", e?.message))
+  }
+
+  return updated
+}
+
 export async function getOrderEta(id: string, userId: string, role: string) {
   let whereClause: Record<string, any> = { id, customerId: userId }
   if (role === 'ADMIN') {

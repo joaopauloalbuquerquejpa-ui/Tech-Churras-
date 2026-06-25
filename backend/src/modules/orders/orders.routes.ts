@@ -11,6 +11,7 @@ import {
   shareOrderHandler,
   getOrderByPublicTokenHandler,
   getOrderEtaHandler,
+  rescheduleOrderHandler,
 } from './orders.controller'
 
 export async function ordersRoutes(app: FastifyInstance) {
@@ -27,4 +28,5 @@ export async function ordersRoutes(app: FastifyInstance) {
   app.patch('/orders/:id/cancel', { preHandler: [app.authenticate] }, cancelOrderHandler)
   app.get('/orders/:id/repeat-data', { preHandler: [app.authenticate] }, getRepeatDataHandler)
   app.post('/orders/:id/share', { preHandler: [app.authenticate] }, shareOrderHandler)
+  app.patch('/orders/:id/reschedule', { preHandler: [app.authenticate] }, rescheduleOrderHandler)
 }

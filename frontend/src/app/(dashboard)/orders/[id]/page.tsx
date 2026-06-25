@@ -134,6 +134,10 @@ export default function OrderDetailPage() {
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
   const [cancelling, setCancelling] = useState(false)
+  const [rescheduleOpen, setRescheduleOpen] = useState(false)
+  const [rescheduleDate, setRescheduleDate] = useState('')
+  const [rescheduling, setRescheduling] = useState(false)
+  const [rescheduleError, setRescheduleError] = useState('')
   const [currentUser, setCurrentUser] = useState<{ id: string; name: string; role: string } | null>(null)
   const [shareLoading, setShareLoading] = useState(false)
   const [shareToast, setShareToast] = useState('')
@@ -314,6 +318,27 @@ export default function OrderDetailPage() {
       return { fee, label: `Faltam entre 24h e 48h para o evento. Multa de 30% = R$ ${fee.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`, isFree: false }
     }
     return { fee: 0, label: 'Faltam mais de 48h para o evento. Cancelamento gratuito.', isFree: true }
+  }
+
+  async function handleReschedule() {
+    if (!order || rescheduling || !rescheduleDate) return
+    setRescheduling(true)
+    setRescheduleError('')
+    const { token } = authRef.current
+    try {
+      const res = await fetch(`${API_URL}/orders/${id}/reschedule`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ eventDate: rescheduleDate }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setRescheduleError(data.error || 'Erro ao remarcar'); return }
+      setOrder(prev => prev ? { ...prev, eventDate: data.eventDate } : prev)
+      setRescheduleOpen(false)
+      setRescheduleDate('')
+    } finally {
+      setRescheduling(false)
+    }
   }
 
   async function handleCancel() {
@@ -886,14 +911,70 @@ export default function OrderDetailPage() {
         )}
       </div>
 
-      {/* Cancel button */}
-      {canCancel && (
+      {/* Reschedule + Cancel buttons */}
+      {canCancel && !isGrillmaster && (
+        <div className="flex gap-3 mb-2">
+          <button
+            onClick={() => { setRescheduleOpen(true); setRescheduleDate(order.eventDate.slice(0, 10)) }}
+            className="flex-1 border border-blue-800/60 hover:border-blue-600 text-blue-400 hover:text-blue-300 font-medium py-2.5 rounded-xl text-sm transition-colors"
+          >
+            📅 Remarcar data
+          </button>
+          <button
+            onClick={() => setCancelModalOpen(true)}
+            className="flex-1 border border-red-800/60 hover:border-red-600 text-red-400 hover:text-red-300 font-medium py-2.5 rounded-xl text-sm transition-colors"
+          >
+            Cancelar pedido
+          </button>
+        </div>
+      )}
+      {canCancel && isGrillmaster && (
         <button
           onClick={() => setCancelModalOpen(true)}
           className="w-full border border-red-800/60 hover:border-red-600 text-red-400 hover:text-red-300 font-medium py-2.5 rounded-xl text-sm transition-colors"
         >
           Cancelar pedido
         </button>
+      )}
+
+      {/* Reschedule modal */}
+      {rescheduleOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+          <div className="bg-gray-900 rounded-2xl p-6 w-full max-w-md border border-gray-700 shadow-2xl">
+            <h2 className="text-lg font-bold mb-1">Remarcar data</h2>
+            <p className="text-xs text-gray-500 mb-5">#{order!.id.slice(0, 8)} · O churrasqueiro será notificado automaticamente.</p>
+
+            <label className="block text-xs text-gray-400 mb-1.5 uppercase tracking-wide">Nova data do evento</label>
+            <input
+              type="date"
+              value={rescheduleDate}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={e => setRescheduleDate(e.target.value)}
+              className="w-full bg-gray-800 rounded-xl px-4 py-3 text-white outline-none focus:ring-1 focus:ring-blue-500 mb-5"
+            />
+
+            {rescheduleError && (
+              <p className="text-sm text-red-400 mb-4">{rescheduleError}</p>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleReschedule}
+                disabled={rescheduling || !rescheduleDate}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold py-3 rounded-xl text-sm transition-colors"
+              >
+                {rescheduling ? 'Salvando...' : 'Confirmar nova data'}
+              </button>
+              <button
+                onClick={() => { setRescheduleOpen(false); setRescheduleError('') }}
+                disabled={rescheduling}
+                className="px-5 py-3 rounded-xl border border-gray-700 text-gray-400 hover:text-white hover:border-gray-500 text-sm transition-colors"
+              >
+                Voltar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Cancel modal */}

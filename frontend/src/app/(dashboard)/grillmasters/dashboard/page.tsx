@@ -90,6 +90,7 @@ interface GrillmasterProfile {
   certificationCode?: string
   certifiedAt?: string
   uniformSent: boolean
+  defaultBoutiqueId?: string | null
 }
 
 type Tab = 'eventos' | 'agenda' | 'perfil' | 'treinamento' | 'financeiro'
@@ -171,6 +172,9 @@ export default function GrillmasterDashboardPage() {
   const [showContractText, setShowContractText] = useState(false)
   const [contractText, setContractText] = useState('')
 
+  // Boutiques disponíveis (para selector de açougue padrão)
+  const [availableBoutiques, setAvailableBoutiques] = useState<{ id: string; name: string }[]>([])
+
   // GPS tracking
   const [gpsOrderId, setGpsOrderId] = useState<string | null>(null)
   const [gpsActive, setGpsActive] = useState(false)
@@ -207,8 +211,16 @@ export default function GrillmasterDashboardPage() {
           bringsEquipment: p.bringsEquipment, minGuests: p.minGuests, maxGuests: p.maxGuests,
           instagram: p.instagram ?? '', videoUrl: p.videoUrl ?? '',
           photoUrl: p.photoUrl ?? '', galleryUrls: p.galleryUrls ?? [],
-          experience: p.experience,
+          experience: p.experience, defaultBoutiqueId: p.defaultBoutiqueId ?? null,
         })
+        // Carrega lista de açougues aprovados
+        fetch(`${API_URL}/boutiques`, { headers: h })
+          .then(r => r.json())
+          .then(d => {
+            const list = Array.isArray(d) ? d : d.boutiques ?? []
+            setAvailableBoutiques(list.map((b: any) => ({ id: b.id, name: b.name })))
+          })
+          .catch(() => {})
         setCheckedModules(new Set(p.trainingModules))
       }
       setOrders(Array.isArray(data.orders) ? data.orders : [])
@@ -1131,6 +1143,23 @@ export default function GrillmasterDashboardPage() {
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500" />
               </div>
             </div>
+
+            {availableBoutiques.length > 0 && (
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Açougue parceiro padrão</label>
+                <p className="text-xs text-gray-600 mb-2">Quando um cliente te escolher, esse açougue aparece pré-selecionado no pedido.</p>
+                <select
+                  value={profileForm.defaultBoutiqueId ?? ''}
+                  onChange={e => setProfileForm(f => ({ ...f, defaultBoutiqueId: e.target.value || null }))}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500"
+                >
+                  <option value="">Nenhum (cliente escolhe)</option>
+                  {availableBoutiques.map(b => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <div className="flex items-center justify-between mb-1">

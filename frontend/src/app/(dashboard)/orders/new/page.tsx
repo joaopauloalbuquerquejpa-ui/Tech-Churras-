@@ -74,6 +74,15 @@ function NewOrderForm() {
       .then(r => r.json()).then(d => setBoutiques(Array.isArray(d) ? d : d.boutiques ?? []))
   }, [])
 
+  // Quando GM é selecionado e tem açougue padrão, pré-seleciona automaticamente
+  useEffect(() => {
+    if (!form.grillmasterId) return
+    const gm = grillmasters.find(g => g.id === form.grillmasterId)
+    if (gm?.defaultBoutiqueId) {
+      setForm(prev => ({ ...prev, boutiqueId: gm.defaultBoutiqueId }))
+    }
+  }, [form.grillmasterId, grillmasters])
+
   useEffect(() => {
     if (!form.boutiqueId) {
       setBoutiqueProducts([])

@@ -179,6 +179,7 @@ export default function AdminPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
+  const [zapiStatus, setZapiStatus] = useState<{ status: string; connected?: boolean; phone?: string | null } | null>(null)
 
   // ── TEAM JOTA ──────────────────────────────────────────────
   const [teamJota, setTeamJota] = useState<TeamJota | null>(null)
@@ -215,6 +216,12 @@ export default function AdminPage() {
       setContracts(Array.isArray(c) ? c : [])
       setLeads(Array.isArray(lds) ? lds : [])
       setLastUpdated(new Date())
+
+      // Z-API health (não bloqueia o resto)
+      fetch(API_URL + '/admin/zapi-status', { headers: h })
+        .then(r => r.ok ? r.json() : null)
+        .then(z => { if (z) setZapiStatus(z) })
+        .catch(() => {})
 
       // Team Jota
       const tj = (Array.isArray(allGms) ? allGms : []).find((g: any) => g.certificationCode === TEAM_JOTA_CERT)
@@ -470,6 +477,44 @@ export default function AdminPage() {
               <p className="text-xs text-gray-600 mt-1">Script de visita presencial</p>
             </Link>
           </div>
+
+          {/* Z-API Status */}
+          {zapiStatus && (
+            <div className={[
+              'rounded-xl p-4 border flex items-center justify-between gap-4',
+              zapiStatus.status === 'not_configured' ? 'bg-gray-900 border-gray-700' :
+              zapiStatus.status === 'ok' && zapiStatus.connected ? 'bg-green-900/20 border-green-500/30' :
+              'bg-red-900/20 border-red-500/30',
+            ].join(' ')}>
+              <div className="flex items-center gap-3">
+                <span className={[
+                  'inline-block w-2.5 h-2.5 rounded-full shrink-0',
+                  zapiStatus.status === 'not_configured' ? 'bg-gray-600' :
+                  zapiStatus.status === 'ok' && zapiStatus.connected ? 'bg-green-400 animate-pulse' :
+                  'bg-red-400',
+                ].join(' ')} />
+                <div>
+                  <p className="text-sm font-semibold text-white">WhatsApp (Z-API)</p>
+                  <p className="text-xs text-gray-500">
+                    {zapiStatus.status === 'not_configured' ? 'Não configurado — ZAPI_INSTANCE/ZAPI_TOKEN ausentes' :
+                     zapiStatus.status === 'ok' && zapiStatus.connected ? `Conectado${zapiStatus.phone ? ' · ' + zapiStatus.phone : ''}` :
+                     zapiStatus.status === 'ok' && !zapiStatus.connected ? 'Instância offline — reconecte no painel Z-API' :
+                     'Erro ao verificar: ' + (zapiStatus as any).message}
+                  </p>
+                </div>
+              </div>
+              {zapiStatus.status === 'ok' && !zapiStatus.connected && (
+                <a
+                  href="https://app.z-api.io"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0"
+                >
+                  Reconectar
+                </a>
+              )}
+            </div>
+          )}
         </div>
       )}
 

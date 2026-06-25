@@ -1,6 +1,6 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
-import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken, getOrderByPublicToken, getOrderEta } from './orders.service'
+import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken, getOrderByPublicToken, getOrderEta, rescheduleOrder } from './orders.service'
 
 const locationSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
 const cancelSchema = z.object({ reason: z.string().max(500).optional() })
@@ -118,6 +118,21 @@ export async function getOrderEtaHandler(req: FastifyRequest, reply: FastifyRepl
     const { id } = req.params as { id: string }
     const eta = await getOrderEta(id, userId, role)
     return reply.send(eta)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function rescheduleOrderHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const role = (req.user as any).role ?? 'CUSTOMER'
+    const { id } = req.params as { id: string }
+    const { eventDate } = req.body as { eventDate: string }
+    const newDate = new Date(eventDate)
+    if (isNaN(newDate.getTime())) return reply.status(400).send({ error: 'Data inválida' })
+    const order = await rescheduleOrder(id, newDate, userId, role)
+    return reply.send(order)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

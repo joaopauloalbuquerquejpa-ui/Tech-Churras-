@@ -195,14 +195,20 @@ export default function OrdersPage() {
                 </div>
               )}
               {isCompleted && (
-                <div className="mt-3 pt-3 border-t border-gray-800">
+                <div className="mt-3 pt-3 border-t border-gray-800 flex gap-2">
                   <button
                     onClick={() => handleRepeat(order.id)}
                     disabled={repeatLoading === order.id}
-                    className="text-xs bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 disabled:opacity-50 text-orange-400 hover:text-orange-300 px-3 py-1.5 rounded-lg font-semibold transition-colors"
+                    className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
                   >
-                    {repeatLoading === order.id ? 'Carregando...' : '🔁 Repetir este churrasco'}
+                    {repeatLoading === order.id ? 'Carregando...' : <><span>🔁</span> Repetir este churrasco</>}
                   </button>
+                  <Link
+                    href={'/orders/' + order.id}
+                    className="px-4 py-2.5 border border-gray-700 hover:border-gray-500 text-gray-400 hover:text-white rounded-xl text-sm transition-colors flex items-center"
+                  >
+                    Ver
+                  </Link>
                 </div>
               )}
             </div>

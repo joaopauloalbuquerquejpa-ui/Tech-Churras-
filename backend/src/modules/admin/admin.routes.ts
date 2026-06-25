@@ -145,6 +145,24 @@ export async function adminRoutes(app: FastifyInstance) {
     return reply.send(updated)
   })
 
+  // ── Z-API health check
+  app.get('/admin/zapi-status', async (_req, reply) => {
+    const instance = process.env.ZAPI_INSTANCE
+    const token = process.env.ZAPI_TOKEN
+    if (!instance || !token) return reply.send({ status: 'not_configured' })
+    try {
+      const res = await fetch(
+        `https://api.z-api.io/instances/${instance}/token/${token}/status`,
+        { signal: AbortSignal.timeout(5000) }
+      )
+      if (!res.ok) return reply.send({ status: 'error', code: res.status })
+      const data = await res.json() as any
+      return reply.send({ status: 'ok', connected: data?.connected ?? false, phone: data?.phone ?? null })
+    } catch (err: any) {
+      return reply.send({ status: 'error', message: err.message })
+    }
+  })
+
   // ── Migração única: setar trialEndsAt em boutiques aprovadas sem trial
   app.post('/admin/migrate/trial-ends-at', async (_req, reply) => {
     const trialEndsAt = new Date()

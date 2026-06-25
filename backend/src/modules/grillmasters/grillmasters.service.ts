@@ -19,6 +19,7 @@ export const createGrillmasterSchema = z.object({
   bringsEquipment: z.boolean().optional(),
   minGuests: z.number().int().optional(),
   maxGuests: z.number().int().optional(),
+  defaultBoutiqueId: z.string().uuid().optional().nullable(),
 })
 
 export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>
