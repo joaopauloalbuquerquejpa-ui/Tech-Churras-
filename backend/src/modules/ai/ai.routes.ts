@@ -270,8 +270,9 @@ Regras:
       })
     }
 
+    // Açougue: sempre o mais próximo com produtos
     const boutique = boutiquesWithProducts[0]
-    const grillmaster = nearbyGrillmasters[0]
+    const firstName = customerName?.trim().split(' ')[0] || ''
 
     function formatCatalogItem(p: any) {
       const discountActive = p.discountPercent && (!p.discountValidUntil || new Date(p.discountValidUntil) > new Date())
@@ -282,56 +283,92 @@ Regras:
     const carneProducts = boutique.products.filter((p: any) => p.category === 'CARNE')
     const acompProducts = boutique.products.filter((p: any) => p.category === 'ACOMPANHAMENTO')
     const otherProducts = boutique.products.filter((p: any) => p.category !== 'CARNE' && p.category !== 'ACOMPANHAMENTO')
-
     const catalogCarnes = carneProducts.map(formatCatalogItem).join('\n') || '(nenhuma carne cadastrada)'
     const catalogAcomp = acompProducts.map(formatCatalogItem).join('\n') || '(nenhum acompanhamento — pule essa secao)'
     const catalogOther = otherProducts.map(formatCatalogItem).join('\n') || '(nenhum)'
 
+    // Lista de GMs disponíveis para o Agente 2 escolher
+    const gmListText = nearbyGrillmasters.slice(0, 5).map((g: any) =>
+      `[${g.id}] ${g.user.name} | ${g.specialties || 'churrasco geral'} | estilo: ${g.churrascoStyle || 'tradicional'} | R$${g.pricePerHour}/h | ⭐${g.rating.toFixed(1)} | ${g.distanceKm.toFixed(1)}km`
+    ).join('\n')
+
+    // ── AGENTES 1 e 2 em paralelo (Haiku — rápido e barato) ────────────
+    const [profileMsg, gmMsg] = await Promise.all([
+
+      // Agente 1 — Análise de perfil do evento
+      client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 250,
+        messages: [{
+          role: 'user',
+          content: `Analise o perfil do evento e retorne SOMENTE JSON válido:
+Convidados: ${guests} | Ocasião: ${occasion || 'churrasco'} | Orçamento: ${budget ? 'R$' + budget : 'livre'} | Data: ${eventDate || 'a definir'}${firstName ? ` | Cliente: ${firstName}` : ''}
+{"eventTone":"festivo|corporativo|intimo|casual","meatFocus":"nobre|tradicional|variado","budgetTight":${budget && guests ? (budget / guests < 80 ? 'true' : 'false') : 'false'},"tip":"dica personalizada curta para o summary"}`,
+        }],
+      }),
+
+      // Agente 2 — Seleção inteligente do melhor GM
+      client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 200,
+        messages: [{
+          role: 'user',
+          content: `Escolha o churrasqueiro mais adequado para o evento. Retorne SOMENTE JSON válido.
+EVENTO: ${guests} pessoas | ${occasion || 'churrasco'} | ${budget ? 'Orçamento R$' + budget : 'sem limite'}
+CHURRASQUEIROS DISPONÍVEIS:
+${gmListText}
+{"selectedGmId":"id_exato_da_lista","reason":"motivo em 1 frase"}`,
+        }],
+      }),
+    ])
+
+    // Parseia saídas dos agentes (com fallback seguro)
+    function tryParseJson(text: string): Record<string, any> | null {
+      try {
+        const m = text.replace(/```json\s*/g, '').replace(/```/g, '').trim().match(/\{[\s\S]*\}/)
+        return m ? JSON.parse(m[0]) : null
+      } catch { return null }
+    }
+
+    const profileInsights = tryParseJson(profileMsg.content[0].type === 'text' ? profileMsg.content[0].text : '')
+    const gmSelection   = tryParseJson(gmMsg.content[0].type === 'text' ? gmMsg.content[0].text : '')
+
+    // Usa o GM escolhido pelo Agente 2; cai para o primeiro se falhar
+    const grillmaster = (gmSelection?.selectedGmId
+      ? nearbyGrillmasters.find((g: any) => g.id === gmSelection.selectedGmId)
+      : null) ?? nearbyGrillmasters[0]
+
+    // ── AGENTE 3 — Montagem final do kit (Opus) ─────────────────────────
+    const KIT_SYSTEM = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte kits de churrasco ideais com personalidade — fale de forma calorosa e natural, como uma especialista amiga. Use SOMENTE os IDs exatos fornecidos no catálogo. Responda SOMENTE com JSON válido, sem markdown.`
+
     const gmSpecialties = grillmaster.specialties || 'churrasco tradicional'
-    const gmStyle = grillmaster.churrascoStyle || 'tradicional brasileiro'
-    const gmExperience = grillmaster.experience ? `${grillmaster.experience} anos` : 'experiente'
-    const gmBio = grillmaster.bio ? `Bio: ${grillmaster.bio}` : ''
+    const gmStyle       = grillmaster.churrascoStyle || 'tradicional brasileiro'
+    const gmExperience  = grillmaster.experience ? `${grillmaster.experience} anos` : 'experiente'
+    const gmBio         = grillmaster.bio ? `Bio: ${grillmaster.bio}` : ''
 
-    const firstName = customerName?.trim().split(' ')[0] || ''
-    const kitPrompt = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte o kit perfeito com personalidade — fale de forma calorosa e natural, como uma especialista amiga.
-${firstName ? `O cliente se chama ${firstName} — chame pelo nome no campo summary.` : ''}
+    const kitPrompt = `${firstName ? `Cliente: ${firstName} — ` : ''}${guests} convidados | ${occasion || 'churrasco'} | ${budget ? 'R$' + budget : 'sem limite'} | ${eventDate || 'data a definir'}
 
-DADOS DO EVENTO:
-- Convidados: ${guests} pessoas
-- Ocasião: ${occasion}
-- Orçamento: ${budget ? `R$ ${budget}` : 'sem limite definido'}
-- Data: ${eventDate || 'a confirmar'}
+ANÁLISE DO EVENTO (pré-processada):
+- Tom: ${profileInsights?.eventTone ?? 'casual'} | Foco em carnes: ${profileInsights?.meatFocus ?? 'tradicional'} | Orçamento apertado: ${profileInsights?.budgetTight ? 'sim' : 'não'}
+- Dica do contexto: ${profileInsights?.tip ?? ''}
 
 CHURRASQUEIRO SELECIONADO: ${grillmaster.user.name}
-- Especialidades: ${gmSpecialties}
-- Estilo: ${gmStyle}
-- Experiencia: ${gmExperience}
-${gmBio}
-- Preco: R$${grillmaster.pricePerHour}/hora | Avaliacao: ${grillmaster.rating.toFixed(1)}/5
-INSTRUCAO CRITICA: Escolha os cortes do catalogo que COMBINAM com as especialidades deste churrasqueiro. Ex: especialista em parrilla argentina -> prefira fraldinha/asado; especialista em cortes nobres -> prefira picanha/tomahawk; estilo gaucho -> prefira costela/linguica; tradicional paulista -> picanha e carvao abundante.
+- Especialidades: ${gmSpecialties} | Estilo: ${gmStyle} | Experiência: ${gmExperience}${gmBio ? '\n- ' + gmBio : ''}
+- R$${grillmaster.pricePerHour}/h | ⭐${grillmaster.rating.toFixed(1)} | ${gmSelection?.reason ?? 'melhor disponível'}
 
-ACOUGUE PARCEIRO: "${boutique.name}" (${boutique.distanceKm.toFixed(1)} km do evento)
+AÇOUGUE: "${boutique.name}" (${boutique.distanceKm.toFixed(1)} km)
 
-CARNES DISPONIVEIS:
+CARNES:
 ${catalogCarnes}
 
-ACOMPANHAMENTOS (preparados pelo acougue, churrasqueiro retira tudo em UMA visita):
+ACOMPANHAMENTOS (prontos para retirada):
 ${catalogAcomp}
 
-OUTROS PRODUTOS:
+OUTROS:
 ${catalogOther}
 
-REGRAS:
-- Use SOMENTE os IDs exatos da lista acima — nunca invente produtos
-- ~400g de carne por pessoa
-- Inclua carne principal + carvao + acompanhamento se disponivel
-- Mencione no summary que os acompanhamentos ja vem prontos do acougue (zero trabalho extra pro churrasqueiro)
-- Recomende 3-4h de churrasqueiro para ate 15 pessoas, 5-6h para mais
-- Responda SOMENTE JSON valido, sem markdown
-
-{"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"Kit ideal em 1 frase","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`
-
-    const KIT_SYSTEM = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte kits de churrasco ideais com personalidade — fale de forma calorosa e natural, como uma especialista amiga. Use SOMENTE os IDs exatos fornecidos no catálogo. Responda SOMENTE com JSON válido, sem markdown.`
+REGRAS: Use SOMENTE IDs exatos acima | ~400g carne/pessoa | inclua carvão se disponível | acompanhamentos prontos no açougue | 3-4h GM até 15 pessoas, 5-6h acima | summary caloroso${firstName ? ' para ' + firstName : ''} mencionando o evento e o churrasqueiro escolhido
+{"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"frase calorosa personalizada","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`
 
     const message = await client.messages.create({
       model: 'claude-opus-4-8',
@@ -350,7 +387,6 @@ REGRAS:
       return reply.status(500).send({ error: 'Falha ao montar kit', raw: rawText.slice(0, 300) })
     }
 
-    // Enrich items with product category from boutique catalog
     const productCategoryMap = new Map(boutique.products.map((p: any) => [p.id, p.category]))
     if (Array.isArray(kit.items)) {
       kit.items = kit.items.map((item: any) => ({
@@ -364,6 +400,7 @@ REGRAS:
       boutique: { id: boutique.id, name: boutique.name, distanceKm: boutique.distanceKm, logoUrl: boutique.logoUrl },
       grillmaster: { id: grillmaster.id, name: grillmaster.user.name, rating: grillmaster.rating, distanceKm: grillmaster.distanceKm, photoUrl: grillmaster.photoUrl, pricePerHour: grillmaster.pricePerHour },
       eventCoords: coords,
+      _agents: { gmReason: gmSelection?.reason ?? null, eventTone: profileInsights?.eventTone ?? null },
     })
   })
 
