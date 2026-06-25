@@ -19,7 +19,7 @@ export default function ExcluirContaPage() {
 
     setLoading(true)
     try {
-      const res = await fetch('https://tech-churras-production.up.railway.app/auth/account', {
+      const res = await fetch((process.env.NEXT_PUBLIC_API_URL || 'https://tech-churras-production.up.railway.app') + '/auth/account', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: senha }),

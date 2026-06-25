@@ -163,6 +163,10 @@ export default function PaymentPage() {
             Pagar com Mercado Pago
           </a>
 
+          <p className="text-center text-xs text-gray-500 mt-1">
+            Não precisa ter conta no Mercado Pago — clique em <span className="text-gray-300">"Continuar sem criar conta"</span> na próxima tela.
+          </p>
+
           <p className="text-center text-xs text-gray-600">
             Ambiente seguro &middot; Dados criptografados
           </p>
