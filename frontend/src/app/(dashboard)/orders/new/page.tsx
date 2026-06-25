@@ -47,8 +47,7 @@ function NewOrderForm() {
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(false)
   const [formError, setFormError] = useState('')
-  const [acompanhamentos, setAcompanhamentos] = useState(false)
-  const [acompanhamentosText, setAcompanhamentosText] = useState('')
+  const [selectedGmAccomp, setSelectedGmAccomp] = useState<string[]>([])
   const [form, setForm] = useState({
     grillmasterId: '',
     boutiqueId: '',
@@ -108,7 +107,15 @@ function NewOrderForm() {
     const p = boutiqueProducts.find(p => p.id === pid)
     return sum + (p ? p.price * qty : 0)
   }, 0)
-  const totalEstimate = grillmasterCost + itemsTotal
+  const gmAccompList: { name: string; laborPrice: number }[] = selectedGrillmaster?.accompaniments ?? []
+  const accompLaborTotal = selectedGmAccomp.reduce((sum, name) => {
+    const a = gmAccompList.find(a => a.name === name)
+    return sum + (a?.laborPrice ?? 0)
+  }, 0)
+  const totalEstimate = grillmasterCost + itemsTotal + accompLaborTotal
+
+  const productsCarnes = boutiqueProducts.filter(p => p.category !== 'ACOMPANHAMENTO')
+  const productsAcomp = boutiqueProducts.filter(p => p.category === 'ACOMPANHAMENTO')
 
   const bestKit = boutiqueKits.find(k => insumos.totalPessoas >= k.minGuests && insumos.totalPessoas <= k.maxGuests)
     ?? (boutiqueKits.length > 0
@@ -135,10 +142,9 @@ function NewOrderForm() {
           return { productId, quantity, unitPrice: p.price }
         })
 
-      let notes = form.notes
-      if (acompanhamentos && acompanhamentosText.trim()) {
-        notes = 'ACOMPANHAMENTOS: ' + acompanhamentosText.trim() + (notes ? '\n' + notes : '')
-      }
+      const gmAccompaniments = selectedGmAccomp
+        .map(name => gmAccompList.find(a => a.name === name))
+        .filter(Boolean) as { name: string; laborPrice: number }[]
 
       const res = await fetch(API_URL + '/orders', {
         method: 'POST',
@@ -150,8 +156,9 @@ function NewOrderForm() {
           eventAddress: form.eventAddress,
           eventHours: form.eventHours,
           guestCount: insumos.totalPessoas,
-          notes: notes || undefined,
+          notes: form.notes || undefined,
           items: items.length > 0 ? items : undefined,
+          gmAccompaniments: gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
         }),
       })
       if (res.ok) {
@@ -202,12 +209,12 @@ function NewOrderForm() {
           </select>
         </div>
 
-        {/* Produtos do açougue */}
-        {boutiqueProducts.length > 0 && (
+        {/* Produtos do açougue — carnes, carvão, etc */}
+        {productsCarnes.length > 0 && (
           <div className="border border-gray-700 rounded-xl p-4">
             <p className="text-sm font-medium text-gray-300 mb-3">Produtos do açougue</p>
             <div className="space-y-3">
-              {boutiqueProducts.map(p => {
+              {productsCarnes.map(p => {
                 const qty = selectedQty[p.id] || 0
                 return (
                   <div key={p.id} className="flex items-center justify-between gap-3">
@@ -216,20 +223,12 @@ function NewOrderForm() {
                       <p className="text-xs text-orange-400">R$ {p.price.toFixed(2)}/{p.unit}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => setSelectedQty(prev => ({ ...prev, [p.id]: Math.max(0, (prev[p.id] || 0) - 1) }))}
-                        className="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold"
-                      >-</button>
+                      <button onClick={() => setSelectedQty(prev => ({ ...prev, [p.id]: Math.max(0, (prev[p.id] || 0) - 1) }))}
+                        className="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">-</button>
                       <span className="w-6 text-center text-sm">{qty}</span>
-                      <button
-                        onClick={() => setSelectedQty(prev => ({ ...prev, [p.id]: (prev[p.id] || 0) + 1 }))}
-                        className="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold"
-                      >+</button>
-                      {qty > 0 && (
-                        <span className="text-xs text-orange-400 w-16 text-right">
-                          R$ {(p.price * qty).toFixed(2)}
-                        </span>
-                      )}
+                      <button onClick={() => setSelectedQty(prev => ({ ...prev, [p.id]: (prev[p.id] || 0) + 1 }))}
+                        className="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">+</button>
+                      {qty > 0 && <span className="text-xs text-orange-400 w-16 text-right">R$ {(p.price * qty).toFixed(2)}</span>}
                     </div>
                   </div>
                 )
@@ -362,27 +361,65 @@ function NewOrderForm() {
           </div>
         )}
 
-        {/* Acompanhamentos toggle */}
-        <div>
-          <label className="flex items-center gap-3 cursor-pointer">
-            <button
-              type="button"
-              onClick={() => setAcompanhamentos(v => !v)}
-              className={'relative w-11 h-6 rounded-full transition-colors ' + (acompanhamentos ? 'bg-orange-500' : 'bg-gray-700')}
-            >
-              <span className={'absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ' + (acompanhamentos ? 'translate-x-5' : 'translate-x-0')} />
-            </button>
-            <span className="text-sm text-gray-300">Deseja que o Grillmaster prepare acompanhamentos no local?</span>
-          </label>
-          {acompanhamentos && (
-            <textarea
-              value={acompanhamentosText}
-              onChange={e => setAcompanhamentosText(e.target.value)}
-              placeholder="Liste os ingredientes que você vai providenciar..."
-              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white h-24 resize-none mt-2 text-sm"
-            />
-          )}
-        </div>
+        {/* Acompanhamentos */}
+        {(productsAcomp.length > 0 || gmAccompList.length > 0) && (
+          <div className="border border-gray-700 rounded-xl p-4 space-y-4">
+            <div>
+              <p className="text-sm font-medium text-gray-300">Acompanhamentos <span className="text-gray-500 font-normal">(opcional)</span></p>
+              <p className="text-xs text-gray-500 mt-0.5">Escolha prontos do açougue ou feitos na hora pelo churrasqueiro</p>
+            </div>
+
+            {/* Prontos do açougue */}
+            {productsAcomp.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-orange-400 uppercase tracking-wide">Prontos do açougue</p>
+                {productsAcomp.map(p => {
+                  const qty = selectedQty[p.id] || 0
+                  return (
+                    <div key={p.id} className="flex items-center justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{p.name}</p>
+                        <p className="text-xs text-orange-400">R$ {p.price.toFixed(2)}/{p.unit}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button onClick={() => setSelectedQty(prev => ({ ...prev, [p.id]: Math.max(0, (prev[p.id] || 0) - 1) }))}
+                          className="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">-</button>
+                        <span className="w-6 text-center text-sm">{qty}</span>
+                        <button onClick={() => setSelectedQty(prev => ({ ...prev, [p.id]: (prev[p.id] || 0) + 1 }))}
+                          className="w-7 h-7 bg-gray-700 hover:bg-gray-600 rounded text-sm font-bold">+</button>
+                        {qty > 0 && <span className="text-xs text-orange-400 w-16 text-right">R$ {(p.price * qty).toFixed(2)}</span>}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Feitos na hora pelo GM */}
+            {gmAccompList.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-orange-400 uppercase tracking-wide">Feitos na hora pelo churrasqueiro</p>
+                <p className="text-xs text-gray-500">Os ingredientes ficam por sua conta — combine com o churrasqueiro o que levar</p>
+                {gmAccompList.map(a => {
+                  const selected = selectedGmAccomp.includes(a.name)
+                  return (
+                    <button key={a.name}
+                      onClick={() => setSelectedGmAccomp(prev =>
+                        selected ? prev.filter(n => n !== a.name) : [...prev, a.name]
+                      )}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border transition-colors text-left ${selected ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-800'}`}
+                    >
+                      <span className="text-sm text-white">{a.name}</span>
+                      <span className={`text-xs font-semibold shrink-0 ${selected ? 'text-orange-400' : 'text-gray-400'}`}>
+                        {a.laborPrice > 0 ? `+R$ ${a.laborPrice.toFixed(2)}` : 'Incluído'}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Observações */}
         <div>

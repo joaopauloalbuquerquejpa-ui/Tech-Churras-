@@ -83,6 +83,7 @@ model Grillmaster {
   uniformSent        Boolean  @default(false)
   uniformSentAt      DateTime?
   defaultBoutiqueId  String?
+  accompaniments     Json?    @default("[]")
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -196,6 +197,7 @@ model Order {
   cancellationFee       Float?
   refundAmount          Float?
   notes                 String?
+  gmAccompaniments      Json?    @default("[]")
   paymentId      String?
   paymentStatus  String?
   paidAt         DateTime?

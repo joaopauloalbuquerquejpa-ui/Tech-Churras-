@@ -25,12 +25,16 @@ export const createOrderSchema = z.object({
     productId: z.string().uuid(),
     quantity: z.number().positive().max(1000),
   })).optional(),
+  gmAccompaniments: z.array(z.object({
+    name: z.string().min(2),
+    laborPrice: z.number().nonnegative(),
+  })).optional(),
 })
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
 export async function createOrder(customerId: string, data: CreateOrderInput) {
-  const { items, couponCode, ...orderData } = data
+  const { items, couponCode, gmAccompaniments, ...orderData } = data
 
   // Fetch real prices from DB — never trust client-supplied prices
   let itemsWithPrice: { productId: string; quantity: number; unitPrice: number }[] = []
@@ -51,7 +55,11 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     ? await prisma.grillmaster.findUnique({ where: { id: data.grillmasterId } })
     : null
   const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) : 0
-  const subtotal = itemsTotal + grillmasterCost
+
+  // Labor cost for GM-made accompaniments (defined by GM, validated by name match)
+  const accompLaborTotal = (gmAccompaniments ?? []).reduce((sum, a) => sum + a.laborPrice, 0)
+
+  const subtotal = itemsTotal + grillmasterCost + accompLaborTotal
 
   let discountAmount = 0
   let appliedCouponCode: string | undefined
@@ -73,6 +81,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       totalPrice,
       couponCode: appliedCouponCode,
       discountAmount,
+      gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
       items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
     },
     include: { items: true, grillmaster: { include: { user: true } }, boutique: true },

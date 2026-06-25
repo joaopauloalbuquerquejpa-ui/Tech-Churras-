@@ -87,6 +87,7 @@ interface GrillmasterProfile {
   minGuests?: number
   maxGuests?: number
   trainingModules: number[]
+  accompaniments: { name: string; laborPrice: number; description?: string }[]
   certificationCode?: string
   certifiedAt?: string
   uniformSent: boolean
@@ -212,6 +213,7 @@ export default function GrillmasterDashboardPage() {
           instagram: p.instagram ?? '', videoUrl: p.videoUrl ?? '',
           photoUrl: p.photoUrl ?? '', galleryUrls: p.galleryUrls ?? [],
           experience: p.experience, defaultBoutiqueId: p.defaultBoutiqueId ?? null,
+          accompaniments: p.accompaniments ?? [],
         })
         // Carrega lista de açougues aprovados
         fetch(`${API_URL}/boutiques`, { headers: h })
@@ -1281,6 +1283,59 @@ export default function GrillmasterDashboardPage() {
                 className={`relative w-12 h-6 rounded-full transition-colors ${profileForm.bringsEquipment ? 'bg-orange-500' : 'bg-gray-700'}`}>
                 <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${profileForm.bringsEquipment ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
+            </div>
+
+            {/* Acompanhamentos que o GM sabe fazer */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-white font-medium">Acompanhamentos que sei fazer</p>
+                  <p className="text-xs text-gray-500">Opcional — o cliente pode solicitar durante o pedido</p>
+                </div>
+              </div>
+              {(profileForm.accompaniments ?? []).map((a, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input
+                    value={a.name}
+                    onChange={e => setProfileForm(f => {
+                      const acc = [...(f.accompaniments ?? [])]
+                      acc[i] = { ...acc[i], name: e.target.value }
+                      return { ...f, accompaniments: acc }
+                    })}
+                    placeholder="Ex: Farofa de bacon"
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white"
+                  />
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-gray-400 text-xs">R$</span>
+                    <input
+                      type="number"
+                      min={0}
+                      value={a.laborPrice}
+                      onChange={e => setProfileForm(f => {
+                        const acc = [...(f.accompaniments ?? [])]
+                        acc[i] = { ...acc[i], laborPrice: Number(e.target.value) }
+                        return { ...f, accompaniments: acc }
+                      })}
+                      placeholder="0"
+                      className="w-20 bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 text-sm text-white"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setProfileForm(f => ({
+                      ...f,
+                      accompaniments: (f.accompaniments ?? []).filter((_, j) => j !== i)
+                    }))}
+                    className="text-red-400 hover:text-red-300 p-1 shrink-0"
+                  >✕</button>
+                </div>
+              ))}
+              <button
+                onClick={() => setProfileForm(f => ({
+                  ...f,
+                  accompaniments: [...(f.accompaniments ?? []), { name: '', laborPrice: 0 }]
+                }))}
+                className="text-orange-400 hover:text-orange-300 text-sm font-medium"
+              >+ Adicionar acompanhamento</button>
             </div>
 
             {profileMsg && (

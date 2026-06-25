@@ -3,6 +3,12 @@ import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 
+export const accompanimentItemSchema = z.object({
+  name: z.string().min(2),
+  laborPrice: z.number().nonnegative(),
+  description: z.string().optional(),
+})
+
 export const createGrillmasterSchema = z.object({
   bio: z.string().optional(),
   experience: z.number().int().min(0).default(0),
@@ -20,6 +26,7 @@ export const createGrillmasterSchema = z.object({
   minGuests: z.number().int().optional(),
   maxGuests: z.number().int().optional(),
   defaultBoutiqueId: z.string().uuid().optional().nullable(),
+  accompaniments: z.array(accompanimentItemSchema).optional(),
 })
 
 export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>
