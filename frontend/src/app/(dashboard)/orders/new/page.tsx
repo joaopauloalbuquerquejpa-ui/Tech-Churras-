@@ -3,6 +3,7 @@ import { API_URL } from '@/lib/api'
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Events } from '@/lib/analytics'
+import { CepAddressInput } from '@/components/CepAddressInput'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -239,12 +240,9 @@ function NewOrderForm() {
 
             <div>
               <label className="block text-sm text-gray-400 mb-2">Endereço do evento *</label>
-              <input
-                type="text"
-                value={form.eventAddress}
-                onChange={e => setForm({ ...form, eventAddress: e.target.value })}
-                placeholder="Rua, número, bairro, cidade"
-                className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors"
+              <CepAddressInput
+                required
+                onAddressChange={addr => setForm({ ...form, eventAddress: addr })}
               />
             </div>
 

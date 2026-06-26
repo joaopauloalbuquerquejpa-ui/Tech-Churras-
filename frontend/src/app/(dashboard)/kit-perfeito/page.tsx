@@ -3,6 +3,7 @@ import { API_URL } from '@/lib/api'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
+import { CepAddressInput } from '@/components/CepAddressInput'
 
 
 function getAuthData(): { name: string; token: string } {
@@ -155,16 +156,12 @@ export default function KitPerfeitoPage() {
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Endereço do evento
             </label>
-            <input
-              type="text"
-              value={form.eventAddress}
-              onChange={e => setForm({ ...form, eventAddress: e.target.value })}
-              placeholder="Rua das Flores, 123, São Paulo, SP"
+            <CepAddressInput
               required
-              className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-orange-500 text-sm"
+              onAddressChange={addr => setForm({ ...form, eventAddress: addr })}
             />
-            <p className="text-xs text-gray-600 mt-1">
-              Usamos o endereço do evento para encontrar parceiros próximos.
+            <p className="text-xs text-gray-600 mt-1.5">
+              Usamos o endereço para encontrar açougues e churrasqueiros próximos.
             </p>
           </div>
 
