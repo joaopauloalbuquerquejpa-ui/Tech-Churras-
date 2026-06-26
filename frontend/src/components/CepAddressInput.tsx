@@ -52,7 +52,7 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
     setCep(formatted)
     // reseta resultado anterior ao editar CEP
     setStatus('idle')
-    setStreet(''); setBairro(''); setCidade(''); setUf('')
+    setStreet(''); setBairro(''); setCidade(''); setUf(''); setNumero('')
     onAddressChange('')
     if (digits.length === 8) lookupCep(digits)
   }
@@ -84,7 +84,7 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
           required={required}
           className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm"
         />
-        <button type="button" onClick={switchToCep} className="text-xs text-gray-500 hover:text-orange-400 transition-colors">
+        <button type="button" onClick={switchToCep} className="text-xs text-gray-500 active:text-orange-400 py-1 transition-colors">
           ← Usar CEP
         </button>
       </div>
@@ -122,6 +122,8 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
             value={numero}
             onChange={e => handleNumeroChange(e.target.value)}
             placeholder="Nº"
+            inputMode="numeric"
+            autoFocus
             className="w-20 bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-xl px-3 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm text-center"
           />
         )}
@@ -147,7 +149,7 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
       <button
         type="button"
         onClick={switchToManual}
-        className="text-xs text-gray-500 hover:text-orange-400 transition-colors"
+        className="text-xs text-gray-500 active:text-orange-400 py-1 transition-colors"
       >
         Não sei o CEP — digitar endereço completo
       </button>
