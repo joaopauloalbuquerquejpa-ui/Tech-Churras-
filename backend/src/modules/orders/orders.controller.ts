@@ -56,7 +56,7 @@ export async function updateOrderStatusHandler(req: FastifyRequest, reply: Fasti
     const userId = (req.user as any).id
     const role = (req.user as any).role ?? 'CUSTOMER'
     const { id } = req.params as { id: string }
-    const { status } = req.body as { status: string }
+    const { status } = req.body as { status: import('@prisma/client').OrderStatus }
     const order = await updateOrderStatus(id, status, userId, role)
     return reply.send(order)
   } catch (err: any) {

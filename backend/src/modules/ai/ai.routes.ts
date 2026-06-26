@@ -367,7 +367,7 @@ ${catalogAcomp}
 OUTROS:
 ${catalogOther}
 
-REGRAS: Use SOMENTE IDs exatos acima | ~400g carne/pessoa | inclua carvão se disponível | acompanhamentos prontos no açougue | 3-4h GM até 15 pessoas, 5-6h acima | summary caloroso${firstName ? ' para ' + firstName : ''} mencionando o evento e o churrasqueiro escolhido
+REGRAS: Use SOMENTE IDs exatos acima | proteína: 350g/homem, 300g/mulher, 200g/criança (acompanhamentos fora da conta) | inclua carvão se disponível | 3-4h GM até 15 pessoas, 5-6h acima | summary caloroso${firstName ? ' para ' + firstName : ''} mencionando o evento e o churrasqueiro escolhido
 {"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"frase calorosa personalizada","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`
 
     const message = await client.messages.create({
@@ -554,7 +554,7 @@ Regras do GERAR_PLANO:
       .map(p => `[${p.id}] ${p.name} — ${p.category} — R$${Number(p.price).toFixed(2)}/${p.unit}`)
       .join('\n')
 
-    const totalKg = ((Number(homens)*400 + Number(mulheres)*300 + Number(criancas)*150)/1000).toFixed(1)
+    const totalKg = ((Number(homens)*350 + Number(mulheres)*300 + Number(criancas)*200)/1000).toFixed(1)
     const prompt = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte o kit ideal de forma calorosa e personalizada.
 ${firstName ? `Cliente: ${firstName}${occasion ? ` | Ocasião: ${occasion}` : ''}` : occasion ? `Ocasião: ${occasion}` : ''}
 
@@ -565,7 +565,7 @@ PRODUTOS DO AÇOUGUE — use SOMENTE estes IDs exatos:
 ${catalogLines}
 
 REGRAS:
-- Meta: ~${totalKg}kg de carne (400g/h, 300g/m, 150g/c)
+- Meta: ~${totalKg}kg de proteína (350g/h, 300g/m, 200g/c — acompanhamentos à parte)
 - Carvão: 1 saco por 5 pessoas se disponível
 - Priorize cortes que combinam com as especialidades do churrasqueiro
 - Máximo 8 itens; reason em até 5 palavras

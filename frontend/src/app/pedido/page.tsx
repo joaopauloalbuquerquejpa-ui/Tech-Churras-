@@ -290,7 +290,7 @@ function PedidoForm() {
               ))}
               {totalPeople > 0 && (
                 <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-4 py-3 flex items-center justify-between">
-                  <span className="text-sm text-orange-300">{totalPeople} pessoas → <span className="font-bold">{totalKg} kg de carne</span></span>
+                  <span className="text-sm text-orange-300">{totalPeople} pessoas → <span className="font-bold">{totalKg} kg de proteína</span></span>
                   <span className="text-xs text-gray-500">{eventHours}h de evento</span>
                 </div>
               )}

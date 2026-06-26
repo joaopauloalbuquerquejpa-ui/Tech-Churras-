@@ -1,4 +1,5 @@
 ﻿import { prisma } from '../../config/prisma'
+import { OrderStatus } from '@prisma/client'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { validateCoupon } from '../coupons/coupons.service'
@@ -240,7 +241,7 @@ export async function updateOrderStatusDetail(id: string, statusDetail: string, 
   return updated
 }
 
-export async function updateOrderStatus(id: string, status: string, userId?: string, role?: string) {
+export async function updateOrderStatus(id: string, status: OrderStatus, userId?: string, role?: string) {
   if (userId && role !== 'ADMIN') {
     const existing = await prisma.order.findUnique({
       where: { id },
@@ -258,7 +259,7 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
   const updated = await prisma.order.update({
     where: { id },
     data: {
-      status: status as any,
+      status,
       ...(statusDetailMap[status] ? { statusDetail: statusDetailMap[status] } : {}),
     },
     include: {
