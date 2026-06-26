@@ -11,7 +11,7 @@ interface ViaCepResult {
   bairro: string
   localidade: string
   uf: string
-  erro?: boolean
+  erro?: boolean | string
 }
 
 function buildAddress(street: string, numero: string, bairro: string, cidade: string, uf: string) {
@@ -39,6 +39,7 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
       setCidade(data.localidade)
       setUf(data.uf)
       setStatus('found')
+      // número já pode estar preenchido se o usuário digitou antes
       onAddressChange(buildAddress(data.logradouro, numero, data.bairro, data.localidade, data.uf))
     } catch {
       setStatus('error')
@@ -49,14 +50,28 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
     const digits = v.replace(/\D/g, '').slice(0, 8)
     const formatted = digits.length > 5 ? digits.slice(0, 5) + '-' + digits.slice(5) : digits
     setCep(formatted)
+    // reseta resultado anterior ao editar CEP
     setStatus('idle')
     setStreet(''); setBairro(''); setCidade(''); setUf('')
+    onAddressChange('')
     if (digits.length === 8) lookupCep(digits)
   }
 
   function handleNumeroChange(v: string) {
     setNumero(v)
     if (street) onAddressChange(buildAddress(street, v, bairro, cidade, uf))
+  }
+
+  function switchToManual() {
+    setManual(true)
+    onAddressChange('') // reseta para o pai não ficar com endereço antigo do CEP
+  }
+
+  function switchToCep() {
+    setManual(false)
+    onAddressChange('') // reseta para o pai não ficar com texto manual
+    // limpa estado CEP para forçar nova busca
+    setCep(''); setStreet(''); setBairro(''); setCidade(''); setUf(''); setStatus('idle')
   }
 
   if (manual) {
@@ -69,7 +84,7 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
           required={required}
           className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm"
         />
-        <button type="button" onClick={() => setManual(false)} className="text-xs text-gray-500 hover:text-orange-400 transition-colors">
+        <button type="button" onClick={switchToCep} className="text-xs text-gray-500 hover:text-orange-400 transition-colors">
           ← Usar CEP
         </button>
       </div>
@@ -88,7 +103,7 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
             placeholder="CEP (ex: 01310-100)"
             maxLength={9}
             inputMode="numeric"
-            required={required && !street}
+            required={required && status !== 'found'}
             className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm"
           />
           {status === 'loading' && (
@@ -107,7 +122,6 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
             value={numero}
             onChange={e => handleNumeroChange(e.target.value)}
             placeholder="Nº"
-            required={required}
             className="w-20 bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-xl px-3 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm text-center"
           />
         )}
@@ -117,7 +131,9 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
       {status === 'found' && street && (
         <div className="bg-gray-800/50 border border-gray-700 rounded-xl px-3 py-2.5">
           <p className="text-xs text-gray-500 mb-0.5">Endereço encontrado</p>
-          <p className="text-sm text-white">{street}{numero ? ', ' + numero : <span className="text-orange-400"> — informe o número</span>}</p>
+          <p className="text-sm text-white">
+            {street}{numero ? ', ' + numero : <span className="text-gray-500"> (sem número)</span>}
+          </p>
           <p className="text-xs text-gray-500 mt-0.5">{bairro} · {cidade} - {uf}</p>
         </div>
       )}
@@ -127,12 +143,14 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
         <p className="text-xs text-red-400">CEP não encontrado.</p>
       )}
 
-      {/* Toggle manual */}
-      {status !== 'found' && (
-        <button type="button" onClick={() => setManual(true)} className="text-xs text-gray-500 hover:text-orange-400 transition-colors">
-          Não sei o CEP — digitar endereço
-        </button>
-      )}
+      {/* Toggle para endereço manual — sempre visível */}
+      <button
+        type="button"
+        onClick={switchToManual}
+        className="text-xs text-gray-500 hover:text-orange-400 transition-colors"
+      >
+        Não sei o CEP — digitar endereço completo
+      </button>
     </div>
   )
 }
