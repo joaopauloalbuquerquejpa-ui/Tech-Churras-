@@ -142,6 +142,21 @@ export async function emailPartnerApproved(
   await sendEmail(to, '🎉 Seu perfil foi aprovado na Tech Churras!', html, 'partner-approved')
 }
 
+export async function emailPasswordReset(to: string, customerName: string, resetUrl: string) {
+  const firstName = customerName.split(' ')[0]
+  const html = baseTemplate(`
+    <h2 style="color:#f97316;margin:0 0 8px;font-size:24px">🔒 Redefinição de senha</h2>
+    <p style="color:#aaa;margin:0 0 20px">Oi ${firstName}! Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+    <p style="color:#ccc;margin:0 0 20px">Clique no botão abaixo para criar uma nova senha. O link expira em <strong style="color:#f97316">30 minutos</strong>.</p>
+    <a href="${resetUrl}" style="display:block;background:#f97316;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:bold;font-size:16px">
+      Redefinir minha senha
+    </a>
+    <p style="color:#666;font-size:12px;text-align:center;margin-top:20px">Se você não solicitou isso, ignore este email. Sua senha continua a mesma.</p>
+    <p style="color:#555;font-size:11px;text-align:center;margin-top:8px">Link: ${resetUrl}</p>
+  `)
+  await sendEmail(to, '🔒 Redefinição de senha — Tech Churras', html, 'password-reset')
+}
+
 export async function emailWelcomeCustomer(to: string, customerName: string) {
   const firstName = customerName.split(' ')[0]
   const html = baseTemplate(`

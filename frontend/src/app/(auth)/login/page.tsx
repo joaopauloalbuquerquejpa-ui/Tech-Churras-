@@ -205,6 +205,11 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 required
               />
+              <div className="text-right mt-1.5">
+                <a href="/esqueci-senha" className="text-xs text-gray-500 hover:text-orange-400 transition-colors">
+                  Esqueci minha senha
+                </a>
+              </div>
             </div>
 
             <button

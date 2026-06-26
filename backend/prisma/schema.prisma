@@ -45,11 +45,12 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders          Order[]  @relation("CustomerOrders")
-  grillmaster     Grillmaster?
-  boutique        Boutique?
-  customerReviews Review[]  @relation("CustomerReviews")
-  sentMessages    Message[] @relation("SentMessages")
+  orders              Order[]  @relation("CustomerOrders")
+  grillmaster         Grillmaster?
+  boutique            Boutique?
+  customerReviews     Review[]  @relation("CustomerReviews")
+  sentMessages        Message[] @relation("SentMessages")
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Grillmaster {
@@ -369,4 +370,14 @@ model Review {
   customer    User         @relation("CustomerReviews", fields: [customerId], references: [id])
   grillmaster Grillmaster? @relation(fields: [grillmasterId], references: [id])
   boutique    Boutique?    @relation(fields: [boutiqueId], references: [id])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
