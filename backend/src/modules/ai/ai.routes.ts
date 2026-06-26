@@ -25,10 +25,10 @@ QUANDO MENCIONAR O JOTA:
 - Eventos especiais (casamento, corporativo grande): "o Jota trataria esse evento com atenção especial"
 - Seja natural — não force em todo lugar, apenas onde fizer sentido
 
-REGRAS DE CÁLCULO DE QUANTIDADE:
-- Homens adultos: 400g de carne por pessoa
+REGRAS DE CÁLCULO DE QUANTIDADE (somente proteínas — acompanhamentos são à parte):
+- Homens adultos: 350g de proteína por pessoa
 - Mulheres adultas: 300g por pessoa
-- Crianças: 150g por pessoa
+- Crianças: 200g por pessoa
 
 MENUS EXCLUSIVOS TECH CHURRAS:
 
