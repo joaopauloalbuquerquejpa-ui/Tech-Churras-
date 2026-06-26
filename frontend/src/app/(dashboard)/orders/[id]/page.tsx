@@ -64,6 +64,7 @@ interface Message {
   content: string
   createdAt: string
   senderId: string
+  read: boolean
   sender: { id: string; name: string; role: string }
 }
 
@@ -130,8 +131,6 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [messages, setMessages] = useState<Message[]>([])
-  const [msgInput, setMsgInput] = useState('')
-  const [sending, setSending] = useState(false)
   const [advancing, setAdvancing] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [cancelReason, setCancelReason] = useState('')
@@ -145,7 +144,6 @@ export default function OrderDetailPage() {
   const [shareToast, setShareToast] = useState('')
   const [payingNow, setPayingNow] = useState(false)
   const [inviteCardOpen, setInviteCardOpen] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
   const authRef = useRef<ReturnType<typeof getAuth>>({ token: null, user: null })
 
   useEffect(() => {
@@ -179,7 +177,6 @@ export default function OrderDetailPage() {
   }, [id])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
   useEffect(() => {
@@ -254,26 +251,6 @@ export default function OrderDetailPage() {
     }).catch(() => {})
   }
 
-  async function sendMsg(e: React.FormEvent) {
-    e.preventDefault()
-    if (!msgInput.trim() || sending) return
-    setSending(true)
-    const { token } = authRef.current
-    try {
-      const res = await fetch(`${API_URL}/orders/${id}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-        body: JSON.stringify({ content: msgInput.trim() }),
-      })
-      if (res.ok) {
-        const msg = await res.json()
-        setMessages(prev => [...prev, msg])
-        setMsgInput('')
-      }
-    } finally {
-      setSending(false)
-    }
-  }
 
   async function advanceStatus() {
     if (!order || advancing) return
@@ -515,9 +492,25 @@ export default function OrderDetailPage() {
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Pedido #{order.id.slice(0, 8)}</h1>
-        <span className={'text-sm text-white px-3 py-1 rounded-full font-medium ' + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
-          {STATUS_LABEL[order.status] || order.status}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={'text-sm text-white px-3 py-1 rounded-full font-medium ' + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
+            {STATUS_LABEL[order.status] || order.status}
+          </span>
+          <Link
+            href={`/orders/${id}/chat`}
+            className="relative w-10 h-10 rounded-full bg-gray-800 border border-gray-700 hover:border-orange-500 hover:bg-gray-700 flex items-center justify-center transition-colors"
+            aria-label="Chat"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+            {messages.filter(m => !m.read && m.senderId !== user?.id).length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center">
+                {messages.filter(m => !m.read && m.senderId !== user?.id).length}
+              </span>
+            )}
+          </Link>
+        </div>
       </div>
 
       {/* Journey Timeline */}
@@ -862,55 +855,35 @@ export default function OrderDetailPage() {
         </div>
       </div>
 
-      {/* Chat */}
-      <div className="bg-gray-900 rounded-2xl border border-gray-800 overflow-hidden mb-5">
-        <div className="p-4 border-b border-gray-800">
-          <p className="text-sm font-semibold">Chat do Pedido</p>
-          <p className="text-xs text-gray-500 mt-0.5">Comunique-se com {otherPersonName}</p>
-        </div>
-
-        <div className="h-72 overflow-y-auto p-4 space-y-3">
-          {messages.length === 0 && (
-            <p className="text-center text-xs text-gray-600 py-8">Nenhuma mensagem ainda. Inicie a conversa!</p>
+      {/* Botão chat destacado */}
+      <Link
+        href={`/orders/${id}/chat`}
+        className="flex items-center gap-3 bg-gray-900 border border-gray-700 hover:border-orange-500 rounded-2xl p-4 mb-5 transition-colors group"
+      >
+        <div className="relative w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/30 flex items-center justify-center shrink-0">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-400">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          {messages.filter(m => !m.read && m.senderId !== user?.id).length > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[9px] font-bold flex items-center justify-center">
+              {messages.filter(m => !m.read && m.senderId !== user?.id).length}
+            </span>
           )}
-          {messages.map(msg => {
-            const isMine = msg.senderId === user?.id
-            return (
-              <div key={msg.id} className={'flex ' + (isMine ? 'justify-end' : 'justify-start')}>
-                <div className="max-w-[75%]">
-                  {!isMine && (
-                    <p className="text-xs text-gray-500 mb-1 ml-1">{msg.sender?.name ?? 'Desconhecido'}</p>
-                  )}
-                  <div className={'px-3 py-2 rounded-2xl text-sm ' + (isMine ? 'bg-orange-500 text-white rounded-tr-sm' : 'bg-gray-800 text-gray-100 rounded-tl-sm')}>
-                    {msg.content}
-                  </div>
-                  <p className={'text-[10px] mt-0.5 ' + (isMine ? 'text-right text-gray-500' : 'text-gray-600')}>
-                    {new Date(msg.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                  </p>
-                </div>
-              </div>
-            )
-          })}
-          <div ref={messagesEndRef} />
         </div>
-
-        <form onSubmit={sendMsg} className="p-3 border-t border-gray-800 flex gap-2">
-          <input
-            type="text"
-            value={msgInput}
-            onChange={e => setMsgInput(e.target.value)}
-            placeholder="Digite uma mensagem..."
-            className="flex-1 bg-gray-800 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 outline-none focus:ring-1 focus:ring-orange-500"
-          />
-          <button
-            type="submit"
-            disabled={!msgInput.trim() || sending}
-            className="bg-orange-500 hover:bg-orange-600 disabled:opacity-40 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors"
-          >
-            Enviar
-          </button>
-        </form>
-      </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-white">Chat com {otherPersonName}</p>
+          {messages.length > 0 ? (
+            <p className="text-xs text-gray-500 truncate mt-0.5">
+              {messages[messages.length - 1].sender?.name}: {messages[messages.length - 1].content}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-600 mt-0.5">Nenhuma mensagem ainda — inicie a conversa</p>
+          )}
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600 group-hover:text-gray-400 shrink-0">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </Link>
 
       {/* Avaliar button for customer */}
       {!isGrillmaster && order.status === 'COMPLETED' && !order.review?.id && (
