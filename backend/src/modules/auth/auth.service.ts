@@ -70,7 +70,7 @@ export async function registerUser(data: RegisterInput) {
   // Fire-and-forget welcome email + admin notification for customers
   if (data.role === 'CUSTOMER') {
     emailWelcomeCustomer(user.email, user.name).catch((e) => console.error("[notif]", e?.message))
-    sendPushToRole('ADMIN' as any, '👤 Novo cliente!', `${user.name} se cadastrou na plataforma.`, '/admin').catch((e) => console.error("[notif]", e?.message))
+    sendPushToRole('ADMIN', '👤 Novo cliente!', `${user.name} se cadastrou na plataforma.`, '/admin').catch((e) => console.error("[notif]", e?.message))
     sendWhatsAppToAdmin(
       `👤 *Novo cliente cadastrado — Tech Churras!*\n\n` +
       `Nome: ${user.name}\n` +

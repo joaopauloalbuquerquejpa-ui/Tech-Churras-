@@ -97,7 +97,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
 
   // Notify all admins of new order (push + WhatsApp)
   const adminDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)
-  sendPushToRole('ADMIN' as any, '🔥 Novo pedido!', `R$ ${order.totalPrice.toFixed(2)} — ${order.guestCount} pessoas em ${adminDate}`, '/admin').catch((e) => console.error("[notif]", e?.message))
+  sendPushToRole('ADMIN', '🔥 Novo pedido!', `R$ ${order.totalPrice.toFixed(2)} — ${order.guestCount} pessoas em ${adminDate}`, '/admin').catch((e) => console.error("[notif]", e?.message))
   prisma.user.findUnique({ where: { id: customerId }, select: { name: true, phone: true } }).then(customer => {
     const adminEventDate = new Intl.DateTimeFormat('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
     const msg =
@@ -283,8 +283,11 @@ export async function updateOrderStatus(id: string, status: string, userId?: str
     ).catch((e) => console.error("[notif]", e?.message))
   }
   if (status === 'COMPLETED' && updated.grillmasterId) {
-    prisma.grillmaster.findUnique({ where: { id: updated.grillmasterId } }).then(gm => {
-      if (gm) sendPushToUser(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch((e) => console.error("[notif]", e?.message))
+    prisma.grillmaster.update({
+      where: { id: updated.grillmasterId },
+      data: { totalOrders: { increment: 1 } },
+    }).then(gm => {
+      sendPushToUser(gm.userId, 'Pedido concluido!', 'Avalie o cliente para finalizar o pedido.', `/orders/${updated.id}/review-customer`).catch((e) => console.error("[notif]", e?.message))
     }).catch((e) => console.error("[notif]", e?.message))
 
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
