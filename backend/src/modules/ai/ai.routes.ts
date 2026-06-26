@@ -387,12 +387,16 @@ REGRAS: Use SOMENTE IDs exatos acima | proteína: 350g/homem, 300g/mulher, 200g/
       return reply.status(500).send({ error: 'Falha ao montar kit', raw: rawText.slice(0, 300) })
     }
 
-    const productCategoryMap = new Map(boutique.products.map((p: any) => [p.id, p.category]))
+    const productMetaMap = new Map(boutique.products.map((p: any) => [p.id, { category: p.category, imageUrl: p.imageUrl ?? null }]))
     if (Array.isArray(kit.items)) {
-      kit.items = kit.items.map((item: any) => ({
-        ...item,
-        category: productCategoryMap.get(item.productId) ?? 'OUTRO',
-      }))
+      kit.items = kit.items.map((item: any) => {
+        const meta = productMetaMap.get(item.productId)
+        return {
+          ...item,
+          category: meta?.category ?? 'OUTRO',
+          imageUrl: meta?.imageUrl ?? null,
+        }
+      })
     }
 
     return reply.send({

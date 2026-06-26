@@ -32,6 +32,26 @@ interface KitItem {
   unitPrice: number
   totalPrice: number
   category?: string
+  imageUrl?: string | null
+}
+
+function ItemThumb({ item }: { item: KitItem }) {
+  const fallback = item.category === 'CARNE' ? '🥩' : item.category === 'ACOMPANHAMENTO' ? '🌿' : '🫙'
+  if (item.imageUrl) {
+    return (
+      <img
+        src={item.imageUrl}
+        alt={item.productName}
+        className="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-700"
+        onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
+      />
+    )
+  }
+  return (
+    <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 text-lg border border-gray-700">
+      {fallback}
+    </div>
+  )
 }
 
 interface KitResult {
@@ -255,14 +275,17 @@ export default function KitPerfeitoPage() {
                 <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-2">🥩 Cortes de Carne</p>
                 <div className="space-y-0">
                   {result.kit.items.filter(i => i.category === 'CARNE').map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
-                      <div>
-                        <p className="text-sm text-white font-medium">{item.productName}</p>
-                        <p className="text-xs text-gray-500">
-                          {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
-                        </p>
+                    <div key={i} className="flex items-center justify-between gap-3 py-2.5 border-b border-gray-800 last:border-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <ItemThumb item={item} />
+                        <div className="min-w-0">
+                          <p className="text-sm text-white font-medium truncate">{item.productName}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm font-bold text-orange-400 shrink-0 ml-3">
+                      <p className="text-sm font-bold text-orange-400 shrink-0">
                         R$ {item.totalPrice.toFixed(2)}
                       </p>
                     </div>
@@ -282,14 +305,17 @@ export default function KitPerfeitoPage() {
                 </div>
                 <div className="bg-green-500/5 border border-green-500/20 rounded-xl overflow-hidden">
                   {result.kit.items.filter(i => i.category === 'ACOMPANHAMENTO').map((item, i) => (
-                    <div key={i} className="flex items-center justify-between px-3 py-2.5 border-b border-green-500/10 last:border-0">
-                      <div>
-                        <p className="text-sm text-white font-medium">{item.productName}</p>
-                        <p className="text-xs text-gray-500">
-                          {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
-                        </p>
+                    <div key={i} className="flex items-center justify-between gap-3 px-3 py-2.5 border-b border-green-500/10 last:border-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <ItemThumb item={item} />
+                        <div className="min-w-0">
+                          <p className="text-sm text-white font-medium truncate">{item.productName}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm font-bold text-green-400 shrink-0 ml-3">
+                      <p className="text-sm font-bold text-green-400 shrink-0">
                         R$ {item.totalPrice.toFixed(2)}
                       </p>
                     </div>
@@ -307,14 +333,17 @@ export default function KitPerfeitoPage() {
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Outros itens</p>
                 <div className="space-y-0">
                   {result.kit.items.filter(i => i.category !== 'CARNE' && i.category !== 'ACOMPANHAMENTO').map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-2.5 border-b border-gray-800 last:border-0">
-                      <div>
-                        <p className="text-sm text-white font-medium">{item.productName}</p>
-                        <p className="text-xs text-gray-500">
-                          {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
-                        </p>
+                    <div key={i} className="flex items-center justify-between gap-3 py-2.5 border-b border-gray-800 last:border-0">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <ItemThumb item={item} />
+                        <div className="min-w-0">
+                          <p className="text-sm text-white font-medium truncate">{item.productName}</p>
+                          <p className="text-xs text-gray-500">
+                            {item.quantity} {item.unit} × R$ {item.unitPrice.toFixed(2)}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-sm font-bold text-orange-400 shrink-0 ml-3">
+                      <p className="text-sm font-bold text-orange-400 shrink-0">
                         R$ {item.totalPrice.toFixed(2)}
                       </p>
                     </div>
