@@ -1,5 +1,5 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
-import { z } from 'zod'
+import { z, ZodError } from 'zod'
 import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken, getOrderByPublicToken, getOrderEta, rescheduleOrder } from './orders.service'
 
 const locationSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
@@ -12,6 +12,10 @@ export async function createOrderHandler(req: FastifyRequest, reply: FastifyRepl
     const order = await createOrder(customerId, data)
     return reply.status(201).send(order)
   } catch (err: any) {
+    if (err instanceof ZodError) {
+      const first = err.issues[0]
+      return reply.status(400).send({ error: first?.message ?? 'Dados inválidos' })
+    }
     return reply.status(400).send({ error: err.message })
   }
 }

@@ -17,7 +17,7 @@ export const createOrderSchema = z.object({
       today.setHours(0, 0, 0, 0)
       return d >= today
     }, { message: 'A data do evento não pode ser no passado' }),
-  eventAddress: z.string().min(5),
+  eventAddress: z.string().min(5, { message: 'Endereço muito curto (mínimo 5 caracteres)' }),
   eventHours: z.number().int().min(1).default(4),
   guestCount: z.number().int().min(1),
   notes: z.string().max(1000).optional(),

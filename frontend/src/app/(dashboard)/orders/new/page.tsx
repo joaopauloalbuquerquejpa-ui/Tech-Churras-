@@ -192,7 +192,8 @@ function NewOrderForm() {
         router.push('/orders/' + order.id + '/payment')
       } else {
         const err = await res.json()
-        setStepError(err.error || 'Erro ao criar pedido. Tente novamente.')
+        const msg = typeof err.error === 'string' ? err.error : 'Erro ao criar pedido. Tente novamente.'
+        setStepError(msg)
       }
     } finally {
       setLoading(false)
