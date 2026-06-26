@@ -440,7 +440,23 @@ function NewOrderForm() {
                           {isSelected && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">✓</span>}
                         </div>
                       </div>
-                      <p className="text-xs text-gray-400 mb-2 line-clamp-2">{k.description}</p>
+                      <p className="text-xs text-gray-400 mb-2">{k.description}</p>
+                      {(() => {
+                        try {
+                          const kitProducts: { productName: string; quantity: number; unit: string }[] = JSON.parse(k.items || '[]')
+                          if (kitProducts.length > 0) return (
+                            <ul className="mb-2 space-y-0.5">
+                              {kitProducts.map((p, i) => (
+                                <li key={i} className="text-xs text-gray-400 flex items-center gap-1.5">
+                                  <span className="w-1 h-1 rounded-full bg-orange-500/60 shrink-0" />
+                                  {p.productName} — {p.quantity}{p.unit}
+                                </li>
+                              ))}
+                            </ul>
+                          )
+                        } catch { /* malformed items */ }
+                        return null
+                      })()}
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">{k.minGuests}–{k.maxGuests} pessoas</span>
                         {k.discountPrice ? (

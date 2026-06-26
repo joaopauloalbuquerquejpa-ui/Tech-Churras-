@@ -79,7 +79,7 @@ interface OrderDetail {
   guestCount: number
   notes?: string
   kitId?: string | null
-  kit?: { name: string; price: number; discountPrice?: number | null; description: string } | null
+  kit?: { name: string; price: number; discountPrice?: number | null; description: string; items?: string } | null
   gmAccompaniments?: { name: string; laborPrice: number }[]
   couponCode?: string
   discountAmount?: number
@@ -816,7 +816,7 @@ export default function OrderDetailPage() {
         {order.kit && (
           <div className="p-5 border-t border-gray-800">
             <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Kit Selecionado</p>
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-3 mb-2">
               <div>
                 <p className="text-sm font-semibold text-white">{order.kit.name}</p>
                 <p className="text-xs text-gray-400 mt-0.5">{order.kit.description}</p>
@@ -825,6 +825,22 @@ export default function OrderDetailPage() {
                 R$ {(order.kit.discountPrice ?? order.kit.price).toFixed(2)}
               </p>
             </div>
+            {(() => {
+              try {
+                const kitProducts: { productName: string; quantity: number; unit: string }[] = JSON.parse(order.kit?.items || '[]')
+                if (kitProducts.length > 0) return (
+                  <ul className="space-y-1 mt-1">
+                    {kitProducts.map((p, i) => (
+                      <li key={i} className="text-xs text-gray-400 flex items-center gap-2">
+                        <span className="w-1 h-1 rounded-full bg-orange-500/60 shrink-0" />
+                        {p.productName} — {p.quantity}{p.unit}
+                      </li>
+                    ))}
+                  </ul>
+                )
+              } catch { /* malformed */ }
+              return null
+            })()}
           </div>
         )}
 
