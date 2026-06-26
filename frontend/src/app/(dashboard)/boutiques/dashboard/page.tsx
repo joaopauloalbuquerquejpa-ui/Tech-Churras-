@@ -81,7 +81,7 @@ interface ReferralStats {
 }
 
 interface KitItem {
-  productName: string; quantity: number; unit: string
+  productId: string; productName: string; quantity: number; unit: string; price: number
 }
 
 interface Kit {
@@ -430,16 +430,36 @@ export default function BoutiqueDashboardPage() {
       minGuests: k.minGuests, maxGuests: k.maxGuests,
       price: k.price, discountPrice: k.discountPrice ?? 0, coverImageUrl: k.coverImageUrl ?? '',
     })
-    try { setKitItems(JSON.parse(k.items) || []) } catch { setKitItems([]) }
+    try {
+      const parsed = JSON.parse(k.items) || []
+      // Enrich items with product data if productId is present
+      const productMap = new Map((boutique?.products || []).map(p => [p.id, p]))
+      setKitItems(parsed.map((item: KitItem) => {
+        const p = item.productId ? productMap.get(item.productId) : null
+        return { ...item, price: item.price ?? p?.price ?? 0, unit: item.unit ?? p?.unit ?? 'kg' }
+      }))
+    } catch { setKitItems([]) }
     setShowKitForm(true)
   }
 
   function cancelKitForm() { setShowKitForm(false); setEditingKitId(null); setKitForm(emptyKitForm); setKitItems([]) }
-  function addKitItem() { setKitItems(prev => [...prev, { productName: '', quantity: 1, unit: 'kg' }]) }
+  function addKitItem() { setKitItems(prev => [...prev, { productId: '', productName: '', quantity: 1, unit: 'kg', price: 0 }]) }
+  function selectKitProduct(idx: number, productId: string) {
+    const p = boutique?.products.find(p => p.id === productId)
+    if (!p) return
+    setKitItems(prev => prev.map((item, i) => i === idx
+      ? { ...item, productId: p.id, productName: p.name, unit: p.unit, price: p.price }
+      : item
+    ))
+  }
   function updateKitItem(idx: number, field: keyof KitItem, value: string | number) {
     setKitItems(prev => prev.map((item, i) => i === idx ? { ...item, [field]: value } : item))
   }
   function removeKitItem(idx: number) { setKitItems(prev => prev.filter((_, i) => i !== idx)) }
+  function autoCalcKitPrice() {
+    const total = kitItems.reduce((sum, i) => sum + i.price * i.quantity, 0)
+    if (total > 0) setKitForm(f => ({ ...f, price: +total.toFixed(2) }))
+  }
 
   function copyReferralLink() {
     if (!stats?.referralCode) return
@@ -1251,7 +1271,7 @@ export default function BoutiqueDashboardPage() {
 
                 <div className="mb-3">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="text-xs text-gray-400">Itens do pacote</label>
+                    <label className="text-xs text-gray-400">Produtos do kit</label>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
@@ -1284,7 +1304,7 @@ export default function BoutiqueDashboardPage() {
                                 .map((item: { productId: string; quantity: number; unit?: string }) => {
                                   const p = productMap.get(item.productId)
                                   if (!p) return null
-                                  return { productName: p.name, quantity: item.quantity, unit: item.unit || p.unit }
+                                  return { productId: p.id, productName: p.name, quantity: item.quantity, unit: item.unit || p.unit, price: p.price }
                                 })
                                 .filter(Boolean) as KitItem[]
                               if (suggested.length > 0) setKitItems(suggested)
@@ -1296,25 +1316,64 @@ export default function BoutiqueDashboardPage() {
                       >
                         {generatingKitItems ? '⏳ Gerando...' : '✨ Sugerir com IA'}
                       </button>
-                      <button type="button" onClick={addKitItem} className="text-xs text-gray-400 hover:text-gray-300">+ Adicionar item</button>
+                      <button type="button" onClick={addKitItem} className="text-xs text-gray-400 hover:text-gray-300">+ Adicionar</button>
                     </div>
                   </div>
-                  {kitItems.length === 0 && (
-                    <p className="text-xs text-gray-600 py-2 text-center">Nenhum item adicionado</p>
-                  )}
+
+                  {!boutique || boutique.products.filter(p => p.available).length === 0 ? (
+                    <p className="text-xs text-yellow-500/80 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
+                      Cadastre produtos no seu catálogo primeiro para montar o kit.
+                    </p>
+                  ) : kitItems.length === 0 ? (
+                    <p className="text-xs text-gray-600 py-2 text-center">Nenhum produto adicionado. Clique em "+ Adicionar" ou use a IA.</p>
+                  ) : null}
+
                   <div className="space-y-2">
-                    {kitItems.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 items-center">
-                        <input type="text" value={item.productName} onChange={e => updateKitItem(idx, 'productName', e.target.value)}
-                          className="flex-1 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="Nome do produto" />
-                        <input type="number" min={0.1} step="0.1" value={item.quantity} onChange={e => updateKitItem(idx, 'quantity', +e.target.value)}
-                          className="w-16 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" />
-                        <input type="text" value={item.unit} onChange={e => updateKitItem(idx, 'unit', e.target.value)}
-                          className="w-12 bg-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="kg" />
-                        <button type="button" onClick={() => removeKitItem(idx)} className="text-red-400 hover:text-red-300 text-sm">✕</button>
-                      </div>
-                    ))}
+                    {kitItems.map((item, idx) => {
+                      const availableProducts = boutique?.products.filter(p => p.available) ?? []
+                      const subtotal = item.price * item.quantity
+                      return (
+                        <div key={idx} className="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
+                          <div className="flex gap-2 items-center mb-2">
+                            <select
+                              value={item.productId}
+                              onChange={e => selectKitProduct(idx, e.target.value)}
+                              className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white outline-none"
+                            >
+                              <option value="">— Selecione um produto —</option>
+                              {availableProducts.map(p => (
+                                <option key={p.id} value={p.id}>{p.name} · R$ {p.price.toFixed(2)}/{p.unit}</option>
+                              ))}
+                            </select>
+                            <button type="button" onClick={() => removeKitItem(idx)} className="text-red-400 hover:text-red-300 text-sm shrink-0">✕</button>
+                          </div>
+                          {item.productId && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-500">Quantidade:</span>
+                              <input
+                                type="number" min={0.1} step={item.unit === 'kg' ? 0.5 : 1} value={item.quantity}
+                                onChange={e => updateKitItem(idx, 'quantity', +e.target.value)}
+                                className="w-20 bg-gray-700 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white outline-none"
+                              />
+                              <span className="text-xs text-gray-500">{item.unit}</span>
+                              <span className="ml-auto text-xs text-orange-400 font-medium">R$ {subtotal.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
+
+                  {kitItems.filter(i => i.productId).length > 0 && (
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+                      <span className="text-xs text-gray-400">
+                        Total dos produtos: <span className="text-white font-medium">R$ {kitItems.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2)}</span>
+                      </span>
+                      <button type="button" onClick={autoCalcKitPrice} className="text-xs text-orange-400 hover:text-orange-300">
+                        Usar como preço do kit →
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
