@@ -20,6 +20,7 @@ export const createOrderSchema = z.object({
   eventHours: z.number().int().min(1).default(4),
   guestCount: z.number().int().min(1),
   notes: z.string().max(1000).optional(),
+  kitId: z.string().optional(),
   couponCode: z.string().optional(),
   items: z.array(z.object({
     productId: z.string().uuid(),
@@ -514,6 +515,7 @@ export async function getOrderById(id: string, userId: string, role: string = 'C
       boutique: true,
       review: { select: { id: true, customerRating: true } },
       customer: { select: { id: true, name: true, averageRating: true, _count: { select: { orders: true } } } },
+      kit: true,
     },
   })
   if (!order) throw new Error('Pedido nao encontrado')

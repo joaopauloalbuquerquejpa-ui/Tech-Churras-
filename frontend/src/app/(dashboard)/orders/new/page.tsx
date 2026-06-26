@@ -44,6 +44,7 @@ function NewOrderForm() {
   const [boutiques, setBoutiques] = useState<any[]>([])
   const [boutiqueProducts, setBoutiqueProducts] = useState<Product[]>([])
   const [boutiqueKits, setBoutiqueKits] = useState<Kit[]>([])
+  const [selectedKitId, setSelectedKitId] = useState<string | null>(null)
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(false)
   const [formError, setFormError] = useState('')
@@ -86,6 +87,7 @@ function NewOrderForm() {
     if (!form.boutiqueId) {
       setBoutiqueProducts([])
       setBoutiqueKits([])
+      setSelectedKitId(null)
       setSelectedQty({})
       return
     }
@@ -124,6 +126,11 @@ function NewOrderForm() {
         )
       : null)
 
+  // Auto-seleciona o melhor kit quando a lista carrega (se usuário ainda não escolheu)
+  useEffect(() => {
+    if (bestKit && selectedKitId === null) setSelectedKitId(bestKit.id)
+  }, [bestKit?.id])
+
   const today = new Date().toISOString().split('T')[0]
 
   async function handleSubmit() {
@@ -157,6 +164,7 @@ function NewOrderForm() {
           eventHours: form.eventHours,
           guestCount: insumos.totalPessoas,
           notes: form.notes || undefined,
+          kitId: selectedKitId || undefined,
           items: items.length > 0 ? items : undefined,
           gmAccompaniments: gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
         }),
@@ -240,34 +248,62 @@ function NewOrderForm() {
         {/* Kits do açougue */}
         {boutiqueKits.length > 0 && (
           <div>
-            <p className="text-sm font-medium text-gray-300 mb-2">Kits disponíveis</p>
+            <p className="text-sm font-medium text-gray-300 mb-2">Kits do açougue</p>
             <div className="grid grid-cols-1 gap-3">
               {boutiqueKits.map(k => {
-                const isMatch = k === bestKit
+                const isSelected = selectedKitId === k.id
+                const isRecommended = k.id === bestKit?.id
                 return (
-                  <div
+                  <button
                     key={k.id}
-                    className={'rounded-xl p-4 border transition-colors ' + (isMatch
-                      ? 'border-orange-500 bg-orange-500/10'
-                      : 'border-gray-700 bg-gray-800')}
+                    type="button"
+                    onClick={() => setSelectedKitId(isSelected ? null : k.id)}
+                    className={'w-full text-left rounded-xl p-4 border transition-all ' + (isSelected
+                      ? 'border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/40'
+                      : 'border-gray-700 bg-gray-800 hover:border-gray-500')}
                   >
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="font-semibold text-sm text-white">{k.name}</p>
-                      {isMatch && (
-                        <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">
-                          Recomendado
-                        </span>
-                      )}
+                      <div className="flex gap-1.5 shrink-0">
+                        {isRecommended && (
+                          <span className="text-xs bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2 py-0.5 rounded-full">
+                            Recomendado
+                          </span>
+                        )}
+                        {isSelected && (
+                          <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full">
+                            ✓ Selecionado
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <p className="text-xs text-gray-400 mb-2">{k.description}</p>
                     <div className="flex items-center justify-between text-xs text-gray-400">
                       <span>{k.minGuests}–{k.maxGuests} pessoas</span>
-                      <span className="text-orange-400 font-bold text-sm">R$ {k.price.toFixed(2)}</span>
+                      <div className="text-right">
+                        {k.discountPrice ? (
+                          <span>
+                            <span className="line-through text-gray-600 mr-1">R$ {k.price.toFixed(2)}</span>
+                            <span className="text-orange-400 font-bold text-sm">R$ {k.discountPrice.toFixed(2)}</span>
+                          </span>
+                        ) : (
+                          <span className="text-orange-400 font-bold text-sm">R$ {k.price.toFixed(2)}</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  </button>
                 )
               })}
             </div>
+            {selectedKitId && (
+              <button
+                type="button"
+                onClick={() => setSelectedKitId(null)}
+                className="mt-2 text-xs text-gray-500 hover:text-gray-300 underline"
+              >
+                Remover seleção de kit
+              </button>
+            )}
           </div>
         )}
 

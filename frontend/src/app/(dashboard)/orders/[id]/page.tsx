@@ -78,6 +78,8 @@ interface OrderDetail {
   eventHours: number
   guestCount: number
   notes?: string
+  kitId?: string | null
+  kit?: { name: string; price: number; discountPrice?: number | null; description: string } | null
   gmAccompaniments?: { name: string; laborPrice: number }[]
   couponCode?: string
   discountAmount?: number
@@ -808,6 +810,21 @@ export default function OrderDetailPage() {
               ))}
             </div>
             <p className="text-xs text-gray-500 mt-3">Os ingredientes ficam por conta do cliente</p>
+          </div>
+        )}
+
+        {order.kit && (
+          <div className="p-5 border-t border-gray-800">
+            <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Kit Selecionado</p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-white">{order.kit.name}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{order.kit.description}</p>
+              </div>
+              <p className="text-orange-400 font-bold text-sm shrink-0">
+                R$ {(order.kit.discountPrice ?? order.kit.price).toFixed(2)}
+              </p>
+            </div>
           </div>
         )}
 

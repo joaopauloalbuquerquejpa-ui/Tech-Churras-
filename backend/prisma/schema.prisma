@@ -152,6 +152,7 @@ model KitChurrasco {
   minGuests     Int
   maxGuests     Int
   items         String
+  orders        Order[]
   createdAt     DateTime @default(now())
 }
 
@@ -197,6 +198,7 @@ model Order {
   cancellationFee       Float?
   refundAmount          Float?
   notes                 String?
+  kitId                 String?
   gmAccompaniments      Json?    @default("[]")
   paymentId      String?
   paymentStatus  String?
@@ -207,9 +209,10 @@ model Order {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
-  customer    User         @relation("CustomerOrders", fields: [customerId], references: [id])
-  grillmaster Grillmaster? @relation(fields: [grillmasterId], references: [id])
-  boutique    Boutique?    @relation(fields: [boutiqueId], references: [id])
+  customer    User          @relation("CustomerOrders", fields: [customerId], references: [id])
+  grillmaster Grillmaster?  @relation(fields: [grillmasterId], references: [id])
+  boutique    Boutique?     @relation(fields: [boutiqueId], references: [id])
+  kit         KitChurrasco? @relation(fields: [kitId], references: [id])
   items       OrderItem[]
   review      Review?
   messages    Message[]
