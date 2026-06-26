@@ -10,10 +10,9 @@ const meatSuggestionSchema = z.object({
 })
 
 const BREAKDOWN_DEF = [
-  { category: 'Carne Bovina Nobre', productCategory: 'CARNE', pct: 0.40, unit: 'kg' },
-  { category: 'Porco e Linguiça',   productCategory: 'CARNE', pct: 0.25, unit: 'kg' },
-  { category: 'Frango',             productCategory: 'CARNE', pct: 0.20, unit: 'kg' },
-  { category: 'Acompanhamentos',    productCategory: 'ACOMPANHAMENTO', pct: 0.15, unit: 'kg' },
+  { category: 'Carne Bovina Nobre', productCategory: 'CARNE', pct: 0.45, unit: 'kg' },
+  { category: 'Porco e Linguiça',   productCategory: 'CARNE', pct: 0.30, unit: 'kg' },
+  { category: 'Frango',             productCategory: 'CARNE', pct: 0.25, unit: 'kg' },
 ]
 
 export async function calculatorRoutes(app: FastifyInstance) {
@@ -22,7 +21,7 @@ export async function calculatorRoutes(app: FastifyInstance) {
     if (!parsed.success) return reply.code(400).send({ error: parsed.error.issues[0].message })
     const { men, women, children, boutiqueId } = parsed.data
 
-    const totalGrams = men * 400 + women * 300 + children * 150
+    const totalGrams = men * 350 + women * 300 + children * 200
     const totalKg = +(totalGrams / 1000).toFixed(2)
     const totalPessoas = men + women + children
 

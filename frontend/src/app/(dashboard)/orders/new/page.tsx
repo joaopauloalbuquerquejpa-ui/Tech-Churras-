@@ -20,7 +20,7 @@ interface Kit {
 }
 
 function calculateInsumos(homens: number, mulheres: number, criancas: number) {
-  const totalCarne = homens * 400 + mulheres * 300 + criancas * 150
+  const totalCarne = homens * 350 + mulheres * 300 + criancas * 200
   const totalCarvao = Math.ceil(homens / 5)
   const totalPessoas = homens + mulheres + criancas
   return { totalCarne, totalCarvao, totalPessoas }
@@ -293,7 +293,7 @@ function NewOrderForm() {
                 </div>
                 <div>
                   <p className="text-2xl font-black text-white">{(insumos.totalCarne / 1000).toFixed(1)}kg</p>
-                  <p className="text-xs text-gray-400">de carne</p>
+                  <p className="text-xs text-gray-400">de proteína</p>
                 </div>
                 <div>
                   <p className="text-2xl font-black text-white">{insumos.totalCarvao}</p>

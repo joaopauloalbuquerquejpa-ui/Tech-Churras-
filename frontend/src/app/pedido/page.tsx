@@ -15,14 +15,13 @@ const CATEGORY_LABELS: Record<string, string> = {
 }
 
 const MEAT_BREAKDOWN = [
-  { label: 'Carne Nobre', cat: 'CARNE', pct: 0.40 },
-  { label: 'Porco e Linguiça', cat: 'CARNE', pct: 0.25 },
-  { label: 'Frango', cat: 'CARNE', pct: 0.20 },
-  { label: 'Acompanhamentos', cat: 'ACOMPANHAMENTO', pct: 0.15 },
+  { label: 'Carne Nobre', cat: 'CARNE', pct: 0.45 },
+  { label: 'Porco e Linguiça', cat: 'CARNE', pct: 0.30 },
+  { label: 'Frango', cat: 'CARNE', pct: 0.25 },
 ]
 
 function buildSuggested(products: Product[], men: number, women: number, kids: number) {
-  const totalKg = (men * 400 + women * 300 + kids * 150) / 1000
+  const totalKg = (men * 350 + women * 300 + kids * 200) / 1000
   const qty: Record<string, number> = {}
   for (const b of MEAT_BREAKDOWN) {
     const prods = products.filter(p => p.category === b.cat && p.available)
@@ -100,7 +99,7 @@ function PedidoForm() {
   const [guestPhone, setGuestPhone] = useState('')
 
   const totalPeople = men + women + kids
-  const totalKg = ((men * 400 + women * 300 + kids * 150) / 1000).toFixed(1)
+  const totalKg = ((men * 350 + women * 300 + kids * 200) / 1000).toFixed(1)
   const productsCost = products.reduce((s, p) => s + (qty[p.id] || 0) * p.price, 0)
   const gm = grillmasters.find(g => g.id === selectedGm)
   const gmCost = gm ? gm.pricePerHour * eventHours : 0
