@@ -48,9 +48,7 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
 
   function handleCepChange(v: string) {
     const digits = v.replace(/\D/g, '').slice(0, 8)
-    const formatted = digits.length > 5 ? digits.slice(0, 5) + '-' + digits.slice(5) : digits
-    setCep(formatted)
-    // reseta resultado anterior ao editar CEP
+    setCep(digits)
     setStatus('idle')
     setStreet(''); setBairro(''); setCidade(''); setUf(''); setNumero('')
     onAddressChange('')
@@ -100,8 +98,8 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
             type="text"
             value={cep}
             onChange={e => handleCepChange(e.target.value)}
-            placeholder="CEP (ex: 01310-100)"
-            maxLength={9}
+            placeholder="CEP — 8 dígitos"
+            maxLength={8}
             inputMode="numeric"
             required={required && status !== 'found'}
             className="w-full bg-gray-900 border border-gray-700 focus:border-orange-500 rounded-xl px-4 py-3 text-white placeholder-gray-600 outline-none transition-colors text-sm"
@@ -132,7 +130,9 @@ export function CepAddressInput({ onAddressChange, required }: Props) {
       {/* Preview do endereço encontrado */}
       {status === 'found' && street && (
         <div className="bg-gray-800/50 border border-gray-700 rounded-xl px-3 py-2.5">
-          <p className="text-xs text-gray-500 mb-0.5">Endereço encontrado</p>
+          <p className="text-xs text-gray-500 mb-0.5">
+            CEP {cep.slice(0, 5)}-{cep.slice(5)} · Endereço encontrado
+          </p>
           <p className="text-sm text-white">
             {street}{numero ? ', ' + numero : <span className="text-gray-500"> (sem número)</span>}
           </p>
