@@ -169,13 +169,13 @@ export async function listOrders(customerId: string) {
   })
   const orderIds = orders.map(o => o.id)
   if (orderIds.length === 0) return orders.map(o => ({ ...o, _unreadMessages: 0 }))
-  const unreadGroups = await (prisma as any).message.groupBy({
+  const unreadGroups = await prisma.message.groupBy({
     by: ['orderId'],
     where: { orderId: { in: orderIds }, senderId: { not: customerId }, read: false },
     _count: { id: true },
   })
   const unreadMap: Record<string, number> = {}
-  ;(unreadGroups as any[]).forEach(g => { unreadMap[g.orderId] = g._count.id })
+  unreadGroups.forEach(g => { unreadMap[g.orderId] = g._count.id })
   return orders.map(o => ({ ...o, _unreadMessages: unreadMap[o.id] ?? 0 }))
 }
 

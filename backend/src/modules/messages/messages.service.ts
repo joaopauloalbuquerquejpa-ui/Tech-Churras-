@@ -12,7 +12,7 @@ export async function getMessages(orderId: string, userId: string) {
     },
   })
   if (!order) throw new Error('Pedido nao encontrado ou acesso negado')
-  return (prisma as any).message.findMany({
+  return prisma.message.findMany({
     where: { orderId },
     include: { sender: { select: { id: true, name: true, role: true } } },
     orderBy: { createdAt: 'asc' },
@@ -30,7 +30,7 @@ export async function sendMessage(orderId: string, senderId: string, content: st
     },
   })
   if (!order) throw new Error('Pedido nao encontrado ou acesso negado')
-  const msg = await (prisma as any).message.create({
+  const msg = await prisma.message.create({
     data: { orderId, senderId, content },
     include: { sender: { select: { id: true, name: true, role: true } } },
   })
@@ -49,7 +49,7 @@ export async function sendMessage(orderId: string, senderId: string, content: st
 }
 
 export async function markMessagesRead(orderId: string, userId: string) {
-  await (prisma as any).message.updateMany({
+  await prisma.message.updateMany({
     where: { orderId, senderId: { not: userId }, read: false },
     data: { read: true },
   })

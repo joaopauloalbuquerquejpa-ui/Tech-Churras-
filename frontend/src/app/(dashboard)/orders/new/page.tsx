@@ -77,8 +77,10 @@ function NewOrderForm() {
   const today = new Date().toISOString().split('T')[0]
 
   useEffect(() => {
-    const id = searchParams.get('grillmasterId')
-    if (id) { setForm(prev => ({ ...prev, grillmasterId: id })); setStep(2) }
+    const gmId = searchParams.get('grillmasterId')
+    const btqId = searchParams.get('boutiqueId')
+    if (gmId) { setForm(prev => ({ ...prev, grillmasterId: gmId })); setStep(2) }
+    if (btqId) setForm(prev => ({ ...prev, boutiqueId: btqId }))
   }, [searchParams])
 
   useEffect(() => {
