@@ -151,7 +151,23 @@ interface ScheduleDay {
   available: boolean
 }
 
-type Tab = 'stats' | 'orders' | 'pending' | 'financeiro' | 'contracts' | 'equipe' | 'leads'
+type Tab = 'stats' | 'orders' | 'pending' | 'financeiro' | 'contracts' | 'equipe' | 'leads' | 'metricas'
+
+interface AdvancedMetrics {
+  funnel: { total: number; confirmed: number; completed: number; confirmRate: number; completeRate: number }
+  revenueByDay: Record<string, number>
+  ordersByHour: { hour: number; count: number }[]
+  topGms: { id: string; name: string; rating: number; totalOrders: number; acceptedOrders: number; acceptRate: number }[]
+}
+
+interface DemandForecast {
+  byDayOfWeek: { day: string; count: number; revenue: number }[]
+  byHour: { hour: number; count: number }[]
+  trendVsLastMonth: number
+  next14Days: { date: string; dayName: string; expectedOrders: number; confidence: string }[]
+  narrative: string
+  totalOrders90d: number
+}
 
 interface Lead {
   id: string
@@ -180,6 +196,9 @@ export default function AdminPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
   const [zapiStatus, setZapiStatus] = useState<{ status: string; connected?: boolean; phone?: string | null } | null>(null)
+  const [advancedMetrics, setAdvancedMetrics] = useState<AdvancedMetrics | null>(null)
+  const [demandForecast, setDemandForecast] = useState<DemandForecast | null>(null)
+  const [loadingMetrics, setLoadingMetrics] = useState(false)
 
   // ── TEAM JOTA ──────────────────────────────────────────────
   const [teamJota, setTeamJota] = useState<TeamJota | null>(null)
@@ -401,6 +420,7 @@ export default function AdminPage() {
           { key: 'contracts', label: 'Contratos (' + contracts.length + ')' },
           { key: 'equipe', label: 'Minha Equipe' },
           { key: 'leads', label: leads.length > 0 ? 'Leads (' + leads.length + ')' : 'Leads' },
+          { key: 'metricas', label: '📊 Métricas IA' },
         ] as { key: Tab; label: string }[]).map(t => (
           <button
             key={t.key}
@@ -1314,6 +1334,139 @@ export default function AdminPage() {
                 )
               })}
             </div>
+          )}
+        </div>
+      )}
+
+      {/* ───── TAB: Métricas IA ───── */}
+      {tab === 'metricas' && (
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="font-bold text-lg">Métricas Avançadas + Previsão IA</h2>
+            <button
+              onClick={async () => {
+                setLoadingMetrics(true)
+                const h = { Authorization: 'Bearer ' + getToken() }
+                const [adv, fc] = await Promise.all([
+                  fetch(API_URL + '/admin/metrics/advanced', { headers: h }).then(r => r.json()).catch(() => null),
+                  fetch(API_URL + '/admin/demand-forecast', { headers: h }).then(r => r.json()).catch(() => null),
+                ])
+                setAdvancedMetrics(adv)
+                setDemandForecast(fc)
+                setLoadingMetrics(false)
+              }}
+              disabled={loadingMetrics}
+              className="text-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+            >
+              {loadingMetrics ? 'Carregando...' : advancedMetrics ? 'Atualizar' : 'Carregar dados'}
+            </button>
+          </div>
+
+          {!advancedMetrics && !loadingMetrics && (
+            <div className="text-center py-12 text-gray-500">Clique em "Carregar dados" para ver as métricas.</div>
+          )}
+
+          {loadingMetrics && (
+            <div className="text-center py-12 text-gray-400">Analisando dados com IA... (pode levar alguns segundos)</div>
+          )}
+
+          {advancedMetrics && (
+            <>
+              {/* Funil de conversão */}
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+                <p className="text-sm font-semibold text-gray-400 mb-4">Funil de conversão — todos os tempos</p>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-3xl font-black text-white">{advancedMetrics.funnel.total}</p>
+                    <p className="text-xs text-gray-500 mt-1">Pedidos criados</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-black text-blue-400">{advancedMetrics.funnel.confirmed}</p>
+                    <p className="text-xs text-gray-500 mt-1">Confirmados ({advancedMetrics.funnel.confirmRate}%)</p>
+                  </div>
+                  <div>
+                    <p className="text-3xl font-black text-green-400">{advancedMetrics.funnel.completed}</p>
+                    <p className="text-xs text-gray-500 mt-1">Concluídos ({advancedMetrics.funnel.completeRate}%)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Top GMs */}
+              {advancedMetrics.topGms.length > 0 && (
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+                  <p className="text-sm font-semibold text-gray-400 mb-4">Top churrasqueiros — por pedidos</p>
+                  <div className="space-y-3">
+                    {advancedMetrics.topGms.map((gm, i) => (
+                      <div key={gm.id} className="flex items-center gap-3">
+                        <span className="text-gray-600 text-sm w-4">{i + 1}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-semibold text-white">{gm.name}</p>
+                            <span className="text-xs text-gray-500">{gm.acceptRate}% aceite</span>
+                          </div>
+                          <div className="flex gap-1 mt-1">
+                            <div className="h-1.5 rounded-full bg-orange-500" style={{ width: gm.acceptedOrders * 16 + 'px', maxWidth: '100%' }} />
+                            <div className="h-1.5 rounded-full bg-gray-700" style={{ width: (gm.totalOrders - gm.acceptedOrders) * 16 + 'px', maxWidth: '100%' }} />
+                          </div>
+                        </div>
+                        <span className="text-xs text-yellow-400">★ {gm.rating}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Previsão de demanda */}
+          {demandForecast && (
+            <>
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-400">Previsão de demanda — próximos 14 dias</p>
+                  <span className={`text-xs px-2 py-1 rounded-full font-bold ${demandForecast.trendVsLastMonth >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {demandForecast.trendVsLastMonth >= 0 ? '+' : ''}{demandForecast.trendVsLastMonth}% vs mês anterior
+                  </span>
+                </div>
+
+                {demandForecast.narrative && (
+                  <div className="text-sm text-gray-300 whitespace-pre-line leading-relaxed border-l-2 border-orange-500/40 pl-3">
+                    {demandForecast.narrative}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-7 gap-1">
+                  {demandForecast.next14Days.map(d => (
+                    <div key={d.date} className={`rounded-lg p-2 text-center ${d.expectedOrders >= 2 ? 'bg-orange-500/20 border border-orange-500/30' : 'bg-gray-800'}`}>
+                      <p className="text-[10px] text-gray-500">{d.dayName.slice(0, 3)}</p>
+                      <p className="text-xs font-bold text-white mt-0.5">{d.expectedOrders.toFixed(1)}</p>
+                      <p className={`text-[9px] mt-0.5 ${d.confidence === 'alta' ? 'text-green-400' : d.confidence === 'média' ? 'text-yellow-400' : 'text-gray-600'}`}>
+                        {d.confidence}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pedidos por dia da semana */}
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+                <p className="text-sm font-semibold text-gray-400 mb-4">Pedidos por dia da semana (90 dias)</p>
+                <div className="space-y-2">
+                  {demandForecast.byDayOfWeek.map(d => {
+                    const max = Math.max(...demandForecast.byDayOfWeek.map(x => x.count), 1)
+                    return (
+                      <div key={d.day} className="flex items-center gap-3">
+                        <span className="text-xs text-gray-500 w-14 shrink-0">{d.day.slice(0, 3)}</span>
+                        <div className="flex-1 bg-gray-800 rounded-full h-2">
+                          <div className="h-2 rounded-full bg-orange-500" style={{ width: (d.count / max * 100) + '%' }} />
+                        </div>
+                        <span className="text-xs text-gray-400 w-6 text-right">{d.count}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            </>
           )}
         </div>
       )}

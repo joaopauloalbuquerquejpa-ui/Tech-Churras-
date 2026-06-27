@@ -55,6 +55,8 @@ function NewOrderForm() {
   const searchParams = useSearchParams()
   const [step, setStep] = useState(0)
   const [grillmasters, setGrillmasters] = useState<any[]>([])
+  const [recommendedGms, setRecommendedGms] = useState<any[]>([])
+  const [loadingRecommended, setLoadingRecommended] = useState(false)
   const [boutiques, setBoutiques] = useState<any[]>([])
   const [boutiqueProducts, setBoutiqueProducts] = useState<Product[]>([])
   const [boutiqueKits, setBoutiqueKits] = useState<Kit[]>([])
@@ -91,6 +93,21 @@ function NewOrderForm() {
     fetch(API_URL + '/boutiques', { headers: h })
       .then(r => r.json()).then(d => setBoutiques(Array.isArray(d) ? d : d.boutiques ?? []))
   }, [])
+
+  useEffect(() => {
+    if (step !== 2) return
+    setLoadingRecommended(true)
+    const params = new URLSearchParams()
+    if (form.eventDate) params.set('eventDate', form.eventDate)
+    if (insumos.totalPessoas > 0) params.set('guests', String(insumos.totalPessoas))
+    fetch(API_URL + '/grillmasters/recommended?' + params.toString(), {
+      headers: { Authorization: 'Bearer ' + getToken() },
+    })
+      .then(r => r.json())
+      .then(d => setRecommendedGms(Array.isArray(d) ? d : []))
+      .catch(() => setRecommendedGms([]))
+      .finally(() => setLoadingRecommended(false))
+  }, [step])
 
   useEffect(() => {
     if (!form.grillmasterId) return
@@ -315,56 +332,118 @@ function NewOrderForm() {
             </p>
           </div>
 
+          {/* Recomendados pela IA */}
+          {(loadingRecommended || recommendedGms.length > 0) && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-1">
+                ✨ Recomendados para você
+              </p>
+              {loadingRecommended ? (
+                <div className="text-center py-4 text-gray-500 text-sm">Analisando disponibilidade...</div>
+              ) : (
+                recommendedGms.map((gm, idx) => {
+                  const isSelected = form.grillmasterId === gm.id
+                  const cost = gm.pricePerHour * form.eventHours
+                  return (
+                    <button
+                      key={gm.id}
+                      type="button"
+                      onClick={() => setForm({ ...form, grillmasterId: gm.id })}
+                      className={'w-full text-left rounded-2xl p-4 border-2 transition-all ' + (isSelected
+                        ? 'border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30'
+                        : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60')}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="relative shrink-0">
+                          <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-lg font-black text-orange-400">
+                            {gm.name?.[0]?.toUpperCase() ?? '?'}
+                          </div>
+                          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-bold text-white truncate">{gm.name}</p>
+                            {isSelected && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>}
+                          </div>
+                          <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
+                            {gm.rating > 0 && <span className="flex items-center gap-0.5"><span className="text-yellow-400">★</span>{gm.rating.toFixed(1)}</span>}
+                            {gm.reviewCount > 0 && <span>{gm.reviewCount} avaliações</span>}
+                            {gm.distanceKm && <span>{gm.distanceKm}km</span>}
+                          </div>
+                          {gm.reason && (
+                            <p className="text-xs text-orange-300/80 mt-1 italic">{gm.reason}</p>
+                          )}
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500">R$ {gm.pricePerHour}/hora</span>
+                            <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          )}
+
+          {/* Todos os churrasqueiros */}
           {grillmasters.length === 0 ? (
             <div className="text-center py-12 text-gray-500">Buscando churrasqueiros...</div>
           ) : (
             <div className="space-y-3">
-              {grillmasters.map(gm => {
-                const isSelected = form.grillmasterId === gm.id
-                const cost = gm.pricePerHour * form.eventHours
-                return (
-                  <button
-                    key={gm.id}
-                    type="button"
-                    onClick={() => setForm({ ...form, grillmasterId: gm.id })}
-                    className={'w-full text-left rounded-2xl p-4 border transition-all ' + (isSelected
-                      ? 'border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30'
-                      : 'border-gray-800 bg-gray-900 hover:border-gray-600')}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 text-lg font-black text-orange-400">
-                        {gm.user?.name?.[0]?.toUpperCase() ?? '?'}
+              {recommendedGms.length > 0 && (
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Todos os churrasqueiros</p>
+              )}
+              {grillmasters
+                .filter(gm => !recommendedGms.some(r => r.id === gm.id))
+                .map(gm => {
+                  const isSelected = form.grillmasterId === gm.id
+                  const cost = gm.pricePerHour * form.eventHours
+                  return (
+                    <button
+                      key={gm.id}
+                      type="button"
+                      onClick={() => setForm({ ...form, grillmasterId: gm.id })}
+                      className={'w-full text-left rounded-2xl p-4 border transition-all ' + (isSelected
+                        ? 'border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30'
+                        : 'border-gray-800 bg-gray-900 hover:border-gray-600')}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 text-lg font-black text-orange-400">
+                          {gm.user?.name?.[0]?.toUpperCase() ?? '?'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="font-bold text-white truncate">{gm.user?.name}</p>
+                            {isSelected && (
+                              <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                            {gm.averageRating > 0 && (
+                              <span className="flex items-center gap-1">
+                                <span className="text-yellow-400">★</span>
+                                {gm.averageRating.toFixed(1)}
+                              </span>
+                            )}
+                            {gm.city && <span>{gm.city}{gm.state ? ', ' + gm.state : ''}</span>}
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-xs text-gray-500">R$ {gm.pricePerHour}/hora</span>
+                            <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="font-bold text-white truncate">{gm.user?.name}</p>
-                          {isSelected && (
-                            <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                          {gm.averageRating > 0 && (
-                            <span className="flex items-center gap-1">
-                              <span className="text-yellow-400">★</span>
-                              {gm.averageRating.toFixed(1)}
-                            </span>
-                          )}
-                          {gm.city && <span>{gm.city}{gm.state ? ', ' + gm.state : ''}</span>}
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-xs text-gray-500">R$ {gm.pricePerHour}/hora</span>
-                          <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
-                        </div>
-                      </div>
-                    </div>
-                    {gm.accompaniments?.length > 0 && (
-                      <p className="text-xs text-gray-500 mt-2 pl-15">
-                        Faz na hora: {gm.accompaniments.map((a: any) => a.name).join(', ')}
-                      </p>
-                    )}
-                  </button>
-                )
-              })}
+                      {gm.accompaniments?.length > 0 && (
+                        <p className="text-xs text-gray-500 mt-2 pl-15">
+                          Faz na hora: {gm.accompaniments.map((a: any) => a.name).join(', ')}
+                        </p>
+                      )}
+                    </button>
+                  )
+                })}
             </div>
           )}
         </div>
