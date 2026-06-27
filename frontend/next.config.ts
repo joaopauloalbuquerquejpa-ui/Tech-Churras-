@@ -25,5 +25,5 @@ export default withSentryConfig(nextConfig, {
   silent: true,
   disableLogger: true,
   automaticVercelMonitors: false,
-  hideSourceMaps: true,
+  sourcemaps: { disable: true },
 })
