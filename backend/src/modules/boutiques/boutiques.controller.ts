@@ -29,9 +29,12 @@ import {
 
 export async function createBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const userId = (req as any).user.id
+    const user = (req as any).user
+    if (user.role !== 'BOUTIQUE' && user.role !== 'ADMIN') {
+      return reply.status(403).send({ error: 'Apenas contas de açougue podem criar um perfil de parceiro' })
+    }
     const data = createBoutiqueSchema.parse(req.body)
-    const boutique = await createBoutique(userId, data)
+    const boutique = await createBoutique(user.id, data)
     return reply.status(201).send(boutique)
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })

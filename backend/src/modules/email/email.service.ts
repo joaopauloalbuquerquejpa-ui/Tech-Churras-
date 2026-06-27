@@ -3,7 +3,7 @@ const FROM = 'Tech Churras <noreply@techchurras.com.br>'
 const BASE_URL = 'https://www.techchurras.com.br'
 
 async function sendEmail(to: string, subject: string, html: string, label: string) {
-  if (!RESEND_API_KEY) return
+  if (!RESEND_API_KEY) { console.warn(`[Email] RESEND_API_KEY ausente — email "${label}" não enviado`); return }
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

@@ -32,12 +32,16 @@ export async function listProducts(boutiqueId: string) {
 export async function updateProduct(id: string, userId: string, data: Partial<CreateProductInput>) {
   const boutique = await prisma.boutique.findUnique({ where: { userId } })
   if (!boutique) throw new Error('Acougue nao encontrado')
+  const product = await prisma.product.findUnique({ where: { id } })
+  if (!product || product.boutiqueId !== boutique.id) throw new Error('Produto nao encontrado')
   return prisma.product.update({ where: { id }, data })
 }
 
 export async function deleteProduct(id: string, userId: string) {
   const boutique = await prisma.boutique.findUnique({ where: { userId } })
   if (!boutique) throw new Error('Acougue nao encontrado')
+  const product = await prisma.product.findUnique({ where: { id } })
+  if (!product || product.boutiqueId !== boutique.id) throw new Error('Produto nao encontrado')
   await prisma.product.delete({ where: { id } })
 }
 
