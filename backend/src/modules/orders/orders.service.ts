@@ -35,6 +35,44 @@ export const createOrderSchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
+// ── Feature 3: Detecção de pedido suspeito
+async function detectSuspiciousOrder(order: any, customerId: string): Promise<void> {
+  const flags: string[] = []
+
+  const pricePerGuest = order.guestCount > 0 ? order.totalPrice / order.guestCount : 0
+  if (order.totalPrice > 0 && pricePerGuest < 15) {
+    flags.push(`Preço/convidado muito baixo: R$${pricePerGuest.toFixed(2)}/pessoa`)
+  }
+
+  const hoursUntilEvent = (new Date(order.eventDate).getTime() - Date.now()) / (1000 * 60 * 60)
+  if (hoursUntilEvent < 6) {
+    flags.push(`Evento em menos de 6h (${hoursUntilEvent.toFixed(1)}h)`)
+  }
+
+  const addressLower = (order.eventAddress ?? '').toLowerCase()
+  const spKeywords = ['são paulo', 'sp', 'sao paulo', 'guarulhos', 'osasco', 'santo andré', 'campinas', 'abc', 'mauá', 'diadema', 'carapicuíba']
+  if (addressLower.length > 10 && !spKeywords.some(k => addressLower.includes(k))) {
+    flags.push(`Endereço fora da área SP: "${order.eventAddress?.slice(0, 60)}"`)
+  }
+
+  if (order.guestCount > 100 && !order.boutiqueId) {
+    flags.push(`${order.guestCount} convidados sem açougue parceiro selecionado`)
+  }
+
+  if (flags.length >= 2) {
+    const customer = await prisma.user.findUnique({ where: { id: customerId }, select: { name: true, phone: true } }).catch(() => null)
+    const eventFmt = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(order.eventDate))
+    sendWhatsAppToAdmin(
+      `⚠️ *Pedido suspeito — Tech Churras* (${flags.length} flags)\n\n` +
+      flags.map(f => `• ${f}`).join('\n') + '\n\n' +
+      `👤 ${customer?.name ?? 'Desconhecido'} | ${customer?.phone ?? 'sem tel'}\n` +
+      `💰 R$ ${order.totalPrice.toFixed(2)} | ${order.guestCount} pessoas\n` +
+      `📅 ${eventFmt}\n\n` +
+      `👉 techchurras.com.br/admin`
+    ).catch(() => {})
+  }
+}
+
 export async function createOrder(customerId: string, data: CreateOrderInput) {
   const { items, couponCode, gmAccompaniments, ...orderData } = data
 
@@ -153,6 +191,8 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       }
     }).catch((e) => console.error("[notif]", e?.message))
   }
+
+  detectSuspiciousOrder(order, customerId).catch(() => {})
 
   return order
 }

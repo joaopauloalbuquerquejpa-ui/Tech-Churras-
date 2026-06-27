@@ -1,5 +1,25 @@
 ﻿import { prisma } from '../../config/prisma'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
+import Anthropic from '@anthropic-ai/sdk'
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+
+// ── Feature 2: Sugestão de resposta à avaliação gerada por IA
+async function suggestReviewReply(gmUserId: string, rating: number, comment: string, customerFirstName: string): Promise<void> {
+  try {
+    const resp = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 120,
+      messages: [{
+        role: 'user',
+        content: `Você é um churrasqueiro profissional brasileiro. Escreva UMA resposta curta (máximo 2 frases) e calorosa para esta avaliação. Tom: grato, pessoal, nunca genérico.\n\nCliente: ${customerFirstName}\nNota: ${rating}/5\nComentário: "${comment}"\n\nResponda apenas com o texto da resposta, sem aspas.`,
+      }],
+    })
+    const suggestion = resp.content[0].type === 'text' ? resp.content[0].text.trim() : null
+    if (!suggestion) return
+    await sendPushToUser(gmUserId, '✍️ Sugestão de resposta', suggestion.slice(0, 100), '/grillmasters/dashboard')
+  } catch {}
+}
 
 export async function createReview(data: {
   orderId: string
@@ -66,6 +86,9 @@ export async function createReview(data: {
       `${firstName} te deu ${data.grillRating} estrela${data.grillRating !== 1 ? 's' : ''}${data.grillComment ? ': "' + data.grillComment.slice(0, 60) + '"' : ''}`,
       '/grillmasters/dashboard'
     ).catch((e) => console.error("[notif]", e?.message))
+    if (data.grillComment && data.grillRating >= 4) {
+      suggestReviewReply(updatedGm.userId, data.grillRating, data.grillComment, firstName).catch(() => {})
+    }
   }
 
   if (order.boutiqueId && data.boutiqueRating) {

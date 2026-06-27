@@ -2,6 +2,9 @@
 import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
+import Anthropic from '@anthropic-ai/sdk'
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 export const accompanimentItemSchema = z.object({
   name: z.string().min(2),
@@ -132,6 +135,97 @@ export async function findNearbyGrillmasters(lat: number, lng: number, radiusKm 
     .map(g => ({ ...g, distanceKm: haversineKm(lat, lng, g.latitude!, g.longitude!) }))
     .filter(g => g.distanceKm <= radiusKm)
     .sort((a, b) => a.distanceKm - b.distanceKm)
+}
+
+// ── Feature 4: Matching inteligente de GM
+export async function recommendGrillmasters(params: {
+  lat?: number
+  lng?: number
+  eventDate?: string
+  guests?: number
+  city?: string
+}) {
+  const { lat, lng, eventDate, guests, city } = params
+
+  const all = await prisma.grillmaster.findMany({
+    where: { available: true, approved: true },
+    include: {
+      user: { select: { name: true } },
+      _count: { select: { orders: true, reviews: true } },
+    },
+  })
+
+  // Filtra por cidade se não tiver coordenadas
+  let candidates = city
+    ? all.filter(g => g.city?.toLowerCase().includes(city.toLowerCase()))
+    : all
+
+  // Se tiver data, remove GMs com evento já agendado naquele dia
+  if (eventDate) {
+    const targetDate = new Date(eventDate)
+    const dayStart = new Date(targetDate); dayStart.setHours(0, 0, 0, 0)
+    const dayEnd = new Date(targetDate); dayEnd.setHours(23, 59, 59, 999)
+    const busyGmIds = await prisma.order.findMany({
+      where: {
+        status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+        eventDate: { gte: dayStart, lte: dayEnd },
+        grillmasterId: { not: null },
+      },
+      select: { grillmasterId: true },
+    }).then(orders => new Set(orders.map(o => o.grillmasterId)))
+    candidates = candidates.filter(g => !busyGmIds.has(g.id))
+  }
+
+  // Score: rating(40%) + reviews(25%) + experience(20%) + proximity(15%)
+  const scored = candidates.map(g => {
+    const distanceKm = lat != null && lng != null && g.latitude != null && g.longitude != null
+      ? haversineKm(lat, lng, g.latitude, g.longitude)
+      : null
+
+    const ratingScore = (g.rating ?? 0) / 5 * 40
+    const reviewScore = Math.min(g._count.reviews / 20, 1) * 25
+    const expScore = Math.min((g.experience ?? 0) / 10, 1) * 20
+    const proxScore = distanceKm != null ? Math.max(0, 1 - distanceKm / 30) * 15 : 0
+
+    return { ...g, distanceKm, score: ratingScore + reviewScore + expScore + proxScore }
+  })
+
+  const top3 = scored
+    .filter(g => !lat || !lng || !g.distanceKm || g.distanceKm <= 30)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3)
+
+  if (top3.length === 0) return []
+
+  // Gerar razão personalizada para cada GM com IA
+  const guestLabel = guests ? `${guests} convidados` : 'seu evento'
+  const reasons = await Promise.allSettled(top3.map(async (g) => {
+    try {
+      const resp = await anthropic.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 60,
+        messages: [{
+          role: 'user',
+          content: `Uma frase curta (máx 10 palavras) em português explicando por que ${g.user.name} é ideal para ${guestLabel}. Dados: nota ${g.rating ?? 0}/5, ${g._count.reviews} avaliações, ${g.experience ?? 0} anos experiência${g.distanceKm ? `, a ${g.distanceKm.toFixed(1)}km` : ''}, especialidades: ${g.specialties ?? 'churrasco tradicional'}. Responda apenas a frase.`,
+        }],
+      })
+      return resp.content[0].type === 'text' ? resp.content[0].text.trim() : ''
+    } catch { return '' }
+  }))
+
+  return top3.map((g, i) => ({
+    id: g.id,
+    name: g.user.name,
+    rating: g.rating,
+    pricePerHour: g.pricePerHour,
+    photoUrl: g.photoUrl,
+    city: g.city,
+    specialties: g.specialties,
+    experience: g.experience,
+    reviewCount: g._count.reviews,
+    distanceKm: g.distanceKm ? Math.round(g.distanceKm * 10) / 10 : null,
+    reason: reasons[i].status === 'fulfilled' ? reasons[i].value : '',
+  }))
 }
 
 export async function getGrillmasterById(id: string) {

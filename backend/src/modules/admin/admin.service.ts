@@ -1,6 +1,9 @@
 ﻿import { prisma } from '../../config/prisma'
-import { sendPushToUser } from '../push/push.service'
+import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailPartnerApproved } from '../email/email.service'
+import Anthropic from '@anthropic-ai/sdk'
+
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 async function sendWhatsApp(phone: string, message: string, label: string) {
   const instance = process.env.ZAPI_INSTANCE
@@ -338,4 +341,107 @@ export async function getAdvancedMetrics() {
     .slice(0, 5)
 
   return { funnel: funnelData, revenueByDay, ordersByHour, topGms }
+}
+
+// ── Feature 1: Resumo diário por WhatsApp para o fundador
+export async function sendDailySummary(): Promise<void> {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  yesterday.setHours(0, 0, 0, 0)
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  const weekStart = new Date()
+  weekStart.setDate(weekStart.getDate() - 7)
+
+  const [ordersYesterday, revenueYesterday, newUsers, activeOrders, pendingGMs, qualifiedLeads, revenueWeek] = await Promise.all([
+    prisma.order.count({ where: { createdAt: { gte: yesterday, lt: todayStart } } }),
+    prisma.order.aggregate({ where: { createdAt: { gte: yesterday, lt: todayStart }, status: 'COMPLETED' }, _sum: { totalPrice: true } }),
+    prisma.user.count({ where: { createdAt: { gte: yesterday, lt: todayStart } } }),
+    prisma.order.count({ where: { status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] } } }),
+    prisma.grillmaster.count({ where: { approved: false } }),
+    prisma.lead.count({ where: { status: 'qualified', createdAt: { gte: yesterday, lt: todayStart } } }),
+    prisma.order.aggregate({ where: { createdAt: { gte: weekStart }, status: 'COMPLETED' }, _sum: { totalPrice: true } }),
+  ])
+
+  const revenue = revenueYesterday._sum.totalPrice ?? 0
+  const weekRevenue = revenueWeek._sum.totalPrice ?? 0
+  const dateStr = new Intl.DateTimeFormat('pt-BR', { weekday: 'long', day: '2-digit', month: '2-digit' }).format(yesterday)
+
+  const message =
+    `🔥 *Resumo Tech Churras — ${dateStr}*\n\n` +
+    `📦 Pedidos ontem: *${ordersYesterday}*\n` +
+    `💰 Receita confirmada: *R$ ${revenue.toFixed(2)}*\n` +
+    `📈 Receita semana: *R$ ${weekRevenue.toFixed(2)}*\n` +
+    `👤 Novos usuários: *${newUsers}*\n` +
+    `🔴 Pedidos ativos agora: *${activeOrders}*\n` +
+    `⏳ GMs aguardando aprovação: *${pendingGMs}*\n` +
+    `🥩 Leads açougue ontem: *${qualifiedLeads}*\n\n` +
+    `👉 techchurras.com.br/admin`
+
+  await sendWhatsAppToAdmin(message)
+  console.log('[DailySummary] Resumo enviado')
+}
+
+// ── Feature 5: Previsão de demanda com IA
+export async function getDemandForecast() {
+  const ninetyDaysAgo = new Date()
+  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90)
+
+  const orders = await prisma.order.findMany({
+    where: { createdAt: { gte: ninetyDaysAgo } },
+    select: { createdAt: true, totalPrice: true, status: true, guestCount: true, eventAddress: true },
+    orderBy: { createdAt: 'asc' },
+  })
+
+  // Pedidos por dia da semana (0=Dom, 6=Sáb)
+  const dayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+  const byDow = Array.from({ length: 7 }, (_, i) => ({ day: dayNames[i], count: 0, revenue: 0 }))
+  const byHour = Array.from({ length: 24 }, (_, h) => ({ hour: h, count: 0 }))
+
+  for (const o of orders) {
+    const dow = o.createdAt.getDay()
+    byDow[dow].count++
+    if (o.status === 'COMPLETED') byDow[dow].revenue += o.totalPrice ?? 0
+    byHour[o.createdAt.getHours()].count++
+  }
+
+  // Tendência: últimas 4 semanas vs 4 semanas anteriores
+  const fourWeeksAgo = new Date(); fourWeeksAgo.setDate(fourWeeksAgo.getDate() - 28)
+  const eightWeeksAgo = new Date(); eightWeeksAgo.setDate(eightWeeksAgo.getDate() - 56)
+  const recent4w = orders.filter(o => o.createdAt >= fourWeeksAgo).length
+  const prev4w = orders.filter(o => o.createdAt >= eightWeeksAgo && o.createdAt < fourWeeksAgo).length
+  const trendPct = prev4w > 0 ? Math.round(((recent4w - prev4w) / prev4w) * 100) : 0
+
+  // Previsão dos próximos 14 dias baseada na média por dia da semana
+  const totalWeeks = 13
+  const next14Days = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(); d.setDate(d.getDate() + i + 1)
+    const dow = d.getDay()
+    const avgPerWeek = totalWeeks > 0 ? byDow[dow].count / totalWeeks : 0
+    return {
+      date: d.toISOString().slice(0, 10),
+      dayName: dayNames[dow],
+      expectedOrders: Math.round(avgPerWeek * 10) / 10,
+      confidence: byDow[dow].count >= 5 ? 'alta' : byDow[dow].count >= 2 ? 'média' : 'baixa',
+    }
+  })
+
+  // Narrativa gerada pela IA
+  const peakDow = [...byDow].sort((a, b) => b.count - a.count).slice(0, 2).map(d => d.day)
+  const peakHour = [...byHour].sort((a, b) => b.count - a.count)[0]
+
+  let narrative = ''
+  try {
+    const resp = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{
+        role: 'user',
+        content: `Você é analista de dados de uma plataforma de churrascos em São Paulo. Gere uma análise de previsão de demanda em 3 bullet points curtos (máximo 2 linhas cada) em português. Use os dados:\n- Total de pedidos nos últimos 90 dias: ${orders.length}\n- Dias mais movimentados: ${peakDow.join(' e ')}\n- Hora de pico: ${peakHour.hour}h\n- Tendência vs mês anterior: ${trendPct > 0 ? '+' : ''}${trendPct}%\n- Receita top dia: ${byDow.reduce((a, b) => a.revenue > b.revenue ? a : b).day}\n\nSeja direto, sem introdução. Use emojis no início de cada bullet.`,
+      }],
+    })
+    narrative = resp.content[0].type === 'text' ? resp.content[0].text.trim() : ''
+  } catch {}
+
+  return { byDayOfWeek: byDow, byHour, trendVsLastMonth: trendPct, next14Days, narrative, totalOrders90d: orders.length }
 }

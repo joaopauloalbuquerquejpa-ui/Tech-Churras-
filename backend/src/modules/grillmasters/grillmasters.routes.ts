@@ -10,10 +10,28 @@ import {
   completeModuleHandler,
   markUniformSentHandler,
 } from './grillmasters.controller'
+import { recommendGrillmasters } from './grillmasters.service'
 
 export async function grillmastersRoutes(app: FastifyInstance) {
   // Público
   app.get('/grillmasters', listGrillmastersHandler)
+
+  // ── Feature 4: Matching inteligente de GM
+  app.get('/grillmasters/recommended', async (req, reply) => {
+    try {
+      const { lat, lng, eventDate, guests, city } = req.query as Record<string, string>
+      const result = await recommendGrillmasters({
+        lat: lat ? parseFloat(lat) : undefined,
+        lng: lng ? parseFloat(lng) : undefined,
+        eventDate: eventDate || undefined,
+        guests: guests ? parseInt(guests, 10) : undefined,
+        city: city || undefined,
+      })
+      return reply.send(result)
+    } catch (err: any) {
+      return reply.status(500).send({ error: err.message })
+    }
+  })
 
   // Autenticado — todos antes de /:id para evitar conflito de rota
   app.get('/grillmasters/me/orders', { preHandler: [app.authenticate] }, getMyOrdersHandler)

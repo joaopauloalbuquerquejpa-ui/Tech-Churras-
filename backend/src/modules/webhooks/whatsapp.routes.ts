@@ -65,6 +65,50 @@ Coloque exatamente "LEAD_QUALIFICADO: [nome] | [açougue] | [bairro]" na PRIMEIR
 FOLLOW-UP (quando a pessoa para de responder por mais de 1 mensagem):
 Coloque "REENGAJAR" na primeira linha para indicar que é hora de uma mensagem mais direta sobre urgência do lançamento.`
 
+// ── Feature 6: Chat de suporte automático para clientes
+const SUPPORT_SYSTEM = (name: string, ordersText: string) =>
+  `Você é o suporte da Tech Churras, plataforma de churrascos em São Paulo. Responda em português brasileiro, tom caloroso e direto.\n\nCliente: ${name}\nPedidos recentes:\n${ordersText}\n\nResponda perguntas sobre status de pedido, data do evento, churrasqueiro, e açougue. Se não souber, diga que vai verificar com a equipe. Nunca invente informações. Máximo 3 frases por resposta.`
+
+const supportConversations = new Map<string, { messages: Anthropic.MessageParam[], lastActivity: number }>()
+
+setInterval(() => {
+  const cutoff = Date.now() - 6 * 60 * 60 * 1000
+  for (const [phone, conv] of supportConversations) {
+    if (conv.lastActivity < cutoff) supportConversations.delete(phone)
+  }
+}, 60 * 60 * 1000)
+
+async function findCustomerByPhone(phone: string) {
+  const clean = phone.replace(/\D/g, '').replace(/^55/, '')
+  return prisma.user.findFirst({
+    where: {
+      phone: { contains: clean },
+      role: { in: ['CUSTOMER', 'GRILLMASTER'] },
+    },
+    select: {
+      id: true, name: true, role: true,
+      orders: {
+        where: { status: { not: 'CANCELLED' } },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        select: {
+          id: true, status: true, eventDate: true, guestCount: true, totalPrice: true,
+          grillmaster: { include: { user: { select: { name: true } } } },
+          boutique: { select: { name: true } },
+        },
+      },
+    },
+  })
+}
+
+const statusPtBR: Record<string, string> = {
+  PENDING: 'Aguardando confirmação',
+  CONFIRMED: 'Confirmado',
+  IN_PROGRESS: 'Em andamento',
+  COMPLETED: 'Concluído',
+  CANCELLED: 'Cancelado',
+}
+
 async function zapiSend(phone: string, message: string): Promise<void> {
   const instance = process.env.ZAPI_INSTANCE
   const token = process.env.ZAPI_TOKEN
@@ -147,7 +191,42 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
     const userMessage = String(body.text.message || '').trim()
     if (!phone || !userMessage) return reply.send({ ok: true })
 
-    // Registra o contato no banco (novo lead)
+    // ── Feature 6: Verifica se é cliente cadastrado → rota de suporte
+    const customer = await findCustomerByPhone(phone).catch(() => null)
+    if (customer) {
+      const now = Date.now()
+      if (!supportConversations.has(phone)) {
+        supportConversations.set(phone, { messages: [], lastActivity: now })
+      }
+      const sConv = supportConversations.get(phone)!
+      sConv.lastActivity = now
+      sConv.messages.push({ role: 'user', content: userMessage })
+      if (sConv.messages.length > 10) sConv.messages = sConv.messages.slice(-10)
+
+      const ordersText = customer.orders.length > 0
+        ? customer.orders.map(o => {
+            const dateStr = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(o.eventDate)
+            return `• Pedido ${o.id.slice(-6).toUpperCase()} — ${statusPtBR[o.status] ?? o.status} — ${dateStr} — ${o.guestCount} pessoas — GM: ${o.grillmaster?.user?.name ?? 'não definido'} — Açougue: ${o.boutique?.name ?? 'não definido'}`
+          }).join('\n')
+        : 'Nenhum pedido encontrado.'
+
+      try {
+        const aiResp = await anthropic.messages.create({
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 300,
+          system: SUPPORT_SYSTEM(customer.name, ordersText),
+          messages: sConv.messages,
+        })
+        const replyText = aiResp.content[0].type === 'text' ? aiResp.content[0].text.trim() : 'Oi! Pode me contar mais sobre o que você precisa? 🔥'
+        sConv.messages.push({ role: 'assistant', content: replyText })
+        await zapiSend(phone, replyText)
+      } catch {
+        await zapiSend(phone, 'Oi! Recebi sua mensagem. Já verifico aqui e te retorno! 🔥')
+      }
+      return reply.send({ ok: true })
+    }
+
+    // ── Bot de captação de açougues (lead B2B)
     markLeadContacted(phone).catch(() => {})
 
     // Atualiza o followUpAt para evitar disparo enquanto está respondendo

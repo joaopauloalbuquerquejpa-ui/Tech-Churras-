@@ -2,6 +2,7 @@
 import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
 import { sendFollowUps } from '../webhooks/whatsapp.routes'
+import { sendDailySummary } from '../admin/admin.service'
 
 async function sendWhatsAppReminder(phone: string, customerName: string, orderId: string, eventDate: Date, hoursLabel: string) {
   const instance = process.env.ZAPI_INSTANCE
@@ -107,5 +108,14 @@ export async function cronRoutes(app: FastifyInstance) {
     await sendFollowUps().catch((e) => console.error('[FollowUp]', e?.message))
 
     return { ok: true, sent48, sent24, sentGm24 }
+  })
+
+  // ── Resumo diário às 9h para o fundador (Feature 1)
+  app.get('/cron/daily-summary', async (req, reply) => {
+    if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+      return reply.status(401).send({ error: 'Unauthorized' })
+    }
+    await sendDailySummary()
+    return { ok: true }
   })
 }

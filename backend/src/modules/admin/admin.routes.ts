@@ -32,7 +32,7 @@ const createCouponSchema = z.object({
   maxUses: z.number().int().positive().optional(),
   validUntil: z.string().datetime().optional(),
 })
-import { getBoutiqueReferralStats, getAdvancedMetrics } from './admin.service'
+import { getBoutiqueReferralStats, getAdvancedMetrics, getDemandForecast } from './admin.service'
 
 async function requireAdmin(req: any, reply: any) {
   if (req.user?.role !== 'ADMIN') {
@@ -49,6 +49,15 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get('/admin/metrics/advanced', async (_req, reply) => {
     try {
       return reply.send(await getAdvancedMetrics())
+    } catch (err: any) {
+      return reply.status(500).send({ error: err.message })
+    }
+  })
+
+  // ── Feature 5: Previsão de demanda com IA
+  app.get('/admin/demand-forecast', async (_req, reply) => {
+    try {
+      return reply.send(await getDemandForecast())
     } catch (err: any) {
       return reply.status(500).send({ error: err.message })
     }
