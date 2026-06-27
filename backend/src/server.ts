@@ -92,6 +92,12 @@ app.get('/health', async () => {
   return { status: 'ok', message: 'Tech Churras API rodando! 🔥' }
 })
 
+// Sentry test — só funciona se SENTRY_DSN estiver configurado
+app.get('/sentry-test', async () => {
+  Sentry.captureException(new Error('Sentry test — Tech Churras backend OK'))
+  return { ok: true, message: 'Evento enviado ao Sentry. Verifique o dashboard.' }
+})
+
 // Captura erros não tratados no Fastify e envia para o Sentry
 app.setErrorHandler((error, _request, reply) => {
   Sentry.captureException(error)
