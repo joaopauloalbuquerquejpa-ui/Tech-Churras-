@@ -255,3 +255,87 @@ export async function getDashboardStats() {
     revenueWeek: revenueWeek._sum.totalPrice ?? 0,
   }
 }
+
+export async function getAdvancedMetrics() {
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+  const [funnel, recentOrders, gmOrders] = await Promise.all([
+    // Funil de conversão
+    Promise.all([
+      prisma.order.count(),
+      prisma.order.count({ where: { status: { in: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'] } } }),
+      prisma.order.count({ where: { status: 'COMPLETED' } }),
+    ]),
+    // Pedidos dos últimos 30 dias com hora de criação
+    prisma.order.findMany({
+      where: { createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true, totalPrice: true, status: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+    // GMs com contagem de pedidos aceitos vs recebidos
+    prisma.grillmaster.findMany({
+      select: {
+        id: true,
+        user: { select: { name: true } },
+        photoUrl: true,
+        rating: true,
+        _count: { select: { orders: true } },
+        orders: {
+          where: { status: { in: ['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'] } },
+          select: { id: true },
+        },
+      },
+      orderBy: { orders: { _count: 'desc' } },
+      take: 10,
+    }),
+  ])
+
+  // Funil
+  const [total, confirmed, completed] = funnel
+  const funnelData = {
+    total,
+    confirmed,
+    completed,
+    confirmRate: total > 0 ? Math.round((confirmed / total) * 100) : 0,
+    completeRate: confirmed > 0 ? Math.round((completed / confirmed) * 100) : 0,
+  }
+
+  // Receita por dia (últimos 30 dias)
+  const revenueByDay: Record<string, number> = {}
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    revenueByDay[d.toISOString().slice(0, 10)] = 0
+  }
+  for (const o of recentOrders) {
+    if (o.status === 'COMPLETED') {
+      const day = o.createdAt.toISOString().slice(0, 10)
+      if (day in revenueByDay) revenueByDay[day] = (revenueByDay[day] ?? 0) + (o.totalPrice ?? 0)
+    }
+  }
+
+  // Pedidos por hora do dia
+  const ordersByHour = Array.from({ length: 24 }, (_, h) => ({ hour: h, count: 0 }))
+  for (const o of recentOrders) {
+    const h = o.createdAt.getHours()
+    ordersByHour[h].count++
+  }
+
+  // Top GMs por aceitação
+  const topGms = gmOrders
+    .filter(gm => gm._count.orders > 0)
+    .map(gm => ({
+      id: gm.id,
+      name: gm.user.name,
+      photoUrl: gm.photoUrl,
+      rating: gm.rating,
+      totalOrders: gm._count.orders,
+      acceptedOrders: gm.orders.length,
+      acceptRate: Math.round((gm.orders.length / gm._count.orders) * 100),
+    }))
+    .sort((a, b) => b.totalOrders - a.totalOrders)
+    .slice(0, 5)
+
+  return { funnel: funnelData, revenueByDay, ordersByHour, topGms }
+}

@@ -1,4 +1,13 @@
-﻿import Fastify from 'fastify'
+﻿import * as Sentry from '@sentry/node'
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV ?? 'production',
+  tracesSampleRate: 0.2,
+  enabled: !!process.env.SENTRY_DSN,
+})
+
+import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import jwt from '@fastify/jwt'
 import cookie from '@fastify/cookie'
@@ -80,7 +89,13 @@ app.register(whatsappWebhookRoutes)
 
 // Health check
 app.get('/health', async () => {
-  return { status: 'ok', message: 'Tech Churras API rodando! ðŸ”¥' }
+  return { status: 'ok', message: 'Tech Churras API rodando! 🔥' }
+})
+
+// Captura erros não tratados no Fastify e envia para o Sentry
+app.setErrorHandler((error, _request, reply) => {
+  Sentry.captureException(error)
+  reply.status(500).send({ error: 'Erro interno do servidor' })
 })
 
 const start = async () => {

@@ -32,7 +32,7 @@ const createCouponSchema = z.object({
   maxUses: z.number().int().positive().optional(),
   validUntil: z.string().datetime().optional(),
 })
-import { getBoutiqueReferralStats } from './admin.service'
+import { getBoutiqueReferralStats, getAdvancedMetrics } from './admin.service'
 
 async function requireAdmin(req: any, reply: any) {
   if (req.user?.role !== 'ADMIN') {
@@ -46,6 +46,13 @@ export async function adminRoutes(app: FastifyInstance) {
 
   app.get('/admin/dashboard', getDashboardStatsHandler)
   app.get('/admin/stats', getDashboardStatsHandler)
+  app.get('/admin/metrics/advanced', async (_req, reply) => {
+    try {
+      return reply.send(await getAdvancedMetrics())
+    } catch (err: any) {
+      return reply.status(500).send({ error: err.message })
+    }
+  })
 
   app.get('/admin/users', listUsersHandler)
   app.patch('/admin/users/:userId/block', blockUserHandler)
