@@ -433,20 +433,34 @@ export default function ScriptEquipe() {
 
             <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5">
               <p className="font-bold text-white mb-3">💰 Comissão da equipe</p>
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Açougue parceiro fechado</span>
-                  <span className="font-bold text-orange-400">R$ — confirmar com Jota</span>
+              <div className="space-y-3 text-sm mb-4">
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-gray-300 font-semibold">🥩 Açougue parceiro fechado</span>
+                    <span className="font-black text-orange-400 text-base">R$ 300</span>
+                  </div>
+                  <div className="flex gap-4 text-xs text-gray-500 pl-1">
+                    <span>R$ 150 na assinatura</span>
+                    <span>+</span>
+                    <span>R$ 150 no 1º pagamento</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Churrasqueiro onboarded</span>
-                  <span className="font-bold text-orange-400">R$ — confirmar com Jota</span>
+                <div className="border-t border-gray-800 pt-3">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-gray-300 font-semibold">👨‍🍳 Churrasqueiro onboarded</span>
+                    <span className="font-black text-orange-400 text-base">R$ 50</span>
+                  </div>
+                  <p className="text-xs text-gray-500 pl-1">Pago após 30 dias ativo com perfil completo</p>
                 </div>
               </div>
-              <p className="text-xs text-gray-600 mt-3">
-                * Valores a definir com o Jota antes do início das visitas.
-                Exija confirmação por escrito antes de trabalhar.
-              </p>
+              <div className="bg-black/30 rounded-xl p-3">
+                <p className="text-xs text-gray-400 mb-2 font-semibold">Simulação mensal:</p>
+                <div className="space-y-1 text-xs text-gray-500">
+                  <div className="flex justify-between"><span>5 açougues + 10 churrasqueiros</span><span className="text-green-400 font-bold">R$ 2.000</span></div>
+                  <div className="flex justify-between"><span>8 açougues + 15 churrasqueiros</span><span className="text-green-400 font-bold">R$ 3.150</span></div>
+                  <div className="flex justify-between"><span>12 açougues + 20 churrasqueiros</span><span className="text-green-400 font-bold">R$ 4.600</span></div>
+                </div>
+              </div>
             </div>
 
           </div>
