@@ -1,0 +1,42 @@
+User-agent: *
+# Páginas privadas — não indexar
+Disallow: /admin
+Disallow: /admin/
+Disallow: /grillmasters/dashboard
+Disallow: /grillmasters/dashboard/
+Disallow: /boutiques/dashboard
+Disallow: /boutiques/dashboard/
+Disallow: /menu
+Disallow: /menu/
+Disallow: /orders
+Disallow: /orders/
+Disallow: /pedido
+Disallow: /pedido/
+Disallow: /perfil
+Disallow: /carrinho
+Disallow: /login
+Disallow: /register
+Disallow: /redefinir-senha
+Disallow: /acompanhar/
+Disallow: /indicar
+Disallow: /convite/
+Disallow: /r/
+
+# Páginas públicas — indexar normalmente
+Allow: /
+Allow: /grillmasters
+Allow: /grillmasters/
+Allow: /boutiques
+Allow: /boutiques/
+Allow: /churrasqueiros/
+Allow: /acougues/
+Allow: /lancamento
+Allow: /kit-perfeito
+Allow: /churras-club
+Allow: /galeria
+Allow: /para-churrasqueiros
+Allow: /para-acougues
+Allow: /politica-de-privacidade
+Allow: /termos-de-uso
+
+Sitemap: https://www.techchurras.com.br/sitemap.xml

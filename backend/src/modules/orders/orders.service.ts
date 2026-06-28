@@ -13,10 +13,9 @@ export const createOrderSchema = z.object({
   eventDate: z.string()
     .transform(s => new Date(s))
     .refine(d => {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      return d >= today
-    }, { message: 'A data do evento não pode ser no passado' }),
+      const minDate = new Date(Date.now() + 60 * 60 * 1000) // mínimo 1h a partir de agora
+      return d >= minDate
+    }, { message: 'O evento deve ser agendado com pelo menos 1 hora de antecedência' }),
   eventAddress: z.string().min(5, { message: 'Endereço muito curto (mínimo 5 caracteres)' }),
   eventHours: z.number().int().min(1).default(4),
   guestCount: z.number().int().min(1),
@@ -35,8 +34,15 @@ export const createOrderSchema = z.object({
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
 
-// ── Feature 3: Detecção de pedido suspeito
-async function detectSuspiciousOrder(order: any, customerId: string): Promise<void> {
+interface OrderFraudCheck {
+  guestCount: number
+  totalPrice: number
+  eventDate: Date
+  eventAddress?: string | null
+  boutiqueId?: string | null
+}
+
+async function detectSuspiciousOrder(order: OrderFraudCheck, customerId: string): Promise<void> {
   const flags: string[] = []
 
   const pricePerGuest = order.guestCount > 0 ? order.totalPrice / order.guestCount : 0

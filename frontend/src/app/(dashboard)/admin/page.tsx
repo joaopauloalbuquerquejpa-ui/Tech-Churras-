@@ -225,7 +225,7 @@ export default function AdminPage() {
         fetch(API_URL + '/admin/leads', { headers: h }).then(r => r.ok ? r.json() : []),
       ])
       setStats(s)
-      setOrders(Array.isArray(o) ? o : o.orders || [])
+      setOrders(Array.isArray(o) ? o : (o.data ?? o.orders ?? []))
       const gms: PendingGrillmaster[] = Array.isArray(pg) ? pg : []
       setPendingGrillmasters(gms)
       const init: Record<string, GmApproveState> = {}
@@ -243,7 +243,8 @@ export default function AdminPage() {
         .catch(() => {})
 
       // Team Jota
-      const tj = (Array.isArray(allGms) ? allGms : []).find((g: any) => g.certificationCode === TEAM_JOTA_CERT)
+      const gmList = Array.isArray(allGms) ? allGms : (allGms?.data ?? [])
+      const tj = gmList.find((g: any) => g.certificationCode === TEAM_JOTA_CERT)
       if (tj) {
         setTeamJota(tj)
         setTjForm({

@@ -32,22 +32,34 @@ export async function updateGrillmasterProfile(grillmasterId: string, data: Reco
   return prisma.grillmaster.update({ where: { id: grillmasterId }, data: safe })
 }
 
-export async function listUsers() {
-  return prisma.user.findMany({
-    select: { id: true, name: true, email: true, role: true, createdAt: true },
-    orderBy: { createdAt: 'desc' },
-  })
+export async function listUsers(skip = 0, take = 100) {
+  const [data, total] = await Promise.all([
+    prisma.user.findMany({
+      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+    }),
+    prisma.user.count(),
+  ])
+  return { data, total, skip, take }
 }
 
 export async function blockUser(userId: string) {
   return prisma.user.update({ where: { id: userId }, data: { role: 'CUSTOMER' } })
 }
 
-export async function listGrillmasters() {
-  return prisma.grillmaster.findMany({
-    include: { user: { select: { name: true, email: true } } },
-    orderBy: { createdAt: 'desc' },
-  })
+export async function listGrillmasters(skip = 0, take = 100) {
+  const [data, total] = await Promise.all([
+    prisma.grillmaster.findMany({
+      include: { user: { select: { name: true, email: true } } },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+    }),
+    prisma.grillmaster.count(),
+  ])
+  return { data, total, skip, take }
 }
 
 export async function listPendingGrillmasters() {
@@ -75,6 +87,7 @@ export async function approveGrillmaster(
       ...(extras?.pricePerHour !== undefined ? { pricePerHour: extras.pricePerHour } : {}),
     },
   })
+  console.log(JSON.stringify({ audit: 'GRILLMASTER_APPROVED', grillmasterId, name: gm?.user?.name, ts: new Date().toISOString() }))
   if (gm?.user) {
     const name = gm.user.name.split(' ')[0]
     sendPushToUser(
@@ -104,6 +117,7 @@ export async function rejectGrillmaster(grillmasterId: string) {
     where: { id: grillmasterId },
     data: { approved: false, available: false },
   })
+  console.log(JSON.stringify({ audit: 'GRILLMASTER_REJECTED', grillmasterId, name: gm?.user?.name, ts: new Date().toISOString() }))
   if (gm?.user) {
     sendPushToUser(
       gm.user.id,
@@ -145,6 +159,7 @@ export async function approveBoutique(boutiqueId: string) {
   const trialEndsAt = new Date()
   trialEndsAt.setDate(trialEndsAt.getDate() + 60)
   const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true, referralCode, trialEndsAt } })
+  console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, ts: new Date().toISOString() }))
   if (boutique.user) {
     const name = boutique.user.name.split(' ')[0]
     sendPushToUser(
@@ -171,6 +186,7 @@ export async function rejectBoutique(boutiqueId: string) {
     include: { user: { select: { id: true, name: true } } },
   })
   const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: false } })
+  console.log(JSON.stringify({ audit: 'BOUTIQUE_REJECTED', boutiqueId, name: boutique?.name, ts: new Date().toISOString() }))
   if (boutique?.user) {
     sendPushToUser(
       boutique.user.id,
@@ -195,16 +211,22 @@ export async function getBoutiqueReferralStats(boutiqueId: string) {
   return { boutiqueId, referred, converted }
 }
 
-export async function listAllOrders() {
-  return prisma.order.findMany({
-    include: {
-      customer: { select: { name: true, email: true, phone: true } },
-      grillmaster: { include: { user: { select: { name: true, phone: true } } } },
-      boutique: { select: { name: true } },
-      items: { include: { product: { select: { name: true, price: true, unit: true } } } },
-    },
-    orderBy: { createdAt: 'desc' },
-  })
+export async function listAllOrders(skip = 0, take = 200) {
+  const [data, total] = await Promise.all([
+    prisma.order.findMany({
+      include: {
+        customer: { select: { name: true, email: true, phone: true } },
+        grillmaster: { include: { user: { select: { name: true, phone: true } } } },
+        boutique: { select: { name: true } },
+        items: { include: { product: { select: { name: true, price: true, unit: true } } } },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+    }),
+    prisma.order.count(),
+  ])
+  return { data, total, skip, take }
 }
 
 export async function markOrderPaid(orderId: string) {

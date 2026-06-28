@@ -1,6 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { z } from 'zod'
 
+const uuidSchema = z.string().uuid('ID inválido')
 const approveGrillmasterBodySchema = z.object({
   isChancelado: z.boolean().optional(),
   pricePerHour: z.number().positive().optional(),
@@ -22,7 +23,8 @@ import {
 
 export async function listUsersHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    return reply.send(await listUsers())
+    const { skip, take } = req.query as { skip?: string; take?: string }
+    return reply.send(await listUsers(Number(skip ?? 0), Math.min(Number(take ?? 100), 500)))
   } catch (err: any) {
     return reply.status(500).send({ error: err.message })
   }
@@ -31,6 +33,7 @@ export async function listUsersHandler(req: FastifyRequest, reply: FastifyReply)
 export async function blockUserHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { userId } = req.params as { userId: string }
+    uuidSchema.parse(userId)
     return reply.send(await blockUser(userId))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
@@ -39,7 +42,8 @@ export async function blockUserHandler(req: FastifyRequest, reply: FastifyReply)
 
 export async function listGrillmastersHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    return reply.send(await listGrillmasters())
+    const { skip, take } = req.query as { skip?: string; take?: string }
+    return reply.send(await listGrillmasters(Number(skip ?? 0), Math.min(Number(take ?? 100), 500)))
   } catch (err: any) {
     return reply.status(500).send({ error: err.message })
   }
@@ -56,6 +60,7 @@ export async function listPendingGrillmastersHandler(req: FastifyRequest, reply:
 export async function approveGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { grillmasterId } = req.params as { grillmasterId: string }
+    uuidSchema.parse(grillmasterId)
     const { isChancelado, pricePerHour } = approveGrillmasterBodySchema.parse(req.body ?? {})
     return reply.send(await approveGrillmaster(grillmasterId, { isChancelado, pricePerHour }))
   } catch (err: any) {
@@ -66,6 +71,7 @@ export async function approveGrillmasterHandler(req: FastifyRequest, reply: Fast
 export async function rejectGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { grillmasterId } = req.params as { grillmasterId: string }
+    uuidSchema.parse(grillmasterId)
     return reply.send(await rejectGrillmaster(grillmasterId))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
@@ -83,6 +89,7 @@ export async function listPendingBoutiquesHandler(req: FastifyRequest, reply: Fa
 export async function approveBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { boutiqueId } = req.params as { boutiqueId: string }
+    uuidSchema.parse(boutiqueId)
     return reply.send(await approveBoutique(boutiqueId))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
@@ -92,6 +99,7 @@ export async function approveBoutiqueHandler(req: FastifyRequest, reply: Fastify
 export async function rejectBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     const { boutiqueId } = req.params as { boutiqueId: string }
+    uuidSchema.parse(boutiqueId)
     return reply.send(await rejectBoutique(boutiqueId))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
@@ -100,7 +108,8 @@ export async function rejectBoutiqueHandler(req: FastifyRequest, reply: FastifyR
 
 export async function listAllOrdersHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    return reply.send(await listAllOrders())
+    const { skip, take } = req.query as { skip?: string; take?: string }
+    return reply.send(await listAllOrders(Number(skip ?? 0), Math.min(Number(take ?? 200), 500)))
   } catch (err: any) {
     return reply.status(500).send({ error: err.message })
   }
