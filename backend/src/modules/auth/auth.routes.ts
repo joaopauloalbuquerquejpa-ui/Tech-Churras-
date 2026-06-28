@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs'
 import { emailPasswordReset } from '../email/email.service'
 
 export async function authRoutes(app: FastifyInstance) {
-  app.post('/auth/register', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, register)
+  app.post('/auth/register', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, register)
   app.post('/auth/login', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, login)
 
   app.post('/auth/guest', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req, reply) => {
@@ -95,7 +95,7 @@ export async function authRoutes(app: FastifyInstance) {
         return reply.status(400).send({ error: 'Link inválido ou expirado. Solicite um novo.' })
       }
 
-      const hashed = await bcrypt.hash(password, 10)
+      const hashed = await bcrypt.hash(password, 12)
       await prisma.user.update({ where: { id: record.userId }, data: { password: hashed } })
       await prisma.passwordResetToken.delete({ where: { token } })
 

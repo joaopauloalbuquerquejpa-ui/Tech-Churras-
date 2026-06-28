@@ -1,9 +1,39 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from '@sentry/nextjs'
 
+const CSP = [
+  "default-src 'self'",
+  // Scripts: self + inline (Next.js requer) + analytics externos
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://plausible.io https://js.sentry-cdn.com",
+  // Estilos: self + inline (Tailwind CSS-in-JS)
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  // Fontes
+  "font-src 'self' https://fonts.gstatic.com",
+  // Imagens: self + data URIs + Supabase + Google
+  "img-src 'self' data: blob: https://*.supabase.co https://www.googletagmanager.com https://www.google.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://*.tile.openstreetmap.fr https://*.tile.openstreetmap.de",
+  // Conexões de rede: backend + analytics + Supabase + maps + Sentry
+  "connect-src 'self' https://tech-churras-production.up.railway.app https://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://o4507954432344064.ingest.us.sentry.io https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://plausible.io https://posthog.com https://app.posthog.com",
+  // Frames: apenas Mercado Pago (checkout)
+  "frame-src 'self' https://www.mercadopago.com.br https://sandbox.mercadopago.com.br https://*.mercadopago.com",
+  // Workers: service worker
+  "worker-src 'self' blob:",
+  // Media
+  "media-src 'self' blob: https://*.supabase.co",
+].join('; ')
+
 const nextConfig: NextConfig = {
   async headers() {
     return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+          { key: 'Content-Security-Policy', value: CSP },
+        ],
+      },
       {
         source: '/sw.js',
         headers: [

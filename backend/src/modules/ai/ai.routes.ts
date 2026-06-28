@@ -6,8 +6,15 @@ import { geocodeAddress } from '../../utils/geo'
 import { findNearbyBoutiques } from '../boutiques/boutiques.service'
 import { findNearbyGrillmasters } from '../grillmasters/grillmasters.service'
 
-// Rate limit: max 10 req/min por usuário
+// Rate limit em memória por usuário para /ai/suggest-product (upload de imagem)
 const suggestRateLimits = new Map<string, { count: number; resetAt: number }>()
+// Limpa entradas expiradas a cada 10 minutos para evitar crescimento ilimitado
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, val] of suggestRateLimits) {
+    if (now >= val.resetAt) suggestRateLimits.delete(key)
+  }
+}, 10 * 60 * 1000)
 
 const SYSTEM_PROMPT = `Você é a assistente da Tech Churras — parceira do Jota Albuquerque (Jota Grillmaster, fundador da plataforma) e especialista apaixonada por churrasco brasileiro.
 
@@ -91,7 +98,7 @@ function normalizeItem(item: Record<string, unknown>): Record<string, unknown> {
 export async function aiRoutes(app: FastifyInstance) {
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-  app.post('/ai/plan-event', { preHandler: [authenticate] }, async (request, reply) => {
+  app.post('/ai/plan-event', { preHandler: [authenticate], config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (request, reply) => {
     const {
       style = 'tradicional', homens = 5, mulheres = 3, criancas = 0,
       restrictions = '', hours = 4, customerName = '', occasion = '',
@@ -222,7 +229,10 @@ Regras:
   })
 
   // ── POST /ai/geocode ─────────────────────────────────────────────────
-  app.post('/ai/geocode', async (request, reply) => {
+  app.post('/ai/geocode', {
+    preHandler: [authenticate],
+    config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
+  }, async (request, reply) => {
     const { address } = request.body as { address: string }
     if (!address) return reply.status(400).send({ error: 'Endereco obrigatorio' })
     const coords = await geocodeAddress(address)
@@ -231,7 +241,7 @@ Regras:
   })
 
   // ── POST /ai/kit-perfeito ────────────────────────────────────────────
-  app.post('/ai/kit-perfeito', { preHandler: [authenticate] }, async (request, reply) => {
+  app.post('/ai/kit-perfeito', { preHandler: [authenticate], config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (request, reply) => {
     const { eventAddress, guests, occasion = 'churrasco', budget, eventDate, customerName = '' } = request.body as {
       eventAddress: string; guests: number; occasion?: string; budget?: number; eventDate?: string; customerName?: string
     }
@@ -412,7 +422,7 @@ REGRAS: Use SOMENTE IDs exatos acima | proteína: 350g/homem, 300g/mulher, 200g/
   })
 
   // ── POST /ai/generate-bio ────────────────────────────────────────────
-  app.post('/ai/generate-bio', { preHandler: [authenticate] }, async (request, reply) => {
+  app.post('/ai/generate-bio', { preHandler: [authenticate], config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (request, reply) => {
     const { role, name, city, specialties, churrascoStyle, experience, products } = request.body as {
       role: 'grillmaster' | 'boutique'
       name?: string
@@ -542,7 +552,7 @@ Regras do GERAR_PLANO:
   // ── POST /ai/suggest-from-catalog ────────────────────────────────────
   // Recebe os produtos reais do açougue já selecionado e retorna sugestões
   // com productId exato para preencher o carrinho diretamente.
-  app.post('/ai/suggest-from-catalog', { preHandler: [authenticate] }, async (request, reply) => {
+  app.post('/ai/suggest-from-catalog', { preHandler: [authenticate], config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (request, reply) => {
     const { homens = 5, mulheres = 3, criancas = 2, hours = 4, style = 'tradicional', grillmasterSpecialties = '', customerName = '', occasion = '', products } = request.body as {
       homens?: number; mulheres?: number; criancas?: number
       hours?: number; style?: string; grillmasterSpecialties?: string

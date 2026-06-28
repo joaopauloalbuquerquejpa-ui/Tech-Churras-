@@ -27,7 +27,7 @@ export async function registerUser(data: RegisterInput) {
   const existing = await prisma.user.findUnique({ where: { email: data.email } })
   if (existing) throw new Error('Email já cadastrado')
 
-  const hashedPassword = await bcrypt.hash(data.password, 10)
+  const hashedPassword = await bcrypt.hash(data.password, 12)
 
   let referredByBoutiqueId: string | undefined
   if (data.referralCode) {
