@@ -22,6 +22,11 @@ const CSP = [
 ].join('; ')
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      { source: '/entrar', destination: '/login', permanent: true },
+    ]
+  },
   async headers() {
     return [
       {
