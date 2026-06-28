@@ -126,7 +126,7 @@ No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre
       const jsonMatch = cleaned.match(/\{[\s\S]*\}/)
       plan = JSON.parse(jsonMatch ? jsonMatch[0] : cleaned) as Record<string, unknown>
     } catch {
-      return reply.status(500).send({ error: 'Falha ao processar resposta da IA', raw: rawContent.slice(0, 500) })
+      return reply.status(500).send({ error: 'Falha ao processar resposta da IA. Tente novamente.' })
     }
 
     // Normaliza arrays
@@ -253,12 +253,15 @@ Regras:
         const bWithProd = b.filter((x: any) => x.products.length > 0)
         if (bWithProd.length > 0 && g.length > 0) return { boutiques: bWithProd, grillmasters: g }
       }
-      // Fallback final: retorna qualquer parceiro disponível, ignorando distância
+      // Fallback final: retorna qualquer parceiro disponível, ignorando distância (máx 10 cada)
       const [b, g] = await Promise.all([
         findNearbyBoutiques(coords!.lat, coords!.lng, 9999),
         findNearbyGrillmasters(coords!.lat, coords!.lng, 9999),
       ])
-      return { boutiques: b.filter((x: any) => x.products.length > 0), grillmasters: g }
+      return {
+        boutiques: b.filter((x: any) => x.products.length > 0).slice(0, 10),
+        grillmasters: g.slice(0, 10),
+      }
     }
 
     const { boutiques: boutiquesWithProducts, grillmasters: nearbyGrillmasters } = await findWithFallback()

@@ -114,25 +114,29 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
 
   const totalPrice = Math.max(0, subtotal - discountAmount)
 
-  const order = await prisma.order.create({
-    data: {
-      customerId,
-      ...orderData,
-      totalPrice,
-      couponCode: appliedCouponCode,
-      discountAmount,
-      gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
-      items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
-    },
-    include: { items: true, grillmaster: { include: { user: true } }, boutique: true },
-  })
-
-  if (appliedCouponCode) {
-    await prisma.coupon.update({
-      where: { code: appliedCouponCode },
-      data: { usedCount: { increment: 1 } },
+  // Cria pedido + incrementa cupom atomicamente para evitar race condition
+  const order = await prisma.$transaction(async (tx) => {
+    if (appliedCouponCode) {
+      const freshCoupon = await tx.coupon.findUnique({ where: { code: appliedCouponCode } })
+      if (!freshCoupon || !freshCoupon.active ||
+          (freshCoupon.maxUses !== null && freshCoupon.usedCount >= freshCoupon.maxUses)) {
+        throw new Error('Cupom não está mais disponível. Tente novamente.')
+      }
+      await tx.coupon.update({ where: { code: appliedCouponCode }, data: { usedCount: { increment: 1 } } })
+    }
+    return tx.order.create({
+      data: {
+        customerId,
+        ...orderData,
+        totalPrice,
+        couponCode: appliedCouponCode,
+        discountAmount,
+        gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
+        items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
+      },
+      include: { items: true, grillmaster: { include: { user: true } }, boutique: true },
     })
-  }
+  }, { isolationLevel: 'Serializable' })
 
   // Notify all admins of new order (push + WhatsApp)
   const adminDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)

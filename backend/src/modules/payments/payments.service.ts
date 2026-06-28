@@ -84,7 +84,7 @@ export async function handleMPWebhook(payload: any) {
     const orderId = payment.external_reference
     if (!orderId) return { received: true }
 
-    await prisma.order.updateMany({
+    const updateResult = await prisma.order.updateMany({
       where: { id: orderId, paymentStatus: { not: 'PAID' } },
       data: {
         paymentId: String(paymentId),
@@ -94,6 +94,9 @@ export async function handleMPWebhook(payload: any) {
         statusDetail: 'Pedido confirmado',
       },
     })
+
+    // Idempotência: se nenhuma linha foi atualizada, pagamento já foi processado
+    if (updateResult.count === 0) return { received: true }
 
     // Notify GM and customer of payment-confirmed order
     const order = await prisma.order.findUnique({
