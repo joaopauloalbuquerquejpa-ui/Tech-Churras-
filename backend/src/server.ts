@@ -53,8 +53,24 @@ app.register(rateLimit, {
   errorResponseBuilder: () => ({ error: 'Muitas requisições. Tente novamente em alguns instantes.' }),
 })
 app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } })
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : [
+      'https://www.techchurras.com.br',
+      'https://tech-churras.vercel.app',
+      'http://localhost:3000',
+      'http://localhost:3001',
+    ]
+
 app.register(cors, {
-  origin: true,
+  origin: (origin, cb) => {
+    // Requisições sem origin (mobile apps, Postman, server-to-server) são permitidas
+    if (!origin) return cb(null, true)
+    if (ALLOWED_ORIGINS.includes(origin) || ALLOWED_ORIGINS.some((o) => origin.endsWith('.vercel.app'))) {
+      return cb(null, true)
+    }
+    cb(new Error(`Origin não permitida: ${origin}`), false)
+  },
   credentials: true,
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
