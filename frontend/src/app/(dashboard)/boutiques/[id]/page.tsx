@@ -42,6 +42,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default function BoutiquePage() {
-  return <BoutiqueProfile />
+export default async function BoutiquePage({ params }: Props) {
+  const { id } = await params
+  let schema: object | null = null
+  try {
+    const res = await fetch(`${API_URL}/boutiques/${id}`, { next: { revalidate: 600 } })
+    if (res.ok) {
+      const b = await res.json()
+      const name: string = b?.name ?? 'Açougue'
+      const city: string = b?.city ?? 'São Paulo'
+      const logo: string | null = b?.logoUrl ?? b?.facadeUrl ?? null
+      schema = {
+        '@context': 'https://schema.org',
+        '@graph': [
+          {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Início', item: 'https://www.techchurras.com.br' },
+              { '@type': 'ListItem', position: 2, name: 'Açougues', item: 'https://www.techchurras.com.br/boutiques' },
+              { '@type': 'ListItem', position: 3, name, item: `https://www.techchurras.com.br/boutiques/${id}` },
+            ],
+          },
+          {
+            '@type': 'FoodEstablishment',
+            name,
+            image: logo ?? undefined,
+            address: { '@type': 'PostalAddress', addressLocality: city, addressRegion: 'SP', addressCountry: 'BR' },
+            servesCuisine: 'Churrasco Brasileiro',
+            url: `https://www.techchurras.com.br/boutiques/${id}`,
+          },
+        ],
+      }
+    }
+  } catch {}
+  return (
+    <>
+      {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />}
+      <BoutiqueProfile />
+    </>
+  )
 }

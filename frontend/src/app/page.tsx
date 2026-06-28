@@ -193,7 +193,7 @@ export default async function HomePage() {
       <nav className="relative border-b border-gray-900/50 px-4 py-4 flex items-center justify-between max-w-6xl mx-auto">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <div className="h-8 overflow-hidden relative w-9">
-            <img src="/logo-flame.png" alt="" className="absolute bottom-0 h-14 w-auto" />
+            <img src="/logo-flame.png" alt="" role="presentation" className="absolute bottom-0 h-14 w-auto" />
           </div>
           <span className="font-black text-xl text-white leading-none">Tech <span className="text-orange-500">Churras</span></span>
         </Link>
@@ -470,7 +470,7 @@ export default async function HomePage() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="h-6 overflow-hidden relative w-7">
-                <img src="/logo-flame.png" alt="" className="absolute bottom-0 h-10 w-auto" />
+                <img src="/logo-flame.png" alt="" role="presentation" className="absolute bottom-0 h-10 w-auto" />
               </div>
               <p className="font-black text-white">Tech <span className="text-orange-500">Churras</span></p>
             </div>

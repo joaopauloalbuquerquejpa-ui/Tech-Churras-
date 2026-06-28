@@ -3,17 +3,23 @@ const FROM = 'Tech Churras <noreply@techchurras.com.br>'
 const BASE_URL = 'https://www.techchurras.com.br'
 
 async function sendEmail(to: string, subject: string, html: string, label: string) {
-  if (!RESEND_API_KEY) { console.warn(`[Email] RESEND_API_KEY ausente — email "${label}" não enviado`); return }
+  if (!RESEND_API_KEY) {
+    console.warn(JSON.stringify({ event: 'email_skipped', label, reason: 'RESEND_API_KEY ausente', ts: new Date().toISOString() }))
+    return
+  }
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: FROM, to: [to], subject, html }),
     })
-    if (!res.ok) console.log(`[Email] ${label} erro:`, res.status)
-    else console.log(`[Email] ${label} enviado para`, to)
-  } catch (err) {
-    console.log(`[Email] ${label} falha:`, err)
+    if (!res.ok) {
+      console.error(JSON.stringify({ event: 'email_error', label, to, status: res.status, ts: new Date().toISOString() }))
+    } else {
+      console.log(JSON.stringify({ event: 'email_sent', label, to, ts: new Date().toISOString() }))
+    }
+  } catch (err: any) {
+    console.error(JSON.stringify({ event: 'email_exception', label, to, message: err?.message, ts: new Date().toISOString() }))
   }
 }
 

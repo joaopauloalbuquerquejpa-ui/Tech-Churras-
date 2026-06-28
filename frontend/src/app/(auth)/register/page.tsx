@@ -63,7 +63,7 @@ function RegisterForm() {
       <div className="bg-gray-900 p-8 rounded-2xl shadow-xl w-full max-w-md">
         <div className="flex items-center gap-3 mb-2">
           <div className="h-10 overflow-hidden relative w-11">
-            <img src="/logo-flame.png" alt="" className="absolute bottom-0 h-16 w-auto" />
+            <img src="/logo-flame.png" alt="" role="presentation" className="absolute bottom-0 h-16 w-auto" />
           </div>
           <h1 className="text-3xl font-bold text-white leading-none">Tech <span className="text-orange-500">Churras</span></h1>
         </div>

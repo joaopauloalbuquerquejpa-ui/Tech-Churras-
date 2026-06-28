@@ -128,7 +128,7 @@ export default function DashboardLayout({
         <div className='flex items-center gap-6'>
           <Link href='/' className='flex items-center gap-2 shrink-0'>
             <div className='h-8 overflow-hidden relative w-9'>
-              <img src='/logo-flame.png' alt='' className='absolute bottom-0 h-14 w-auto' />
+              <img src='/logo-flame.png' alt='' role='presentation' className='absolute bottom-0 h-14 w-auto' />
             </div>
             <span className='font-black text-xl text-white leading-none'>Tech <span className='text-orange-500'>Churras</span></span>
           </Link>

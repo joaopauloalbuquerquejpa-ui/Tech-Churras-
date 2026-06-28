@@ -1,5 +1,8 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../../config/prisma'
+import { z } from 'zod'
+
+const uuidParam = z.string().uuid()
 
 export async function publicRoutes(app: FastifyInstance) {
   app.get('/public/orders/:token', async (req, reply) => {
@@ -111,13 +114,15 @@ export async function publicRoutes(app: FastifyInstance) {
   })
 
   // Customer referral lookup: GET /ref/user/:userId
-  app.get('/ref/user/:userId', { config: { rateLimit: { max: 20, timeWindow: '1 minute' } } }, async (req, reply) => {
+  app.get('/ref/user/:userId', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req, reply) => {
     const { userId } = req.params as { userId: string }
+    if (!uuidParam.safeParse(userId).success) return reply.status(404).send({ error: 'Indicacao nao encontrada' })
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, role: true },
+      select: { name: true, role: true },
     })
     if (!user || user.role !== 'CUSTOMER') return reply.status(404).send({ error: 'Indicacao nao encontrada' })
-    return { id: user.id, name: user.name }
+    // Retorna apenas o primeiro nome para não expor o nome completo
+    return { name: user.name.split(' ')[0] }
   })
 }
