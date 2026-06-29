@@ -92,6 +92,8 @@ model Grillmaster {
   orders   Order[]
   schedule GrillmasterSchedule[]
   reviews  Review[]
+
+  @@index([city, state, approved, available])
 }
 
 model GrillmasterSchedule {
@@ -104,6 +106,7 @@ model GrillmasterSchedule {
   grillmaster Grillmaster @relation(fields: [grillmasterId], references: [id])
 
   @@unique([grillmasterId, date])
+  @@index([date])
 }
 
 model Boutique {
@@ -139,6 +142,8 @@ model Boutique {
   orders   Order[]
   kits     KitChurrasco[]
   reviews  Review[]
+
+  @@index([city, state, approved])
 }
 
 model KitChurrasco {

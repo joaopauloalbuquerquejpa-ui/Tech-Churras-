@@ -135,7 +135,28 @@ export async function handleMPWebhook(payload: any) {
     }
   }
 
+  if (['refunded', 'charged_back', 'in_mediation'].includes(payment.status)) {
+    const orderId = payment.external_reference
+    if (orderId) {
+      await prisma.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: `DISPUTE_${payment.status.toUpperCase()}` },
+      }).catch((e: any) => console.error('[webhook] Falha ao marcar disputa:', e?.message))
+      sendWhatsAppToAdmin(
+        `🚨 *CHARGEBACK/ESTORNO — Tech Churras!*\n\n` +
+        `📋 Pedido: ${orderId}\n` +
+        `❌ Status MP: ${payment.status}\n\n` +
+        `Verifique o painel do Mercado Pago imediatamente.\nhttps://www.techchurras.com.br/admin`
+      ).catch(() => {})
+    }
+  }
+
   return { received: true }
+}
+
+export async function refundPayment(paymentId: string, amount: number): Promise<void> {
+  const { payment: paymentClient } = getClients()
+  await paymentClient.refund({ id: Number(paymentId), body: { amount } })
 }
 
 async function triggerReferralBonus(customerId: string, orderId: string) {

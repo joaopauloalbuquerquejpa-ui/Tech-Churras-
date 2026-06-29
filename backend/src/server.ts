@@ -42,6 +42,10 @@ if (!process.env.JWT_SECRET) {
   console.error('FATAL: JWT_SECRET não configurado. Defina a variável de ambiente antes de iniciar.')
   process.exit(1)
 }
+if (!process.env.MP_WEBHOOK_SECRET || !process.env.MP_ACCESS_TOKEN) {
+  console.error('FATAL: MP_WEBHOOK_SECRET ou MP_ACCESS_TOKEN não configurados — pagamentos inoperantes.')
+  process.exit(1)
+}
 
 const app = Fastify({ logger: true })
 

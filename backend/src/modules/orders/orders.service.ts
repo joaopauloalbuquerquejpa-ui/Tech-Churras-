@@ -6,6 +6,13 @@ import { validateCoupon } from '../coupons/coupons.service'
 import { sendPushToUser, sendPushToRole, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } from '../email/email.service'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
+import { refundPayment } from '../payments/payments.service'
+
+const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
+  PENDING:     ['CONFIRMED', 'CANCELLED'],
+  CONFIRMED:   ['IN_PROGRESS', 'CANCELLED'],
+  IN_PROGRESS: ['COMPLETED', 'CANCELLED'],
+}
 
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
@@ -300,6 +307,13 @@ export async function updateOrderStatus(id: string, status: OrderStatus, userId?
     if (!existing) throw new Error('Pedido nao encontrado')
     const isAssignedGM = existing.grillmaster?.userId === userId
     if (!isAssignedGM) throw new Error('Sem permissao para alterar este pedido')
+    const allowed = VALID_TRANSITIONS[existing.status] ?? []
+    if (!allowed.includes(status)) {
+      throw new Error(`Transicao invalida: ${existing.status} -> ${status}`)
+    }
+    if (status === 'CONFIRMED' && existing.paymentStatus !== 'PAID') {
+      throw new Error('Pedido precisa estar pago antes de confirmar')
+    }
   }
   const statusDetailMap: Partial<Record<string, string>> = {
     CONFIRMED: 'Pedido confirmado',
@@ -458,6 +472,16 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
     sendPushToUser(updated.grillmaster.userId, 'Pedido cancelado', `O cliente cancelou o pedido de ${eventDate}.`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message))
   } else if (cancelledBy === 'GRILLMASTER') {
     sendPushToUser(order.customerId, 'Pedido cancelado', `Seu pedido de ${eventDate} foi cancelado pelo churrasqueiro.`, `/orders/${id}`).catch((e) => console.error("[notif]", e?.message))
+  }
+
+  // Executar estorno no MP se pedido foi pago
+  if (order.paymentStatus === 'PAID' && order.paymentId && refundAmount !== null && refundAmount > 0) {
+    refundPayment(order.paymentId, refundAmount).catch((e: any) => {
+      console.error('[cancelOrder] Falha ao estornar no MP:', e?.message)
+      sendWhatsAppToAdmin(
+        `🚨 *FALHA NO ESTORNO — Tech Churras!*\n\nPedido ${id}: R$ ${refundAmount.toFixed(2)} NÃO devolvido ao cliente.\nVerificar Mercado Pago manualmente.\nhttps://www.techchurras.com.br/admin`
+      ).catch(() => {})
+    })
   }
 
   // Notify admin of cancellation

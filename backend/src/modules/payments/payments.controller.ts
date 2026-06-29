@@ -5,9 +5,8 @@ import { createPreference, handleMPWebhook } from './payments.service'
 function verifyMPSignature(req: FastifyRequest, paymentId: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
   if (!secret) {
-    // Sem secret configurado — aceita mas avisa (remover após configurar no Railway)
-    req.log.warn('[webhook] MP_WEBHOOK_SECRET não configurado — assinatura não validada')
-    return true
+    req.log.error('[webhook] MP_WEBHOOK_SECRET não configurado — rejeitando webhook')
+    return false
   }
 
   const xSignature = req.headers['x-signature'] as string | undefined
@@ -68,6 +67,6 @@ export async function mpWebhookHandler(req: FastifyRequest, reply: FastifyReply)
     const result = await handleMPWebhook(payload)
     return reply.send(result)
   } catch (err: any) {
-    return reply.status(400).send({ error: err.message })
+    return reply.status(500).send({ error: err.message })
   }
 }
