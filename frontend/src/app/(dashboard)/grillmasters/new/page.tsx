@@ -47,17 +47,15 @@ function suggestPrice(city: string, state: string, specialties: string, experien
   const ct = city.toLowerCase()
   const sp = specialties.toLowerCase()
   const isCapitalSP = ct.includes('são paulo') || ct.includes('sao paulo')
-  const isSPState = st === 'SP'
   const isPremium = /dry.aged|wagyu|angus|prime|tomahawk|cordeiro|internacional/i.test(sp)
-  let base = 140
-  if (isCapitalSP) base = 280
-  else if (isSPState) base = 200
-  else if (['RJ', 'RS', 'PR', 'SC', 'MG'].includes(st)) base = 175
-  if (isPremium) base = Math.round(base * 1.3)
-  if (experience >= 10) base = Math.round(base * 1.2)
-  else if (experience >= 5) base = Math.round(base * 1.1)
+  // Faixa de mercado: R$100–R$160/h para tração inicial
+  let base = 100
+  if (isCapitalSP) base = 120
+  if (isPremium) base = Math.min(base + 20, 140)
+  if (experience >= 10) base = Math.min(base + 20, 160)
+  else if (experience >= 5) base = Math.min(base + 10, 150)
   base = Math.round(base / 10) * 10
-  return { min: Math.round(base * 0.75 / 10) * 10, max: Math.round(base * 1.5 / 10) * 10, suggested: base }
+  return { min: 100, max: 160, suggested: base }
 }
 
 export default function NewGrillmasterPage() {

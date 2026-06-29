@@ -391,6 +391,11 @@ function NewOrderForm() {
                             <span className="text-xs text-gray-500">R$ {gm.pricePerHour}/hora</span>
                             <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
                           </div>
+                          {itemsTotal > 0 && (
+                            <p className="text-xs text-gray-600 text-right mt-0.5">
+                              {Math.round(cost / itemsTotal * 100)}% do valor das carnes
+                            </p>
+                          )}
                         </div>
                       </div>
                     </button>
@@ -446,6 +451,11 @@ function NewOrderForm() {
                             <span className="text-xs text-gray-500">R$ {gm.pricePerHour}/hora</span>
                             <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
                           </div>
+                          {itemsTotal > 0 && (
+                            <p className="text-xs text-gray-600 text-right mt-0.5">
+                              {Math.round(cost / itemsTotal * 100)}% do valor das carnes
+                            </p>
+                          )}
                         </div>
                       </div>
                       {gm.accompaniments?.length > 0 && (
