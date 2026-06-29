@@ -41,7 +41,7 @@ export default function PitchAcougue() {
         <div className="grid grid-cols-3 gap-3 mb-2">
           {[
             { valor: 'R$ 0', label: 'pra entrar' },
-            { valor: '7%', label: 'de comissão' },
+            { valor: '10%', label: 'de comissão' },
             { valor: 'PIX', label: 'toda sexta' },
           ].map(n => (
             <div key={n.label} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
@@ -50,7 +50,7 @@ export default function PitchAcougue() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-600 text-center">* Mensalidade de R$ 369/mês após período gratuito</p>
+        <p className="text-xs text-gray-600 text-center">* Primeiros 5 parceiros fundadores: R$ 369/mês · Demais: R$ 497/mês</p>
       </section>
 
       {/* ── COMO FUNCIONA ── */}

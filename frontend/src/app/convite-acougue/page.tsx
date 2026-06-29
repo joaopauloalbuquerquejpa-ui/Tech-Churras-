@@ -7,7 +7,7 @@ import { Events } from '@/lib/analytics'
 
 const WHATSAPP_BASE = 'https://wa.me/5511970593650'
 const TICKET_MEDIO = 300
-const COMISSAO = 0.07
+const COMISSAO = 0.10
 const MENSALIDADE = 369
 
 const ESCALA_GANHOS = [
@@ -447,7 +447,7 @@ function ConviteContent() {
             {[
               { label: 'Taxa de adesão', valor: 'R$ 0', cor: 'text-green-400', obs: 'Grátis para entrar' },
               { label: 'Mensalidade — Parceiro Fundador', valor: 'R$ 0 / 3 meses', cor: 'text-amber-400', obs: 'Depois R$ 369/mês — cancela quando quiser, sem multa' },
-              { label: 'Comissão por pedido', valor: '7%', cor: 'text-gray-200', obs: 'Só sobre pedidos vendidos via plataforma' },
+              { label: 'Comissão por pedido', valor: '10%', cor: 'text-gray-200', obs: 'Só sobre pedidos vendidos via plataforma' },
               { label: 'Repasse', valor: 'Toda sexta', cor: 'text-green-400', obs: 'Via PIX, já com comissão descontada automaticamente' },
             ].map(c => (
               <div key={c.label} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">

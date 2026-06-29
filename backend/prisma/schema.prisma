@@ -124,7 +124,7 @@ model Boutique {
   approved       Boolean  @default(false)
   open           Boolean  @default(true)
   monthlyFee     Float    @default(369.00)
-  commissionRate Float    @default(0.03)
+  commissionRate Float    @default(0.10)
   pixKey           String?
   logoUrl          String?
   facadeUrl        String?

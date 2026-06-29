@@ -41,6 +41,25 @@ async function uploadImage(file: File, token: string): Promise<string> {
 
 const STYLES = ['Gaucho', 'Mineiro', 'Espetinho', 'Vegano', 'Misto', 'Outro']
 
+function suggestPrice(city: string, state: string, specialties: string, experience: number): { min: number; max: number; suggested: number } | null {
+  if (!city.trim() || !state.trim()) return null
+  const st = state.toUpperCase()
+  const ct = city.toLowerCase()
+  const sp = specialties.toLowerCase()
+  const isCapitalSP = ct.includes('são paulo') || ct.includes('sao paulo')
+  const isSPState = st === 'SP'
+  const isPremium = /dry.aged|wagyu|angus|prime|tomahawk|cordeiro|internacional/i.test(sp)
+  let base = 140
+  if (isCapitalSP) base = 280
+  else if (isSPState) base = 200
+  else if (['RJ', 'RS', 'PR', 'SC', 'MG'].includes(st)) base = 175
+  if (isPremium) base = Math.round(base * 1.3)
+  if (experience >= 10) base = Math.round(base * 1.2)
+  else if (experience >= 5) base = Math.round(base * 1.1)
+  base = Math.round(base / 10) * 10
+  return { min: Math.round(base * 0.75 / 10) * 10, max: Math.round(base * 1.5 / 10) * 10, suggested: base }
+}
+
 export default function NewGrillmasterPage() {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -265,20 +284,6 @@ export default function NewGrillmasterPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Anos de experiencia *</label>
-              <input type="number" min={0} value={form.experience}
-                onChange={e => setForm({ ...form, experience: +e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-1">Preco por hora (R$) *</label>
-              <input type="number" min={0} step="0.01" value={form.pricePerHour}
-                onChange={e => setForm({ ...form, pricePerHour: +e.target.value })}
-                className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
               <label className="block text-sm text-gray-400 mb-1">Cidade *</label>
               <input type="text" value={form.city}
                 onChange={e => setForm({ ...form, city: e.target.value })}
@@ -295,8 +300,46 @@ export default function NewGrillmasterPage() {
             <label className="block text-sm text-gray-400 mb-1">Especialidades</label>
             <input type="text" value={form.specialties}
               onChange={e => setForm({ ...form, specialties: e.target.value })}
-              placeholder="Picanha, costela, frango..."
+              placeholder="Picanha, costela, frango, dry-aged..."
               className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Anos de experiencia *</label>
+            <input type="number" min={0} value={form.experience}
+              onChange={e => setForm({ ...form, experience: +e.target.value })}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
+          </div>
+          {(() => {
+            const s = suggestPrice(form.city, form.state, form.specialties, form.experience)
+            if (!s) return null
+            const liquidoEvento4h = Math.round(s.suggested * 4 * 0.93)
+            return (
+              <div className="bg-orange-500/10 border border-orange-500/25 rounded-xl p-4">
+                <p className="text-xs font-semibold text-orange-400 uppercase tracking-wide mb-2">Sugestão de valor</p>
+                <p className="text-sm text-gray-300 mb-1">
+                  Churrasqueiros com seu perfil em <span className="text-white font-medium">{form.city}</span> cobram entre{' '}
+                  <span className="text-white font-bold">R$ {s.min}–R$ {s.max}/hora</span>.
+                </p>
+                <p className="text-xs text-gray-500 mb-3">
+                  Num evento de 4h você receberia <span className="text-green-400 font-semibold">R$ {liquidoEvento4h} líquido</span> (93% de R$ {s.suggested * 4})
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, pricePerHour: s.suggested }))}
+                  className="text-xs bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/40 text-orange-300 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Usar R$ {s.suggested}/hora
+                </button>
+              </div>
+            )
+          })()}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1">Mao de obra por hora (R$) *</label>
+            <input type="number" min={0} step="1" value={form.pricePerHour || ''}
+              placeholder={suggestPrice(form.city, form.state, form.specialties, form.experience)?.suggested?.toString() || '0'}
+              onChange={e => setForm({ ...form, pricePerHour: +e.target.value })}
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
+            <p className="text-xs text-gray-600 mt-1">A plataforma retém 7% — você recebe 93% deste valor por hora trabalhada.</p>
           </div>
         </div>
 

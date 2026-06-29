@@ -155,7 +155,7 @@ export default function ScriptEquipe() {
               <p className="text-xs text-orange-400 font-bold mb-2">MOSTRAR A TELA — rolar devagar enquanto fala</p>
               <div className="space-y-2 text-sm text-gray-300">
                 <p>📱 Abrir <strong>techchurras.com.br/pitch-acougue</strong></p>
-                <p>→ Mostrar os três números: R$0, 7%, PIX</p>
+                <p>→ Mostrar os três números: R$0, 10%, PIX</p>
                 <p>→ Rolar até "Como funciona" e explicar os 4 passos</p>
                 <p>→ Mostrar a estimativa de renda (5 / 20 / 40 eventos)</p>
                 <p>→ Mostrar o Pacote Fundador — enfatizar "só 1 por bairro"</p>
@@ -192,8 +192,8 @@ export default function ScriptEquipe() {
               resposta="O app não precisa de atenção constante. O pedido chega, você separa a carne como faria para qualquer cliente, e o churrasqueiro retira. No início pode ser 1 ou 2 pedidos por semana — nada que mude sua rotina. Com o tempo, você decide se quer escalar."
             />
             <Objecao
-              pergunta="7% de comissão é muito"
-              resposta="É 7% sobre o que você vender a mais — receita que não existe hoje. Você não paga nada se não vier pedido nenhum. E nos três primeiros meses como Fundador, a mensalidade é zero. O risco financeiro é literalmente zero."
+              pergunta="10% de comissão é muito"
+              resposta="É 10% sobre o que você vender a mais — receita que não existe hoje. Você não paga nada se não vier pedido nenhum. E nos três primeiros meses como Fundador, a mensalidade é zero. O risco financeiro é literalmente zero."
             />
             <Objecao
               pergunta="Nunca ouvi falar dessa plataforma"

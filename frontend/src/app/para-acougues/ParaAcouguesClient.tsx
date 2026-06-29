@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { Events } from '@/lib/analytics'
 
 const MENSALIDADE = 369
-const COMISSAO_RATE = 0.07
+const COMISSAO_RATE = 0.10
 const BONUS_POR_CLIENTE = 40
 const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
 const FUNDADOR_DEADLINE = '06/08/2026'
