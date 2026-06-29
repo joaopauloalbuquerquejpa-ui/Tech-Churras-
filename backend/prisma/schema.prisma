@@ -51,6 +51,8 @@ model User {
   customerReviews     Review[]  @relation("CustomerReviews")
   sentMessages        Message[] @relation("SentMessages")
   passwordResetTokens PasswordResetToken[]
+
+  @@index([referredByBoutiqueId])
 }
 
 model Grillmaster {
@@ -160,6 +162,8 @@ model KitChurrasco {
   items         String
   orders        Order[]
   createdAt     DateTime @default(now())
+
+  @@index([boutiqueId])
 }
 
 model Product {
@@ -361,6 +365,7 @@ model Message {
   sender User  @relation("SentMessages", fields: [senderId], references: [id])
 
   @@index([orderId])
+  @@index([orderId, read])
 }
 
 model Lead {

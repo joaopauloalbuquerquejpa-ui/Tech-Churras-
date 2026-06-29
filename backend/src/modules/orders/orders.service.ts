@@ -147,7 +147,11 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
         items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
       },
-      include: { items: true, grillmaster: { include: { user: true } }, boutique: true },
+      include: {
+        items: true,
+        grillmaster: { include: { user: { select: { name: true, phone: true, email: true } } } },
+        boutique: { select: { id: true, name: true, logoUrl: true, city: true, state: true, rating: true } },
+      },
     })
   }, { isolationLevel: 'Serializable' })
 
@@ -219,8 +223,8 @@ export async function listOrders(customerId: string) {
     where: { customerId },
     include: {
       items: { include: { product: true } },
-      grillmaster: { include: { user: true } },
-      boutique: true,
+      grillmaster: { include: { user: { select: { name: true, phone: true, email: true } } } },
+      boutique: { select: { id: true, name: true, logoUrl: true, city: true, state: true, rating: true } },
       review: { select: { id: true, grillRating: true } },
     },
     orderBy: { createdAt: 'desc' },
@@ -597,8 +601,8 @@ export async function getOrderById(id: string, userId: string, role: string = 'C
     where: whereClause,
     include: {
       items: { include: { product: true } },
-      grillmaster: { include: { user: true } },
-      boutique: true,
+      grillmaster: { include: { user: { select: { name: true, phone: true, email: true } } } },
+      boutique: { select: { id: true, name: true, logoUrl: true, city: true, state: true, rating: true } },
       review: { select: { id: true, customerRating: true } },
       customer: { select: { id: true, name: true, averageRating: true, _count: { select: { orders: true } } } },
       kit: true,

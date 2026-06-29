@@ -26,7 +26,7 @@ const ADMIN_PREFIXES = ['/admin', '/founder']
 // Páginas de auth — redireciona para o dashboard se já estiver logado
 const AUTH_ONLY_ROUTES = ['/login', '/register', '/esqueci-senha', '/redefinir-senha']
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthenticated = Boolean(request.cookies.get('tc-auth')?.value)
   const role = request.cookies.get('tc-role')?.value ?? ''
