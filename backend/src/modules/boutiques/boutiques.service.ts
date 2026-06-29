@@ -73,7 +73,7 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
 
   const referralCode = generateReferralCode(data.name)
   const trialEndsAt = new Date()
-  trialEndsAt.setDate(trialEndsAt.getDate() + 60)
+  trialEndsAt.setDate(trialEndsAt.getDate() + 90)
 
   const boutique = await prisma.boutique.create({
     data: { userId, ...data, latitude, longitude, referralCode, trialEndsAt },
