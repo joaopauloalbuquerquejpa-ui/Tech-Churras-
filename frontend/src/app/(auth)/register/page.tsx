@@ -79,7 +79,9 @@ function RegisterForm() {
       setToken(data.token)
       const role = data.user?.role
       Events.signUp(role ?? 'CUSTOMER')
-      if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
+      const next = searchParams.get('redirect')
+      if (next) router.push(next)
+      else if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
       else if (role === 'BOUTIQUE') router.push('/boutiques/dashboard')
       else if (role === 'ADMIN') router.push('/admin')
       else router.push('/dashboard')

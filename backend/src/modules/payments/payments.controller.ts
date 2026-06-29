@@ -27,6 +27,13 @@ function verifyMPSignature(req: FastifyRequest, paymentId: string): boolean {
   const { ts, v1 } = parts
   if (!ts || !v1) return false
 
+  // F2: rejeita webhooks com timestamp > 5 minutos (previne replay attacks)
+  const nowSeconds = Math.floor(Date.now() / 1000)
+  if (Math.abs(nowSeconds - Number(ts)) > 300) {
+    req.log.warn('[webhook] Timestamp fora da janela de 5 minutos — possível replay')
+    return false
+  }
+
   const manifest = `id:${paymentId};request-id:${xRequestId ?? ''};ts:${ts}`
   const expected = createHmac('sha256', secret).update(manifest).digest('hex')
 

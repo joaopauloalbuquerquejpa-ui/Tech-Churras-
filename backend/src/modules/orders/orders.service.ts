@@ -24,7 +24,7 @@ export const createOrderSchema = z.object({
       return d >= minDate
     }, { message: 'O evento deve ser agendado com pelo menos 1 hora de antecedência' }),
   eventAddress: z.string().min(5, { message: 'Endereço muito curto (mínimo 5 caracteres)' }),
-  eventHours: z.number().int().min(1).default(4),
+  eventHours: z.number().int().min(1).max(24).default(4),
   guestCount: z.number().int().min(1),
   notes: z.string().max(1000).optional(),
   kitId: z.string().optional(),
@@ -109,8 +109,8 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     : null
   const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) : 0
 
-  // Labor cost for GM-made accompaniments (defined by GM, validated by name match)
-  const accompLaborTotal = (gmAccompaniments ?? []).reduce((sum, a) => sum + a.laborPrice, 0)
+  // F1: gmAccompaniments removidos do MVP — preço não tem backing em DB, cliente poderia manipular
+  const accompLaborTotal = 0
 
   const subtotal = itemsTotal + grillmasterCost + accompLaborTotal
 
@@ -303,6 +303,10 @@ export async function updateOrderStatusDetail(id: string, statusDetail: string, 
 }
 
 export async function updateOrderStatus(id: string, status: OrderStatus, userId?: string, role?: string) {
+  // F3: userId é obrigatório para qualquer chamada não-admin
+  if (!userId && role !== 'ADMIN') {
+    throw new Error('userId é obrigatório para atualizar status de pedido')
+  }
   if (userId && role !== 'ADMIN') {
     const existing = await prisma.order.findUnique({
       where: { id },
@@ -323,6 +327,12 @@ export async function updateOrderStatus(id: string, status: OrderStatus, userId?
     CONFIRMED: 'Pedido confirmado',
     IN_PROGRESS: 'Churrasqueiro chegou',
     COMPLETED: 'Finalizado',
+  }
+  // F6: transição atômica — WHERE status = <esperado> previne race condition de dupla confirmação
+  const expectedStatus = Object.entries(VALID_TRANSITIONS).find(([, nexts]) => nexts.includes(status))?.[0] as OrderStatus | undefined
+  if (expectedStatus) {
+    const result = await prisma.order.updateMany({ where: { id, status: expectedStatus }, data: { status } })
+    if (result.count === 0) throw new Error(`Transicao invalida ou pedido ja processado: -> ${status}`)
   }
   const updated = await prisma.order.update({
     where: { id },

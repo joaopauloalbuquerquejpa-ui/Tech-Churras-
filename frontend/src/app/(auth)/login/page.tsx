@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { login } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
 
@@ -17,6 +17,7 @@ const PAYMENT_METHODS = ['Mercado Pago', 'Pix', 'Cartão de crédito']
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { setUser, setToken } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -31,8 +32,10 @@ export default function LoginPage() {
       const data = await login(email, password)
       setUser(data.user)
       setToken(data.token)
+      const next = searchParams.get('redirect')
       const role = data.user?.role
-      if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
+      if (next) router.push(next)
+      else if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
       else if (role === 'BOUTIQUE') router.push('/boutiques/dashboard')
       else if (role === 'ADMIN') router.push('/admin')
       else router.push('/dashboard')

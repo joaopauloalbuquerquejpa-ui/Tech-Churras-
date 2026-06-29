@@ -172,7 +172,9 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
   app.post('/webhooks/whatsapp', {
     config: { rateLimit: { max: 120, timeWindow: '1 minute' } },
   }, async (request, reply) => {
-    const { token } = request.query as { token?: string }
+    // F4: token movido para header Authorization (evita exposição em logs de URL)
+    const authHeader = request.headers['authorization'] as string | undefined
+    const token = authHeader?.replace(/^Bearer\s+/i, '')
     if (!process.env.WEBHOOK_SECRET || token !== process.env.WEBHOOK_SECRET) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
