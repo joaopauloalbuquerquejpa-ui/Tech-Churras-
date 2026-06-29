@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Tech Churras — Tracking de Pedido</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1920px;height:1080px;overflow:hidden;background:#0a0a0a;font-family:system-ui,sans-serif;color:#fff;}
+
+  .hdr{height:60px;background:#0f0f0f;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;padding:0 40px;gap:20px;}
+  .back{font-size:14px;color:#888;}
+  .logo{font-size:22px;font-weight:900;color:#FF6B00;}
+  .logo em{color:#FFD700;font-style:normal;}
+  .order-id{font-size:13px;color:#555;}
+  .order-id span{color:#FF6B00;font-weight:700;}
+  .hdr-r{margin-left:auto;display:flex;align-items:center;gap:12px;}
+  .help-btn{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;font-size:13px;padding:7px 16px;border-radius:8px;}
+  .ava{width:36px;height:36px;border-radius:50%;background:#1e1e1e;border:2px solid #FF6B00;display:flex;align-items:center;justify-content:center;font-size:14px;}
+
+  .body{display:flex;height:calc(1080px - 60px);}
+
+  /* LEFT — status + grillmaster */
+  .left{width:380px;flex-shrink:0;padding:24px;border-right:1px solid #1a1a1a;display:flex;flex-direction:column;gap:16px;}
+
+  .status-banner{background:linear-gradient(135deg,rgba(255,107,0,.15),rgba(255,107,0,.05));border:1.5px solid rgba(255,107,0,.4);border-radius:16px;padding:20px;display:flex;align-items:center;gap:16px;}
+  .sb-icon{font-size:48px;}
+  .sb-text{flex:1;}
+  .sb-label{font-size:22px;font-weight:900;color:#FF6B00;margin-bottom:4px;}
+  .sb-desc{font-size:13px;color:#aaa;}
+  .eta{background:#FF6B00;color:#000;font-size:20px;font-weight:900;padding:10px 16px;border-radius:12px;text-align:center;flex-shrink:0;}
+  .eta-lbl{font-size:11px;font-weight:600;opacity:.7;}
+
+  /* STEPS */
+  .steps-title{font-size:15px;font-weight:800;color:#fff;margin-bottom:12px;}
+  .step{display:flex;gap:16px;margin-bottom:4px;}
+  .step-left{display:flex;flex-direction:column;align-items:center;width:40px;flex-shrink:0;}
+  .step-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;flex-shrink:0;}
+  .sd-done{background:#FF6B00;color:#000;}
+  .sd-active{background:rgba(255,107,0,.2);border:2.5px solid #FF6B00;color:#FF6B00;}
+  .sd-pending{background:#1a1a1a;border:2px solid #2a2a2a;color:#444;}
+  .step-line{width:2px;flex:1;min-height:28px;}
+  .sl-done{background:#FF6B00;}
+  .sl-pending{background:#1e1e1e;}
+  .step-content{padding-top:6px;padding-bottom:24px;}
+  .step-name{font-size:14px;font-weight:700;margin-bottom:3px;}
+  .sn-done{color:#fff;}
+  .sn-active{color:#FF6B00;}
+  .sn-pending{color:#444;}
+  .step-time{font-size:12px;}
+  .st-done{color:#555;}
+  .st-active{color:#FF6B00;font-weight:700;}
+
+  /* GRILLMASTER CARD */
+  .gm-card{background:#141414;border:1.5px solid #1e1e1e;border-radius:14px;padding:16px;display:flex;align-items:center;gap:14px;}
+  .gm-av{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2d1200,#1a0800);display:flex;align-items:center;justify-content:center;font-size:32px;border:3px solid rgba(255,107,0,.3);flex-shrink:0;}
+  .gm-info{flex:1;}
+  .gm-name{font-size:16px;font-weight:800;color:#fff;margin-bottom:3px;}
+  .gm-role{font-size:12px;color:#FF6B00;font-weight:600;margin-bottom:6px;}
+  .gm-meta{display:flex;gap:10px;}
+  .gm-mt{font-size:12px;color:#888;display:flex;align-items:center;gap:4px;}
+  .chat-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,107,0,.12);border:2px solid rgba(255,107,0,.3);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+
+  /* CENTER — MAP */
+  .map-col{flex:1;padding:24px;display:flex;flex-direction:column;gap:16px;border-right:1px solid #1a1a1a;}
+  .map-hdr{display:flex;align-items:center;justify-content:space-between;}
+  .map-title{font-size:16px;font-weight:800;color:#fff;}
+  .map-live{display:flex;align-items:center;gap:6px;font-size:13px;color:#22c55e;font-weight:700;}
+  .map-dot-live{width:8px;height:8px;border-radius:50%;background:#22c55e;}
+  .map-wrap{flex:1;border-radius:16px;overflow:hidden;position:relative;background:#0d1a0d;}
+  .map-bg{width:100%;height:100%;background:linear-gradient(rgba(255,107,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,.04) 1px,transparent 1px),#0a130a;background-size:48px 48px;}
+  .map-pin{position:absolute;font-size:44px;}
+  .map-truck{position:absolute;font-size:40px;top:45%;left:44%;transform:translate(-50%,-50%);}
+  .map-dest{position:absolute;font-size:40px;}
+  .map-radius{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;}
+  .route-info{background:rgba(10,10,10,.9);border:1px solid #2a2a2a;border-radius:12px;padding:12px 18px;position:absolute;top:16px;left:16px;font-size:13px;}
+  .ri-dist{font-size:18px;font-weight:900;color:#FF6B00;margin-bottom:2px;}
+  .ri-lbl{color:#888;}
+  .map-cta-btn{background:#FF6B00;color:#000;font-size:14px;font-weight:800;padding:12px 24px;border-radius:10px;position:absolute;bottom:16px;left:50%;transform:translateX(-50%);white-space:nowrap;}
+
+  /* RIGHT — ORDER SUMMARY */
+  .right{width:320px;flex-shrink:0;padding:24px;display:flex;flex-direction:column;gap:14px;}
+  .ord-title{font-size:16px;font-weight:800;color:#fff;}
+  .ord-sub{font-size:12px;color:#666;margin-top:2px;margin-bottom:6px;}
+  .ord-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #1a1a1a;}
+  .ord-item:last-child{border-bottom:none;}
+  .oi-icon{width:40px;height:40px;border-radius:9px;background:#1e1e1e;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .oi-name{font-size:13px;font-weight:700;color:#fff;flex:1;}
+  .oi-qty{font-size:12px;color:#666;}
+  .oi-price{font-size:13px;font-weight:700;color:#FF6B00;flex-shrink:0;}
+  .summary-box{background:#141414;border:1.5px solid #1e1e1e;border-radius:12px;padding:14px;}
+  .sum-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px solid #1a1a1a;}
+  .sum-row:last-child{border-bottom:none;}
+  .sum-lbl{color:#888;}
+  .sum-val{color:#fff;font-weight:600;}
+  .sum-total{display:flex;justify-content:space-between;padding:12px 0 0;font-size:16px;font-weight:900;}
+  .sum-total span{color:#FF6B00;}
+  .rating-prompt{background:linear-gradient(135deg,rgba(255,215,0,.08),rgba(255,215,0,.03));border:1.5px solid rgba(255,215,0,.2);border-radius:12px;padding:14px;text-align:center;}
+  .rp-title{font-size:14px;font-weight:800;color:#FFD700;margin-bottom:6px;}
+  .rp-stars{font-size:28px;color:#2a2a2a;letter-spacing:4px;}
+  .rp-hint{font-size:12px;color:#666;margin-top:6px;}
+  .support-btn{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;font-size:13px;font-weight:600;padding:10px;border-radius:10px;text-align:center;margin-top:auto;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="back">← Meus pedidos</div>
+  <div class="logo">Tech <em>Churras</em></div>
+  <div class="order-id">Pedido <span>#TC-20240623-0042</span></div>
+  <div class="hdr-r"><div class="help-btn">❓ Ajuda</div><div class="ava">👤</div></div>
+</div>
+
+<div class="body">
+  <!-- LEFT -->
+  <div class="left">
+    <div class="status-banner">
+      <div class="sb-icon">🔥</div>
+      <div class="sb-text"><div class="sb-label">Preparando!</div><div class="sb-desc">Carlos está preparando seu pedido</div></div>
+      <div class="eta">22 min<div class="eta-lbl">ETA</div></div>
+    </div>
+
+    <div>
+      <div class="steps-title">Etapas do pedido</div>
+      <div class="step">
+        <div class="step-left"><div class="step-dot sd-done">✓</div><div class="step-line sl-done"></div></div>
+        <div class="step-content"><div class="step-name sn-done">✓ Pedido confirmado</div><div class="step-time st-done">08:15 · Pagamento aprovado</div></div>
+      </div>
+      <div class="step">
+        <div class="step-left"><div class="step-dot sd-active">⏳</div><div class="step-line sl-pending"></div></div>
+        <div class="step-content"><div class="step-name sn-active">Preparando o pedido</div><div class="step-time st-active">Agora · Carlos está preparando</div></div>
+      </div>
+      <div class="step">
+        <div class="step-left"><div class="step-dot sd-pending">3</div><div class="step-line sl-pending"></div></div>
+        <div class="step-content"><div class="step-name sn-pending">A caminho do evento</div><div class="step-time" style="color:#444;">Aguardando...</div></div>
+      </div>
+      <div class="step">
+        <div class="step-left"><div class="step-dot sd-pending">4</div></div>
+        <div class="step-content"><div class="step-name sn-pending">Churrasco concluído 🎉</div><div class="step-time" style="color:#444;">Aguardando...</div></div>
+      </div>
+    </div>
+
+    <div class="gm-card">
+      <div class="gm-av">👨‍🍳</div>
+      <div class="gm-info">
+        <div class="gm-name">Carlos Mendes</div>
+        <div class="gm-role">🔥 Grillmaster · Chancela Albuquerque</div>
+        <div class="gm-meta">
+          <div class="gm-mt">⭐ 4.9</div>
+          <div class="gm-mt">📋 380 eventos</div>
+        </div>
+      </div>
+      <div class="chat-btn">💬</div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-col">
+    <div class="map-hdr">
+      <div class="map-title">🗺️ Rastreamento em tempo real</div>
+      <div class="map-live"><div class="map-dot-live"></div>AO VIVO</div>
+    </div>
+    <div class="map-wrap">
+      <div class="map-bg"></div>
+      <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="44%" cy="50%" r="60" fill="rgba(255,107,0,.05)" stroke="rgba(255,107,0,.15)" stroke-width="1"/>
+        <path d="M 250 300 Q 420 280 560 340 Q 680 390 780 420" stroke="#FF6B00" stroke-width="4" stroke-dasharray="14,10" fill="none" opacity=".7"/>
+        <path d="M 780 420 Q 880 450 960 480" stroke="#333" stroke-width="3" stroke-dasharray="10,10" fill="none" opacity=".4"/>
+      </svg>
+      <div class="map-pin" style="top:28%;left:18%;">🏠</div>
+      <div class="map-truck">🔥</div>
+      <div class="map-dest" style="bottom:22%;right:24%;">📍</div>
+      <div class="route-info">
+        <div class="ri-dist">4,2 km</div>
+        <div class="ri-lbl">Carlos está a caminho</div>
+      </div>
+      <div class="map-cta-btn">📍 Acompanhar no mapa</div>
+    </div>
+  </div>
+
+  <!-- RIGHT — ORDER SUMMARY -->
+  <div class="right">
+    <div>
+      <div class="ord-title">📋 Resumo do pedido</div>
+      <div class="ord-sub">SP Prime Cuts · 4 itens</div>
+      <div class="ord-item"><div class="oi-icon">🥩</div><div><div class="oi-name">Picanha</div><div class="oi-qty">1 × R$ 89,90</div></div><div class="oi-price">R$ 89,90</div></div>
+      <div class="ord-item"><div class="oi-icon">🍖</div><div><div class="oi-name">Costela 2kg</div><div class="oi-qty">2 × R$ 54,90</div></div><div class="oi-price">R$ 109,80</div></div>
+      <div class="ord-item"><div class="oi-icon">🌭</div><div><div class="oi-name">Linguiça Artesanal</div><div class="oi-qty">1 × R$ 28,90</div></div><div class="oi-price">R$ 28,90</div></div>
+      <div class="ord-item"><div class="oi-icon">🧂</div><div><div class="oi-name">Tempero Alho & Sal</div><div class="oi-qty">1 × R$ 12,90</div></div><div class="oi-price">R$ 12,90</div></div>
+    </div>
+    <div class="summary-box">
+      <div class="sum-row"><span class="sum-lbl">Subtotal</span><span class="sum-val">R$ 241,50</span></div>
+      <div class="sum-row"><span class="sum-lbl">Frete</span><span class="sum-val">R$ 8,90</span></div>
+      <div class="sum-row"><span class="sum-lbl">Desconto</span><span class="sum-val" style="color:#22c55e;">-R$ 10,00</span></div>
+      <div class="sum-total"><span style="color:#fff;">Total pago</span><span>R$ 240,40</span></div>
+    </div>
+    <div class="rating-prompt">
+      <div class="rp-title">⭐ Avalie depois do evento</div>
+      <div class="rp-stars">★★★★★</div>
+      <div class="rp-hint">Sua avaliação ajuda outros clientes</div>
+    </div>
+    <div class="support-btn">❓ Precisa de ajuda? Fale conosco</div>
+  </div>
+</div>
+</body>
+</html>

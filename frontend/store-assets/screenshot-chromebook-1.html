@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Tech Churras — Home Discovery</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1920px;height:1080px;overflow:hidden;background:#0a0a0a;font-family:system-ui,sans-serif;color:#fff;}
+
+  /* HEADER */
+  .hdr{height:68px;background:#0f0f0f;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;padding:0 40px;gap:28px;}
+  .logo{font-size:26px;font-weight:900;color:#FF6B00;white-space:nowrap;}
+  .logo em{color:#FFD700;font-style:normal;}
+  .loc{display:flex;align-items:center;gap:8px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:10px;padding:8px 16px;font-size:14px;color:#888;white-space:nowrap;}
+  .loc strong{color:#fff;}
+  .search{flex:1;max-width:680px;background:#1a1a1a;border:1.5px solid #2a2a2a;border-radius:12px;display:flex;align-items:center;padding:0 20px;gap:10px;height:44px;}
+  .search-ph{font-size:15px;color:#444;}
+  .hdr-right{margin-left:auto;display:flex;align-items:center;gap:14px;}
+  .hdr-link{font-size:14px;color:#888;font-weight:500;white-space:nowrap;}
+  .hdr-link.hi{color:#FF6B00;}
+  .hdr-btn{background:#FF6B00;color:#000;font-size:14px;font-weight:800;padding:9px 22px;border-radius:9px;white-space:nowrap;}
+  .ava{width:40px;height:40px;border-radius:50%;background:#1e1e1e;border:2px solid #FF6B00;display:flex;align-items:center;justify-content:center;font-size:16px;}
+
+  /* LAYOUT */
+  .body{display:flex;height:calc(1080px - 68px);}
+
+  /* SIDEBAR */
+  .sb{width:220px;background:#0d0d0d;border-right:1px solid #1a1a1a;padding:20px 0;flex-shrink:0;}
+  .sb-sec{font-size:10px;color:#444;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:14px 22px 6px;}
+  .sb-item{display:flex;align-items:center;gap:12px;padding:11px 22px;font-size:14px;color:#777;font-weight:500;}
+  .sb-item.on{background:rgba(255,107,0,.1);color:#FF6B00;border-right:3px solid #FF6B00;}
+  .sb-icon{font-size:18px;width:22px;text-align:center;}
+  .sb-badge{margin-left:auto;background:#FF6B00;color:#000;font-size:11px;font-weight:800;padding:2px 7px;border-radius:50px;}
+
+  /* CONTENT */
+  .ct{flex:1;padding:24px 32px;overflow:hidden;}
+  .ct-hdr{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;}
+  .ct-title{font-size:22px;font-weight:900;color:#fff;}
+  .ct-sub{font-size:13px;color:#555;margin-top:3px;}
+  .chips{display:flex;gap:8px;}
+  .chip{padding:7px 16px;border-radius:50px;font-size:13px;font-weight:700;border:1.5px solid #2a2a2a;color:#888;}
+  .chip.on{background:#FF6B00;color:#000;border-color:#FF6B00;}
+
+  /* STATS */
+  .stats{display:flex;gap:12px;margin-bottom:18px;}
+  .sc{flex:1;background:#141414;border:1.5px solid #1e1e1e;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+  .sc-icon{font-size:24px;}
+  .sc-v{font-size:22px;font-weight:900;color:#FF6B00;line-height:1;}
+  .sc-l{font-size:11px;color:#666;margin-top:2px;}
+
+  /* GRID 4 COL */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+  .card{background:#141414;border:1.5px solid #1e1e1e;border-radius:16px;overflow:hidden;}
+  .card.ft{border-color:rgba(255,107,0,.35);}
+  .ci{height:110px;display:flex;align-items:center;justify-content:center;font-size:44px;position:relative;}
+  .ci1{background:linear-gradient(135deg,#1e0800,#2d1200);}
+  .ci2{background:linear-gradient(135deg,#001e08,#002d12);}
+  .ci3{background:linear-gradient(135deg,#0a001e,#12002d);}
+  .ci4{background:linear-gradient(135deg,#1e1800,#2d2200);}
+  .ci5{background:linear-gradient(135deg,#001e1e,#002d2d);}
+  .ci6{background:linear-gradient(135deg,#1e0018,#2d0024);}
+  .ci7{background:linear-gradient(135deg,#181e00,#222d00);}
+  .ci8{background:linear-gradient(135deg,#0e0e0e,#1a1a1a);}
+  .cb-top{position:absolute;top:8px;right:8px;font-size:10px;font-weight:800;padding:3px 8px;border-radius:50px;white-space:nowrap;}
+  .cb-gold{background:#FFD700;color:#000;}
+  .cb-green{background:#22c55e;color:#000;}
+  .cb-open{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.35);}
+  .cd{padding:12px 14px;}
+  .cn{font-size:15px;font-weight:800;color:#fff;margin-bottom:3px;}
+  .cty{font-size:12px;color:#FF6B00;font-weight:600;margin-bottom:8px;}
+  .cm{display:flex;gap:6px;flex-wrap:wrap;}
+  .mt{display:flex;align-items:center;gap:4px;background:#1e1e1e;border-radius:50px;padding:4px 8px;font-size:11px;color:#aaa;}
+  .mt.g{color:#FFD700;}
+  .cf{padding:8px 14px 12px;border-top:1px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;}
+  .cp{font-size:12px;color:#888;}
+  .cp strong{color:#fff;font-size:14px;}
+  .cbtn{background:rgba(255,107,0,.12);border:1px solid rgba(255,107,0,.3);color:#FF6B00;font-size:12px;font-weight:700;padding:5px 12px;border-radius:7px;}
+
+  /* CAROUSEL */
+  .car-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .car-title{font-size:17px;font-weight:800;color:#fff;}
+  .car-link{font-size:13px;color:#FF6B00;font-weight:600;}
+  .car-row{display:flex;gap:12px;}
+  .gcard{width:200px;flex-shrink:0;background:#141414;border:1.5px solid #1e1e1e;border-radius:14px;overflow:hidden;}
+  .gi{height:80px;display:flex;align-items:center;justify-content:center;font-size:36px;}
+  .gi1{background:linear-gradient(135deg,#1e0800,#2d1200);}
+  .gi2{background:linear-gradient(135deg,#001e08,#002d12);}
+  .gi3{background:linear-gradient(135deg,#0a001e,#12002d);}
+  .gi4{background:linear-gradient(135deg,#1e1800,#2d2200);}
+  .gi5{background:linear-gradient(135deg,#001e1e,#002d2d);}
+  .gb{padding:10px 12px;}
+  .gn{font-size:13px;font-weight:800;color:#fff;margin-bottom:2px;}
+  .gs{font-size:11px;color:#FFD700;}
+  .gp{font-size:12px;color:#888;margin-top:4px;}
+
+  /* RIGHT PANEL */
+  .rp{width:280px;background:#0d0d0d;border-left:1px solid #1a1a1a;padding:22px 20px;flex-shrink:0;display:flex;flex-direction:column;gap:16px;}
+  .rp-title{font-size:15px;font-weight:800;color:#fff;margin-bottom:10px;}
+  .promo-card{background:linear-gradient(135deg,rgba(255,107,0,.12),rgba(255,107,0,.05));border:1.5px solid rgba(255,107,0,.3);border-radius:14px;padding:16px;}
+  .promo-badge{background:#FF6B00;color:#000;font-size:11px;font-weight:900;padding:4px 10px;border-radius:50px;display:inline-block;margin-bottom:8px;}
+  .promo-title{font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;}
+  .promo-desc{font-size:12px;color:#888;line-height:1.5;}
+  .promo-code{background:#1a1a1a;border:1px dashed #FF6B00;color:#FF6B00;font-size:13px;font-weight:800;padding:8px 12px;border-radius:8px;text-align:center;margin-top:10px;letter-spacing:1px;}
+  .act-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1a1a1a;}
+  .act-item:last-child{border-bottom:none;}
+  .act-icon{width:32px;height:32px;border-radius:50%;background:#1e1e1e;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .act-txt{font-size:12px;color:#888;flex:1;line-height:1.4;}
+  .act-time{font-size:11px;color:#444;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="logo">Tech <em>Churras</em></div>
+  <div class="loc">📍 <strong>São Paulo, SP</strong></div>
+  <div class="search"><span style="font-size:18px;color:#555;">🔍</span><span class="search-ph">Buscar açougue, produto ou churrasqueiro...</span></div>
+  <div class="hdr-right">
+    <span class="hdr-link hi">Açougues</span>
+    <span class="hdr-link">Churrasqueiros</span>
+    <span class="hdr-link">Kit IA</span>
+    <span class="hdr-link">Pedidos</span>
+    <div class="hdr-btn">+ Pedir agora</div>
+    <div class="ava">👤</div>
+  </div>
+</div>
+
+<div class="body">
+  <div class="sb">
+    <div class="sb-sec">Categorias</div>
+    <div class="sb-item on"><span class="sb-icon">🥩</span>Açougues<span class="sb-badge">24</span></div>
+    <div class="sb-item"><span class="sb-icon">🔥</span>Churrasqueiros</div>
+    <div class="sb-item"><span class="sb-icon">📦</span>Combos</div>
+    <div class="sb-item"><span class="sb-icon">✨</span>Kit IA</div>
+    <div class="sb-item"><span class="sb-icon">🏷️</span>Promoções</div>
+    <div class="sb-sec">Filtros</div>
+    <div class="sb-item"><span class="sb-icon">⭐</span>Avaliação 4.5+</div>
+    <div class="sb-item"><span class="sb-icon">📍</span>Até 5 km</div>
+    <div class="sb-item"><span class="sb-icon">✓</span>Aberto agora</div>
+    <div class="sb-item"><span class="sb-icon">🚚</span>Entrega grátis</div>
+    <div class="sb-sec">Sua conta</div>
+    <div class="sb-item"><span class="sb-icon">📋</span>Meus pedidos</div>
+    <div class="sb-item"><span class="sb-icon">❤️</span>Favoritos</div>
+    <div class="sb-item"><span class="sb-icon">👤</span>Perfil</div>
+  </div>
+
+  <div class="ct">
+    <div class="ct-hdr">
+      <div><div class="ct-title">Açougues parceiros em São Paulo</div><div class="ct-sub">24 estabelecimentos encontrados · ordenados por proximidade</div></div>
+      <div class="chips">
+        <div class="chip on">Todos</div>
+        <div class="chip">Mais próximos</div>
+        <div class="chip">Melhor avaliados</div>
+        <div class="chip">Entrega rápida</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="sc"><span class="sc-icon">🥩</span><div><div class="sc-v">24</div><div class="sc-l">Parceiros ativos</div></div></div>
+      <div class="sc"><span class="sc-icon">⭐</span><div><div class="sc-v">4.9</div><div class="sc-l">Avaliação média</div></div></div>
+      <div class="sc"><span class="sc-icon">⏱</span><div><div class="sc-v">22 min</div><div class="sc-l">Entrega média</div></div></div>
+      <div class="sc"><span class="sc-icon">🔥</span><div><div class="sc-v">1.800+</div><div class="sc-l">Eventos realizados</div></div></div>
+    </div>
+
+    <div class="grid4">
+      <div class="card ft"><div class="ci ci1">🥩<div class="cb-top cb-gold">⭐ Fundador</div></div><div class="cd"><div class="cn">SP Prime Cuts</div><div class="cty">Boutique de Carnes</div><div class="cm"><div class="mt g">★ 4.9</div><div class="mt">📍 1,2 km</div><div class="mt cb-open">● Aberto</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 45/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card ft"><div class="ci ci2">🔪<div class="cb-top cb-gold">⭐ Fundador</div></div><div class="cd"><div class="cn">Boutique Albuquerque</div><div class="cty">Cortes Especiais</div><div class="cm"><div class="mt g">★ 5.0</div><div class="mt">📍 2,8 km</div><div class="mt cb-open">● Aberto</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 62/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card ft"><div class="ci ci3">🍖<div class="cb-top cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Carnes Nobre SP</div><div class="cty">Carnes & Embutidos</div><div class="cm"><div class="mt g">★ 4.8</div><div class="mt">📍 3,5 km</div><div class="mt cb-open">● Aberto</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 38/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci4">🫀<div class="cb-top cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Açougue Central</div><div class="cty">Tradicional Premium</div><div class="cm"><div class="mt g">★ 4.7</div><div class="mt">📍 4,1 km</div><div class="mt cb-open">● Aberto</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 32/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci5">🌭<div class="cb-top cb-gold">⭐ Fundador</div></div><div class="cd"><div class="cn">Casa dos Embutidos</div><div class="cty">Linguiças Artesanais</div><div class="cm"><div class="mt g">★ 4.9</div><div class="mt">📍 5,0 km</div><div class="mt">⏱ 50 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 28/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci6">🥇<div class="cb-top" style="background:#a78bfa;color:#fff;">🌍 Zanzibar</div></div><div class="cd"><div class="cn">Bahari Prime Cuts</div><div class="cty">Seleção Internacional</div><div class="cm"><div class="mt g">★ 5.0</div><div class="mt">📍 6,2 km</div><div class="mt">⏱ 55 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 89/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci7">🐄<div class="cb-top cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Frigorífico Vila Nova</div><div class="cty">Atacado & Varejo</div><div class="cm"><div class="mt g">★ 4.6</div><div class="mt">📍 7,3 km</div><div class="mt">⏱ 60 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 29/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci8">🍗<div class="cb-top cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Aves & Carnes SP</div><div class="cty">Frangos & Cortes</div><div class="cm"><div class="mt g">★ 4.7</div><div class="mt">📍 8,1 km</div><div class="mt">⏱ 65 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 22/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+    </div>
+
+    <div class="car-hdr">
+      <div class="car-title">🔥 Churrasqueiros em destaque</div>
+      <div class="car-link">Ver todos →</div>
+    </div>
+    <div class="car-row">
+      <div class="gcard"><div class="gi gi1">👨‍🍳</div><div class="gb"><div class="gn">Carlos Mendes</div><div class="gs">★★★★★ 4.9</div><div class="gp">380 eventos · R$ 350+</div></div></div>
+      <div class="gcard"><div class="gi gi2">🧑‍🍳</div><div class="gb"><div class="gn">Rafael Costa</div><div class="gs">★★★★★ 4.8</div><div class="gp">320 eventos · R$ 300+</div></div></div>
+      <div class="gcard"><div class="gi gi3">👩‍🍳</div><div class="gb"><div class="gn">Beatriz Souza</div><div class="gs">★★★★★ 4.9</div><div class="gp">210 eventos · R$ 320+</div></div></div>
+      <div class="gcard"><div class="gi gi4">🧔</div><div class="gb"><div class="gn">Marcos Lima</div><div class="gs">★★★★☆ 4.7</div><div class="gp">180 eventos · R$ 280+</div></div></div>
+      <div class="gcard"><div class="gi gi5">👱</div><div class="gb"><div class="gn">Pedro Alves</div><div class="gs">★★★★★ 4.9</div><div class="gp">290 eventos · R$ 350+</div></div></div>
+    </div>
+  </div>
+
+  <div class="rp">
+    <div>
+      <div class="rp-title">🏷️ Promoção especial</div>
+      <div class="promo-card">
+        <div class="promo-badge">🔥 Hoje só</div>
+        <div class="promo-title">Frete grátis no primeiro pedido</div>
+        <div class="promo-desc">Para novos usuários em açougues parceiros fundadores</div>
+        <div class="promo-code">TECHCHURRAS10</div>
+      </div>
+    </div>
+    <div>
+      <div class="rp-title">📡 Atividade recente</div>
+      <div class="act-item"><div class="act-icon">🛒</div><div class="act-txt"><strong style="color:#fff;">Pedro S.</strong> fez pedido no SP Prime</div><div class="act-time">2 min</div></div>
+      <div class="act-item"><div class="act-icon">⭐</div><div class="act-txt"><strong style="color:#fff;">Ana P.</strong> avaliou Boutique Albuquerque</div><div class="act-time">8 min</div></div>
+      <div class="act-item"><div class="act-icon">🔥</div><div class="act-txt"><strong style="color:#fff;">Carlos M.</strong> aceitou pedido de evento</div><div class="act-time">15 min</div></div>
+      <div class="act-item"><div class="act-icon">🥩</div><div class="act-txt"><strong style="color:#fff;">Marcos T.</strong> pediu Kit IA para 40 pax</div><div class="act-time">22 min</div></div>
+      <div class="act-item"><div class="act-icon">✓</div><div class="act-txt"><strong style="color:#fff;">Novo açougue</strong> entrou na plataforma</div><div class="act-time">1h</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

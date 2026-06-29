@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Tech Churras XR — Evento ao Vivo</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1280px;height:720px;overflow:hidden;background:#0a0a0a;font-family:system-ui,sans-serif;color:#fff;}
+
+  @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,107,0,.4);}50%{opacity:.8;box-shadow:0 0 0 8px rgba(255,107,0,0);}}
+  @keyframes ripple{0%{transform:scale(1);opacity:.6;}100%{transform:scale(2.5);opacity:0;}}
+  @keyframes blink{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  .bg{position:absolute;inset:0;background:radial-gradient(ellipse 100% 80% at 50% 100%,#1a0800 0%,#0a0a0a 55%);}
+  .bg-grid{position:absolute;inset:0;background:linear-gradient(rgba(255,107,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,.04) 1px,transparent 1px);background-size:40px 40px;}
+  .edge-glow-l{position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,transparent,rgba(255,107,0,.4),rgba(255,107,0,.6),rgba(255,107,0,.4),transparent);}
+  .edge-glow-r{position:absolute;right:0;top:0;bottom:0;width:4px;background:linear-gradient(180deg,transparent,rgba(255,107,0,.4),rgba(255,107,0,.6),rgba(255,107,0,.4),transparent);}
+
+  /* HEADER */
+  .hdr{position:relative;z-index:10;display:flex;align-items:center;padding:12px 40px;gap:16px;}
+  .back{font-size:13px;color:#888;}
+  .logo{font-size:18px;font-weight:900;color:#FF6B00;}
+  .logo em{color:#FFD700;font-style:normal;}
+  .order-id{font-size:11px;color:#555;}
+  .order-id span{color:#FF6B00;font-weight:700;}
+
+  /* LIVE BANNER */
+  .live-banner{position:relative;z-index:10;margin:0 40px 0;
+    background:linear-gradient(135deg,rgba(255,107,0,.18),rgba(255,107,0,.06));
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,107,0,.4);border-radius:16px;
+    padding:14px 24px;display:flex;align-items:center;gap:20px;
+    box-shadow:0 0 30px rgba(255,107,0,.1);}
+  .live-dot-wrap{position:relative;width:16px;height:16px;flex-shrink:0;}
+  .live-dot{width:16px;height:16px;border-radius:50%;background:#FF6B00;animation:blink 1s infinite;}
+  .live-ripple{position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,107,0,.4);animation:ripple 1.5s infinite;}
+  .live-label{font-size:14px;font-weight:900;color:#FF6B00;}
+  .live-sub{font-size:12px;color:#aaa;flex:1;}
+  .live-eta{background:#FF6B00;color:#000;font-size:16px;font-weight:900;padding:8px 14px;border-radius:10px;text-align:center;flex-shrink:0;box-shadow:0 0 16px rgba(255,107,0,.4);}
+  .live-eta-lbl{font-size:10px;font-weight:600;opacity:.7;}
+
+  /* MAIN */
+  .main{position:relative;z-index:5;display:flex;gap:0;height:calc(720px - 54px - 62px);padding:12px 40px 0;}
+
+  /* LEFT — TIMELINE */
+  .tl-col{width:280px;flex-shrink:0;padding-right:20px;display:flex;flex-direction:column;gap:10px;}
+  .tl-title{font-size:13px;font-weight:800;color:#fff;margin-bottom:6px;}
+
+  /* TIMELINE HORIZONTAL */
+  .tl-horiz{display:flex;align-items:flex-start;gap:0;margin-bottom:14px;}
+  .tl-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .tl-connector{flex:1;height:2px;margin-top:15px;}
+  .tl-c-done{background:#FF6B00;}
+  .tl-c-pending{background:#1e1e1e;}
+  .tl-dot{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;flex-shrink:0;}
+  .td-done{background:#FF6B00;color:#000;}
+  .td-active{background:rgba(255,107,0,.2);border:2px solid #FF6B00;color:#FF6B00;animation:pulse 1.5s infinite;}
+  .td-pending{background:#1a1a1a;border:2px solid #2a2a2a;color:#444;}
+  .tl-label{font-size:10px;text-align:center;line-height:1.3;}
+  .tl-l-done{color:#888;}
+  .tl-l-active{color:#FF6B00;font-weight:700;}
+  .tl-l-pending{color:#333;}
+
+  .detail-card{background:rgba(255,255,255,.04);backdrop-filter:blur(10px);border:1px solid rgba(255,107,0,.2);border-radius:12px;padding:14px;}
+  .dc-step{font-size:16px;font-weight:900;color:#FF6B00;margin-bottom:4px;}
+  .dc-desc{font-size:12px;color:#888;line-height:1.5;margin-bottom:10px;}
+  .dc-progress{height:6px;background:#1e1e1e;border-radius:3px;overflow:hidden;}
+  .dc-progress-fill{height:100%;width:60%;background:linear-gradient(90deg,#FF6B00,#FFD700);border-radius:3px;}
+  .dc-pct{font-size:11px;color:#FF6B00;font-weight:700;margin-top:4px;}
+
+  /* COUNTDOWN */
+  .countdown{background:rgba(20,14,8,.8);backdrop-filter:blur(12px);border:1px solid rgba(255,107,0,.3);border-radius:12px;padding:14px;text-align:center;}
+  .cd-label{font-size:11px;color:#888;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;}
+  .cd-time{display:flex;align-items:center;justify-content:center;gap:8px;}
+  .cd-unit{display:flex;flex-direction:column;align-items:center;}
+  .cd-num{font-size:32px;font-weight:900;color:#FF6B00;line-height:1;}
+  .cd-lbl{font-size:10px;color:#666;}
+  .cd-sep{font-size:24px;color:#FF6B00;font-weight:900;margin-top:-8px;}
+
+  /* CENTER — MAP */
+  .map-col{flex:1;display:flex;flex-direction:column;gap:10px;}
+  .map-hdr{display:flex;align-items:center;justify-content:space-between;}
+  .map-title{font-size:13px;font-weight:800;color:#fff;}
+  .map-live-tag{display:flex;align-items:center;gap:5px;font-size:11px;color:#22c55e;font-weight:700;}
+  .mlive-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:blink 1s infinite;}
+  .map-wrap{flex:1;border-radius:14px;overflow:hidden;position:relative;background:#0d1a0d;}
+  .map-bg-inner{width:100%;height:100%;background:linear-gradient(rgba(255,107,0,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,.04) 1px,transparent 1px),#0a130a;background-size:36px 36px;}
+  .map-pin{position:absolute;font-size:32px;}
+  .map-truck{position:absolute;font-size:30px;top:46%;left:46%;transform:translate(-50%,-50%);}
+  .route-info-map{position:absolute;top:10px;left:10px;background:rgba(10,10,10,.85);backdrop-filter:blur(8px);border:1px solid rgba(255,107,0,.3);border-radius:10px;padding:8px 14px;}
+  .rim-dist{font-size:14px;font-weight:900;color:#FF6B00;}
+  .rim-lbl{font-size:10px;color:#888;}
+  .map-cta{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:#FF6B00;color:#000;font-size:12px;font-weight:800;padding:8px 20px;border-radius:8px;white-space:nowrap;box-shadow:0 0 14px rgba(255,107,0,.4);}
+
+  /* RIGHT */
+  .right-col{width:280px;flex-shrink:0;padding-left:14px;display:flex;flex-direction:column;gap:10px;}
+  .glass{background:rgba(20,14,8,.75);backdrop-filter:blur(14px);border:1px solid rgba(255,107,0,.2);border-radius:12px;padding:12px;}
+
+  .gm-row{display:flex;align-items:center;gap:10px;}
+  .gm-av{width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#2d1200,#1a0800);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid rgba(255,107,0,.3);flex-shrink:0;box-shadow:0 0 12px rgba(255,107,0,.2);}
+  .gm-name{font-size:14px;font-weight:800;color:#fff;}
+  .gm-role{font-size:11px;color:#FF6B00;font-weight:600;}
+  .gm-meta{font-size:10px;color:#888;margin-top:2px;}
+  .chat-btn{margin-left:auto;width:40px;height:40px;border-radius:50%;background:rgba(255,107,0,.12);border:1.5px solid rgba(255,107,0,.3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+
+  .ord-title{font-size:12px;font-weight:800;color:#fff;margin-bottom:8px;}
+  .oi{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+  .oi:last-of-type{border-bottom:none;}
+  .oi-icon{width:28px;height:28px;border-radius:6px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+  .oi-name{font-size:11px;font-weight:700;color:#fff;flex:1;}
+  .oi-qty{font-size:10px;color:#666;}
+  .oi-price{font-size:11px;font-weight:700;color:#FF6B00;}
+  .total-row{display:flex;justify-content:space-between;font-size:13px;font-weight:900;padding-top:8px;border-top:1px solid rgba(255,107,0,.2);}
+  .total-row span{color:#FF6B00;}
+
+  .rating-box{text-align:center;}
+  .rb-title{font-size:12px;font-weight:800;color:#FFD700;margin-bottom:6px;}
+  .rb-stars{font-size:22px;color:#2a2a2a;letter-spacing:3px;}
+  .rb-hint{font-size:10px;color:#555;margin-top:4px;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="bg-grid"></div>
+<div class="edge-glow-l"></div>
+<div class="edge-glow-r"></div>
+
+<div class="hdr">
+  <div class="back">← Meus pedidos</div>
+  <div class="logo">Tech <em>Churras</em></div>
+  <div class="order-id">Pedido <span>#TC-20240623-0042</span></div>
+</div>
+
+<div class="live-banner">
+  <div class="live-dot-wrap"><div class="live-dot"></div><div class="live-ripple"></div></div>
+  <div class="live-label">EVENTO EM ANDAMENTO 🔴 AO VIVO</div>
+  <div class="live-sub">Carlos está na etapa de grelha — seu churrasco está ficando pronto!</div>
+  <div class="live-eta">18 min<div class="live-eta-lbl">para servir</div></div>
+</div>
+
+<div class="main">
+  <!-- TIMELINE COL -->
+  <div class="tl-col">
+    <div class="tl-title">Etapas do evento</div>
+    <div class="tl-horiz">
+      <div class="tl-step">
+        <div class="tl-dot td-done">✓</div>
+        <div class="tl-label tl-l-done">Chegada</div>
+      </div>
+      <div class="tl-connector tl-c-done"></div>
+      <div class="tl-step">
+        <div class="tl-dot td-done">✓</div>
+        <div class="tl-label tl-l-done">Preparo</div>
+      </div>
+      <div class="tl-connector tl-c-done"></div>
+      <div class="tl-step">
+        <div class="tl-dot td-active">🔥</div>
+        <div class="tl-label tl-l-active">Grelha</div>
+      </div>
+      <div class="tl-connector tl-c-pending"></div>
+      <div class="tl-step">
+        <div class="tl-dot td-pending">4</div>
+        <div class="tl-label tl-l-pending">Servindo</div>
+      </div>
+    </div>
+
+    <div class="detail-card">
+      <div class="dc-step">🔥 Etapa 3: Grelha</div>
+      <div class="dc-desc">Carlos está na brasa com a picanha e a costela. Temperatura ideal, ponto perfeito a caminho.</div>
+      <div class="dc-progress"><div class="dc-progress-fill"></div></div>
+      <div class="dc-pct">60% concluído</div>
+    </div>
+
+    <div class="countdown">
+      <div class="cd-label">⏱ Próxima etapa em</div>
+      <div class="cd-time">
+        <div class="cd-unit"><div class="cd-num">00</div><div class="cd-lbl">hrs</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num">18</div><div class="cd-lbl">min</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-unit"><div class="cd-num">42</div><div class="cd-lbl">seg</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div class="map-col">
+    <div class="map-hdr">
+      <div class="map-title">📍 Localização em tempo real</div>
+      <div class="map-live-tag"><div class="mlive-dot"></div>TRANSMISSÃO AO VIVO</div>
+    </div>
+    <div class="map-wrap">
+      <div class="map-bg-inner"></div>
+      <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="46%" cy="48%" r="50" fill="rgba(255,107,0,.05)" stroke="rgba(255,107,0,.15)" stroke-width="1"/>
+        <circle cx="46%" cy="48%" r="80" fill="none" stroke="rgba(255,107,0,.08)" stroke-width="1" stroke-dasharray="6,6"/>
+        <path d="M 160 180 Q 300 160 420 220 Q 480 248 520 260" stroke="#FF6B00" stroke-width="3" stroke-dasharray="10,8" fill="none" opacity=".7"/>
+      </svg>
+      <div class="map-pin" style="top:20%;left:18%;">🏠</div>
+      <div class="map-truck">🔥</div>
+      <div class="map-pin" style="bottom:25%;right:20%;">📍</div>
+      <div class="route-info-map"><div class="rim-dist">No local!</div><div class="rim-lbl">Carlos está no evento</div></div>
+      <div class="map-cta">📍 Acompanhar no mapa</div>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-col">
+    <div class="glass">
+      <div class="gm-row">
+        <div class="gm-av">👨‍🍳</div>
+        <div>
+          <div class="gm-name">Carlos Mendes</div>
+          <div class="gm-role">🔥 Grillmaster · Chancela Albuquerque</div>
+          <div class="gm-meta">⭐ 4.9 · 380 eventos</div>
+        </div>
+        <div class="chat-btn">💬</div>
+      </div>
+    </div>
+
+    <div class="glass">
+      <div class="ord-title">📋 Resumo do pedido</div>
+      <div class="oi"><div class="oi-icon">🥩</div><div><div class="oi-name">Picanha 1kg</div><div class="oi-qty">1× R$ 89,90</div></div><div class="oi-price">R$ 89,90</div></div>
+      <div class="oi"><div class="oi-icon">🍖</div><div><div class="oi-name">Costela 2kg</div><div class="oi-qty">2× R$ 54,90</div></div><div class="oi-price">R$ 109,80</div></div>
+      <div class="oi"><div class="oi-icon">🌭</div><div><div class="oi-name">Linguiça 500g</div><div class="oi-qty">1× R$ 28,90</div></div><div class="oi-price">R$ 28,90</div></div>
+      <div class="oi"><div class="oi-icon">🧂</div><div><div class="oi-name">Tempero especial</div><div class="oi-qty">1× R$ 12,90</div></div><div class="oi-price">R$ 12,90</div></div>
+      <div class="total-row"><span>Total pago</span><span>R$ 240,40</span></div>
+    </div>
+
+    <div class="glass rating-box">
+      <div class="rb-title">⭐ Avalie o evento depois</div>
+      <div class="rb-stars">★★★★★</div>
+      <div class="rb-hint">Sua avaliação ajuda outros clientes a escolher</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

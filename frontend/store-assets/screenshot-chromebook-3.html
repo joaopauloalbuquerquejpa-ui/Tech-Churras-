@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Tech Churras — Perfil Churrasqueiro</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1920px;height:1080px;overflow:hidden;background:#0a0a0a;font-family:system-ui,sans-serif;color:#fff;}
+
+  .hdr{height:60px;background:#0f0f0f;border-bottom:1px solid #1e1e1e;display:flex;align-items:center;padding:0 40px;gap:20px;}
+  .back{font-size:14px;color:#888;}
+  .logo{font-size:22px;font-weight:900;color:#FF6B00;}
+  .logo em{color:#FFD700;font-style:normal;}
+  .bread{font-size:13px;color:#555;}
+  .bread span{color:#FF6B00;}
+  .hdr-r{margin-left:auto;display:flex;align-items:center;gap:12px;}
+  .share{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;font-size:13px;font-weight:600;padding:7px 16px;border-radius:8px;}
+  .fav{background:#1a1a1a;border:1px solid #2a2a2a;color:#888;font-size:18px;padding:7px 12px;border-radius:8px;}
+  .ava{width:36px;height:36px;border-radius:50%;background:#1e1e1e;border:2px solid #FF6B00;display:flex;align-items:center;justify-content:center;font-size:14px;}
+
+  .body{display:flex;height:calc(1080px - 60px);}
+
+  /* LEFT — photo */
+  .photo-col{width:340px;flex-shrink:0;background:linear-gradient(160deg,#1e0800,#2d1200,#0a0a0a);position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:0;}
+  .photo-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(255,107,0,.2),transparent 65%);}
+  .photo-box{width:280px;height:520px;background:linear-gradient(180deg,#3d1a00,#1a0800);border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:center;font-size:140px;border:2px solid rgba(255,107,0,.35);border-bottom:none;position:relative;z-index:1;}
+  .photo-badges{position:absolute;top:24px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:2;}
+  .chancela{background:linear-gradient(90deg,#FF6B00,#FFD700);color:#000;font-size:13px;font-weight:900;padding:7px 18px;border-radius:50px;letter-spacing:.5px;}
+  .verified{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#22c55e;font-size:12px;font-weight:700;padding:5px 14px;border-radius:50px;}
+
+  /* CENTER */
+  .info-col{flex:1;padding:28px 32px;overflow:hidden;border-right:1px solid #1a1a1a;display:flex;flex-direction:column;gap:18px;}
+  .name{font-size:42px;font-weight:900;color:#fff;line-height:1.05;}
+  .title{font-size:17px;color:#FF6B00;font-weight:700;margin-top:4px;}
+  .rating-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .stars{font-size:22px;color:#FFD700;}
+  .rval{font-size:24px;font-weight:900;color:#fff;}
+  .rmeta{font-size:14px;color:#666;}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .sbox{background:#141414;border:1.5px solid #1e1e1e;border-radius:11px;padding:12px 14px;text-align:center;}
+  .sv{font-size:22px;font-weight:900;color:#FF6B00;line-height:1;}
+  .sl{font-size:11px;color:#666;margin-top:3px;text-transform:uppercase;letter-spacing:.4px;}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;}
+  .badge{padding:6px 14px;border-radius:50px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;}
+  .bo{background:rgba(255,107,0,.12);color:#FF6B00;border:1px solid rgba(255,107,0,.3);}
+  .bg{background:rgba(255,215,0,.1);color:#FFD700;border:1px solid rgba(255,215,0,.3);}
+  .bp{background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.3);}
+  .bgreen{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+
+  .srv-title{font-size:16px;font-weight:800;color:#fff;margin-bottom:10px;}
+  .srv-list{display:flex;flex-direction:column;gap:8px;}
+  .srv{background:#141414;border:1.5px solid #1e1e1e;border-radius:11px;padding:13px 16px;display:flex;align-items:center;gap:12px;}
+  .srv.hi{border-color:rgba(255,107,0,.3);background:rgba(255,107,0,.05);}
+  .srv-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+  .srv-name{font-size:14px;font-weight:700;color:#fff;flex:1;}
+  .srv-desc{font-size:12px;color:#666;}
+  .srv-pop{background:#FF6B00;color:#000;font-size:10px;font-weight:800;padding:2px 7px;border-radius:50px;flex-shrink:0;}
+  .srv-price{font-size:16px;font-weight:900;color:#FF6B00;flex-shrink:0;}
+
+  .gal-title{font-size:16px;font-weight:800;color:#fff;margin-bottom:10px;}
+  .gal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .gal-item{border-radius:10px;overflow:hidden;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;font-size:28px;}
+  .g1{background:linear-gradient(135deg,#1e0800,#2d1200);}
+  .g2{background:linear-gradient(135deg,#001e08,#002d12);}
+  .g3{background:linear-gradient(135deg,#0a001e,#12002d);}
+  .g4{background:linear-gradient(135deg,#1e1800,#2d2200);}
+  .g5{background:linear-gradient(135deg,#001e1e,#002d2d);}
+  .g6{background:linear-gradient(135deg,#1e0018,#2d0024);}
+
+  /* RIGHT */
+  .right-col{width:300px;flex-shrink:0;padding:24px 22px;display:flex;flex-direction:column;gap:16px;}
+  .price-box{background:#141414;border:1.5px solid #1e1e1e;border-radius:14px;padding:18px;}
+  .pb-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:14px;}
+  .pb-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #1a1a1a;font-size:13px;}
+  .pb-row:last-child{border-bottom:none;}
+  .pb-lbl{color:#888;}
+  .pb-val{color:#fff;font-weight:700;}
+  .pb-val.hi{color:#FF6B00;font-size:16px;}
+  .avail-box{background:linear-gradient(135deg,rgba(255,107,0,.1),rgba(255,107,0,.05));border:1.5px solid rgba(255,107,0,.25);border-radius:14px;padding:16px;}
+  .ab-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:12px;}
+  .cal-mini{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:10px;}
+  .cd{height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+  .cd.av{background:rgba(255,107,0,.15);color:#FF6B00;}
+  .cd.bk{background:#1a1a1a;color:#444;}
+  .cd.td{background:#FF6B00;color:#000;}
+  .next-slot{font-size:13px;color:#aaa;display:flex;align-items:center;gap:6px;}
+  .next-slot strong{color:#22c55e;}
+  .cta-box{margin-top:auto;display:flex;flex-direction:column;gap:10px;}
+  .btn-main{background:linear-gradient(90deg,#FF6B00,#ff8c00);color:#000;font-size:16px;font-weight:900;padding:14px;border-radius:11px;text-align:center;}
+  .btn-sec{background:transparent;border:2px solid rgba(255,107,0,.4);color:#FF6B00;font-size:14px;font-weight:700;padding:11px;border-radius:11px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="back">← Voltar</div>
+  <div class="logo">Tech <em>Churras</em></div>
+  <div class="bread">Churrasqueiros › São Paulo › <span>Carlos Mendes</span></div>
+  <div class="hdr-r"><div class="share">🔗 Compartilhar</div><div class="fav">♡</div><div class="ava">👤</div></div>
+</div>
+
+<div class="body">
+  <div class="photo-col">
+    <div class="photo-glow"></div>
+    <div class="photo-badges">
+      <div class="chancela">🔥 Chancelado Tech Churras</div>
+      <div class="verified">✓ Identidade verificada</div>
+    </div>
+    <div class="photo-box">👨‍🍳</div>
+  </div>
+
+  <div class="info-col">
+    <div>
+      <div class="name">Carlos Mendes</div>
+      <div class="title">Grillmaster Premium · São Paulo, SP</div>
+    </div>
+    <div class="rating-row">
+      <div class="stars">★★★★★</div>
+      <div class="rval">4.9</div>
+      <div class="rmeta">127 avaliações · 380 atendimentos realizados</div>
+    </div>
+    <div class="stats">
+      <div class="sbox"><div class="sv">380+</div><div class="sl">Eventos</div></div>
+      <div class="sbox"><div class="sv">8 anos</div><div class="sl">Exp.</div></div>
+      <div class="sbox"><div class="sv">4.9★</div><div class="sl">Nota</div></div>
+      <div class="sbox"><div class="sv">100%</div><div class="sl">Pontual</div></div>
+    </div>
+    <div class="badges">
+      <div class="badge bo">🏆 Certificado Tech Churras</div>
+      <div class="badge bg">🌍 Treinado em Zanzibar</div>
+      <div class="badge bp">✨ Top Grillmaster 2024</div>
+      <div class="badge bgreen">✓ Verificado</div>
+      <div class="badge bo">🥩 Cortes Nobres</div>
+    </div>
+    <div>
+      <div class="srv-title">Serviços oferecidos</div>
+      <div class="srv-list">
+        <div class="srv hi"><span class="srv-icon">🔥</span><div><div class="srv-name">Churrasco Completo até 30 pax</div><div class="srv-desc">Inclui equipamento, montagem e desmontagem</div></div><div class="srv-pop">+ pedido</div><div class="srv-price">R$ 350</div></div>
+        <div class="srv"><span class="srv-icon">🥩</span><div><div class="srv-name">Churrasco Completo até 60 pax</div><div class="srv-desc">Inclui equipamento profissional</div></div><div class="srv-price">R$ 550</div></div>
+        <div class="srv"><span class="srv-icon">🍖</span><div><div class="srv-name">Rodízio Premium</div><div class="srv-desc">Cortes ilimitados por pessoa</div></div><div class="srv-price">R$ 85/pax</div></div>
+        <div class="srv"><span class="srv-icon">🏢</span><div><div class="srv-name">Evento Corporativo até 100 pax</div><div class="srv-desc">Para confraternizações e eventos de empresa</div></div><div class="srv-price">R$ 800</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="gal-title">📸 Galeria de eventos</div>
+      <div class="gal-grid">
+        <div class="gal-item g1">🔥</div>
+        <div class="gal-item g2">🥩</div>
+        <div class="gal-item g3">🍖</div>
+        <div class="gal-item g4">🌭</div>
+        <div class="gal-item g5">🍗</div>
+        <div class="gal-item g6">🎉</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="price-box">
+      <div class="pb-title">💰 Valores</div>
+      <div class="pb-row"><span class="pb-lbl">Até 30 pax</span><span class="pb-val hi">R$ 350</span></div>
+      <div class="pb-row"><span class="pb-lbl">Até 60 pax</span><span class="pb-val">R$ 550</span></div>
+      <div class="pb-row"><span class="pb-lbl">Até 100 pax</span><span class="pb-val">R$ 800</span></div>
+      <div class="pb-row"><span class="pb-lbl">Hora adicional</span><span class="pb-val">R$ 120/h</span></div>
+      <div class="pb-row"><span class="pb-lbl">Equipamento</span><span class="pb-val" style="color:#22c55e;">✓ Incluso</span></div>
+    </div>
+    <div class="avail-box">
+      <div class="ab-title">📅 Disponibilidade — Julho</div>
+      <div class="cal-mini">
+        <div class="cd bk">1</div><div class="cd av">2</div><div class="cd av">3</div><div class="cd bk">4</div><div class="cd bk">5</div><div class="cd av">6</div><div class="cd av">7</div>
+        <div class="cd av">8</div><div class="cd bk">9</div><div class="cd bk">10</div><div class="cd av">11</div><div class="cd av">12</div><div class="cd td">13</div><div class="cd bk">14</div>
+        <div class="cd av">15</div><div class="cd av">16</div><div class="cd bk">17</div><div class="cd av">18</div><div class="cd bk">19</div><div class="cd av">20</div><div class="cd av">21</div>
+      </div>
+      <div class="next-slot">📅 Próximo: <strong>Amanhã, 14 de julho</strong></div>
+    </div>
+    <div class="cta-box">
+      <div class="btn-main">🔥 Agendar agora</div>
+      <div class="btn-sec">💬 Enviar mensagem</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

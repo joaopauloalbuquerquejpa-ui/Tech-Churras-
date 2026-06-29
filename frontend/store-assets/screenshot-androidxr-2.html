@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Tech Churras XR — Produto</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1280px;height:720px;overflow:hidden;background:#0a0a0a;font-family:system-ui,sans-serif;color:#fff;}
+
+  .bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 70% at 35% 50%,#1e0800 0%,#0a0a0a 65%);}
+  .bg-grid{position:absolute;inset:0;background:linear-gradient(rgba(255,107,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,.03) 1px,transparent 1px);background-size:36px 36px;}
+
+  .hdr{position:relative;z-index:10;display:flex;align-items:center;padding:16px 40px;gap:16px;}
+  .back{font-size:13px;color:#888;display:flex;align-items:center;gap:6px;}
+  .logo{font-size:18px;font-weight:900;color:#FF6B00;}
+  .logo em{color:#FFD700;font-style:normal;}
+  .bread{font-size:12px;color:#555;}
+  .bread span{color:#FF6B00;}
+  .hdr-r{margin-left:auto;display:flex;gap:10px;}
+  .fav{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#888;font-size:16px;padding:7px 11px;border-radius:8px;}
+  .share{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#888;font-size:12px;padding:7px 14px;border-radius:8px;}
+
+  /* MAIN LAYOUT */
+  .main{position:relative;z-index:5;display:flex;gap:32px;padding:0 40px;height:calc(720px - 64px);}
+
+  /* LEFT — BIG PRODUCT */
+  .prod-main{width:380px;flex-shrink:0;display:flex;flex-direction:column;gap:16px;}
+  .prod-img{flex:1;max-height:280px;background:linear-gradient(135deg,#2a1a0a,#1a0e05);
+    border-radius:20px;display:flex;align-items:center;justify-content:center;
+    font-size:110px;border:1px solid rgba(255,107,0,.3);
+    box-shadow:0 0 40px rgba(255,107,0,.15),inset 0 1px 0 rgba(255,255,255,.05);
+    position:relative;overflow:hidden;}
+  .prod-img-glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 80%,rgba(255,107,0,.15),transparent 60%);}
+  .prod-origin{position:absolute;top:14px;left:14px;
+    background:rgba(10,10,10,.8);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,215,0,.3);color:#FFD700;font-size:11px;font-weight:700;
+    padding:5px 12px;border-radius:50px;}
+  .prod-info{background:rgba(20,14,8,.7);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,107,0,.2);border-radius:16px;padding:20px;}
+  .prod-name{font-size:28px;font-weight:900;color:#fff;margin-bottom:4px;}
+  .prod-sub{font-size:13px;color:#888;margin-bottom:14px;}
+  .prod-price-row{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;}
+  .prod-price{font-size:36px;font-weight:900;color:#FF6B00;}
+  .prod-price-unit{font-size:14px;color:#666;}
+  .prod-old{font-size:16px;color:#444;text-decoration:line-through;}
+  .prod-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .pb{padding:5px 12px;border-radius:50px;font-size:11px;font-weight:700;}
+  .pb-o{background:rgba(255,107,0,.12);color:#FF6B00;border:1px solid rgba(255,107,0,.3);}
+  .pb-g{background:rgba(255,215,0,.1);color:#FFD700;border:1px solid rgba(255,215,0,.3);}
+  .pb-green{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+  .qty-row{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .qty-lbl{font-size:13px;color:#888;}
+  .qty-ctrl{display:flex;align-items:center;gap:0;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;overflow:hidden;}
+  .qty-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#FF6B00;font-weight:900;cursor:pointer;}
+  .qty-val{width:40px;text-align:center;font-size:15px;font-weight:700;color:#fff;}
+  .qty-unit{font-size:13px;color:#666;}
+  .add-btn{width:100%;background:linear-gradient(90deg,#FF6B00,#ff8c00);color:#000;font-size:15px;font-weight:900;padding:14px;border-radius:12px;text-align:center;box-shadow:0 0 20px rgba(255,107,0,.35);}
+
+  /* CENTER — DETAILS */
+  .details{flex:1;display:flex;flex-direction:column;gap:14px;overflow:hidden;}
+  .det-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:8px;}
+
+  .nutri-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:4px;}
+  .nutri-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px;text-align:center;}
+  .nv{font-size:16px;font-weight:900;color:#FF6B00;}
+  .nl{font-size:10px;color:#666;margin-top:2px;}
+
+  .desc-text{font-size:13px;color:#888;line-height:1.7;}
+
+  .related-title{font-size:14px;font-weight:800;color:#fff;margin-bottom:8px;}
+  .rel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .rc{background:rgba(20,20,20,.9);border:1px solid rgba(255,107,0,.2);border-radius:12px;overflow:hidden;cursor:pointer;}
+  .ri{height:60px;display:flex;align-items:center;justify-content:center;font-size:28px;}
+  .ri1{background:linear-gradient(135deg,#1a0800,#2d1200);}
+  .ri2{background:linear-gradient(135deg,#001a08,#002d12);}
+  .ri3{background:linear-gradient(135deg,#0a001a,#12002d);}
+  .ri4{background:linear-gradient(135deg,#1a1800,#2d2200);}
+  .ri5{background:linear-gradient(135deg,#1a0012,#2d0020);}
+  .ri6{background:linear-gradient(135deg,#001a1a,#002d2d);}
+  .rb{padding:8px 10px;}
+  .rn{font-size:11px;font-weight:700;color:#fff;}
+  .rp-price{font-size:12px;color:#FF6B00;font-weight:800;margin-top:2px;}
+
+  /* RIGHT — CART SUMMARY */
+  .cart-sum{width:240px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;}
+  .glass{background:rgba(20,14,8,.7);backdrop-filter:blur(14px);border:1px solid rgba(255,107,0,.2);border-radius:14px;padding:14px;}
+  .cs-title{font-size:13px;font-weight:800;color:#fff;margin-bottom:10px;}
+  .cs-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+  .cs-item:last-child{border-bottom:none;}
+  .cs-icon{width:30px;height:30px;border-radius:7px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+  .cs-name{font-size:11px;font-weight:700;color:#fff;flex:1;}
+  .cs-qty{font-size:10px;color:#666;}
+  .cs-price{font-size:11px;font-weight:700;color:#FF6B00;}
+  .cs-total-row{display:flex;justify-content:space-between;font-size:14px;font-weight:900;padding-top:10px;border-top:1px solid rgba(255,107,0,.2);}
+  .cs-total-row span{color:#FF6B00;}
+  .cs-btn{width:100%;background:#FF6B00;color:#000;font-size:13px;font-weight:900;padding:11px;border-radius:10px;text-align:center;margin-top:10px;box-shadow:0 0 16px rgba(255,107,0,.3);}
+  .store-info{display:flex;align-items:center;gap:10px;}
+  .si-logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2d1200,#1a0800);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .si-name{font-size:12px;font-weight:800;color:#fff;}
+  .si-meta{font-size:10px;color:#666;margin-top:2px;}
+  .del-info{display:flex;flex-direction:column;gap:6px;}
+  .di-row{display:flex;align-items:center;gap:8px;}
+  .di-icon{font-size:14px;}
+  .di-label{font-size:10px;color:#888;}
+  .di-val{font-size:12px;font-weight:700;color:#fff;}
+  .di-val.green{color:#22c55e;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="bg-grid"></div>
+
+<div class="hdr">
+  <div class="back">← Voltar</div>
+  <div class="logo">Tech <em>Churras</em></div>
+  <div class="bread">Açougues › SP Prime Cuts › <span>Picanha</span></div>
+  <div class="hdr-r"><div class="fav">♡</div><div class="share">🔗 Compartilhar</div></div>
+</div>
+
+<div class="main">
+  <div class="prod-main">
+    <div class="prod-img">
+      <div class="prod-img-glow"></div>
+      <div class="prod-origin">🇧🇷 Origem: Mato Grosso do Sul</div>
+      🥩
+    </div>
+    <div class="prod-info">
+      <div class="prod-name">Picanha</div>
+      <div class="prod-sub">Corte nobre bovino · Resfriada · 1 kg</div>
+      <div class="prod-price-row">
+        <div class="prod-price">R$ 89,90</div>
+        <div class="prod-price-unit">/kg</div>
+        <div class="prod-old">R$ 99,90</div>
+      </div>
+      <div class="prod-badges">
+        <div class="pb pb-o">🏆 Mais vendida</div>
+        <div class="pb pb-g">🌟 Seleção Premium</div>
+        <div class="pb pb-green">✓ Rastreada</div>
+      </div>
+      <div class="qty-row">
+        <span class="qty-lbl">Quantidade:</span>
+        <div class="qty-ctrl">
+          <div class="qty-btn">−</div>
+          <div class="qty-val">1</div>
+          <div class="qty-btn">+</div>
+        </div>
+        <span class="qty-unit">kg</span>
+      </div>
+      <div class="add-btn">+ Adicionar ao carrinho · R$ 89,90</div>
+    </div>
+  </div>
+
+  <div class="details">
+    <div>
+      <div class="det-title">📊 Informações nutricionais (por 100g)</div>
+      <div class="nutri-grid">
+        <div class="nutri-box"><div class="nv">258</div><div class="nl">kcal</div></div>
+        <div class="nutri-box"><div class="nv">26g</div><div class="nl">proteína</div></div>
+        <div class="nutri-box"><div class="nv">17g</div><div class="nl">gordura</div></div>
+        <div class="nutri-box"><div class="nv">0g</div><div class="nl">carboidrato</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="det-title">📋 Descrição</div>
+      <div class="desc-text">A picanha é o corte mais nobre do churrasco brasileiro. Retirada da parte traseira do boi, possui uma capa de gordura característica que garante maciez e sabor incomparáveis. Ideal para brasa na grelha ou espeto. Selecionada e certificada pelo açougue SP Prime Cuts, com rastreabilidade de origem garantida.</div>
+    </div>
+    <div>
+      <div class="related-title">🥩 Produtos relacionados</div>
+      <div class="rel-grid">
+        <div class="rc"><div class="ri ri1">🍖</div><div class="rb"><div class="rn">Costela Janela</div><div class="rp-price">R$ 54,90/kg</div></div></div>
+        <div class="rc"><div class="ri ri2">🥩</div><div class="rb"><div class="rn">Fraldinha</div><div class="rp-price">R$ 62,90/kg</div></div></div>
+        <div class="rc"><div class="ri ri3">🌭</div><div class="rb"><div class="rn">Linguiça Artesanal</div><div class="rp-price">R$ 28,90/500g</div></div></div>
+        <div class="rc"><div class="ri ri4">🥩</div><div class="rb"><div class="rn">Maminha</div><div class="rp-price">R$ 49,90/kg</div></div></div>
+        <div class="rc"><div class="ri ri5">🍖</div><div class="rb"><div class="rn">Contrafilé</div><div class="rp-price">R$ 58,90/kg</div></div></div>
+        <div class="rc"><div class="ri ri6">🥩</div><div class="rb"><div class="rn">Tomahawk</div><div class="rp-price">R$ 149,90/un</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cart-sum">
+    <div class="glass">
+      <div class="store-info">
+        <div class="si-logo">🥩</div>
+        <div><div class="si-name">SP Prime Cuts</div><div class="si-meta">⭐ 4.9 · Parceiro Fundador</div></div>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="del-info">
+        <div class="di-row"><span class="di-icon">⏱</span><div><div class="di-label">Tempo de entrega</div><div class="di-val">20–35 min</div></div></div>
+        <div class="di-row"><span class="di-icon">🚚</span><div><div class="di-label">Frete</div><div class="di-val green">R$ 8,90</div></div></div>
+        <div class="di-row"><span class="di-icon">📍</span><div><div class="di-label">Distância</div><div class="di-val">1,2 km de você</div></div></div>
+      </div>
+    </div>
+    <div class="glass">
+      <div class="cs-title">🛒 Carrinho (3 itens)</div>
+      <div class="cs-item"><div class="cs-icon">🥩</div><div><div class="cs-name">Picanha 1kg</div><div class="cs-qty">1× R$ 89,90</div></div><div class="cs-price">R$ 89,90</div></div>
+      <div class="cs-item"><div class="cs-icon">🍖</div><div><div class="cs-name">Costela 2kg</div><div class="cs-qty">2× R$ 54,90</div></div><div class="cs-price">R$ 109,80</div></div>
+      <div class="cs-item"><div class="cs-icon">🌭</div><div><div class="cs-name">Linguiça 500g</div><div class="cs-qty">1× R$ 28,90</div></div><div class="cs-price">R$ 28,90</div></div>
+      <div class="cs-total-row"><span>Total</span><span>R$ 237,50</span></div>
+      <div class="cs-btn">Finalizar pedido →</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

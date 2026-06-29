@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1200">
+<title>Screenshot Tablet 2 — Perfil Churrasqueiro</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1200px; background: #0A0A0A; font-family: -apple-system, 'Segoe UI', sans-serif; }
+
+  .screen { width: 1200px; height: 1920px; background: #0A0A0A; overflow: hidden; position: relative; }
+
+  .statusbar {
+    width: 100%; height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 56px; font-size: 24px; color: #fff; font-weight: 600;
+    position: absolute; top: 0; z-index: 10;
+  }
+
+  /* Hero — full width */
+  .hero {
+    width: 100%; height: 500px;
+    background: linear-gradient(135deg, #1e0a00 0%, #2d1200 40%, #0a0a0a 100%);
+    position: relative; display: flex; align-items: flex-end;
+  }
+  .hero-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 0%, rgba(255,107,0,0.18) 0%, transparent 60%);
+  }
+  .hero-photo {
+    width: 320px; height: 420px;
+    background: linear-gradient(180deg, #3d1a00, #1a0800);
+    position: absolute; left: 80px; bottom: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 130px;
+    border-radius: 20px 20px 0 0;
+    border: 3px solid rgba(255,107,0,0.35); border-bottom: none;
+  }
+  .hero-content { position: absolute; left: 450px; bottom: 52px; right: 56px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: #FF6B00; color: #000; font-size: 22px; font-weight: 900;
+    padding: 10px 22px; border-radius: 50px; margin-bottom: 18px;
+  }
+  .hero-name { font-size: 64px; font-weight: 900; color: #fff; line-height: 1.05; margin-bottom: 12px; }
+  .hero-title { font-size: 30px; color: #FF6B00; font-weight: 700; margin-bottom: 18px; }
+  .hero-stars { font-size: 36px; color: #fbbf24; margin-bottom: 10px; }
+  .hero-meta { font-size: 26px; color: #999; }
+  .back { position: absolute; top: 70px; left: 48px; z-index: 10; font-size: 40px; color: #fff; }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex; background: #141414; border-bottom: 1px solid #1e1e1e;
+  }
+  .stat { flex: 1; padding: 28px 0; text-align: center; border-right: 1px solid #1e1e1e; }
+  .stat:last-child { border-right: none; }
+  .stat-val { font-size: 40px; font-weight: 900; color: #FF6B00; margin-bottom: 6px; }
+  .stat-lbl { font-size: 22px; color: #666; }
+
+  /* Two-column content */
+  .content { display: grid; grid-template-columns: 1fr 400px; gap: 0; }
+
+  /* Left */
+  .col-left { padding: 40px 40px 40px 56px; border-right: 1px solid #1a1a1a; }
+  .sec-title { font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 20px; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 36px; }
+  .badge-item {
+    padding: 12px 22px; border-radius: 50px; font-size: 22px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .b-orange { background: rgba(255,107,0,0.12); color: #FF6B00; border: 1px solid rgba(255,107,0,0.3); }
+  .b-gold { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .b-green { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+  .b-purple { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+
+  .bio { font-size: 26px; color: #aaa; line-height: 1.75; margin-bottom: 36px; }
+
+  .espec-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 36px; }
+  .espec-item {
+    background: #141414; border: 1.5px solid #1e1e1e; border-radius: 16px;
+    padding: 22px; display: flex; align-items: center; gap: 14px;
+  }
+  .espec-icon { font-size: 32px; }
+  .espec-name { font-size: 22px; color: #ddd; font-weight: 600; }
+
+  .reviews-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .review {
+    background: #141414; border: 1.5px solid #1e1e1e; border-radius: 18px; padding: 24px;
+  }
+  .review-hd { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+  .review-av {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 24px;
+    flex-shrink: 0;
+  }
+  .review-name { font-size: 24px; font-weight: 700; color: #fff; }
+  .review-stars { font-size: 20px; color: #fbbf24; }
+  .review-txt { font-size: 22px; color: #888; line-height: 1.6; }
+
+  /* Right */
+  .col-right { padding: 40px 48px 40px 32px; display: flex; flex-direction: column; gap: 24px; }
+
+  .price-card {
+    background: #141414; border: 1.5px solid #1e1e1e; border-radius: 20px; padding: 28px;
+  }
+  .price-title { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 20px; }
+  .price-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #1a1a1a; }
+  .price-row:last-child { border-bottom: none; }
+  .price-label { font-size: 22px; color: #999; }
+  .price-value { font-size: 24px; font-weight: 700; color: #fff; }
+  .price-value.highlight { color: #FF6B00; font-size: 28px; }
+
+  .avail-card {
+    background: linear-gradient(135deg, rgba(255,107,0,0.1), rgba(255,107,0,0.05));
+    border: 1.5px solid rgba(255,107,0,0.3); border-radius: 20px; padding: 28px;
+  }
+  .avail-title { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 16px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 12px; }
+  .cal-day-label { font-size: 18px; color: #666; text-align: center; font-weight: 600; }
+  .cal-day {
+    height: 46px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700;
+  }
+  .cal-day.available { background: rgba(255,107,0,0.15); color: #FF6B00; }
+  .cal-day.booked { background: #1a1a1a; color: #444; }
+  .cal-day.today { background: #FF6B00; color: #000; }
+  .avail-legend { display: flex; gap: 16px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 20px; color: #888; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+  .similar-title { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 16px; }
+  .similar-item {
+    display: flex; align-items: center; gap: 16px;
+    background: #141414; border: 1.5px solid #1e1e1e; border-radius: 16px;
+    padding: 18px; margin-bottom: 12px;
+  }
+  .sim-av { width: 64px; height: 64px; border-radius: 50%; background: #2a2a2a; display:flex;align-items:center;justify-content:center; font-size:28px; flex-shrink:0; }
+  .sim-name { font-size: 24px; font-weight: 700; color: #fff; }
+  .sim-meta { font-size: 20px; color: #888; }
+  .sim-rating { font-size: 22px; color: #fbbf24; font-weight: 700; }
+
+  /* CTA bottom */
+  .cta {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 24px 56px 40px;
+    background: linear-gradient(0deg, #0a0a0a 65%, transparent 100%);
+    display: flex; gap: 20px;
+  }
+  .cta-main {
+    flex: 1; height: 100px; border-radius: 20px;
+    background: linear-gradient(90deg, #FF6B00, #ff8c00);
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    font-size: 34px; font-weight: 900; color: #000;
+  }
+  .cta-sec {
+    width: 200px; height: 100px; border-radius: 20px;
+    background: transparent; border: 2px solid rgba(255,107,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; color: #FF6B00; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div class="screen">
+  <div class="statusbar">
+    <span>9:41</span>
+    <div style="display:flex;gap:24px;align-items:center;"><span>WiFi ●●●</span><span>▌▌ LTE</span><span>🔋 87%</span></div>
+  </div>
+  <div class="back">←</div>
+
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-photo">👨‍🍳</div>
+    <div class="hero-content">
+      <div class="hero-badge">🔥 Chancela Albuquerque</div>
+      <div class="hero-name">Carlos<br>Mendes</div>
+      <div class="hero-title">Grillmaster Premium · São Paulo</div>
+      <div class="hero-stars">★★★★★</div>
+      <div class="hero-meta">4.9 de 5 · 127 avaliações · 380 eventos realizados</div>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <div class="stat"><div class="stat-val">380+</div><div class="stat-lbl">Eventos</div></div>
+    <div class="stat"><div class="stat-val">8 anos</div><div class="stat-lbl">Experiência</div></div>
+    <div class="stat"><div class="stat-val">4.9★</div><div class="stat-lbl">Avaliação</div></div>
+    <div class="stat"><div class="stat-val">100%</div><div class="stat-lbl">Pontualidade</div></div>
+    <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Países</div></div>
+  </div>
+
+  <div class="content">
+    <div class="col-left">
+      <div class="badges">
+        <div class="badge-item b-orange">🏆 Certificado Tech Churras</div>
+        <div class="badge-item b-gold">🌍 Treinado em Zanzibar</div>
+        <div class="badge-item b-green">✓ Identidade verificada</div>
+        <div class="badge-item b-purple">✨ Top Grillmaster 2024</div>
+        <div class="badge-item b-orange">🥩 Especialista em Cortes Nobres</div>
+      </div>
+
+      <div class="sec-title">Sobre o profissional</div>
+      <div class="bio">
+        Carlos Mendes é um dos Grillmasters mais requisitados de São Paulo. Com formação pela escola Albuquerque — o mais alto padrão de certificação do Brasil — e experiência em eventos corporativos, casamentos e confraternizações. Atendeu marcas como Heineken, RedBull e eventos privados de alto padrão. Chega com todo o equipamento necessário, organiza e lidera a brasa do início ao fim.
+      </div>
+
+      <div class="sec-title">Especialidades</div>
+      <div class="espec-grid">
+        <div class="espec-item"><span class="espec-icon">🔥</span><span class="espec-name">Picanha</span></div>
+        <div class="espec-item"><span class="espec-icon">🥩</span><span class="espec-name">Costela</span></div>
+        <div class="espec-item"><span class="espec-icon">🍗</span><span class="espec-name">Frango</span></div>
+        <div class="espec-item"><span class="espec-icon">🌽</span><span class="espec-name">Parrilla</span></div>
+        <div class="espec-item"><span class="espec-icon">🫀</span><span class="espec-name">Cortes Nobres</span></div>
+        <div class="espec-item"><span class="espec-icon">🌭</span><span class="espec-name">Embutidos</span></div>
+      </div>
+
+      <div class="sec-title">Avaliações recentes</div>
+      <div class="reviews-grid">
+        <div class="review">
+          <div class="review-hd"><div class="review-av">😊</div><div><div class="review-name">Ana Paula S.</div><div class="review-stars">★★★★★</div></div></div>
+          <div class="review-txt">"Carlos chegou na hora, organizou tudo e a carne estava impecável. O churrasco do meu aniversário foi incrível!"</div>
+        </div>
+        <div class="review">
+          <div class="review-hd"><div class="review-av">🧔</div><div><div class="review-name">Ricardo M.</div><div class="review-stars">★★★★★</div></div></div>
+          <div class="review-txt">"Profissional exemplar. Fez o churrasco da confraternização da empresa e todo mundo elogiou. Super recomendo!"</div>
+        </div>
+        <div class="review">
+          <div class="review-hd"><div class="review-av">👩</div><div><div class="review-name">Fernanda L.</div><div class="review-stars">★★★★★</div></div></div>
+          <div class="review-txt">"Melhor decisão que tomei. Ele cuida de tudo, você só aproveita o churrasco com os convidados."</div>
+        </div>
+        <div class="review">
+          <div class="review-hd"><div class="review-av">👨‍💼</div><div><div class="review-name">Marcos T.</div><div class="review-stars">★★★★☆</div></div></div>
+          <div class="review-txt">"Excelente! A picanha estava no ponto perfeito. Voltarei a contratar com certeza."</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-right">
+      <div class="price-card">
+        <div class="price-title">💰 Valores</div>
+        <div class="price-row"><span class="price-label">Evento até 30 pax</span><span class="price-value highlight">R$ 350</span></div>
+        <div class="price-row"><span class="price-label">Evento até 60 pax</span><span class="price-value">R$ 550</span></div>
+        <div class="price-row"><span class="price-label">Evento até 100 pax</span><span class="price-value">R$ 800</span></div>
+        <div class="price-row"><span class="price-label">Hora adicional</span><span class="price-value">R$ 120</span></div>
+        <div class="price-row"><span class="price-label">Inclui equipamento</span><span class="price-value" style="color:#22c55e;">✓ Sim</span></div>
+      </div>
+
+      <div class="avail-card">
+        <div class="avail-title">📅 Disponibilidade — Julho</div>
+        <div class="cal-grid">
+          <div class="cal-day-label">D</div><div class="cal-day-label">S</div><div class="cal-day-label">T</div>
+          <div class="cal-day-label">Q</div><div class="cal-day-label">Q</div><div class="cal-day-label">S</div>
+          <div class="cal-day-label">S</div>
+          <div class="cal-day booked">1</div><div class="cal-day available">2</div><div class="cal-day available">3</div>
+          <div class="cal-day booked">4</div><div class="cal-day booked">5</div><div class="cal-day available">6</div>
+          <div class="cal-day available">7</div>
+          <div class="cal-day available">8</div><div class="cal-day booked">9</div><div class="cal-day booked">10</div>
+          <div class="cal-day available">11</div><div class="cal-day available">12</div><div class="cal-day today">13</div>
+          <div class="cal-day booked">14</div>
+          <div class="cal-day available">15</div><div class="cal-day available">16</div><div class="cal-day booked">17</div>
+          <div class="cal-day available">18</div><div class="cal-day booked">19</div><div class="cal-day available">20</div>
+          <div class="cal-day available">21</div>
+        </div>
+        <div class="avail-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#FF6B00;"></div>Livre</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#1a1a1a;border:1px solid #333;"></div>Ocupado</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FF6B00;"></div>Hoje</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="similar-title">👨‍🍳 Outros Grillmasters</div>
+        <div class="similar-item">
+          <div class="sim-av">🧑‍🍳</div>
+          <div style="flex:1;">
+            <div class="sim-name">Rafael Costa</div>
+            <div class="sim-meta">320 eventos · 4.8★</div>
+          </div>
+          <div class="sim-rating">4.8★</div>
+        </div>
+        <div class="similar-item">
+          <div class="sim-av">👩‍🍳</div>
+          <div style="flex:1;">
+            <div class="sim-name">Beatriz Souza</div>
+            <div class="sim-meta">210 eventos · 4.9★</div>
+          </div>
+          <div class="sim-rating">4.9★</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <div class="cta-main">🔥 Contratar Carlos — R$ 350</div>
+    <div class="cta-sec">💬 Chat</div>
+  </div>
+</div>
+</body>
+</html>

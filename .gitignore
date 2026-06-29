@@ -3,6 +3,10 @@
 # Android keystore — NUNCA commitar
 *.keystore
 *.jks
+*.pem
+*.der
+upload_key*
+upload-key*
 frontend/android/keystore.properties
 frontend/android/.keystore-info.txt
 
@@ -10,3 +14,18 @@ frontend/android/.keystore-info.txt
 client_secret*.json
 credentials.json
 token.json
+
+# Chaves de API e env de ferramentas
+tools/video_pexels.env
+*.env
+
+# Repositório aninhado (submodule não configurado)
+tools/cve-mcp-server/
+
+# Arquivos de mídia gerados — grandes demais para git
+tools/video_acougue/
+tools/video_output/
+tools/video_pro/
+tools/MPT.zip
+*.mp4
+*.mp3

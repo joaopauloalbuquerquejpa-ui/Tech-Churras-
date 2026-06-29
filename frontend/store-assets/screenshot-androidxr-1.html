@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Tech Churras XR — Home Discovery</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1280px;height:720px;overflow:hidden;background:#0a0a0a;font-family:system-ui,sans-serif;color:#fff;}
+
+  /* AMBIENT BACKGROUND */
+  .bg{position:absolute;inset:0;
+    background:radial-gradient(ellipse 80% 60% at 50% 100%,#1a0800 0%,#0a0a0a 60%);
+    z-index:0;}
+  .bg-grid{position:absolute;inset:0;z-index:0;
+    background:linear-gradient(rgba(255,107,0,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,107,0,.04) 1px,transparent 1px);
+    background-size:40px 40px;}
+  .bg-glow{position:absolute;bottom:-100px;left:50%;transform:translateX(-50%);
+    width:800px;height:300px;border-radius:50%;
+    background:radial-gradient(ellipse,rgba(255,107,0,.12),transparent 70%);
+    z-index:0;}
+
+  /* FLOATING HEADER */
+  .hdr{position:relative;z-index:10;margin:16px 32px 0;
+    background:rgba(20,14,8,.75);backdrop-filter:blur(20px);
+    border:1px solid rgba(255,107,0,.2);border-radius:20px;
+    display:flex;align-items:center;padding:12px 24px;gap:20px;}
+  .logo{font-size:20px;font-weight:900;color:#FF6B00;white-space:nowrap;}
+  .logo em{color:#FFD700;font-style:normal;}
+  .loc{display:flex;align-items:center;gap:6px;font-size:12px;color:#888;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);
+    border-radius:8px;padding:6px 12px;white-space:nowrap;}
+  .loc strong{color:#fff;}
+  .search{flex:1;max-width:460px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,107,0,.2);
+    border-radius:12px;display:flex;align-items:center;padding:0 16px;gap:8px;height:38px;}
+  .search-ph{font-size:13px;color:#555;}
+  .hdr-r{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .hdr-link{font-size:12px;color:#888;font-weight:500;white-space:nowrap;}
+  .hdr-link.hi{color:#FF6B00;}
+  .hdr-btn{background:#FF6B00;color:#000;font-size:12px;font-weight:800;
+    padding:8px 18px;border-radius:9px;white-space:nowrap;
+    box-shadow:0 0 14px rgba(255,107,0,.4);}
+  .ava{width:34px;height:34px;border-radius:50%;background:#1e1e1e;
+    border:2px solid #FF6B00;display:flex;align-items:center;justify-content:center;font-size:13px;
+    box-shadow:0 0 10px rgba(255,107,0,.3);}
+
+  /* MAIN */
+  .main{position:relative;z-index:5;display:flex;gap:0;height:calc(720px - 72px);padding:16px 32px 0;}
+
+  /* SIDEBAR */
+  .sb{width:180px;flex-shrink:0;padding-right:16px;display:flex;flex-direction:column;gap:4px;}
+  .sb-sec{font-size:9px;color:#444;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;padding:10px 0 4px;}
+  .sb-item{display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:12px;color:#777;border-radius:10px;}
+  .sb-item.on{background:rgba(255,107,0,.12);color:#FF6B00;
+    border:1px solid rgba(255,107,0,.25);}
+  .sb-icon{font-size:15px;width:18px;text-align:center;}
+  .sb-badge{margin-left:auto;background:#FF6B00;color:#000;font-size:10px;font-weight:800;padding:2px 6px;border-radius:50px;}
+
+  /* CONTENT */
+  .ct{flex:1;padding:0 0 0 0;overflow:hidden;}
+  .ct-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+  .ct-title{font-size:16px;font-weight:900;color:#fff;}
+  .ct-sub{font-size:11px;color:#555;margin-top:2px;}
+  .chips{display:flex;gap:6px;}
+  .chip{padding:5px 12px;border-radius:50px;font-size:11px;font-weight:700;
+    border:1px solid rgba(255,107,0,.2);color:#888;
+    background:rgba(255,255,255,.04);}
+  .chip.on{background:rgba(255,107,0,.15);color:#FF6B00;border-color:#FF6B00;}
+
+  /* GRID */
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+  .card{background:rgba(20,20,20,.9);border:1px solid rgba(255,107,0,.25);border-radius:14px;
+    overflow:hidden;position:relative;
+    box-shadow:0 4px 20px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04);}
+  .card.ft{border-color:rgba(255,107,0,.5);box-shadow:0 0 20px rgba(255,107,0,.1),0 4px 20px rgba(0,0,0,.5);}
+  .ci{height:80px;display:flex;align-items:center;justify-content:center;font-size:34px;position:relative;}
+  .ci1{background:linear-gradient(135deg,#1e0800,#2d1200);}
+  .ci2{background:linear-gradient(135deg,#001e08,#002d12);}
+  .ci3{background:linear-gradient(135deg,#0a001e,#12002d);}
+  .ci4{background:linear-gradient(135deg,#1e1800,#2d2200);}
+  .ci5{background:linear-gradient(135deg,#001e1e,#002d2d);}
+  .ci6{background:linear-gradient(135deg,#1e0018,#2d0024);}
+  .ci7{background:linear-gradient(135deg,#181e00,#242d00);}
+  .ci8{background:linear-gradient(135deg,#0d0d1e,#14142d);}
+  .cb{position:absolute;top:6px;right:6px;font-size:9px;font-weight:800;padding:2px 6px;border-radius:50px;white-space:nowrap;}
+  .cb-gold{background:#FFD700;color:#000;}
+  .cb-green{background:#22c55e;color:#000;}
+  .cd{padding:10px 10px 8px;}
+  .cn{font-size:12px;font-weight:800;color:#fff;margin-bottom:2px;}
+  .cty{font-size:10px;color:#FF6B00;font-weight:600;margin-bottom:6px;}
+  .cm{display:flex;gap:5px;flex-wrap:wrap;}
+  .mt{display:flex;align-items:center;gap:3px;
+    background:rgba(255,255,255,.06);border-radius:50px;padding:3px 7px;font-size:10px;color:#aaa;}
+  .mt.g{color:#FFD700;}
+  .cf{padding:6px 10px 8px;border-top:1px solid rgba(255,255,255,.05);
+    display:flex;align-items:center;justify-content:space-between;}
+  .cp{font-size:10px;color:#888;}
+  .cp strong{color:#fff;font-size:12px;}
+  .cbtn{background:rgba(255,107,0,.15);border:1px solid rgba(255,107,0,.35);
+    color:#FF6B00;font-size:10px;font-weight:700;padding:4px 10px;border-radius:6px;}
+
+  /* CAROUSEL */
+  .car-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+  .car-title{font-size:14px;font-weight:800;color:#fff;}
+  .car-link{font-size:11px;color:#FF6B00;}
+  .car-row{display:flex;gap:8px;}
+  .gc{width:160px;flex-shrink:0;background:rgba(20,20,20,.9);
+    border:1px solid rgba(255,107,0,.2);border-radius:12px;overflow:hidden;}
+  .gi{height:60px;display:flex;align-items:center;justify-content:center;font-size:26px;}
+  .gi1{background:linear-gradient(135deg,#1e0800,#2d1200);}
+  .gi2{background:linear-gradient(135deg,#001e08,#002d12);}
+  .gi3{background:linear-gradient(135deg,#0a001e,#12002d);}
+  .gi4{background:linear-gradient(135deg,#1e1800,#2d2200);}
+  .gi5{background:linear-gradient(135deg,#001e1e,#002d2d);}
+  .gb{padding:8px 10px;}
+  .gn{font-size:11px;font-weight:800;color:#fff;margin-bottom:2px;}
+  .gs{font-size:10px;color:#FFD700;}
+  .gp{font-size:10px;color:#888;margin-top:3px;}
+
+  /* RIGHT PANEL */
+  .rp{width:220px;flex-shrink:0;padding-left:14px;display:flex;flex-direction:column;gap:12px;}
+  .glass-card{background:rgba(20,14,8,.6);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,107,0,.2);border-radius:14px;padding:14px;}
+  .rp-title{font-size:12px;font-weight:800;color:#fff;margin-bottom:10px;}
+  .promo-badge{background:#FF6B00;color:#000;font-size:10px;font-weight:900;
+    padding:3px 8px;border-radius:50px;display:inline-block;margin-bottom:6px;}
+  .promo-title{font-size:12px;font-weight:800;color:#fff;margin-bottom:3px;}
+  .promo-desc{font-size:10px;color:#888;line-height:1.4;}
+  .promo-code{background:rgba(255,107,0,.1);border:1px dashed rgba(255,107,0,.4);
+    color:#FF6B00;font-size:11px;font-weight:800;padding:6px 10px;
+    border-radius:7px;text-align:center;margin-top:8px;letter-spacing:1px;}
+  .act-item{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+  .act-item:last-child{border-bottom:none;}
+  .act-icon{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.06);
+    display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;}
+  .act-txt{font-size:10px;color:#777;flex:1;line-height:1.3;}
+  .act-time{font-size:9px;color:#444;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<div class="hdr">
+  <div class="logo">Tech <em>Churras</em></div>
+  <div class="loc">📍 <strong>São Paulo, SP</strong></div>
+  <div class="search"><span style="font-size:15px;color:#555;">🔍</span><span class="search-ph">Buscar açougue, produto ou churrasqueiro...</span></div>
+  <div class="hdr-r">
+    <span class="hdr-link hi">Açougues</span>
+    <span class="hdr-link">Churrasqueiros</span>
+    <span class="hdr-link">Kit IA</span>
+    <div class="hdr-btn">+ Pedir agora</div>
+    <div class="ava">👤</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="sb">
+    <div class="sb-sec">Categorias</div>
+    <div class="sb-item on"><span class="sb-icon">🥩</span>Açougues<span class="sb-badge">24</span></div>
+    <div class="sb-item"><span class="sb-icon">🔥</span>Churrasqueiros</div>
+    <div class="sb-item"><span class="sb-icon">✨</span>Kit IA</div>
+    <div class="sb-item"><span class="sb-icon">📦</span>Combos</div>
+    <div class="sb-item"><span class="sb-icon">🏷️</span>Promoções</div>
+    <div class="sb-sec">Filtros</div>
+    <div class="sb-item"><span class="sb-icon">⭐</span>Avaliação 4.5+</div>
+    <div class="sb-item"><span class="sb-icon">📍</span>Até 5 km</div>
+    <div class="sb-item"><span class="sb-icon">✓</span>Aberto agora</div>
+    <div class="sb-sec">Conta</div>
+    <div class="sb-item"><span class="sb-icon">📋</span>Pedidos</div>
+    <div class="sb-item"><span class="sb-icon">❤️</span>Favoritos</div>
+  </div>
+
+  <div class="ct">
+    <div class="ct-hdr">
+      <div><div class="ct-title">📍 Próximos de você em São Paulo</div><div class="ct-sub">24 açougues parceiros encontrados</div></div>
+      <div class="chips">
+        <div class="chip on">Todos</div>
+        <div class="chip">Mais próximos</div>
+        <div class="chip">Melhor avaliados</div>
+        <div class="chip">Entrega rápida</div>
+      </div>
+    </div>
+
+    <div class="grid4">
+      <div class="card ft"><div class="ci ci1">🥩<div class="cb cb-gold">⭐ Fundador</div></div><div class="cd"><div class="cn">SP Prime Cuts</div><div class="cty">Boutique de Carnes</div><div class="cm"><div class="mt g">★ 4.9</div><div class="mt">📍 1,2 km</div><div class="mt" style="color:#22c55e;">● Aberto</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 45/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card ft"><div class="ci ci2">🔪<div class="cb cb-gold">⭐ Fundador</div></div><div class="cd"><div class="cn">Boutique Albuquerque</div><div class="cty">Cortes Especiais</div><div class="cm"><div class="mt g">★ 5.0</div><div class="mt">📍 2,8 km</div><div class="mt" style="color:#22c55e;">● Aberto</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 62/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci3">🍖<div class="cb cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Carnes Nobre SP</div><div class="cty">Carnes & Embutidos</div><div class="cm"><div class="mt g">★ 4.8</div><div class="mt">📍 3,5 km</div><div class="mt">⏱ 40 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 38/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci4">🌭<div class="cb cb-gold">⭐ Fundador</div></div><div class="cd"><div class="cn">Casa dos Embutidos</div><div class="cty">Linguiças Artesanais</div><div class="cm"><div class="mt g">★ 4.9</div><div class="mt">📍 5,0 km</div><div class="mt">⏱ 50 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 28/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci5">🫀<div class="cb cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Açougue Central</div><div class="cty">Tradicional Premium</div><div class="cm"><div class="mt g">★ 4.7</div><div class="mt">📍 4,1 km</div><div class="mt">⏱ 45 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 32/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci6">🥇<div class="cb" style="background:#a78bfa;color:#fff;">🌍 Zanzibar</div></div><div class="cd"><div class="cn">Bahari Prime Cuts</div><div class="cty">Seleção Internacional</div><div class="cm"><div class="mt g">★ 5.0</div><div class="mt">📍 6,2 km</div><div class="mt">⏱ 55 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 89/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci7">🐄<div class="cb cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Frigorífico Vila Nova</div><div class="cty">Atacado & Varejo</div><div class="cm"><div class="mt g">★ 4.6</div><div class="mt">📍 7,3 km</div><div class="mt">⏱ 60 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 29/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+      <div class="card"><div class="ci ci8">🍗<div class="cb cb-green">✓ Verificado</div></div><div class="cd"><div class="cn">Aves & Carnes SP</div><div class="cty">Frangos & Cortes</div><div class="cm"><div class="mt g">★ 4.7</div><div class="mt">📍 8,1 km</div><div class="mt">⏱ 65 min</div></div></div><div class="cf"><div class="cp">A partir de <strong>R$ 22/kg</strong></div><div class="cbtn">Ver →</div></div></div>
+    </div>
+
+    <div class="car-hdr">
+      <div class="car-title">🔥 Churrasqueiros em destaque</div>
+      <div class="car-link">Ver todos →</div>
+    </div>
+    <div class="car-row">
+      <div class="gc"><div class="gi gi1">👨‍🍳</div><div class="gb"><div class="gn">Carlos Mendes</div><div class="gs">★★★★★ 4.9</div><div class="gp">380 eventos</div></div></div>
+      <div class="gc"><div class="gi gi2">🧑‍🍳</div><div class="gb"><div class="gn">Rafael Costa</div><div class="gs">★★★★★ 4.8</div><div class="gp">320 eventos</div></div></div>
+      <div class="gc"><div class="gi gi3">👩‍🍳</div><div class="gb"><div class="gn">Beatriz Souza</div><div class="gs">★★★★★ 4.9</div><div class="gp">210 eventos</div></div></div>
+      <div class="gc"><div class="gi gi4">🧔</div><div class="gb"><div class="gn">Marcos Lima</div><div class="gs">★★★★☆ 4.7</div><div class="gp">180 eventos</div></div></div>
+      <div class="gc"><div class="gi gi5">👱</div><div class="gb"><div class="gn">Pedro Alves</div><div class="gs">★★★★★ 4.9</div><div class="gp">290 eventos</div></div></div>
+    </div>
+  </div>
+
+  <div class="rp">
+    <div class="glass-card">
+      <div class="rp-title">🏷️ Oferta especial</div>
+      <div class="promo-badge">🔥 Hoje só</div>
+      <div class="promo-title">Frete grátis no 1º pedido</div>
+      <div class="promo-desc">Para novos usuários em açougues parceiros fundadores</div>
+      <div class="promo-code">TECHCHURRAS10</div>
+    </div>
+    <div class="glass-card">
+      <div class="rp-title">📡 Atividade recente</div>
+      <div class="act-item"><div class="act-icon">🛒</div><div class="act-txt"><strong style="color:#fff;">Pedro S.</strong> pediu no SP Prime</div><div class="act-time">2 min</div></div>
+      <div class="act-item"><div class="act-icon">⭐</div><div class="act-txt"><strong style="color:#fff;">Ana P.</strong> avaliou Boutique Albuquerque</div><div class="act-time">8 min</div></div>
+      <div class="act-item"><div class="act-icon">🔥</div><div class="act-txt"><strong style="color:#fff;">Carlos M.</strong> aceitou evento</div><div class="act-time">15 min</div></div>
+      <div class="act-item"><div class="act-icon">🥩</div><div class="act-txt"><strong style="color:#fff;">Marcos T.</strong> pediu Kit IA 40 pax</div><div class="act-time">22 min</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

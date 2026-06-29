@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>Tech Churras XR — Churrasqueiro AR</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{width:1280px;height:720px;overflow:hidden;background:#0a0a0a;font-family:system-ui,sans-serif;color:#fff;}
+
+  /* DEEP XR BG */
+  .bg{position:absolute;inset:0;background:radial-gradient(ellipse 90% 80% at 40% 60%,#1e0800 0%,#0f0500 40%,#0a0a0a 70%);}
+  .bg-grid{position:absolute;inset:0;background:linear-gradient(rgba(255,107,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,107,0,.05) 1px,transparent 1px);background-size:44px 44px;}
+  .glow-left{position:absolute;left:-100px;top:50%;transform:translateY(-50%);width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,0,.12),transparent 65%);}
+  .glow-right{position:absolute;right:-80px;top:30%;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,215,0,.06),transparent 65%);}
+
+  /* HEADER */
+  .hdr{position:relative;z-index:10;display:flex;align-items:center;padding:14px 40px;gap:16px;}
+  .back{font-size:13px;color:#888;}
+  .logo{font-size:18px;font-weight:900;color:#FF6B00;}
+  .logo em{color:#FFD700;font-style:normal;}
+  .bread{font-size:11px;color:#555;}
+  .bread span{color:#FF6B00;}
+  .hdr-r{margin-left:auto;display:flex;gap:8px;}
+  .hdr-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#888;font-size:12px;padding:6px 12px;border-radius:8px;}
+
+  /* MAIN */
+  .main{position:relative;z-index:5;display:flex;gap:0;height:calc(720px - 54px);padding:0 40px;}
+
+  /* LEFT — PHOTO HERO */
+  .photo-hero{width:320px;flex-shrink:0;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:0;}
+  .ph-box{width:260px;height:440px;background:linear-gradient(180deg,#3d1a00 0%,#2a1200 50%,#1a0800 100%);
+    border-radius:20px 20px 0 0;display:flex;align-items:center;justify-content:center;
+    font-size:130px;border:1px solid rgba(255,107,0,.35);border-bottom:none;
+    box-shadow:0 0 40px rgba(255,107,0,.15);position:relative;z-index:2;}
+  .floating-badge{position:absolute;top:20px;left:50%;transform:translateX(-50%);z-index:3;
+    background:linear-gradient(90deg,#FF6B00,#FFD700);color:#000;
+    font-size:12px;font-weight:900;padding:7px 16px;border-radius:50px;
+    box-shadow:0 0 20px rgba(255,107,0,.5);white-space:nowrap;}
+  .verified-badge{position:absolute;top:54px;left:50%;transform:translateX(-50%);z-index:3;
+    background:rgba(34,197,94,.15);backdrop-filter:blur(8px);
+    border:1px solid rgba(34,197,94,.4);color:#22c55e;
+    font-size:11px;font-weight:700;padding:5px 14px;border-radius:50px;white-space:nowrap;}
+
+  /* CENTER */
+  .info-center{flex:1;padding:0 28px;display:flex;flex-direction:column;gap:14px;}
+
+  .name-block{margin-top:8px;}
+  .gname{font-size:40px;font-weight:900;color:#fff;line-height:1.05;margin-bottom:3px;}
+  .gtitle{font-size:15px;color:#FF6B00;font-weight:700;margin-bottom:12px;}
+  .rating-row{display:flex;align-items:center;gap:12px;}
+  .stars{font-size:20px;color:#FFD700;}
+  .rval{font-size:22px;font-weight:900;color:#fff;}
+  .rmeta{font-size:12px;color:#666;}
+
+  /* GLASS STATS */
+  .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  .scard{background:rgba(255,255,255,.04);backdrop-filter:blur(12px);
+    border:1px solid rgba(255,107,0,.2);border-radius:12px;padding:12px 14px;text-align:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05);}
+  .sv{font-size:20px;font-weight:900;color:#FF6B00;line-height:1;margin-bottom:3px;}
+  .sl{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.5px;}
+
+  /* BADGES */
+  .badges{display:flex;flex-wrap:wrap;gap:7px;}
+  .badge{padding:5px 12px;border-radius:50px;font-size:11px;font-weight:700;display:flex;align-items:center;gap:5px;}
+  .bo{background:rgba(255,107,0,.12);color:#FF6B00;border:1px solid rgba(255,107,0,.3);}
+  .bg{background:rgba(255,215,0,.1);color:#FFD700;border:1px solid rgba(255,215,0,.3);}
+  .bp{background:rgba(139,92,246,.12);color:#a78bfa;border:1px solid rgba(139,92,246,.3);}
+  .bgreen{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+
+  /* SERVICES */
+  .srv-title{font-size:13px;font-weight:800;color:#fff;margin-bottom:8px;}
+  .srv-list{display:flex;flex-direction:column;gap:6px;}
+  .srv{background:rgba(255,255,255,.04);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,107,0,.15);border-radius:10px;
+    padding:10px 14px;display:flex;align-items:center;gap:10px;}
+  .srv.hi{border-color:rgba(255,107,0,.4);background:rgba(255,107,0,.06);}
+  .si{font-size:16px;width:22px;text-align:center;flex-shrink:0;}
+  .sn{font-size:12px;font-weight:700;color:#fff;flex:1;}
+  .sd{font-size:10px;color:#666;}
+  .sp-pop{background:#FF6B00;color:#000;font-size:9px;font-weight:800;padding:2px 6px;border-radius:50px;flex-shrink:0;}
+  .sp{font-size:14px;font-weight:900;color:#FF6B00;flex-shrink:0;}
+
+  /* RIGHT */
+  .right-col{width:260px;flex-shrink:0;display:flex;flex-direction:column;gap:12px;padding-left:4px;}
+
+  .glass{background:rgba(20,14,8,.75);backdrop-filter:blur(16px);
+    border:1px solid rgba(255,107,0,.2);border-radius:14px;padding:14px;}
+
+  .avail-title{font-size:13px;font-weight:800;color:#fff;margin-bottom:10px;}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:8px;}
+  .cd{height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+  .cd.av{background:rgba(255,107,0,.15);color:#FF6B00;}
+  .cd.bk{background:rgba(255,255,255,.04);color:#333;}
+  .cd.td{background:#FF6B00;color:#000;}
+  .next{font-size:11px;color:#aaa;display:flex;align-items:center;gap:5px;}
+  .next strong{color:#22c55e;}
+
+  .price-title{font-size:13px;font-weight:800;color:#fff;margin-bottom:10px;}
+  .pr{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.05);}
+  .pr:last-child{border-bottom:none;}
+  .pl{color:#888;}
+  .pv{color:#fff;font-weight:600;}
+  .pv.hi{color:#FF6B00;font-size:14px;}
+
+  .cta-btns{display:flex;flex-direction:column;gap:8px;margin-top:auto;}
+  .btn-main{background:linear-gradient(90deg,#FF6B00,#ff8c00);color:#000;font-size:15px;font-weight:900;
+    padding:14px;border-radius:12px;text-align:center;
+    box-shadow:0 0 20px rgba(255,107,0,.5);}
+  .btn-sec{background:rgba(255,107,0,.08);border:1.5px solid rgba(255,107,0,.3);
+    color:#FF6B00;font-size:13px;font-weight:700;padding:11px;border-radius:12px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="bg-grid"></div>
+<div class="glow-left"></div>
+<div class="glow-right"></div>
+
+<div class="hdr">
+  <div class="back">← Voltar</div>
+  <div class="logo">Tech <em>Churras</em></div>
+  <div class="bread">Churrasqueiros › São Paulo › <span>Carlos Mendes</span></div>
+  <div class="hdr-r"><div class="hdr-btn">🔗 Compartilhar</div><div class="hdr-btn">♡ Salvar</div></div>
+</div>
+
+<div class="main">
+  <div class="photo-hero">
+    <div class="floating-badge">🔥 Chancelado Tech Churras</div>
+    <div class="verified-badge">✓ Identidade verificada</div>
+    <div class="ph-box">👨‍🍳</div>
+  </div>
+
+  <div class="info-center">
+    <div class="name-block">
+      <div class="gname">Carlos Mendes</div>
+      <div class="gtitle">Grillmaster Premium · São Paulo, SP</div>
+      <div class="rating-row">
+        <div class="stars">★★★★★</div>
+        <div class="rval">4.9</div>
+        <div class="rmeta">127 avaliações · 380 atendimentos</div>
+      </div>
+    </div>
+    <div class="stats-grid">
+      <div class="scard"><div class="sv">380+</div><div class="sl">Eventos</div></div>
+      <div class="scard"><div class="sv">8 anos</div><div class="sl">Experiência</div></div>
+      <div class="scard"><div class="sv">4.9★</div><div class="sl">Avaliação</div></div>
+      <div class="scard"><div class="sv">100%</div><div class="sl">Pontual</div></div>
+    </div>
+    <div class="badges">
+      <div class="badge bo">🏆 Certificado Tech Churras</div>
+      <div class="badge bg">🌍 Treinado em Zanzibar</div>
+      <div class="badge bp">✨ Top 2024</div>
+      <div class="badge bgreen">✓ Verificado</div>
+      <div class="badge bo">🥩 Cortes Nobres</div>
+    </div>
+    <div>
+      <div class="srv-title">Serviços & Valores</div>
+      <div class="srv-list">
+        <div class="srv hi"><span class="si">🔥</span><div><div class="sn">Churrasco Completo até 30 pax</div><div class="sd">Inclui equipamento, montagem e desmontagem</div></div><div class="sp-pop">+ pedido</div><div class="sp">R$ 350</div></div>
+        <div class="srv"><span class="si">🥩</span><div><div class="sn">Churrasco Completo até 60 pax</div><div class="sd">Equipamento profissional incluso</div></div><div class="sp">R$ 550</div></div>
+        <div class="srv"><span class="si">🏢</span><div><div class="sn">Evento Corporativo até 100 pax</div><div class="sd">Para confraternizações e empresas</div></div><div class="sp">R$ 800</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="glass">
+      <div class="avail-title">📅 Disponibilidade</div>
+      <div class="cal">
+        <div class="cd bk">1</div><div class="cd av">2</div><div class="cd av">3</div><div class="cd bk">4</div><div class="cd bk">5</div><div class="cd av">6</div><div class="cd av">7</div>
+        <div class="cd av">8</div><div class="cd bk">9</div><div class="cd bk">10</div><div class="cd av">11</div><div class="cd av">12</div><div class="cd td">13</div><div class="cd bk">14</div>
+        <div class="cd av">15</div><div class="cd av">16</div><div class="cd bk">17</div><div class="cd av">18</div><div class="cd bk">19</div><div class="cd av">20</div><div class="cd av">21</div>
+      </div>
+      <div class="next">📅 Próximo: <strong>Amanhã</strong></div>
+    </div>
+    <div class="glass">
+      <div class="price-title">💰 Valores</div>
+      <div class="pr"><span class="pl">Até 30 pax</span><span class="pv hi">R$ 350</span></div>
+      <div class="pr"><span class="pl">Até 60 pax</span><span class="pv">R$ 550</span></div>
+      <div class="pr"><span class="pl">Até 100 pax</span><span class="pv">R$ 800</span></div>
+      <div class="pr"><span class="pl">Hora adicional</span><span class="pv">R$ 120/h</span></div>
+    </div>
+    <div class="cta-btns">
+      <div class="btn-main">🔥 Contratar — R$ 350</div>
+      <div class="btn-sec">💬 Enviar mensagem</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

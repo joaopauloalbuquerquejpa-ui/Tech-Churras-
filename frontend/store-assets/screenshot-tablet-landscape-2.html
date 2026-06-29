@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1920">
+<title>Tech Churras — Perfil Churrasqueiro</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 1920px; height: 1080px; overflow: hidden;
+    background: #0a0a0a; font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+    color: #fff;
+  }
+
+  /* HEADER */
+  .header {
+    height: 72px; background: #0f0f0f; border-bottom: 1px solid #1e1e1e;
+    display: flex; align-items: center; padding: 0 48px; gap: 32px;
+  }
+  .back { font-size: 20px; color: #888; display:flex;align-items:center;gap:8px; }
+  .logo { font-size: 26px; font-weight: 900; color: #FF6B00; }
+  .logo span { color: #FFD700; }
+  .breadcrumb { font-size: 15px; color: #555; }
+  .breadcrumb span { color: #FF6B00; }
+  .header-right { margin-left: auto; display:flex;align-items:center;gap:16px; }
+  .share-btn { background:#1a1a1a; border:1px solid #2a2a2a; color:#888; font-size:14px; font-weight:600; padding:8px 18px; border-radius:8px; }
+  .fav-btn { background:#1a1a1a; border:1px solid #2a2a2a; color:#888; font-size:20px; padding:8px 14px; border-radius:8px; }
+
+  /* MAIN LAYOUT */
+  .main { display: flex; height: calc(1080px - 72px - 60px); }
+
+  /* LEFT — Hero photo */
+  .hero-col {
+    width: 420px; flex-shrink: 0; position: relative; overflow: hidden;
+    background: linear-gradient(160deg, #1e0800 0%, #2d1200 40%, #0a0a0a 100%);
+  }
+  .hero-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 30%, rgba(255,107,0,0.2) 0%, transparent 65%);
+  }
+  .hero-photo-bg {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 340px; height: 520px;
+    background: linear-gradient(180deg, #3d1a00 0%, #1a0800 100%);
+    border-radius: 20px 20px 0 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 160px; border: 2px solid rgba(255,107,0,0.3); border-bottom: none;
+  }
+  .hero-badge-col {
+    position: absolute; top: 28px; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .chancela-badge {
+    background: linear-gradient(90deg, #FF6B00, #FFD700); color: #000;
+    font-size: 14px; font-weight: 900; padding: 8px 20px; border-radius: 50px;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .verified-badge {
+    background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4);
+    color: #22c55e; font-size: 13px; font-weight: 700; padding: 6px 16px; border-radius: 50px;
+  }
+
+  /* CENTER — Info */
+  .info-col { flex: 1; padding: 32px 36px; overflow: hidden; border-right: 1px solid #1a1a1a; display: flex; flex-direction: column; gap: 20px; }
+
+  .griller-name { font-size: 48px; font-weight: 900; color: #fff; line-height: 1.05; margin-bottom: 4px; }
+  .griller-title { font-size: 20px; color: #FF6B00; font-weight: 700; margin-bottom: 14px; }
+  .rating-row { display: flex; align-items: center; gap: 16px; }
+  .stars { font-size: 24px; color: #FFD700; }
+  .rating-val { font-size: 26px; font-weight: 900; color: #fff; }
+  .rating-count { font-size: 16px; color: #666; }
+  .rating-sep { color: #333; }
+
+  /* Stats */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .stat-box { background: #141414; border: 1.5px solid #1e1e1e; border-radius: 12px; padding: 14px 16px; text-align: center; }
+  .stat-v { font-size: 26px; font-weight: 900; color: #FF6B00; line-height: 1; margin-bottom: 4px; }
+  .stat-l { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Badges */
+  .badges-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .badge { padding: 8px 16px; border-radius: 50px; font-size: 13px; font-weight: 700; display:flex;align-items:center;gap:8px; }
+  .b-o { background: rgba(255,107,0,0.12); color: #FF6B00; border: 1px solid rgba(255,107,0,0.3); }
+  .b-g { background: rgba(255,215,0,0.10); color: #FFD700; border: 1px solid rgba(255,215,0,0.3); }
+  .b-p { background: rgba(139,92,246,0.12); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+  .b-green { background: rgba(34,197,94,0.10); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+
+  /* Services */
+  .services-title { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+  .services-list { display: flex; flex-direction: column; gap: 8px; }
+  .service-item {
+    background: #141414; border: 1.5px solid #1e1e1e; border-radius: 12px;
+    padding: 14px 18px; display: flex; align-items: center; gap: 14px;
+  }
+  .service-item.highlight { border-color: rgba(255,107,0,0.3); background: rgba(255,107,0,0.05); }
+  .service-icon { font-size: 22px; width: 30px; text-align: center; flex-shrink: 0; }
+  .service-name { font-size: 15px; font-weight: 700; color: #fff; flex: 1; }
+  .service-desc { font-size: 13px; color: #666; }
+  .service-price { font-size: 17px; font-weight: 900; color: #FF6B00; flex-shrink: 0; }
+  .service-popular {
+    background: #FF6B00; color: #000; font-size: 11px; font-weight: 800;
+    padding: 3px 8px; border-radius: 50px; flex-shrink: 0;
+  }
+
+  /* Reviews */
+  .reviews-col { width: 360px; flex-shrink: 0; padding: 28px 28px; overflow: hidden; display: flex; flex-direction: column; gap: 16px; }
+  .rev-header { font-size: 17px; font-weight: 800; color: #fff; }
+  .rev-summary { background: #141414; border: 1.5px solid #1e1e1e; border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 20px; }
+  .rev-big { font-size: 52px; font-weight: 900; color: #FF6B00; line-height: 1; }
+  .rev-stars-big { font-size: 22px; color: #FFD700; margin-bottom: 4px; }
+  .rev-total { font-size: 13px; color: #666; }
+  .rev-bars { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .rev-bar-row { display: flex; align-items: center; gap: 8px; }
+  .rev-bar-label { font-size: 12px; color: #888; width: 12px; text-align: right; }
+  .rev-bar-bg { flex: 1; height: 6px; background: #1e1e1e; border-radius: 3px; overflow: hidden; }
+  .rev-bar-fill { height: 100%; border-radius: 3px; background: #FFD700; }
+  .rev-bar-count { font-size: 11px; color: #555; width: 20px; }
+  .review-card { background: #141414; border: 1.5px solid #1e1e1e; border-radius: 14px; padding: 16px; }
+  .rev-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .rev-avatar { width: 40px; height: 40px; border-radius: 50%; background: #2a2a2a; display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0; }
+  .rev-name { font-size: 15px; font-weight: 700; color: #fff; }
+  .rev-stars-sm { font-size: 14px; color: #FFD700; }
+  .rev-text { font-size: 13px; color: #888; line-height: 1.5; }
+  .rev-date { font-size: 12px; color: #444; margin-top: 6px; }
+
+  /* BOTTOM */
+  .bottom { height: 60px; background: #0f0f0f; border-top: 1px solid #1e1e1e; display: flex; align-items: center; padding: 0 48px; gap: 20px; }
+  .price-info { font-size: 16px; color: #888; }
+  .price-info strong { color: #fff; font-size: 22px; }
+  .price-info span { color: #FF6B00; font-size: 14px; font-weight: 700; }
+  .spacer { flex: 1; }
+  .btn-secondary { background: transparent; border: 2px solid rgba(255,107,0,0.4); color: #FF6B00; font-size: 16px; font-weight: 700; padding: 12px 28px; border-radius: 10px; }
+  .btn-primary {
+    background: linear-gradient(90deg, #FF6B00, #ff8c00); color: #000;
+    font-size: 18px; font-weight: 900; padding: 12px 48px; border-radius: 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .avail-note { font-size: 14px; color: #555; display: flex; align-items: center; gap: 6px; }
+</style>
+</head>
+<body>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="back">← <span style="color:#555;">Voltar</span></div>
+    <div class="logo">Tech <span>Churras</span></div>
+    <div class="breadcrumb">Churrasqueiros › São Paulo › <span>Carlos Mendes</span></div>
+    <div class="header-right">
+      <div class="share-btn">🔗 Compartilhar</div>
+      <div class="fav-btn">♡</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <!-- HERO PHOTO -->
+    <div class="hero-col">
+      <div class="hero-glow"></div>
+      <div class="hero-badge-col">
+        <div class="chancela-badge">🔥 Chancela Albuquerque</div>
+        <div class="verified-badge">✓ Identidade verificada</div>
+      </div>
+      <div class="hero-photo-bg">👨‍🍳</div>
+    </div>
+
+    <!-- INFO -->
+    <div class="info-col">
+      <div>
+        <div class="griller-name">Carlos Mendes</div>
+        <div class="griller-title">Grillmaster Premium · São Paulo, SP</div>
+        <div class="rating-row">
+          <div class="stars">★★★★★</div>
+          <div class="rating-val">4.9</div>
+          <div class="rating-count">127 avaliações</div>
+          <div class="rating-sep">·</div>
+          <div class="rating-count">380 eventos realizados</div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-v">380+</div><div class="stat-l">Eventos</div></div>
+        <div class="stat-box"><div class="stat-v">8 anos</div><div class="stat-l">Experiência</div></div>
+        <div class="stat-box"><div class="stat-v">4.9★</div><div class="stat-l">Avaliação</div></div>
+        <div class="stat-box"><div class="stat-v">100%</div><div class="stat-l">Pontualidade</div></div>
+      </div>
+
+      <div class="badges-row">
+        <div class="badge b-o">🏆 Certificado Tech Churras</div>
+        <div class="badge b-g">🌍 Treinado em Zanzibar</div>
+        <div class="badge b-p">✨ Top Grillmaster 2024</div>
+        <div class="badge b-green">✓ Verificado</div>
+        <div class="badge b-o">🥩 Cortes Nobres</div>
+      </div>
+
+      <div>
+        <div class="services-title">Serviços & Valores</div>
+        <div class="services-list">
+          <div class="service-item highlight">
+            <div class="service-icon">🔥</div>
+            <div><div class="service-name">Churrasco Completo até 30 pax</div><div class="service-desc">Inclui equipamento, montagem e desmontagem</div></div>
+            <div class="service-popular">+ pedido</div>
+            <div class="service-price">R$ 350</div>
+          </div>
+          <div class="service-item">
+            <div class="service-icon">🥩</div>
+            <div><div class="service-name">Churrasco Completo até 60 pax</div><div class="service-desc">Inclui equipamento profissional</div></div>
+            <div class="service-price">R$ 550</div>
+          </div>
+          <div class="service-item">
+            <div class="service-icon">🏢</div>
+            <div><div class="service-name">Evento Corporativo até 100 pax</div><div class="service-desc">Para confraternizações e eventos de empresa</div></div>
+            <div class="service-price">R$ 800</div>
+          </div>
+          <div class="service-item">
+            <div class="service-icon">⏱</div>
+            <div><div class="service-name">Hora adicional</div><div class="service-desc">Por hora além do pacote contratado</div></div>
+            <div class="service-price">R$ 120</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REVIEWS -->
+    <div class="reviews-col">
+      <div class="rev-header">Avaliações dos clientes</div>
+      <div class="rev-summary">
+        <div>
+          <div class="rev-big">4.9</div>
+          <div class="rev-stars-big">★★★★★</div>
+          <div class="rev-total">127 avaliações</div>
+        </div>
+        <div class="rev-bars">
+          <div class="rev-bar-row"><div class="rev-bar-label">5</div><div class="rev-bar-bg"><div class="rev-bar-fill" style="width:92%"></div></div><div class="rev-bar-count">117</div></div>
+          <div class="rev-bar-row"><div class="rev-bar-label">4</div><div class="rev-bar-bg"><div class="rev-bar-fill" style="width:6%;background:#FF6B00;"></div></div><div class="rev-bar-count">8</div></div>
+          <div class="rev-bar-row"><div class="rev-bar-label">3</div><div class="rev-bar-bg"><div class="rev-bar-fill" style="width:2%;background:#555;"></div></div><div class="rev-bar-count">2</div></div>
+          <div class="rev-bar-row"><div class="rev-bar-label">2</div><div class="rev-bar-bg"></div><div class="rev-bar-count">0</div></div>
+          <div class="rev-bar-row"><div class="rev-bar-label">1</div><div class="rev-bar-bg"></div><div class="rev-bar-count">0</div></div>
+        </div>
+      </div>
+
+      <div class="review-card">
+        <div class="rev-card-top"><div class="rev-avatar">😊</div><div><div class="rev-name">Ana Paula S.</div><div class="rev-stars-sm">★★★★★</div></div></div>
+        <div class="rev-text">"Melhor churrasco da minha vida! Carlos chegou na hora, organizou tudo e a carne estava no ponto perfeito. Super recomendo!"</div>
+        <div class="rev-date">15 de junho de 2025</div>
+      </div>
+
+      <div class="review-card">
+        <div class="rev-card-top"><div class="rev-avatar">🧔</div><div><div class="rev-name">Ricardo M.</div><div class="rev-stars-sm">★★★★★</div></div></div>
+        <div class="rev-text">"Fez o churrasco da nossa confraternização de empresa. Todo mundo elogiou! Profissional exemplar, pontual e atencioso."</div>
+        <div class="rev-date">8 de junho de 2025</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM CTA -->
+  <div class="bottom">
+    <div class="price-info">A partir de <strong>R$ 350</strong> <span>/ evento · equipamento incluso</span></div>
+    <div class="avail-note">📅 Próxima disponibilidade: <strong style="color:#22c55e;">Amanhã</strong></div>
+    <div class="spacer"></div>
+    <div class="btn-secondary">💬 Enviar mensagem</div>
+    <div class="btn-primary">🔥 Agendar Carlos</div>
+  </div>
+</body>
+</html>

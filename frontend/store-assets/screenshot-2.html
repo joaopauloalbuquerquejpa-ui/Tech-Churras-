@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<title>Screenshot 2 — Perfil do Churrasqueiro</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 1080px; background: #111; font-family: -apple-system, 'Segoe UI', sans-serif; }
+
+  .label {
+    width: 1080px; height: 80px; background: #111;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; font-weight: 800; color: #FF6B00; letter-spacing: 1px;
+  }
+
+  .screen { width: 1080px; height: 1920px; background: #0A0A0A; overflow: hidden; position: relative; }
+
+  .statusbar {
+    width: 100%; height: 60px; background: transparent;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px; font-size: 26px; color: #fff; font-weight: 600;
+    position: absolute; top: 0; z-index: 10;
+  }
+
+  /* Hero */
+  .hero {
+    width: 100%; height: 560px;
+    background: linear-gradient(135deg, #1a0800 0%, #2d1200 50%, #0a0a0a 100%);
+    position: relative; display: flex; align-items: flex-end;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(255,107,0,0.15) 0%, transparent 65%);
+  }
+  .hero-photo {
+    width: 280px; height: 380px; border-radius: 20px;
+    background: linear-gradient(180deg, #3d1a00, #1a0800);
+    position: absolute; left: 80px; bottom: 40px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 120px; border: 3px solid rgba(255,107,0,0.4);
+    overflow: hidden;
+  }
+  .hero-info { position: absolute; left: 400px; bottom: 60px; right: 48px; }
+  .hero-badge {
+    display: inline-block; background: #FF6B00; color: #000;
+    font-size: 22px; font-weight: 800; padding: 8px 20px; border-radius: 50px;
+    margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;
+  }
+  .hero-name { font-size: 52px; font-weight: 900; color: #fff; line-height: 1.1; margin-bottom: 12px; }
+  .hero-title { font-size: 28px; color: #FF6B00; font-weight: 700; margin-bottom: 20px; }
+  .hero-stars { font-size: 32px; color: #fbbf24; margin-bottom: 16px; }
+  .hero-reviews { font-size: 24px; color: #888; }
+
+  /* Back button */
+  .back { position: absolute; top: 70px; left: 48px; z-index: 10; font-size: 40px; }
+
+  /* Stats */
+  .stats {
+    display: flex; background: #141414; border-bottom: 1px solid #1e1e1e;
+  }
+  .stat { flex: 1; padding: 32px 0; text-align: center; border-right: 1px solid #1e1e1e; }
+  .stat:last-child { border-right: none; }
+  .stat-value { font-size: 38px; font-weight: 900; color: #FF6B00; margin-bottom: 8px; }
+  .stat-label { font-size: 22px; color: #666; }
+
+  /* Content */
+  .content { padding: 40px 48px; }
+  .sec-title { font-size: 30px; font-weight: 800; color: #fff; margin-bottom: 20px; }
+
+  /* Badges */
+  .badges { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 40px; }
+  .badge-item {
+    padding: 14px 24px; border-radius: 50px; font-size: 24px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .badge-orange { background: rgba(255,107,0,0.12); color: #FF6B00; border: 1px solid rgba(255,107,0,0.3); }
+  .badge-gold { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid rgba(251,191,36,0.3); }
+  .badge-green { background: rgba(34,197,94,0.12); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+
+  /* Bio */
+  .bio { font-size: 26px; color: #aaa; line-height: 1.7; margin-bottom: 40px; }
+
+  /* Especialidades */
+  .espec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 40px; }
+  .espec-item {
+    background: #141414; border: 1.5px solid #1e1e1e; border-radius: 16px;
+    padding: 24px; display: flex; align-items: center; gap: 16px;
+  }
+  .espec-icon { font-size: 36px; }
+  .espec-name { font-size: 24px; color: #ddd; font-weight: 600; }
+
+  /* Reviews */
+  .review {
+    background: #141414; border: 1.5px solid #1e1e1e; border-radius: 20px;
+    padding: 28px; margin-bottom: 20px;
+  }
+  .review-header { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .review-avatar {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #2a2a2a; display: flex; align-items: center; justify-content: center; font-size: 26px;
+  }
+  .review-name { font-size: 26px; font-weight: 700; color: #fff; }
+  .review-stars { font-size: 22px; color: #fbbf24; }
+  .review-text { font-size: 24px; color: #888; line-height: 1.6; }
+
+  /* CTA */
+  .cta {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 28px 48px 52px; background: linear-gradient(0deg, #0a0a0a 70%, transparent 100%);
+  }
+  .cta-btn {
+    width: 100%; height: 110px; border-radius: 24px;
+    background: linear-gradient(90deg, #FF6B00, #ff8c00);
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    font-size: 36px; font-weight: 900; color: #000;
+  }
+  .cta-price { font-size: 26px; color: rgba(0,0,0,0.6); font-weight: 600; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="label">⭐ Churrasqueiro certificado por Jota Albuquerque</div>
+<div class="screen">
+  <div class="statusbar">
+    <span>9:41</span>
+    <span>●●● ▌▌ 🔋</span>
+  </div>
+  <div class="back">←</div>
+
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-photo">👨‍🍳</div>
+    <div class="hero-info">
+      <div class="hero-badge">🔥 Chancela Albuquerque</div>
+      <div class="hero-name">Carlos<br>Mendes</div>
+      <div class="hero-title">Grillmaster Premium</div>
+      <div class="hero-stars">★★★★★</div>
+      <div class="hero-reviews">4.9 · 127 avaliações</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-value">380+</div>
+      <div class="stat-label">Eventos</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">8 anos</div>
+      <div class="stat-label">Experiência</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">4.9</div>
+      <div class="stat-label">Avaliação</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">100%</div>
+      <div class="stat-label">Pontualidade</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="badges">
+      <div class="badge-item badge-orange">🏆 Certificado Tech Churras</div>
+      <div class="badge-item badge-gold">🌍 Treinado em Zanzibar</div>
+      <div class="badge-item badge-green">✓ Verificado</div>
+      <div class="badge-item badge-orange">🥩 Cortes Premium</div>
+    </div>
+
+    <div class="sec-title">Sobre o profissional</div>
+    <div class="bio">
+      Especialista em cortes nobres, brasa no ponto certo e atendimento premium. Formado pela escola Albuquerque de Grillmasters — o padrão mais alto do mercado.
+    </div>
+
+    <div class="sec-title">Especialidades</div>
+    <div class="espec-grid">
+      <div class="espec-item"><span class="espec-icon">🔥</span><span class="espec-name">Picanha</span></div>
+      <div class="espec-item"><span class="espec-icon">🥩</span><span class="espec-name">Costela</span></div>
+      <div class="espec-item"><span class="espec-icon">🍗</span><span class="espec-name">Frango</span></div>
+      <div class="espec-item"><span class="espec-icon">🌽</span><span class="espec-name">Parrilla</span></div>
+    </div>
+
+    <div class="sec-title">Avaliações recentes</div>
+    <div class="review">
+      <div class="review-header">
+        <div class="review-avatar">😊</div>
+        <div>
+          <div class="review-name">Ana Paula S.</div>
+          <div class="review-stars">★★★★★</div>
+        </div>
+      </div>
+      <div class="review-text">"Melhor churrasco da minha vida! Carlos chegou na hora, organizou tudo e a carne estava perfeita. Super recomendo!"</div>
+    </div>
+  </div>
+
+  <div class="cta">
+    <div class="cta-btn">
+      <span>🔥</span>
+      <div>
+        <div>Contratar Carlos</div>
+        <div class="cta-price">A partir de R$ 350 / evento</div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
