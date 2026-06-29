@@ -13,8 +13,31 @@ function toRad(deg: number) {
   return deg * (Math.PI / 180)
 }
 
-// Geocodifica endereço via OpenStreetMap Nominatim (gratuito, sem API key)
+// Cache em memória com TTL de 24h — evita rate limit do Nominatim (1 req/s por IP)
+const geocodeCache = new Map<string, { result: { lat: number; lng: number } | null; expiresAt: number }>()
+
 export async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+  const key = address.toLowerCase().trim()
+
+  const cached = geocodeCache.get(key)
+  if (cached && Date.now() < cached.expiresAt) return cached.result
+
+  const result = await _fetchGeocode(address)
+
+  geocodeCache.set(key, { result, expiresAt: Date.now() + 24 * 60 * 60 * 1000 })
+
+  // Limpeza periódica para evitar crescimento ilimitado
+  if (geocodeCache.size > 500) {
+    const now = Date.now()
+    for (const [k, v] of geocodeCache) {
+      if (now > v.expiresAt) geocodeCache.delete(k)
+    }
+  }
+
+  return result
+}
+
+async function _fetchGeocode(address: string): Promise<{ lat: number; lng: number } | null> {
   try {
     const query = encodeURIComponent(address + ', Brasil')
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=br`

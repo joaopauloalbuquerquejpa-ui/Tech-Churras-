@@ -206,6 +206,7 @@ model Order {
   cancellationReason    String?
   cancellationFee       Float?
   refundAmount          Float?
+  refundStatus          String?
   notes                 String?
   kitId                 String?
   gmAccompaniments      Json?    @default("[]")

@@ -30,11 +30,7 @@ export const metadata: Metadata = {
 }
 
 
-const STATIC_TESTIMONIALS: Testimonial[] = [
-  { id: 's1', rating: 5, comment: 'Experiência incrível! O Grillmaster chegou no horário, superou todas as expectativas e os convidados ficaram impressionados com a qualidade.', grillmasterName: 'Jota Albuquerque', customerFirstName: 'Rafael M.', city: 'São Paulo' },
-  { id: 's2', rating: 5, comment: 'Nunca imaginei que contratar um Grillmaster profissional seria tão fácil. Acompanhei tudo pelo app em tempo real. Recomendo 100%.', grillmasterName: null, customerFirstName: 'Camila R.', city: 'Rio de Janeiro' },
-  { id: 's3', rating: 5, comment: 'Os cortes do açougue parceiro foram impecáveis. O Grillmaster trouxe todo o equipamento e limpou tudo ao final. Perfeito.', grillmasterName: null, customerFirstName: 'Lucas T.', city: 'Belo Horizonte' },
-]
+const STATIC_TESTIMONIALS: Testimonial[] = []
 
 interface Grillmaster {
   id: string; rating: number; pricePerHour: number; city: string; state: string

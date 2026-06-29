@@ -54,6 +54,7 @@ app.register(rateLimit, {
   global: true,
   max: 120,
   timeWindow: '1 minute',
+  keyGenerator: (req) => (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip,
   errorResponseBuilder: () => ({ error: 'Muitas requisições. Tente novamente em alguns instantes.' }),
 })
 app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } })

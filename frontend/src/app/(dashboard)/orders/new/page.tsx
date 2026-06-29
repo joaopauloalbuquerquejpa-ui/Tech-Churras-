@@ -235,6 +235,18 @@ function NewOrderForm() {
         <p className="text-xs text-gray-500">Passo {step + 1} de {STEPS.length} — <span className="text-gray-300">{STEPS[step]}</span></p>
       </div>
 
+      {/* Running total — aparece assim que há custo estimado */}
+      {totalEstimate > 0 && (
+        <div className="sticky top-16 z-10 -mx-4 px-4 py-2.5 mb-4 bg-gray-950/95 backdrop-blur-sm border-b border-orange-500/20 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs text-gray-500 overflow-hidden">
+            {grillmasterCost > 0 && <span className="shrink-0">GM R${grillmasterCost.toFixed(0)}</span>}
+            {itemsTotal > 0 && <span className="shrink-0">· Carnes R${itemsTotal.toFixed(0)}</span>}
+            {accompLaborTotal > 0 && <span className="shrink-0">· Extras R${accompLaborTotal.toFixed(0)}</span>}
+          </div>
+          <span className="text-lg font-black text-orange-400 shrink-0 ml-2">R$ {totalEstimate.toFixed(2)}</span>
+        </div>
+      )}
+
       {/* ───── STEP 0: Quando e onde ───── */}
       {step === 0 && (
         <div className="space-y-5">

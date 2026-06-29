@@ -454,6 +454,8 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
   const refundAmount = order.paymentStatus === 'PAID' ? order.totalPrice - cancellationFee : null
   const cancelledBy = role === 'ADMIN' ? 'ADMIN' : role === 'GRILLMASTER' ? 'GRILLMASTER' : 'CUSTOMER'
 
+  const needsRefund = order.paymentStatus === 'PAID' && order.paymentId && refundAmount !== null && refundAmount > 0
+
   const updated = await prisma.order.update({
     where: { id },
     data: {
@@ -462,6 +464,7 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
       cancellationReason: reason || null,
       cancellationFee: cancellationFee > 0 ? cancellationFee : null,
       refundAmount: refundAmount !== null ? refundAmount : undefined,
+      refundStatus: needsRefund ? 'PENDING' : null,
     },
     include: { grillmaster: { select: { userId: true } } },
   })
@@ -474,14 +477,19 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
     sendPushToUser(order.customerId, 'Pedido cancelado', `Seu pedido de ${eventDate} foi cancelado pelo churrasqueiro.`, `/orders/${id}`).catch((e) => console.error("[notif]", e?.message))
   }
 
-  // Executar estorno no MP se pedido foi pago
-  if (order.paymentStatus === 'PAID' && order.paymentId && refundAmount !== null && refundAmount > 0) {
-    refundPayment(order.paymentId, refundAmount).catch((e: any) => {
-      console.error('[cancelOrder] Falha ao estornar no MP:', e?.message)
-      sendWhatsAppToAdmin(
-        `🚨 *FALHA NO ESTORNO — Tech Churras!*\n\nPedido ${id}: R$ ${refundAmount.toFixed(2)} NÃO devolvido ao cliente.\nVerificar Mercado Pago manualmente.\nhttps://www.techchurras.com.br/admin`
-      ).catch(() => {})
-    })
+  // Executar estorno no MP com rastreamento de status
+  if (needsRefund) {
+    refundPayment(order.paymentId!, refundAmount!)
+      .then(() => {
+        prisma.order.update({ where: { id }, data: { refundStatus: 'DONE' } }).catch(() => {})
+      })
+      .catch((e: any) => {
+        prisma.order.update({ where: { id }, data: { refundStatus: 'FAILED' } }).catch(() => {})
+        console.error('[cancelOrder] Falha ao estornar no MP:', e?.message)
+        sendWhatsAppToAdmin(
+          `🚨 *FALHA NO ESTORNO — Tech Churras!*\n\nPedido ${id}: R$ ${refundAmount!.toFixed(2)} NÃO devolvido ao cliente.\nVerificar Mercado Pago manualmente.\nhttps://www.techchurras.com.br/admin`
+        ).catch(() => {})
+      })
   }
 
   // Notify admin of cancellation
