@@ -3,8 +3,6 @@
 import { useState } from 'react'
 import { API_URL } from '@/lib/api'
 
-export const metadata = undefined // client component, sem metadata estático
-
 const RESULTADOS = [
   { value: 'fechou',          label: '🔥 Fechou!',           desc: 'Assinou ou comprometeu-se a assinar' },
   { value: 'interessado',     label: '👀 Interessado',        desc: 'Quer saber mais, pediu retorno' },
