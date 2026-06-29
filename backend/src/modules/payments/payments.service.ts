@@ -156,7 +156,7 @@ export async function handleMPWebhook(payload: any) {
 
 export async function refundPayment(paymentId: string, amount: number): Promise<void> {
   const { payment: paymentClient } = getClients()
-  await paymentClient.refund({ id: Number(paymentId), body: { amount } })
+  await (paymentClient as any).refund({ id: Number(paymentId), body: { amount } })
 }
 
 async function triggerReferralBonus(customerId: string, orderId: string) {

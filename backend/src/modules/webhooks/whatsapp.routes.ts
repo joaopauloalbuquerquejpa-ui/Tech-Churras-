@@ -59,7 +59,7 @@ async function getConv(phone: string): Promise<{ messages: Anthropic.MessagePara
   const row = await prisma.whatsappConversation.findUnique({ where: { phone } })
   if (!row) return { messages: [], leadSaved: false }
   return {
-    messages: (row.messages as Anthropic.MessageParam[]) ?? [],
+    messages: (row.messages as unknown as Anthropic.MessageParam[]) ?? [],
     leadSaved: row.leadSaved,
   }
 }
