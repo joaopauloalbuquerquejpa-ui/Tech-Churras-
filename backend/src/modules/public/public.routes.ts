@@ -113,6 +113,66 @@ export async function publicRoutes(app: FastifyInstance) {
     return boutique
   })
 
+  // Registro de visita da equipe comercial
+  app.post('/public/visita-equipe', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req, reply) => {
+    const schema = z.object({
+      vendedor:     z.string().min(2).max(100),
+      tipo:         z.enum(['acougue', 'churrasqueiro']),
+      nomeNegocio:  z.string().min(2).max(200),
+      nomeDono:     z.string().max(100).optional(),
+      telefone:     z.string().min(8).max(20),
+      bairro:       z.string().min(2).max(100),
+      resultado:    z.enum(['interessado', 'fechou', 'retornar', 'nao_interessado']),
+      observacoes:  z.string().max(500).optional(),
+    })
+    const parsed = schema.safeParse(req.body)
+    if (!parsed.success) return reply.status(400).send({ error: 'Dados inválidos', issues: parsed.error.issues })
+
+    const { vendedor, tipo, nomeNegocio, nomeDono, telefone, bairro, resultado, observacoes } = parsed.data
+    const phone = telefone.replace(/\D/g, '')
+
+    const statusMap: Record<string, string> = {
+      interessado:     'qualified',
+      fechou:          'closed',
+      retornar:        'new',
+      nao_interessado: 'lost',
+    }
+    const followUpAt = resultado === 'retornar'
+      ? new Date(Date.now() + 24 * 60 * 60 * 1000)
+      : null
+
+    const notes = [`Vendedor: ${vendedor}`, observacoes].filter(Boolean).join(' | ')
+
+    try {
+      await prisma.lead.upsert({
+        where: { phone },
+        update: {
+          name: nomeDono ?? undefined,
+          boutique: `[${tipo === 'acougue' ? 'Açougue' : 'Churrasqueiro'}] ${nomeNegocio}`,
+          neighborhood: bairro,
+          status: statusMap[resultado],
+          source: `equipe_${tipo}`,
+          notes,
+          followUpAt,
+          followUpSent: false,
+        },
+        create: {
+          phone,
+          name: nomeDono ?? null,
+          boutique: `[${tipo === 'acougue' ? 'Açougue' : 'Churrasqueiro'}] ${nomeNegocio}`,
+          neighborhood: bairro,
+          status: statusMap[resultado],
+          source: `equipe_${tipo}`,
+          notes,
+          followUpAt,
+        },
+      })
+      return reply.send({ ok: true })
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Erro ao registrar visita' })
+    }
+  })
+
   // Customer referral lookup: GET /ref/user/:userId
   app.get('/ref/user/:userId', { config: { rateLimit: { max: 30, timeWindow: '1 minute' } } }, async (req, reply) => {
     const { userId } = req.params as { userId: string }

@@ -72,7 +72,8 @@ export async function getPayoutsSummary() {
 
 export async function generatePayouts() {
   const { monday, sunday } = getWeekBounds()
-  const COMMISSION = 7
+  const GM_COMMISSION = 7        // plataforma retém 7% da mão de obra
+  const BOUTIQUE_COMMISSION = 10 // plataforma retém 10% das carnes
 
   const orders = await prisma.order.findMany({
     where: { status: 'COMPLETED', paymentStatus: 'PAID' },
@@ -111,7 +112,7 @@ export async function generatePayouts() {
           recipientId: order.grillmasterId,
           orderId: order.id,
           grossAmount: laborGross,
-          commission: COMMISSION,
+          commission: GM_COMMISSION,
           amount: +(laborGross * 0.93).toFixed(2),
           weekStart: monday,
           weekEnd: sunday,
@@ -130,8 +131,8 @@ export async function generatePayouts() {
           recipientId: order.boutiqueId,
           orderId: order.id,
           grossAmount: productsGross,
-          commission: COMMISSION,
-          amount: +(productsGross * 0.93).toFixed(2),
+          commission: BOUTIQUE_COMMISSION,
+          amount: +(productsGross * 0.90).toFixed(2),
           weekStart: monday,
           weekEnd: sunday,
           pixKey: order.boutique?.pixKey ?? null,

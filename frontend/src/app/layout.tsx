@@ -145,13 +145,6 @@ export default function RootLayout({
                   "opens": "08:00",
                   "closes": "22:00"
                 },
-                "aggregateRating": {
-                  "@type": "AggregateRating",
-                  "ratingValue": "5.0",
-                  "reviewCount": "12",
-                  "bestRating": "5",
-                  "worstRating": "1"
-                },
                 "hasOfferCatalog": {
                   "@type": "OfferCatalog",
                   "name": "Serviços de Churrasco Profissional",

@@ -256,7 +256,7 @@ model Payout {
   recipientId String
   orderId     String?
   amount      Float
-  commission  Float     @default(15)
+  commission  Float
   grossAmount Float
   status      String    @default("PENDING")
   weekStart   DateTime
@@ -379,6 +379,19 @@ model Lead {
 
   @@index([status])
   @@index([followUpAt])
+}
+
+model WhatsappConversation {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  type         String   @default("boutique")
+  messages     Json     @default("[]")
+  leadSaved    Boolean  @default(false)
+  lastActivity DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([lastActivity])
 }
 
 model Review {

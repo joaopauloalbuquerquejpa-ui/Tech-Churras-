@@ -4,21 +4,6 @@ import { prisma } from '../../config/prisma'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-interface Conversation {
-  messages: Anthropic.MessageParam[]
-  lastActivity: number
-  leadSaved: boolean
-}
-
-const conversations = new Map<string, Conversation>()
-
-setInterval(() => {
-  const cutoff = Date.now() - 24 * 60 * 60 * 1000
-  for (const [phone, conv] of conversations) {
-    if (conv.lastActivity < cutoff) conversations.delete(phone)
-  }
-}, 60 * 60 * 1000)
-
 const SYSTEM_PROMPT = `Você é a equipe da Tech Churras respondendo WhatsApp em nome de Jota Albuquerque.
 
 SOBRE JOTA ALBUQUERQUE:
@@ -65,18 +50,35 @@ Coloque exatamente "LEAD_QUALIFICADO: [nome] | [açougue] | [bairro]" na PRIMEIR
 FOLLOW-UP (quando a pessoa para de responder por mais de 1 mensagem):
 Coloque "REENGAJAR" na primeira linha para indicar que é hora de uma mensagem mais direta sobre urgência do lançamento.`
 
-// ── Feature 6: Chat de suporte automático para clientes
 const SUPPORT_SYSTEM = (name: string, ordersText: string) =>
   `Você é o suporte da Tech Churras, plataforma de churrascos em São Paulo. Responda em português brasileiro, tom caloroso e direto.\n\nCliente: ${name}\nPedidos recentes:\n${ordersText}\n\nResponda perguntas sobre status de pedido, data do evento, churrasqueiro, e açougue. Se não souber, diga que vai verificar com a equipe. Nunca invente informações. Máximo 3 frases por resposta.`
 
-const supportConversations = new Map<string, { messages: Anthropic.MessageParam[], lastActivity: number }>()
+// ── Persistência de conversas no banco ──────────────────────────────────────
 
-setInterval(() => {
-  const cutoff = Date.now() - 6 * 60 * 60 * 1000
-  for (const [phone, conv] of supportConversations) {
-    if (conv.lastActivity < cutoff) supportConversations.delete(phone)
+async function getConv(phone: string): Promise<{ messages: Anthropic.MessageParam[]; leadSaved: boolean }> {
+  const row = await prisma.whatsappConversation.findUnique({ where: { phone } })
+  if (!row) return { messages: [], leadSaved: false }
+  return {
+    messages: (row.messages as Anthropic.MessageParam[]) ?? [],
+    leadSaved: row.leadSaved,
   }
-}, 60 * 60 * 1000)
+}
+
+async function saveConv(
+  phone: string,
+  type: 'boutique' | 'support',
+  messages: Anthropic.MessageParam[],
+  leadSaved = false,
+): Promise<void> {
+  const trimmed = messages.slice(type === 'support' ? -10 : -20)
+  await prisma.whatsappConversation.upsert({
+    where: { phone },
+    update: { messages: trimmed as any, leadSaved, lastActivity: new Date() },
+    create: { phone, type, messages: trimmed as any, leadSaved },
+  })
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
 
 async function findCustomerByPhone(phone: string) {
   const clean = phone.replace(/\D/g, '').replace(/^55/, '')
@@ -164,8 +166,9 @@ async function markLeadContacted(phone: string): Promise<void> {
   } catch {}
 }
 
+// ── Routes ────────────────────────────────────────────────────────────────────
+
 export async function whatsappWebhookRoutes(app: FastifyInstance) {
-  // ── Incoming message webhook
   app.post('/webhooks/whatsapp', {
     config: { rateLimit: { max: 120, timeWindow: '1 minute' } },
   }, async (request, reply) => {
@@ -191,17 +194,11 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
     const userMessage = String(body.text.message || '').trim()
     if (!phone || !userMessage) return reply.send({ ok: true })
 
-    // ── Feature 6: Verifica se é cliente cadastrado → rota de suporte
+    // ── Rota de suporte: cliente cadastrado
     const customer = await findCustomerByPhone(phone).catch(() => null)
     if (customer) {
-      const now = Date.now()
-      if (!supportConversations.has(phone)) {
-        supportConversations.set(phone, { messages: [], lastActivity: now })
-      }
-      const sConv = supportConversations.get(phone)!
-      sConv.lastActivity = now
-      sConv.messages.push({ role: 'user', content: userMessage })
-      if (sConv.messages.length > 10) sConv.messages = sConv.messages.slice(-10)
+      const { messages } = await getConv(phone)
+      const updated = [...messages, { role: 'user' as const, content: userMessage }]
 
       const ordersText = customer.orders.length > 0
         ? customer.orders.map(o => {
@@ -215,10 +212,10 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
           model: 'claude-haiku-4-5-20251001',
           max_tokens: 300,
           system: SUPPORT_SYSTEM(customer.name, ordersText),
-          messages: sConv.messages,
+          messages: updated,
         })
         const replyText = aiResp.content[0].type === 'text' ? aiResp.content[0].text.trim() : 'Oi! Pode me contar mais sobre o que você precisa? 🔥'
-        sConv.messages.push({ role: 'assistant', content: replyText })
+        await saveConv(phone, 'support', [...updated, { role: 'assistant', content: replyText }])
         await zapiSend(phone, replyText)
       } catch {
         await zapiSend(phone, 'Oi! Recebi sua mensagem. Já verifico aqui e te retorno! 🔥')
@@ -226,47 +223,40 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
       return reply.send({ ok: true })
     }
 
-    // ── Bot de captação de açougues (lead B2B)
+    // ── Rota de captação: lead B2B (açougue)
     markLeadContacted(phone).catch(() => {})
-
-    // Atualiza o followUpAt para evitar disparo enquanto está respondendo
     prisma.lead.updateMany({
       where: { phone },
       data: { followUpAt: new Date(Date.now() + 48 * 60 * 60 * 1000), followUpSent: false },
     }).catch(() => {})
 
-    const now = Date.now()
-    if (!conversations.has(phone)) {
-      conversations.set(phone, { messages: [], lastActivity: now, leadSaved: false })
-    }
-    const conv = conversations.get(phone)!
-    conv.lastActivity = now
-    conv.messages.push({ role: 'user', content: userMessage })
-    if (conv.messages.length > 20) conv.messages = conv.messages.slice(-20)
+    const { messages, leadSaved } = await getConv(phone)
+    const updated = [...messages, { role: 'user' as const, content: userMessage }]
 
     try {
       const aiResp = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 500,
         system: SYSTEM_PROMPT,
-        messages: conv.messages,
+        messages: updated,
       })
 
       const rawText = aiResp.content[0].type === 'text' ? aiResp.content[0].text.trim() : ''
       let replyText = rawText
+      let newLeadSaved = leadSaved
 
       if (rawText.startsWith('LEAD_QUALIFICADO:')) {
         const [leadLine, ...rest] = rawText.split('\n')
         replyText = rest.join('\n').trim()
-        if (!conv.leadSaved) {
-          conv.leadSaved = true
+        if (!leadSaved) {
+          newLeadSaved = true
           const leadInfo = leadLine.replace('LEAD_QUALIFICADO:', '').trim()
           saveLead(phone, leadInfo).catch(() => {})
           notifyAdmin(leadInfo, phone).catch(() => {})
         }
       }
 
-      conv.messages.push({ role: 'assistant', content: replyText })
+      await saveConv(phone, 'boutique', [...updated, { role: 'assistant', content: replyText }], newLeadSaved)
       await zapiSend(phone, replyText)
     } catch (err: any) {
       console.error('[WhatsApp AI] error:', err?.message)
@@ -276,7 +266,6 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
     return reply.send({ ok: true })
   })
 
-  // ── Admin: lista de leads captados
   app.get('/webhooks/leads', async (request, reply) => {
     const { token } = request.query as { token?: string }
     if (token !== process.env.WEBHOOK_SECRET) return reply.status(401).send({ error: 'Unauthorized' })
@@ -285,7 +274,7 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
   })
 }
 
-// ── Follow-up automático 48h — chamado pelo cron
+// ── Follow-up automático 48h — chamado pelo cron ─────────────────────────────
 export async function sendFollowUps(): Promise<void> {
   const due = await prisma.lead.findMany({
     where: {

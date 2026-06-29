@@ -71,7 +71,7 @@ app.register(cors, {
   origin: (origin, cb) => {
     // Requisições sem origin (mobile apps, Postman, server-to-server) são permitidas
     if (!origin) return cb(null, true)
-    if (ALLOWED_ORIGINS.includes(origin) || ALLOWED_ORIGINS.some((o) => origin.endsWith('.vercel.app'))) {
+    if (ALLOWED_ORIGINS.includes(origin)) {
       return cb(null, true)
     }
     cb(new Error(`Origin não permitida: ${origin}`), false)

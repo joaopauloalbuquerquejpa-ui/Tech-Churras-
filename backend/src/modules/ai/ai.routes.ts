@@ -119,7 +119,7 @@ Churrasco estilo ${style}: ${homens} homens, ${mulheres} mulheres, ${criancas} c
 No campo "intro", cumprimente pelo nome (se tiver) e comente algo caloroso sobre o evento. Máximo 8 itens. JSON puro.`
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-8',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 2500,
       system: [{ type: 'text', text: SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: userPrompt }],
@@ -203,7 +203,7 @@ Regras:
 - Se não reconhecer com confiança, retorne campos name/description vazios mas mantenha JSON válido`
 
       const message = await client.messages.create({
-        model: 'claude-opus-4-8',
+        model: 'claude-haiku-4-5-20251001',
         max_tokens: 400,
         system: [{ type: 'text', text: PRODUCT_SYSTEM, cache_control: { type: 'ephemeral' } }],
         messages: [{
@@ -384,7 +384,7 @@ REGRAS: Use SOMENTE IDs exatos acima | proteína: 350g/homem, 300g/mulher, 200g/
 {"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"frase calorosa personalizada","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`
 
     const message = await client.messages.create({
-      model: 'claude-opus-4-8',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 1200,
       system: [{ type: 'text', text: KIT_SYSTEM, cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: kitPrompt }],

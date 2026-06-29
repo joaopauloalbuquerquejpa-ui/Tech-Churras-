@@ -37,8 +37,6 @@ export const updateBoutiqueSchema = z.object({
   address: z.string().optional(),
   phone: z.string().optional(),
   open: z.boolean().optional(),
-  monthlyFee: z.number().optional(),
-  commissionRate: z.number().optional(),
   logoUrl: z.string().optional(),
   facadeUrl: z.string().optional(),
   galleryUrls: z.array(z.string()).optional(),

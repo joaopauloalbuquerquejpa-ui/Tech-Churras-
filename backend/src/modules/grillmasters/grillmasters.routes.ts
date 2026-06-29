@@ -12,6 +12,12 @@ import {
 } from './grillmasters.controller'
 import { recommendGrillmasters } from './grillmasters.service'
 
+async function requireAdmin(req: any, reply: any) {
+  if (req.user?.role !== 'ADMIN') {
+    return reply.status(403).send({ error: 'Acesso restrito a administradores' })
+  }
+}
+
 export async function grillmastersRoutes(app: FastifyInstance) {
   // Público
   app.get('/grillmasters', listGrillmastersHandler)
@@ -42,7 +48,7 @@ export async function grillmastersRoutes(app: FastifyInstance) {
   app.put('/grillmasters', { preHandler: [app.authenticate] }, updateGrillmasterHandler)
 
   // Admin
-  app.patch('/admin/grillmasters/:grillmasterId/uniform', { preHandler: [app.authenticate] }, markUniformSentHandler)
+  app.patch('/admin/grillmasters/:grillmasterId/uniform', { preHandler: [app.authenticate, requireAdmin] }, markUniformSentHandler)
 
   app.get('/grillmasters/:id', getGrillmasterHandler)
 }

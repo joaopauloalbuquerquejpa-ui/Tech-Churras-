@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     siteName: 'Tech Churras',
     title: 'Seu açougue pode faturar 3x mais com churrascos',
     description: 'Clientes do app + balcão convertido em pedidos digitais + sua equipe de churrasqueiros. 3 frentes, 1 parceria.',
-    images: [{ url: '/jota.jpg', width: 800, height: 800, alt: 'Tech Churras — Parceiro Açougue' }],
+    images: [{ url: '/jota.jpg', width: 1200, height: 630, alt: 'Tech Churras — Parceiro Açougue' }],
     url: 'https://www.techchurras.com.br/convite-acougue',
   },
   twitter: {

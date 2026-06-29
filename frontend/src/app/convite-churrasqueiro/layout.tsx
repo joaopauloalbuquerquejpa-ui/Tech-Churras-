@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     siteName: 'Tech Churras',
     title: 'Transforme churrasco em renda. Churrasqueiro certificado Tech Churras.',
     description: 'Receba pedidos, defina sua agenda, ganhe por evento. Plataforma completa para churrasqueiros profissionais em São Paulo.',
-    images: [{ url: '/jota.jpg', width: 800, height: 800, alt: 'Tech Churras — Churrasqueiro Certificado' }],
+    images: [{ url: '/jota.jpg', width: 1200, height: 630, alt: 'Tech Churras — Churrasqueiro Certificado' }],
     url: 'https://www.techchurras.com.br/convite-churrasqueiro',
   },
   twitter: {

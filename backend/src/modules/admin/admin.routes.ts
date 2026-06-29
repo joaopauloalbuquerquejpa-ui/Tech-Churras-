@@ -178,15 +178,4 @@ export async function adminRoutes(app: FastifyInstance) {
       return reply.send({ status: 'error', message: err.message })
     }
   })
-
-  // ── Migração única: setar trialEndsAt em boutiques aprovadas sem trial
-  app.post('/admin/migrate/trial-ends-at', async (_req, reply) => {
-    const trialEndsAt = new Date()
-    trialEndsAt.setDate(trialEndsAt.getDate() + 60)
-    const result = await prisma.boutique.updateMany({
-      where: { approved: true, trialEndsAt: null },
-      data: { trialEndsAt },
-    })
-    return reply.send({ updated: result.count, trialEndsAt })
-  })
 }
