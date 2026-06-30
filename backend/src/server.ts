@@ -46,6 +46,18 @@ if (!process.env.MP_WEBHOOK_SECRET || !process.env.MP_ACCESS_TOKEN) {
   console.error('FATAL: MP_WEBHOOK_SECRET ou MP_ACCESS_TOKEN não configurados — pagamentos inoperantes.')
   process.exit(1)
 }
+if (!process.env.DATABASE_URL) {
+  console.error('FATAL: DATABASE_URL não configurado.')
+  process.exit(1)
+}
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.error('FATAL: ANTHROPIC_API_KEY não configurado — chat IA inoperante.')
+  process.exit(1)
+}
+if (!process.env.RESEND_API_KEY) {
+  console.error('FATAL: RESEND_API_KEY não configurado — emails transacionais inoperantes.')
+  process.exit(1)
+}
 
 const app = Fastify({ logger: true })
 

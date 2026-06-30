@@ -9,8 +9,8 @@ export default function robots(): MetadataRoute.Robots {
         disallow: [
           '/admin',
           '/admin/',
-          '/founder',
           '/api',
+          '/visita-equipe',
           '/grillmasters/dashboard',
           '/boutiques/dashboard',
           '/menu',

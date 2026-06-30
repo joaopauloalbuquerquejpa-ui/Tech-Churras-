@@ -760,7 +760,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   </span>
                 </p>
                 <p className="text-xs text-gray-600 flex gap-2">
-                  <span className="text-gray-500">Comissão plataforma (7%):</span>
+                  <span className="text-gray-500">Comissão plataforma (10%):</span>
                   <span className="text-red-400 font-medium">
                     − <AnimatedNumber value={comissao} prefix="R$ " decimals={2} />
                   </span>
@@ -851,7 +851,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               },
               {
                 label: 'Comissão',
-                value: '7%',
+                value: '10%',
                 sub: 'Sobre vendas via plataforma',
                 icon: '📊',
                 color: 'border-amber-500/40',
@@ -904,30 +904,17 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-3 bg-orange-500/10 border border-orange-500/20 rounded-full px-6 py-3 mb-6">
               <span className="text-3xl font-black text-orange-400">{boutiqueCount}</span>
-              <span className="text-sm text-gray-400">açougues já fazem parte do Tech Churras</span>
+              <span className="text-sm text-gray-400">açougues já fazem parte da Tech Churras</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-black">Nossos parceiros</h2>
           </div>
 
-          {/* Placeholder cards — populável futuramente */}
-          <div className="grid sm:grid-cols-3 gap-5 mb-10">
+          <div className="grid sm:grid-cols-1 gap-5 mb-10 max-w-md mx-auto">
             {[
               {
-                name: 'Açougue Premium SP',
-                city: 'São Paulo, SP',
-                quote: '"O QR code virou rotina aqui no balcão. Os clientes já pedem pelo app sem precisar ligar."',
-                since: 'Parceiro desde 2026',
-              },
-              {
-                name: 'Casa de Carnes Bom Sabor',
-                city: 'São Paulo, SP',
-                quote: '"O repasse semanal é pontual e a transparência do dashboard é incrível. Zero surpresa."',
-                since: 'Parceiro desde 2026',
-              },
-              {
                 name: 'Seu Açougue aqui',
-                city: 'Sua cidade, SP',
-                quote: '"Poderia ser o depoimento do seu negócio. Entre e faça parte."',
+                city: 'São Paulo, SP',
+                quote: '"Seja um dos primeiros açougues parceiros e garanta destaque exclusivo na plataforma."',
                 since: 'Em breve',
                 isPlaceholder: true,
               },

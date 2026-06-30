@@ -150,7 +150,7 @@ export default function PaymentPage() {
             <p>• Cancelamento até 48h antes do evento: <span className="text-green-400">reembolso integral</span></p>
             <p>• Cancelamento entre 24h e 48h antes: <span className="text-yellow-400">multa de 30% (reembolso de 70%)</span></p>
             <p>• Cancelamento com menos de 24h: <span className="text-red-400">multa de 50% (reembolso de 50%)</span></p>
-            <p className="text-gray-600 pt-1">Ao pagar você concorda com nossa política de cancelamento e com os <a href="/termos" className="underline hover:text-gray-400">termos de uso</a>.</p>
+            <p className="text-gray-600 pt-1">Ao pagar você concorda com nossa política de cancelamento e com os <a href="/termos-de-uso" className="underline hover:text-gray-400">termos de uso</a>.</p>
           </div>
 
           <a

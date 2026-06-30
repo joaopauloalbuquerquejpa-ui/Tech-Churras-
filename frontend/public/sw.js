@@ -1,6 +1,13 @@
 // Tech Churras Service Worker
 
-self.addEventListener('install', () => self.skipWaiting())
+const CACHE = 'tc-v1'
+const PRECACHE = ['/', '/dashboard', '/offline.html']
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting())
+  )
+})
 self.addEventListener('activate', event => event.waitUntil(clients.claim()))
 
 // Push notifications
@@ -34,10 +41,6 @@ self.addEventListener('notificationclick', event => {
     })
   )
 })
-
-// Minimal offline cache for app shell
-const CACHE = 'tc-v1'
-const PRECACHE = ['/', '/dashboard', '/offline.html']
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return

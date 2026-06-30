@@ -4,18 +4,18 @@ import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Parceria para Açougues em São Paulo — Tech Churras',
-  description: 'Transforme seu açougue em um canal digital recorrente em São Paulo. QR code no balcão, pedidos no app, repasse semanal via PIX. Mensalidade R$ 369/mês + 7% de comissão.',
+  description: 'Transforme seu açougue em um canal digital recorrente em São Paulo. QR code no balcão, pedidos no app, repasse semanal via PIX. Mensalidade R$ 369/mês + 10% de comissão.',
   keywords: ['açougue parceiro São Paulo', 'vender carne online SP', 'parceria açougue SP', 'Tech Churras açougue', 'açougue digital São Paulo', 'açougue QR code', 'açougue app delivery churrasco'],
   alternates: { canonical: '/para-acougues' },
   openGraph: {
-    title: 'Seja parceiro açougue do Tech Churras em São Paulo',
+    title: 'Seja parceiro açougue da Tech Churras em São Paulo',
     description: 'Coloque um QR code no seu balcão e venda pela plataforma. Seus clientes ganham desconto no primeiro pedido — você ganha recorrência digital.',
     type: 'website',
     images: [{ url: '/jota.jpg', width: 800, height: 800, alt: 'Tech Churras — Parceiro Açougue São Paulo' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Seja parceiro açougue do Tech Churras',
+    title: 'Seja parceiro açougue da Tech Churras',
     description: 'QR code no balcão + pedidos no app + repasse semanal via PIX.',
   },
 }
@@ -27,7 +27,7 @@ const faqSchema = {
     {
       '@type': 'Question',
       name: 'Quanto custa a parceria da Tech Churras para açougues?',
-      acceptedAnswer: { '@type': 'Answer', text: 'A mensalidade é de R$ 369/mês com 7% de comissão sobre cada pedido concluído. Açougues fundadores (os primeiros a entrar na plataforma) têm condições especiais e exclusivas.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'A mensalidade é de R$ 369/mês com 10% de comissão sobre cada pedido concluído. Açougues fundadores (os primeiros a entrar na plataforma) têm condições especiais e exclusivas.' },
     },
     {
       '@type': 'Question',

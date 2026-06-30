@@ -98,17 +98,41 @@ export async function handleMPWebhook(payload: any) {
     // Idempotência: se nenhuma linha foi atualizada, pagamento já foi processado
     if (updateResult.count === 0) return { received: true }
 
-    // Notify GM and customer of payment-confirmed order
+    // Notify GM, boutique and customer of payment-confirmed order
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        grillmaster: { include: { user: { select: { id: true, name: true } } } },
+        grillmaster: { include: { user: { select: { id: true, name: true, phone: true } } } },
+        boutique: { include: { user: { select: { id: true, name: true, phone: true } } } },
         customer: { select: { id: true, name: true, email: true } },
       },
     })
     if (order?.grillmaster?.user) {
       const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
       sendPushToUser(order.grillmaster.user.id, '💳 Pagamento confirmado!', `${order.customer.name} pagou. Evento em ${date}. Confirme sua presença.`, '/grillmasters/dashboard').catch((e) => console.error("[notif]", e?.message))
+    }
+    if (order?.boutique?.user) {
+      const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
+      sendPushToUser(order.boutique.user.id, '🥩 Novo pedido pago!', `Separe os cortes para o evento de ${date} (${order.guestCount} pessoas). Pedido confirmado!`, '/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
+      if (order.boutique.user.phone) {
+        const instance = process.env.ZAPI_INSTANCE
+        const token = process.env.ZAPI_TOKEN
+        if (instance && token) {
+          const clean = order.boutique.user.phone.replace(/\D/g, '')
+          const msg = `🔥 *Pedido confirmado — Tech Churras!*\n\n` +
+            `🥩 *${order.boutique.name}*\n` +
+            `📋 Pedido: #${orderId.slice(-6).toUpperCase()}\n` +
+            `📅 Evento: ${date}\n` +
+            `👥 ${order.guestCount} pessoas\n` +
+            `💰 Valor pedido: R$ ${order.totalPrice.toFixed(2)}\n\n` +
+            `Separe os cortes! Acompanhe no painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`
+          fetch(`https://api.z-api.io/instances/${instance}/token/${token}/send-text`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: clean, message: msg }),
+          }).catch((e) => console.error('[notif boutique WA]', e?.message))
+        }
+      }
     }
     if (order?.customer) {
       sendPushToUser(order.customer.id, '✅ Pagamento confirmado!', 'Seu churrasco está confirmado! Acompanhe os detalhes no app.', `/orders/${orderId}`).catch((e) => console.error("[notif]", e?.message))

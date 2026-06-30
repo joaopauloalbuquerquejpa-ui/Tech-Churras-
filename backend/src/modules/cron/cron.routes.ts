@@ -32,7 +32,7 @@ async function sendWhatsAppReminder(phone: string, customerName: string, orderId
 
 export async function cronRoutes(app: FastifyInstance) {
   app.get('/cron/event-reminders', async (req, reply) => {
-    if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+    if (!process.env.CRON_SECRET || req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
 
@@ -43,6 +43,7 @@ export async function cronRoutes(app: FastifyInstance) {
     const window24start = new Date(now.getTime() + 23 * 60 * 60 * 1000)
     const window24end   = new Date(now.getTime() + 25 * 60 * 60 * 1000)
 
+    try {
     const [orders48, orders24] = await Promise.all([
       prisma.order.findMany({
         where: {
@@ -108,11 +109,15 @@ export async function cronRoutes(app: FastifyInstance) {
     await sendFollowUps().catch((e) => console.error('[FollowUp]', e?.message))
 
     return { ok: true, sent48, sent24, sentGm24 }
+    } catch (err: any) {
+      req.log.error('[cron/event-reminders] erro:', err?.message)
+      return reply.status(500).send({ error: 'Erro interno no cron de reminders' })
+    }
   })
 
   // ── Resumo diário às 9h para o fundador (Feature 1)
   app.get('/cron/daily-summary', async (req, reply) => {
-    if (req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+    if (!process.env.CRON_SECRET || req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
     await sendDailySummary()

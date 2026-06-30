@@ -12,19 +12,20 @@ const CSP = [
   // Imagens: self + data URIs + Supabase + Google
   "img-src 'self' data: blob: https://*.supabase.co https://www.googletagmanager.com https://www.google.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://*.tile.openstreetmap.fr https://*.tile.openstreetmap.de",
   // Conexões de rede: backend + analytics + Supabase + maps + Sentry
-  "connect-src 'self' https://tech-churras-production.up.railway.app https://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://o4507954432344064.ingest.us.sentry.io https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://plausible.io https://posthog.com https://app.posthog.com",
+  "connect-src 'self' https://tech-churras-production.up.railway.app https://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://o4507954432344064.ingest.us.sentry.io https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://plausible.io https://posthog.com https://app.posthog.com https://us.i.posthog.com https://www.facebook.com",
   // Frames: apenas Mercado Pago (checkout)
   "frame-src 'self' https://www.mercadopago.com.br https://sandbox.mercadopago.com.br https://*.mercadopago.com",
   // Workers: service worker
   "worker-src 'self' blob:",
   // Media
-  "media-src 'self' blob: https://*.supabase.co",
+  "media-src 'self' blob: https://*.supabase.co https://videos.pexels.com",
 ].join('; ')
 
 const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/entrar', destination: '/login', permanent: true },
+      { source: '/parceiros', destination: '/para-acougues', permanent: false },
     ]
   },
   async headers() {
