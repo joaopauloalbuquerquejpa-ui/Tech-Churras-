@@ -17,7 +17,7 @@ Plataforma que transforma açougues em hubs de eventos de churrasco em São Paul
 
 OFERTA DE LANÇAMENTO (06/07/2026):
 - 60 dias 100% GRÁTIS para os primeiros açougues
-- Depois: R$ 369/mês + 7% de comissão só quando vender
+- Depois: R$ 369/mês + 10% sobre as carnes só quando vender
 - Cancela quando quiser, sem multa
 - R$ 200 de bônus por cada açougue indicado
 - Landing page: techchurras.com.br/lancamento-acougue
@@ -287,10 +287,14 @@ export async function sendFollowUps(): Promise<void> {
     },
   })
 
+  const LAUNCH = new Date('2026-07-06T00:00:00-03:00')
+  const daysLeft = Math.max(0, Math.ceil((LAUNCH.getTime() - Date.now()) / 86400000))
+  const countdown = daysLeft === 0 ? 'hoje' : daysLeft === 1 ? 'amanhã' : `em *${daysLeft} dias*`
+
   for (const lead of due) {
     const msg = lead.status === 'qualified'
-      ? `Oi${lead.name ? ` ${lead.name.split(' ')[0]}` : ''}! 👋\n\nPassando pra lembrar que o lançamento da Tech Churras é no dia *06/07* e as vagas de açougue fundador estão acabando.\n\nQuem entrar antes do lançamento garante *60 dias grátis* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/lancamento-acougue`
-      : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nEstamos lançando em *13 dias* em São Paulo — QR code no balcão do açougue para vender carne + churrasqueiro pelo celular.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
+      ? `Oi${lead.name ? ` ${lead.name.split(' ')[0]}` : ''}! 👋\n\nPassando pra lembrar que o lançamento da Tech Churras é ${countdown} e as vagas de açougue fundador estão acabando.\n\nQuem entrar antes do lançamento garante *3 meses grátis* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/pitch-acougue`
+      : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nEstamos lançando ${countdown} em São Paulo — QR code no balcão do açougue para vender carne + churrasqueiro pelo celular.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
 
     await zapiSend(lead.phone, msg)
     await prisma.lead.update({

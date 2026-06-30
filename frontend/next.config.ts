@@ -4,7 +4,7 @@ import { withSentryConfig } from '@sentry/nextjs'
 const CSP = [
   "default-src 'self'",
   // Scripts: self + inline (Next.js requer) + analytics externos
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://plausible.io https://js.sentry-cdn.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://plausible.io https://js.sentry-cdn.com https://www.clarity.ms",
   // Estilos: self + inline (Tailwind CSS-in-JS)
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // Fontes
@@ -12,7 +12,7 @@ const CSP = [
   // Imagens: self + data URIs + Supabase + Google
   "img-src 'self' data: blob: https://*.supabase.co https://www.googletagmanager.com https://www.google.com https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://*.tile.openstreetmap.fr https://*.tile.openstreetmap.de",
   // Conexões de rede: backend + analytics + Supabase + maps + Sentry
-  "connect-src 'self' https://tech-churras-production.up.railway.app https://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://o4507954432344064.ingest.us.sentry.io https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://plausible.io https://posthog.com https://app.posthog.com https://us.i.posthog.com https://www.facebook.com",
+  "connect-src 'self' https://tech-churras-production.up.railway.app https://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://o4507954432344064.ingest.us.sentry.io https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://plausible.io https://posthog.com https://app.posthog.com https://us.i.posthog.com https://www.facebook.com https://www.clarity.ms",
   // Frames: apenas Mercado Pago (checkout)
   "frame-src 'self' https://www.mercadopago.com.br https://sandbox.mercadopago.com.br https://*.mercadopago.com",
   // Workers: service worker

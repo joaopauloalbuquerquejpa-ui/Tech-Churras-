@@ -434,3 +434,12 @@ model PasswordResetToken {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
+model AlphaTester {
+  id        String   @id @default(uuid())
+  name      String
+  whatsapp  String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

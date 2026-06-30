@@ -35,6 +35,7 @@ import { calculatorRoutes } from './modules/calculator/calculator.routes'
 import { aiRoutes } from './modules/ai/ai.routes'
 import { contractsRoutes } from './modules/contracts/contracts.routes'
 import { whatsappWebhookRoutes } from './modules/webhooks/whatsapp.routes'
+import { alphaRoutes } from './modules/alpha/alpha.routes'
 
 dotenv.config()
 
@@ -127,6 +128,7 @@ app.register(calculatorRoutes)
 app.register(aiRoutes)
 app.register(contractsRoutes)
 app.register(whatsappWebhookRoutes)
+app.register(alphaRoutes)
 
 // Health check
 app.get('/health', async () => {

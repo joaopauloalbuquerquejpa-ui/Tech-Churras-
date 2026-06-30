@@ -76,7 +76,11 @@ export async function generatePayouts() {
   const BOUTIQUE_COMMISSION = 10 // plataforma retém 10% das carnes
 
   const orders = await prisma.order.findMany({
-    where: { status: 'COMPLETED', paymentStatus: 'PAID' },
+    where: {
+      status: 'COMPLETED',
+      paymentStatus: 'PAID',
+      updatedAt: { gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) },
+    },
     include: {
       grillmaster: { select: { id: true, pixKey: true, pricePerHour: true } },
       boutique: { select: { id: true, pixKey: true } },
