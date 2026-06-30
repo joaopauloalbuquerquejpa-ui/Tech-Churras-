@@ -67,7 +67,7 @@ export async function registerUser(data: RegisterInput) {
     }
   }
 
-  // Fire-and-forget welcome email + admin notification for customers
+  // Fire-and-forget welcome email + admin notification
   if (data.role === 'CUSTOMER') {
     emailWelcomeCustomer(user.email, user.name).catch((e) => console.error("[notif]", e?.message))
     sendPushToRole('ADMIN', '👤 Novo cliente!', `${user.name} se cadastrou na plataforma.`, '/admin').catch((e) => console.error("[notif]", e?.message))
@@ -77,6 +77,28 @@ export async function registerUser(data: RegisterInput) {
       `Email: ${user.email}\n` +
       `${data.phone ? `📞 ${data.phone}` : ''}\n\n` +
       `👉 https://www.techchurras.com.br/admin`
+    ).catch((e) => console.error("[notif]", e?.message))
+  }
+
+  if (data.role === 'GRILLMASTER') {
+    sendPushToRole('ADMIN', '🔥 Novo Grill Master!', `${user.name} quer ser churrasqueiro. Aprovar em Pendentes.`, '/admin').catch((e) => console.error("[notif]", e?.message))
+    sendWhatsAppToAdmin(
+      `🔥 *Novo Grill Master cadastrado — Tech Churras!*\n\n` +
+      `Nome: ${user.name}\n` +
+      `Email: ${user.email}\n` +
+      `${data.phone ? `📞 ${data.phone}` : ''}\n\n` +
+      `Aprovar em: https://www.techchurras.com.br/admin`
+    ).catch((e) => console.error("[notif]", e?.message))
+  }
+
+  if (data.role === 'BOUTIQUE') {
+    sendPushToRole('ADMIN', '🥩 Novo Açougue!', `${user.name} quer ser parceiro. Aprovar em Pendentes.`, '/admin').catch((e) => console.error("[notif]", e?.message))
+    sendWhatsAppToAdmin(
+      `🥩 *Novo Açougue parceiro cadastrado — Tech Churras!*\n\n` +
+      `Nome: ${user.name}\n` +
+      `Email: ${user.email}\n` +
+      `${data.phone ? `📞 ${data.phone}` : ''}\n\n` +
+      `Aprovar em: https://www.techchurras.com.br/admin`
     ).catch((e) => console.error("[notif]", e?.message))
   }
 

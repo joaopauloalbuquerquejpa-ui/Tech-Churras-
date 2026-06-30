@@ -470,7 +470,7 @@ export default async function HomePage() {
               </div>
               <p className="font-black text-white">Tech <span className="text-orange-500">Churras</span></p>
             </div>
-            <p className="text-xs text-gray-600 leading-relaxed">A Tech Churras. Conectando Grillmasters profissionais, açougues premium e clientes exigentes desde 2025.</p>
+            <p className="text-xs text-gray-600 leading-relaxed">A Tech Churras. Conectando Grillmasters profissionais, açougues premium e clientes exigentes desde 2026.</p>
           </div>
           <div>
             <p className="font-semibold text-sm mb-3 text-gray-300">Plataforma</p>

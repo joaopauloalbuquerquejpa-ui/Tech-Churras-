@@ -6,17 +6,17 @@ const BENEFITS = [
   {
     icon: '💰',
     title: '5% de desconto em todo pedido',
-    desc: 'Em cada churrasco contratado, você economiza 5% automaticamente — sem cupom, sem complicação.',
+    desc: 'Em cada churrasco contratado, você economizará 5% automaticamente — sem cupom, sem complicação.',
   },
   {
     icon: '⚡',
     title: 'Churrasqueiro prioritário',
-    desc: 'Seu pedido vai para o topo da fila dos churrasqueiros mais bem avaliados da sua região.',
+    desc: 'Seu pedido irá para o topo da fila dos churrasqueiros mais bem avaliados da sua região.',
   },
   {
     icon: '📅',
     title: 'Agendamento com prioridade',
-    desc: 'Datas disputadas (feriados, vésperas) ficam disponíveis primeiro para membros Churras Club.',
+    desc: 'Datas disputadas (feriados, vésperas) ficarão disponíveis primeiro para membros Churras Club.',
   },
   {
     icon: '🎯',
@@ -121,7 +121,8 @@ export default function ChurrasClubPage() {
 
       {/* Benefits */}
       <section className="max-w-5xl mx-auto px-4 pb-20">
-        <h2 className="text-2xl font-bold text-center mb-10">O que está incluso</h2>
+        <h2 className="text-2xl font-bold text-center mb-4">O que você terá ao lançarmos</h2>
+        <p className="text-center text-sm text-orange-400/70 mb-10">Previsão de lançamento: julho/2026 · Entre na lista de espera abaixo</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {BENEFITS.map(b => (
             <div key={b.title} className="bg-gray-900 border border-gray-800 rounded-2xl p-5">

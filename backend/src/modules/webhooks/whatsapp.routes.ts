@@ -269,8 +269,9 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
   })
 
   app.get('/webhooks/leads', async (request, reply) => {
-    const { token } = request.query as { token?: string }
-    if (token !== process.env.WEBHOOK_SECRET) return reply.status(401).send({ error: 'Unauthorized' })
+    const authHeader = request.headers['authorization'] as string | undefined
+    const token = authHeader?.replace(/^Bearer\s+/i, '')
+    if (!process.env.WEBHOOK_SECRET || token !== process.env.WEBHOOK_SECRET) return reply.status(401).send({ error: 'Unauthorized' })
     const leads = await prisma.lead.findMany({ orderBy: { createdAt: 'desc' }, take: 100 })
     return reply.send(leads)
   })

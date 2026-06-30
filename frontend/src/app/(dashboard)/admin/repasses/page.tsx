@@ -158,7 +158,7 @@ export default function RepassesPage() {
             <p className="text-xs text-gray-500 mt-1">{summary.count.paid} repasse(s) pago(s)</p>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-            <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Comissao da Plataforma (15%)</p>
+            <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide">Comissão da Plataforma (7% GM + 10% açougue)</p>
             <p className="text-2xl font-bold text-blue-400">R$ {fmt(summary.totalCommission)}</p>
             <p className="text-xs text-gray-500 mt-1">
               Semana: {fmtDate(summary.weekStart)} a {fmtDate(summary.weekEnd)}

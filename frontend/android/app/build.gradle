@@ -14,7 +14,7 @@ android {
     compileSdk = rootProject.ext.compileSdkVersion
 
     defaultConfig {
-        applicationId "com.techchurras.android"
+        applicationId "com.techchurras.app"
         minSdkVersion 24
         targetSdkVersion 35
         versionCode 2
