@@ -178,4 +178,9 @@ export async function adminRoutes(app: FastifyInstance) {
       return reply.send({ status: 'error', message: err.message })
     }
   })
+
+  app.get('/admin/alpha-testers', async (_req, reply) => {
+    const testers = await prisma.alphaTester.findMany({ orderBy: { createdAt: 'desc' } })
+    return reply.send(testers)
+  })
 }
