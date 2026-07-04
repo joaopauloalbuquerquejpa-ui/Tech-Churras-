@@ -29,7 +29,12 @@ export async function generateMetadata({ params }: { params: Promise<{ cidade: s
   const { cidade } = await params
   const city = cityLabel(decodeURIComponent(cidade))
   const isSP = decodeURIComponent(cidade) === 'sao-paulo'
+  // Domínio novo: página de cidade sem nenhum GM é thin content — noindex até ter oferta real.
+  // O fetch é deduplicado pelo Next com o da página (mesma URL + revalidate), custo zero.
+  const grillmasters = await getGrillmasters(city)
+  const robots = grillmasters.length === 0 ? { index: false, follow: true } : undefined
   return {
+    robots,
     title: isSP
       ? 'Churrasqueiros em São Paulo — Contrate Profissionais Certificados | Tech Churras'
       : `Churrasqueiros em ${city} — Tech Churras`,

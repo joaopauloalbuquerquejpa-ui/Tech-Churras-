@@ -15,6 +15,10 @@ const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   IN_PROGRESS: ['COMPLETED', 'CANCELLED'],
 }
 
+// Taxa de serviço cobrada do cliente sobre o subtotal (após desconto).
+// Receita 100% da plataforma — não entra no repasse de GM nem açougue.
+export const SERVICE_FEE_RATE = 0.06
+
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
   boutiqueId: z.string().optional(),
@@ -126,7 +130,9 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     }
   }
 
-  const totalPrice = Math.max(0, subtotal - discountAmount)
+  const netSubtotal = Math.max(0, subtotal - discountAmount)
+  const serviceFee = +(netSubtotal * SERVICE_FEE_RATE).toFixed(2)
+  const totalPrice = +(netSubtotal + serviceFee).toFixed(2)
 
   // Cria pedido + incrementa cupom + valida disponibilidade do GM atomicamente para evitar race condition
   const order = await prisma.$transaction(async (tx) => {
@@ -165,6 +171,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         ...orderData,
         totalPrice,
         laborPrice: grillmasterCost,
+        serviceFee,
         couponCode: appliedCouponCode,
         discountAmount,
         gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,

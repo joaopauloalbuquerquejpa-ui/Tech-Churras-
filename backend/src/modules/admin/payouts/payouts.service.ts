@@ -107,7 +107,8 @@ export async function generatePayouts() {
   for (const order of orders) {
     // Desconto (cupom/indicação) é rateado proporcionalmente entre mão de obra e produtos,
     // para que GM e açougue não sejam pagos sobre um valor que o cliente nunca pagou.
-    const subtotal = order.totalPrice + (order.discountAmount ?? 0)
+    // serviceFee é receita da plataforma e fica fora da base de rateio.
+    const subtotal = order.totalPrice - (order.serviceFee ?? 0) + (order.discountAmount ?? 0)
     const discountRatio = subtotal > 0 && order.discountAmount ? Math.min(order.discountAmount / subtotal, 1) : 0
 
     // Mão de obra do churrasqueiro = valor travado no pedido (não a tarifa ao vivo do GM)

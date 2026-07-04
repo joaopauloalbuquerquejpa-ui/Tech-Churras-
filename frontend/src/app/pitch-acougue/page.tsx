@@ -24,7 +24,7 @@ export default function PitchAcougue() {
       <section className="px-5 pt-2 pb-10">
         <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1 text-xs text-red-400 font-semibold mb-5">
           <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-          1 vaga por bairro · São Paulo
+          5 vagas de Fundador em SP · 1 por região
         </div>
 
         <h1 className="text-3xl font-black leading-tight mb-4">
@@ -134,7 +134,7 @@ export default function PitchAcougue() {
             <span className="text-3xl">🏅</span>
             <div>
               <p className="font-black text-white">Pacote Parceiro Fundador</p>
-              <p className="text-xs text-amber-400">Apenas 1 por bairro em SP · válido até 06/08/2026</p>
+              <p className="text-xs text-amber-400">5 vagas em SP · 1 por região · válido até 06/08/2026</p>
             </div>
           </div>
           <div className="space-y-2.5 mb-5">

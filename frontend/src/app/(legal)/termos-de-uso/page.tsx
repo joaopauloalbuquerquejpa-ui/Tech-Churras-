@@ -70,6 +70,9 @@ export default function TermosDeUsoPage() {
         A Tech Churras retém <strong className="text-white">7% (sete por cento)</strong> do valor de cada pedido concluído como taxa de serviço da Plataforma, deduzida diretamente do repasse ao Churrasqueiro. Esta taxa cobre os custos operacionais, suporte, infraestrutura tecnológica e processamento de pagamentos.
       </P>
       <P>
+        Sobre o valor total de cada pedido incide uma <strong className="text-white">taxa de serviço de 6% (seis por cento)</strong>, cobrada do Cliente e exibida de forma destacada no resumo do pedido antes da confirmação do pagamento. Esta taxa remunera a operação da Plataforma — coordenação entre churrasqueiro e açougue, acompanhamento ao vivo do evento, suporte e garantias da intermediação.
+      </P>
+      <P>
         Açougues parceiros estão sujeitos à mensalidade conforme o plano contratado (<strong className="text-white">R$ 369/mês</strong> para os 5 primeiros Açougues Parceiros Fundadores, com 3 meses de período gratuito, ou <strong className="text-white">R$ 497/mês</strong> no plano padrão a partir do 6º açougue), além de comissão de <strong className="text-white">10%</strong> sobre o valor das carnes vendidas via Plataforma.
       </P>
 

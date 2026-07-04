@@ -59,6 +59,20 @@ if (!process.env.RESEND_API_KEY) {
   console.error('FATAL: RESEND_API_KEY não configurado — emails transacionais inoperantes.')
   process.exit(1)
 }
+// Notificações: não derrubam o boot, mas sem elas WhatsApp/push viram no-op silencioso.
+// Warn alto no startup para o deploy nunca subir "verde" com canal de notificação morto.
+if (!process.env.ZAPI_INSTANCE || !process.env.ZAPI_TOKEN) {
+  console.warn('⚠️  AVISO: ZAPI_INSTANCE/ZAPI_TOKEN não configurados — TODAS as mensagens de WhatsApp estão desativadas.')
+}
+if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
+  console.warn('⚠️  AVISO: VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY não configurados — Web Push desativado.')
+}
+if (!process.env.ADMIN_WHATSAPP_PHONE) {
+  console.warn('⚠️  AVISO: ADMIN_WHATSAPP_PHONE não configurado — alertas de admin via WhatsApp desativados.')
+}
+if (!process.env.CRON_SECRET) {
+  console.warn('⚠️  AVISO: CRON_SECRET não configurado — endpoints de cron rejeitarão todas as chamadas.')
+}
 
 const app = Fastify({ logger: true })
 

@@ -137,7 +137,8 @@ function NewOrderForm() {
     const a = gmAccompList.find(a => a.name === name)
     return sum + (a?.laborPrice ?? 0)
   }, 0)
-  const totalEstimate = grillmasterCost + itemsTotal + accompLaborTotal
+  const serviceFeeEstimate = +((grillmasterCost + itemsTotal + accompLaborTotal) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
+  const totalEstimate = grillmasterCost + itemsTotal + accompLaborTotal + serviceFeeEstimate
 
   const productsCarnes = boutiqueProducts.filter(p => p.category !== 'ACOMPANHAMENTO')
   const productsAcomp = boutiqueProducts.filter(p => p.category === 'ACOMPANHAMENTO')
@@ -242,6 +243,7 @@ function NewOrderForm() {
             {grillmasterCost > 0 && <span className="shrink-0">GM R${grillmasterCost.toFixed(0)}</span>}
             {itemsTotal > 0 && <span className="shrink-0">· Carnes R${itemsTotal.toFixed(0)}</span>}
             {accompLaborTotal > 0 && <span className="shrink-0">· Extras R${accompLaborTotal.toFixed(0)}</span>}
+            {serviceFeeEstimate > 0 && <span className="shrink-0">· Taxa R${serviceFeeEstimate.toFixed(0)}</span>}
           </div>
           <span className="text-lg font-black text-orange-400 shrink-0 ml-2">R$ {totalEstimate.toFixed(2)}</span>
         </div>

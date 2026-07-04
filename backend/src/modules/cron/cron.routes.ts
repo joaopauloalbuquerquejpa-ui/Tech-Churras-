@@ -89,6 +89,7 @@ export async function cronRoutes(app: FastifyInstance) {
         status: 'CONFIRMED',
         eventDate: { gte: window24start, lte: window24end },
         grillmasterId: { not: null },
+        reminderGm24hSent: false,
       },
       include: { grillmaster: { select: { userId: true } }, customer: { select: { name: true } } },
     })
@@ -102,6 +103,7 @@ export async function cronRoutes(app: FastifyInstance) {
           `Você tem churrasco com ${order.customer.name} amanhã às ${date.split(' ')[1]}. Prepare tudo!`,
           '/grillmasters/dashboard'
         ).catch((e) => console.error("[notif]", e?.message))
+        await prisma.order.update({ where: { id: order.id }, data: { reminderGm24hSent: true } })
         sentGm24++
       }
     }

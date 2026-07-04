@@ -1,6 +1,8 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { createHmac, timingSafeEqual } from 'crypto'
+import * as Sentry from '@sentry/node'
 import { createPreference, handleMPWebhook } from './payments.service'
+import { reportIfUnexpected } from '../../utils/report'
 
 function verifyMPSignature(req: FastifyRequest, paymentId: string): boolean {
   const secret = process.env.MP_WEBHOOK_SECRET
@@ -51,6 +53,7 @@ export async function createPreferenceHandler(req: FastifyRequest, reply: Fastif
     const result = await createPreference(orderId, customerId)
     return reply.status(201).send(result)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -74,6 +77,8 @@ export async function mpWebhookHandler(req: FastifyRequest, reply: FastifyReply)
     const result = await handleMPWebhook(payload)
     return reply.send(result)
   } catch (err: any) {
+    // Webhook de pagamento: QUALQUER falha aqui é dinheiro em risco — sempre reportar
+    Sentry.captureException(err)
     return reply.status(500).send({ error: err.message })
   }
 }

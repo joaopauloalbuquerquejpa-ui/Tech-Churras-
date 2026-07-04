@@ -1,5 +1,6 @@
 ﻿import { FastifyRequest, FastifyReply } from 'fastify'
 import { z, ZodError } from 'zod'
+import { reportIfUnexpected } from '../../utils/report'
 import { createOrderSchema, createOrder, listOrders, getOrderById, updateOrderStatus, updateOrderStatusDetail, updateOrderLocation, getRepeatData, cancelOrder, generateShareToken, getOrderByPublicToken, getOrderEta, rescheduleOrder } from './orders.service'
 
 const locationSchema = z.object({ lat: z.number().min(-90).max(90), lng: z.number().min(-180).max(180) })
@@ -16,6 +17,7 @@ export async function createOrderHandler(req: FastifyRequest, reply: FastifyRepl
       const first = err.issues[0]
       return reply.status(400).send({ error: first?.message ?? 'Dados inválidos' })
     }
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -26,6 +28,7 @@ export async function listOrdersHandler(req: FastifyRequest, reply: FastifyReply
     const orders = await listOrders(customerId)
     return reply.send(orders)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -38,6 +41,7 @@ export async function getOrderHandler(req: FastifyRequest, reply: FastifyReply) 
     const order = await getOrderById(id, userId, role)
     return reply.send(order)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(404).send({ error: err.message })
   }
 }
@@ -51,6 +55,7 @@ export async function updateStatusDetailHandler(req: FastifyRequest, reply: Fast
     const order = await updateOrderStatusDetail(id, statusDetail, userId, role)
     return reply.send(order)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -64,6 +69,7 @@ export async function updateOrderStatusHandler(req: FastifyRequest, reply: Fasti
     const order = await updateOrderStatus(id, status, userId, role)
     return reply.send(order)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -76,6 +82,7 @@ export async function updateLocationHandler(req: FastifyRequest, reply: FastifyR
     const result = await updateOrderLocation(id, lat, lng, userId)
     return reply.send(result)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -89,6 +96,7 @@ export async function cancelOrderHandler(req: FastifyRequest, reply: FastifyRepl
     const order = await cancelOrder(id, userId, role, reason ?? '')
     return reply.send(order)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -101,6 +109,7 @@ export async function getRepeatDataHandler(req: FastifyRequest, reply: FastifyRe
     const data = await getRepeatData(id, userId, role)
     return reply.send(data)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -111,6 +120,7 @@ export async function getOrderByPublicTokenHandler(req: FastifyRequest, reply: F
     const data = await getOrderByPublicToken(token)
     return reply.send(data)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(404).send({ error: err.message })
   }
 }
@@ -123,6 +133,7 @@ export async function getOrderEtaHandler(req: FastifyRequest, reply: FastifyRepl
     const eta = await getOrderEta(id, userId, role)
     return reply.send(eta)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -138,6 +149,7 @@ export async function rescheduleOrderHandler(req: FastifyRequest, reply: Fastify
     const order = await rescheduleOrder(id, newDate, userId, role)
     return reply.send(order)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -150,6 +162,7 @@ export async function shareOrderHandler(req: FastifyRequest, reply: FastifyReply
     const data = await generateShareToken(id, userId, role)
     return reply.send(data)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }

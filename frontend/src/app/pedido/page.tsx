@@ -103,7 +103,8 @@ function PedidoForm() {
   const productsCost = products.reduce((s, p) => s + (qty[p.id] || 0) * p.price, 0)
   const gm = grillmasters.find(g => g.id === selectedGm)
   const gmCost = gm ? gm.pricePerHour * eventHours : 0
-  const total = productsCost + gmCost
+  const serviceFee = +((productsCost + gmCost) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
+  const total = productsCost + gmCost + serviceFee
   const categorias = [...new Set(products.map(p => p.category))]
 
   useEffect(() => {
@@ -486,6 +487,7 @@ function PedidoForm() {
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
               {productsCost > 0 && <div className="flex justify-between text-gray-400"><span>Cortes</span><span className="text-orange-400">R$ {productsCost.toFixed(2)}</span></div>}
               {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h)</span><span className="text-orange-400">R$ {gmCost.toFixed(2)}</span></div>}
+              {serviceFee > 0 && <div className="flex justify-between text-gray-400"><span>Taxa de serviço</span><span className="text-orange-400">R$ {serviceFee.toFixed(2)}</span></div>}
               <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
                 <span className="font-bold text-white">Total estimado</span>
                 <span className="text-2xl font-black text-orange-400">R$ {total.toFixed(2)}</span>

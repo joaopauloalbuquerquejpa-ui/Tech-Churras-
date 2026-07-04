@@ -187,9 +187,16 @@ export default function OrderDetailPage() {
     return () => clearInterval(interval)
   }, [order?.statusDetail])
 
-  // Dispara Purchase para todos os canais quando pagamento é confirmado
+  // Dispara Purchase para todos os canais quando pagamento é confirmado.
+  // Dedupe por pedido via localStorage: a URL ?payment=success é a back_url do MP,
+  // então refresh/revisita dispararia conversão duplicada nos pixels sem esta trava.
   useEffect(() => {
     if (paymentResult === 'success' && order?.totalPrice) {
+      const dedupeKey = `tc_purchase_fired_${order.id}`
+      try {
+        if (localStorage.getItem(dedupeKey)) return
+        localStorage.setItem(dedupeKey, '1')
+      } catch {}
       Events.purchase(order.id, order.totalPrice)
     }
   }, [paymentResult, order?.id, order?.totalPrice])

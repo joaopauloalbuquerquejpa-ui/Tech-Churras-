@@ -158,7 +158,7 @@ export default function ScriptEquipe() {
                 <p>→ Mostrar os três números: R$0, 10%, PIX</p>
                 <p>→ Rolar até "Como funciona" e explicar os 4 passos</p>
                 <p>→ Mostrar a estimativa de renda (5 / 20 / 40 eventos)</p>
-                <p>→ Mostrar o Pacote Fundador — enfatizar "só 1 por bairro"</p>
+                <p>→ Mostrar o Pacote Fundador — enfatizar "só 5 vagas em SP, 1 por região"</p>
               </div>
             </div>
             <Dica>
@@ -171,7 +171,7 @@ export default function ScriptEquipe() {
           <div className="mb-6">
             <Step n="4" label="A oferta — criar urgência real" />
             <Fala>
-              A gente está fechando só um açougue por bairro em São Paulo. Os primeiros que
+              A gente está fechando só 5 açougues fundadores em São Paulo — um por região. Os primeiros que
               fecharem entram como Parceiro Fundador — três meses sem mensalidade e destaque
               nas buscas por seis meses. Depois disso, quando o bairro de vocês fechar, a
               próxima oportunidade vai ser sem esse benefício. O seu concorrente aqui no bairro
@@ -400,7 +400,7 @@ export default function ScriptEquipe() {
                 <p>• Treinamento presencial com Jota para Churrasqueiro Fundador</p>
                 <p>• 7% de comissão do churrasqueiro / 10% do açougue, só quando o evento é realizado</p>
                 <p>• Repasse semanal via PIX toda sexta</p>
-                <p>• 1 vaga de açougue por bairro</p>
+                <p>• 5 vagas de Açougue Fundador em SP · 1 por região · até 06/08</p>
                 <p>• 10 vagas de Churrasqueiro Fundador no total em SP</p>
               </div>
             </div>

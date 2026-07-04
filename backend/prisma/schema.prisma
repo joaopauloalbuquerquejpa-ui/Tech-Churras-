@@ -204,6 +204,7 @@ model Order {
   guestCount     Int
   totalPrice     Float       @default(0)
   laborPrice     Float       @default(0)
+  serviceFee     Float       @default(0)
   couponCode     String?
   discountAmount Float?      @default(0)
   statusDetail          String?
@@ -223,6 +224,7 @@ model Order {
   paidAt         DateTime?
   reminder48hSent  Boolean  @default(false)
   reminder24hSent  Boolean  @default(false)
+  reminderGm24hSent Boolean @default(false)
   publicShareToken String?  @unique
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt

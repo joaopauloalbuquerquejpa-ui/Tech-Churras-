@@ -1,4 +1,5 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
+import { reportIfUnexpected } from '../../utils/report'
 import {
   createBoutique,
   listBoutiques,
@@ -37,6 +38,7 @@ export async function createBoutiqueHandler(req: FastifyRequest, reply: FastifyR
     const boutique = await createBoutique(user.id, data)
     return reply.status(201).send(boutique)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -51,6 +53,7 @@ export async function listBoutiquesHandler(req: FastifyRequest, reply: FastifyRe
     })
     return reply.send(boutiques)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -61,6 +64,7 @@ export async function getBoutiqueByIdHandler(req: FastifyRequest, reply: Fastify
     const boutique = await getBoutiqueById(id)
     return reply.send(boutique)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(404).send({ error: err.message })
   }
 }
@@ -71,6 +75,7 @@ export async function getBoutiqueProductsHandler(req: FastifyRequest, reply: Fas
     const boutique = await getBoutiqueById(id)
     return reply.send(boutique.products)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(404).send({ error: err.message })
   }
 }
@@ -81,6 +86,7 @@ export async function getMyBoutiqueHandler(req: FastifyRequest, reply: FastifyRe
     const boutique = await getMyBoutique(userId)
     return reply.send(boutique)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(404).send({ error: err.message })
   }
 }
@@ -92,6 +98,7 @@ export async function updateBoutiqueHandler(req: FastifyRequest, reply: FastifyR
     const boutique = await updateBoutique(userId, data)
     return reply.send(boutique)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -102,6 +109,7 @@ export async function getKitsByBoutiqueHandler(req: FastifyRequest, reply: Fasti
     const kits = await getKitsByBoutique(id)
     return reply.send(kits)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(500).send({ error: err.message })
   }
 }
@@ -113,6 +121,7 @@ export async function createKitHandler(req: FastifyRequest, reply: FastifyReply)
     const kit = await createKit(userId, data)
     return reply.status(201).send(kit)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -125,6 +134,7 @@ export async function updateKitHandler(req: FastifyRequest, reply: FastifyReply)
     const kit = await updateKit(kitId, userId, data)
     return reply.send(kit)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -136,6 +146,7 @@ export async function deleteKitHandler(req: FastifyRequest, reply: FastifyReply)
     await deleteKit(kitId, userId)
     return reply.status(204).send()
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -147,6 +158,7 @@ export async function createProductHandler(req: FastifyRequest, reply: FastifyRe
     const product = await createProduct(userId, data)
     return reply.status(201).send(product)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -159,6 +171,7 @@ export async function updateProductHandler(req: FastifyRequest, reply: FastifyRe
     const product = await updateProduct(productId, userId, data)
     return reply.send(product)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -170,6 +183,7 @@ export async function deleteProductHandler(req: FastifyRequest, reply: FastifyRe
     await deleteProduct(productId, userId)
     return reply.status(204).send()
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -181,6 +195,7 @@ export async function toggleProductHandler(req: FastifyRequest, reply: FastifyRe
     const product = await toggleProduct(productId, userId)
     return reply.send(product)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -192,6 +207,7 @@ export async function getBoutiqueDashboardStatsHandler(req: FastifyRequest, repl
     const stats = await getBoutiqueDashboardStats(userId)
     return reply.send(stats)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -202,6 +218,7 @@ export async function getBoutiqueDemandForecastHandler(req: FastifyRequest, repl
     const forecast = await getBoutiqueDemandForecast(userId)
     return reply.send(forecast)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -212,6 +229,7 @@ export async function getBoutiqueReferralStatsHandler(req: FastifyRequest, reply
     const stats = await getReferralStats(userId)
     return reply.send(stats)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -223,6 +241,7 @@ export async function confirmBoutiqueOrderReadyHandler(req: FastifyRequest, repl
     const result = await confirmBoutiqueOrderReady(orderId, userId)
     return reply.send(result)
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -233,6 +252,7 @@ export async function acceptBoutiqueOrderHandler(req: FastifyRequest, reply: Fas
     const { orderId } = req.params as { orderId: string }
     return reply.send(await acceptBoutiqueOrder(orderId, userId))
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -244,6 +264,7 @@ export async function rejectBoutiqueOrderHandler(req: FastifyRequest, reply: Fas
     const { reason } = (req.body ?? {}) as { reason?: string }
     return reply.send(await rejectBoutiqueOrder(orderId, userId, reason))
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }

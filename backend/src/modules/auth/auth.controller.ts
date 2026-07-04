@@ -1,5 +1,6 @@
 import { FastifyRequest, FastifyReply } from 'fastify'
 import { registerSchema, loginSchema, registerUser, loginUser } from './auth.service'
+import { reportIfUnexpected } from '../../utils/report'
 
 export async function register(req: FastifyRequest, reply: FastifyReply) {
   try {
@@ -8,6 +9,7 @@ export async function register(req: FastifyRequest, reply: FastifyReply) {
     const token = await reply.jwtSign({ id: user.id, role: user.role }, { expiresIn: '30d' })
     return reply.status(201).send({ user, token })
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })
   }
 }
@@ -19,6 +21,7 @@ export async function login(req: FastifyRequest, reply: FastifyReply) {
     const token = await reply.jwtSign({ id: user.id, role: user.role }, { expiresIn: '30d' })
     return reply.status(200).send({ user, token })
   } catch (err: any) {
+    reportIfUnexpected(err)
     return reply.status(401).send({ error: err.message })
   }
 }

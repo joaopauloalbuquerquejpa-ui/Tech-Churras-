@@ -27,7 +27,10 @@ export async function generateMetadata({ params }: { params: Promise<{ cidade: s
   const { cidade } = await params
   const city = cityLabel(decodeURIComponent(cidade))
   const isSP = decodeURIComponent(cidade) === 'sao-paulo'
+  // Domínio novo: cidade sem açougue é thin content — noindex até ter oferta real (fetch deduplicado pelo Next)
+  const boutiques = await getBoutiques(city)
   return {
+    robots: boutiques.length === 0 ? { index: false, follow: true } : undefined,
     title: isSP
       ? 'Açougues em São Paulo — Carnes Premium para Churrasco | Tech Churras'
       : `Açougues em ${city} — Tech Churras`,
