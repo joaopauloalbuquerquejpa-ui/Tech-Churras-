@@ -19,8 +19,6 @@ export const createBoutiqueSchema = z.object({
   phone: z.string().optional(),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  monthlyFee: z.number().optional(),
-  commissionRate: z.number().optional(),
   logoUrl: z.string().optional(),
   facadeUrl: z.string().optional(),
   galleryUrls: z.array(z.string()).optional(),
@@ -72,11 +70,10 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
   }
 
   const referralCode = generateReferralCode(data.name)
-  const trialEndsAt = new Date()
-  trialEndsAt.setDate(trialEndsAt.getDate() + 90)
-
+  // Mensalidade, comissão e trial são definidos na aprovação do admin (approveBoutique),
+  // não no auto-cadastro — nunca confiar no client para definir o próprio preço.
   const boutique = await prisma.boutique.create({
-    data: { userId, ...data, latitude, longitude, referralCode, trialEndsAt },
+    data: { userId, ...data, latitude, longitude, referralCode },
     include: { user: { select: { name: true, email: true } } },
   })
   // Notify all admins of new partner registration (push + WhatsApp)

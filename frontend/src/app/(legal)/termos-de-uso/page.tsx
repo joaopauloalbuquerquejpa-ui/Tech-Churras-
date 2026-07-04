@@ -70,7 +70,7 @@ export default function TermosDeUsoPage() {
         A Tech Churras retém <strong className="text-white">7% (sete por cento)</strong> do valor de cada pedido concluído como taxa de serviço da Plataforma, deduzida diretamente do repasse ao Churrasqueiro. Esta taxa cobre os custos operacionais, suporte, infraestrutura tecnológica e processamento de pagamentos.
       </P>
       <P>
-        Açougues parceiros estão sujeitos à mensalidade conforme o plano contratado (atualmente <strong className="text-white">R$ 369/mês</strong> no plano padrão), além de comissão de <strong className="text-white">7%</strong> sobre pedidos realizados via Plataforma. Os Açougues Parceiros Fundadores têm condições especiais conforme contrato específico.
+        Açougues parceiros estão sujeitos à mensalidade conforme o plano contratado (<strong className="text-white">R$ 369/mês</strong> para os 5 primeiros Açougues Parceiros Fundadores, com 3 meses de período gratuito, ou <strong className="text-white">R$ 497/mês</strong> no plano padrão a partir do 6º açougue), além de comissão de <strong className="text-white">10%</strong> sobre o valor das carnes vendidas via Plataforma.
       </P>
 
       <H3>4.3 Datas dos Eventos</H3>
@@ -172,8 +172,8 @@ export default function TermosDeUsoPage() {
       </P>
 
       <div className="mt-12 pt-6 border-t border-gray-800 text-xs text-gray-600 space-y-1">
-        <p>Tech Churras · CNPJ em processo de abertura</p>
-        <p>São Paulo/SP · techchurras@gmail.com</p>
+        <p>Tech Churras · CNPJ 67.830.186/0001-87</p>
+        <p>São Paulo/SP · contato@techchurras.com.br</p>
         <p>Versão 1.2 — Junho de 2026</p>
       </div>
     </article>

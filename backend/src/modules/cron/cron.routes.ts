@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma'
 import { sendPushToUser } from '../push/push.service'
 import { sendFollowUps } from '../webhooks/whatsapp.routes'
 import { sendDailySummary } from '../admin/admin.service'
+import { fetchWithTimeout } from '../../utils/http'
 
 async function sendWhatsAppReminder(phone: string, customerName: string, orderId: string, eventDate: Date, hoursLabel: string) {
   const instance = process.env.ZAPI_INSTANCE
@@ -15,7 +16,7 @@ async function sendWhatsAppReminder(phone: string, customerName: string, orderId
   }).format(eventDate)
   const message = `🔥 Lembrete Tech Churras! Olá ${customerName}, seu churrasco está agendado para daqui a ${hoursLabel} — ${date}. Acompanhe: https://www.techchurras.com.br/orders/${orderId}`
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
       {
         method: 'POST',

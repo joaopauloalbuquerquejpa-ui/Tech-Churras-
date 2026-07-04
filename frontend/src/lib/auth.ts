@@ -6,9 +6,9 @@ export async function login(email: string, password: string) {
   return data
 }
 
-export async function register(name: string, email: string, password: string, referralCode?: string, role?: string, phone?: string, conviteId?: string) {
+export async function register(name: string, email: string, password: string, acceptedTerms: boolean, referralCode?: string, role?: string, phone?: string, conviteId?: string) {
   const { data } = await api.post('/auth/register', {
-    name, email, password,
+    name, email, password, acceptedTerms,
     ...(referralCode ? { referralCode } : {}),
     ...(role ? { role } : {}),
     ...(phone ? { phone } : {}),

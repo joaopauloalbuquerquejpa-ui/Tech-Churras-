@@ -2,6 +2,7 @@
 import { prisma } from '../../config/prisma'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailOrderConfirmed } from '../email/email.service'
+import { fetchWithTimeout } from '../../utils/http'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -85,7 +86,7 @@ export async function handleMPWebhook(payload: any) {
     if (!orderId) return { received: true }
 
     const updateResult = await prisma.order.updateMany({
-      where: { id: orderId, paymentStatus: { not: 'PAID' } },
+      where: { id: orderId, paymentStatus: { not: 'PAID' }, status: { notIn: ['CANCELLED', 'COMPLETED'] } },
       data: {
         paymentId: String(paymentId),
         paymentStatus: 'PAID',
@@ -95,8 +96,22 @@ export async function handleMPWebhook(payload: any) {
       },
     })
 
-    // Idempotência: se nenhuma linha foi atualizada, pagamento já foi processado
-    if (updateResult.count === 0) return { received: true }
+    // Idempotência: se nenhuma linha foi atualizada, pagamento já foi processado OU o pedido foi cancelado
+    if (updateResult.count === 0) {
+      const existing = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true, paymentStatus: true, totalPrice: true, customerId: true } })
+      if (existing && existing.status === 'CANCELLED' && existing.paymentStatus !== 'PAID') {
+        // Pagamento aprovado chegou após o cancelamento: não reativar, alertar admin para estorno manual
+        sendWhatsAppToAdmin(
+          `🚨 *Pagamento aprovado em pedido CANCELADO — Tech Churras!*\n\n` +
+          `📋 Pedido: ${orderId}\n` +
+          `💰 Valor: R$ ${existing.totalPrice.toFixed(2)}\n` +
+          `💳 MP payment ID: ${paymentId}\n\n` +
+          `O pedido foi cancelado antes do webhook chegar. O pedido NÃO foi reativado.\n` +
+          `Estorne manualmente no Mercado Pago: https://www.techchurras.com.br/admin`
+        ).catch(() => {})
+      }
+      return { received: true }
+    }
 
     // Notify GM, boutique and customer of payment-confirmed order
     const order = await prisma.order.findUnique({
@@ -126,7 +141,7 @@ export async function handleMPWebhook(payload: any) {
             `👥 ${order.guestCount} pessoas\n` +
             `💰 Valor pedido: R$ ${order.totalPrice.toFixed(2)}\n\n` +
             `Separe os cortes! Acompanhe no painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`
-          fetch(`https://api.z-api.io/instances/${instance}/token/${token}/send-text`, {
+          fetchWithTimeout(`https://api.z-api.io/instances/${instance}/token/${token}/send-text`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone: clean, message: msg }),

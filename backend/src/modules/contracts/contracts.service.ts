@@ -99,7 +99,7 @@ CLÁUSULA 5 — MODELO FINANCEIRO
 O PARCEIRO pagará à TECH CHURRAS mensalidade de R$ 369,00 (trezentos e sessenta e nove reais) por mês, correspondente ao acesso à plataforma e ferramentas disponibilizadas.
 
 5.2. COMISSÃO
-Sobre o valor bruto de todos os produtos vendidos via plataforma incidirá comissão de 7% (sete por cento) em favor da TECH CHURRAS, descontada no momento do repasse.
+Sobre o valor bruto de todos os produtos vendidos via plataforma incidirá comissão de 10% (dez por cento) em favor da TECH CHURRAS, descontada no momento do repasse.
 
 5.3. TAXA DE ADESÃO
 Não há taxa de adesão. O ingresso à plataforma é isento de valor inicial.

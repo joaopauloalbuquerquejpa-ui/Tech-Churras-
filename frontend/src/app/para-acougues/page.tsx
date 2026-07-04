@@ -37,7 +37,7 @@ const faqSchema = {
     {
       '@type': 'Question',
       name: 'Quando o açougue recebe o pagamento dos pedidos?',
-      acceptedAnswer: { '@type': 'Answer', text: 'Os repasses são realizados semanalmente via PIX, direto na conta do açougue, após dedução da comissão de 7% da plataforma.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'Os repasses são realizados semanalmente via PIX, direto na conta do açougue, após dedução da comissão de 10% da plataforma.' },
     },
     {
       '@type': 'Question',

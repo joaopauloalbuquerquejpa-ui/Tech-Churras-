@@ -398,7 +398,7 @@ export default function ScriptEquipe() {
                 <p>• Zero custo de entrada</p>
                 <p>• 3 meses grátis para Parceiro Fundador açougue</p>
                 <p>• Treinamento presencial com Jota para Churrasqueiro Fundador</p>
-                <p>• 7% de comissão só quando o evento é realizado</p>
+                <p>• 7% de comissão do churrasqueiro / 10% do açougue, só quando o evento é realizado</p>
                 <p>• Repasse semanal via PIX toda sexta</p>
                 <p>• 1 vaga de açougue por bairro</p>
                 <p>• 10 vagas de Churrasqueiro Fundador no total em SP</p>

@@ -1,6 +1,7 @@
 ﻿import { prisma } from '../../config/prisma'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailPartnerApproved } from '../email/email.service'
+import { fetchWithTimeout } from '../../utils/http'
 import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -11,7 +12,7 @@ async function sendWhatsApp(phone: string, message: string, label: string) {
   if (!instance || !token) return
   const clean = phone.replace(/\D/g, '')
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: clean, message }) }
     )
@@ -156,23 +157,37 @@ export async function approveBoutique(boutiqueId: string) {
     if (existing) code = generateReferralCode(boutique.name)
     referralCode = code
   }
-  const trialEndsAt = new Date()
-  trialEndsAt.setDate(trialEndsAt.getDate() + 60)
-  const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: true, referralCode, trialEndsAt } })
-  console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, ts: new Date().toISOString() }))
+
+  // Apenas os 5 primeiros açougues aprovados são "Fundador": R$369/mês + 3 meses grátis.
+  // Do 6º em diante: R$497/mês, sem trial gratuito.
+  const founderCount = await prisma.boutique.count({ where: { isFounder: true, approved: true } })
+  const isFounder = founderCount < 5
+  const trialEndsAt = isFounder ? (() => { const d = new Date(); d.setDate(d.getDate() + 90); return d })() : null
+  const monthlyFee = isFounder ? 369 : 497
+
+  const updated = await prisma.boutique.update({
+    where: { id: boutiqueId },
+    data: { approved: true, referralCode, trialEndsAt, isFounder, monthlyFee },
+  })
+  console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, isFounder, ts: new Date().toISOString() }))
   if (boutique.user) {
     const name = boutique.user.name.split(' ')[0]
+    const trialMsg = isFounder ? 'Você é um Açougue Parceiro Fundador! Aproveite 3 meses grátis.' : `Sua mensalidade é de R$ ${monthlyFee}/mês.`
     sendPushToUser(
       boutique.user.id,
-      '🎉 Açougue aprovado! 60 dias grátis iniciados.',
-      `Parabéns ${name}! O açougue ${boutique.name} está ativo. Aproveite seus 60 dias de uso gratuito!`,
+      isFounder ? '🎉 Açougue aprovado! Fundador — 3 meses grátis.' : '🎉 Açougue aprovado!',
+      `Parabéns ${name}! O açougue ${boutique.name} está ativo. ${trialMsg}`,
       '/boutiques/dashboard'
     ).catch((e) => console.error("[notif]", e?.message))
     emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
     if (boutique.user.phone) {
       sendWhatsApp(
         boutique.user.phone,
-        `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n🎁 Você tem *60 dias GRÁTIS* para testar tudo.\n\n*QR code do seu balcão:*\nhttps://www.techchurras.com.br/pedido?boutique=${boutique.id}\n\nAcesse seu painel completo:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
+        `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n` +
+        (isFounder
+          ? `🎁 Você é *Açougue Parceiro Fundador* — *3 meses GRÁTIS* e depois R$369/mês.`
+          : `Mensalidade: *R$${monthlyFee}/mês*.`) +
+        `\n\n*QR code do seu balcão:*\nhttps://www.techchurras.com.br/pedido?boutique=${boutique.id}\n\nAcesse seu painel completo:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
         'boutique-aprovado'
       ).catch((e) => console.error("[notif]", e?.message))
     }

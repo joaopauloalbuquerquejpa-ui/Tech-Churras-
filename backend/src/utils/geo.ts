@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from './http'
+
 // Haversine — distância em km entre dois pontos geográficos
 export function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371
@@ -41,7 +43,7 @@ async function _fetchGeocode(address: string): Promise<{ lat: number; lng: numbe
   try {
     const query = encodeURIComponent(address + ', Brasil')
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=br`
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { 'User-Agent': 'TechChurras/1.0 (contato@techchurras.com.br)' },
     })
     if (!res.ok) return null

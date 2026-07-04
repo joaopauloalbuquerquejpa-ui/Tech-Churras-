@@ -42,6 +42,8 @@ model User {
   onboardingCompleted  Boolean  @default(false)
   referredByBoutiqueId String?
   firstOrderCouponUsed Boolean  @default(false)
+  termsAcceptedAt      DateTime?
+  termsVersion         String?
   createdAt     DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -125,8 +127,9 @@ model Boutique {
   rating         Float    @default(0)
   approved       Boolean  @default(false)
   open           Boolean  @default(true)
-  monthlyFee     Float    @default(369.00)
+  monthlyFee     Float    @default(497.00)
   commissionRate Float    @default(0.10)
+  isFounder      Boolean  @default(false)
   pixKey           String?
   logoUrl          String?
   facadeUrl        String?
@@ -200,6 +203,7 @@ model Order {
   eventHours     Int         @default(4)
   guestCount     Int
   totalPrice     Float       @default(0)
+  laborPrice     Float       @default(0)
   couponCode     String?
   discountAmount Float?      @default(0)
   statusDetail          String?

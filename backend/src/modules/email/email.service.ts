@@ -1,3 +1,5 @@
+import { fetchWithTimeout } from '../../utils/http'
+
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM = 'Tech Churras <noreply@techchurras.com.br>'
 const BASE_URL = 'https://www.techchurras.com.br'
@@ -8,7 +10,7 @@ async function sendEmail(to: string, subject: string, html: string, label: strin
     return
   }
   try {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetchWithTimeout('https://api.resend.com/emails', {
       method: 'POST',
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ from: FROM, to: [to], subject, html }),

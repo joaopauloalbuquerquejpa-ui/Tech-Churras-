@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import Anthropic from '@anthropic-ai/sdk'
 import { prisma } from '../../config/prisma'
+import { fetchWithTimeout } from '../../utils/http'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -116,7 +117,7 @@ async function zapiSend(phone: string, message: string): Promise<void> {
   const token = process.env.ZAPI_TOKEN
   if (!instance || !token) return
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
       {
         method: 'POST',

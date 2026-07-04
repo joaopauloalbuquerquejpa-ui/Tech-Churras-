@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN "laborPrice" DOUBLE PRECISION NOT NULL DEFAULT 0;
+
+-- AlterTable
+ALTER TABLE "Boutique" ADD COLUMN "isFounder" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Boutique" ALTER COLUMN "monthlyFee" SET DEFAULT 497.00;
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "termsAcceptedAt" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN "termsVersion" TEXT;

@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { emailWelcomeCustomer } from '../email/email.service'
 import { sendPushToRole, sendWhatsAppToAdmin } from '../push/push.service'
 
+const TERMS_VERSION = 'v1.2'
+
 export const registerSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
@@ -13,6 +15,9 @@ export const registerSchema = z.object({
   role: z.enum(['CUSTOMER', 'GRILLMASTER', 'BOUTIQUE']).default('CUSTOMER'),
   referralCode: z.string().optional(),
   conviteId: z.string().optional(),
+  acceptedTerms: z.literal(true, {
+    message: 'É necessário aceitar os Termos de Uso e a Política de Privacidade',
+  }),
 })
 
 export const loginSchema = z.object({
@@ -43,6 +48,8 @@ export async function registerUser(data: RegisterInput) {
       phone: data.phone,
       role: data.role,
       referredByBoutiqueId,
+      termsAcceptedAt: new Date(),
+      termsVersion: TERMS_VERSION,
     },
     select: { id: true, name: true, email: true, role: true, onboardingCompleted: true, createdAt: true },
   })

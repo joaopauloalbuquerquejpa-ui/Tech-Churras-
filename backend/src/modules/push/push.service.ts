@@ -1,6 +1,7 @@
 ﻿import webpush from 'web-push'
 import { prisma } from '../../config/prisma'
 import { Role } from '@prisma/client'
+import { fetchWithTimeout } from '../../utils/http'
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
@@ -17,7 +18,7 @@ export async function sendWhatsAppToAdmin(message: string): Promise<void> {
   if (!phone || !instance || !token) return
   const clean = phone.replace(/\D/g, '')
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: clean, message }) }
     )

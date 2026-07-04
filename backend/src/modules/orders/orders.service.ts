@@ -7,6 +7,7 @@ import { sendPushToUser, sendPushToRole, sendWhatsAppToAdmin } from '../push/pus
 import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } from '../email/email.service'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { refundPayment } from '../payments/payments.service'
+import { fetchWithTimeout } from '../../utils/http'
 
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   PENDING:     ['CONFIRMED', 'CANCELLED'],
@@ -127,8 +128,29 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
 
   const totalPrice = Math.max(0, subtotal - discountAmount)
 
-  // Cria pedido + incrementa cupom atomicamente para evitar race condition
+  // Cria pedido + incrementa cupom + valida disponibilidade do GM atomicamente para evitar race condition
   const order = await prisma.$transaction(async (tx) => {
+    if (data.grillmasterId) {
+      const dayStart = new Date(data.eventDate); dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(data.eventDate); dayEnd.setHours(23, 59, 59, 999)
+
+      const [blockedSchedule, conflictingOrder] = await Promise.all([
+        tx.grillmasterSchedule.findFirst({
+          where: { grillmasterId: data.grillmasterId, date: { gte: dayStart, lte: dayEnd }, available: false },
+        }),
+        tx.order.findFirst({
+          where: {
+            grillmasterId: data.grillmasterId,
+            eventDate: { gte: dayStart, lte: dayEnd },
+            status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
+          },
+        }),
+      ])
+      if (blockedSchedule || conflictingOrder) {
+        throw new Error('Este churrasqueiro não está disponível nesta data. Escolha outro horário ou outro Grill Master.')
+      }
+    }
+
     if (appliedCouponCode) {
       const freshCoupon = await tx.coupon.findUnique({ where: { code: appliedCouponCode } })
       if (!freshCoupon || !freshCoupon.active ||
@@ -142,6 +164,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         customerId,
         ...orderData,
         totalPrice,
+        laborPrice: grillmasterCost,
         couponCode: appliedCouponCode,
         discountAmount,
         gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
@@ -247,7 +270,7 @@ async function sendWhatsAppMessage(phone: string, message: string, label: string
   if (!instance || !token) return
   const cleanPhone = phone.replace(/\D/g, '')
   try {
-    const res = await fetch(
+    const res = await fetchWithTimeout(
       `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: cleanPhone, message }) }
     )

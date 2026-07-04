@@ -116,7 +116,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
     },
     {
       q: 'Como funciona o repasse semanal?',
-      a: 'Toda sexta-feira processamos os pedidos da semana anterior. O valor líquido (faturamento − 7% de comissão) cai na sua conta via PIX até as 18h.',
+      a: 'Toda sexta-feira processamos os pedidos da semana anterior. O valor líquido (faturamento − 10% de comissão) cai na sua conta via PIX até as 18h.',
     },
     {
       q: 'Preciso mudar minha forma de trabalhar?',

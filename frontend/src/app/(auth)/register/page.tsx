@@ -74,7 +74,7 @@ function RegisterForm() {
     setError('')
     try {
       const effectiveRole = selectedRole ?? roleParam ?? undefined
-      const data = await register(name, email, password, referralCode ?? undefined, effectiveRole, phone.trim() || undefined, conviteId ?? undefined)
+      const data = await register(name, email, password, acceptedTerms, referralCode ?? undefined, effectiveRole, phone.trim() || undefined, conviteId ?? undefined)
       setUser(data.user)
       setToken(data.token)
       const role = data.user?.role

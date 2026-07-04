@@ -82,7 +82,7 @@ export async function generatePayouts() {
       updatedAt: { gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) },
     },
     include: {
-      grillmaster: { select: { id: true, pixKey: true, pricePerHour: true } },
+      grillmaster: { select: { id: true, pixKey: true } },
       boutique: { select: { id: true, pixKey: true } },
       items: { select: { unitPrice: true, quantity: true } },
     },
@@ -105,11 +105,14 @@ export async function generatePayouts() {
   }[] = []
 
   for (const order of orders) {
-    // Mão de obra do churrasqueiro = pricePerHour × eventHours
+    // Desconto (cupom/indicação) é rateado proporcionalmente entre mão de obra e produtos,
+    // para que GM e açougue não sejam pagos sobre um valor que o cliente nunca pagou.
+    const subtotal = order.totalPrice + (order.discountAmount ?? 0)
+    const discountRatio = subtotal > 0 && order.discountAmount ? Math.min(order.discountAmount / subtotal, 1) : 0
+
+    // Mão de obra do churrasqueiro = valor travado no pedido (não a tarifa ao vivo do GM)
     if (order.grillmasterId && !existingSet.has(`${order.id}:GRILLMASTER`)) {
-      const laborGross = order.grillmaster
-        ? +(order.grillmaster.pricePerHour * order.eventHours).toFixed(2)
-        : 0
+      const laborGross = +((order.laborPrice ?? 0) * (1 - discountRatio)).toFixed(2)
       if (laborGross > 0) {
         toCreate.push({
           type: 'GRILLMASTER',
@@ -124,11 +127,10 @@ export async function generatePayouts() {
         })
       }
     }
-    // Produtos do açougue = soma dos OrderItems
+    // Produtos do açougue = soma dos OrderItems, com o mesmo rateio de desconto
     if (order.boutiqueId && !existingSet.has(`${order.id}:BOUTIQUE`)) {
-      const productsGross = +order.items
-        .reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
-        .toFixed(2)
+      const productsGrossRaw = order.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
+      const productsGross = +(productsGrossRaw * (1 - discountRatio)).toFixed(2)
       if (productsGross > 0) {
         toCreate.push({
           type: 'BOUTIQUE',

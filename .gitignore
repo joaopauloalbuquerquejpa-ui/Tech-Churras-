@@ -19,6 +19,10 @@ token.json
 tools/video_pexels.env
 *.env
 
+# Credenciais/tokens de teste gerados por scripts locais — NUNCA commitar
+checkout_creds.json
+*_creds.json
+
 # Repositório aninhado (submodule não configurado)
 tools/cve-mcp-server/
 

@@ -17,7 +17,7 @@ export async function authRoutes(app: FastifyInstance) {
       if (!name || name.trim().length < 2) return reply.status(400).send({ error: 'Nome obrigatório (mínimo 2 caracteres)' })
       if (!phone || phone.trim().length < 10) return reply.status(400).send({ error: 'WhatsApp obrigatório' })
       const user = await registerGuest({ name, phone })
-      const token = await reply.jwtSign({ id: user.id, role: user.role })
+      const token = await reply.jwtSign({ id: user.id, role: user.role }, { expiresIn: '30d' })
       return reply.status(201).send({ user, token })
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
