@@ -55,12 +55,15 @@ if (!process.env.ANTHROPIC_API_KEY) {
   console.error('FATAL: ANTHROPIC_API_KEY não configurado — chat IA inoperante.')
   process.exit(1)
 }
-if (!process.env.RESEND_API_KEY) {
-  console.error('FATAL: RESEND_API_KEY não configurado — emails transacionais inoperantes.')
-  process.exit(1)
-}
-// Notificações: não derrubam o boot, mas sem elas WhatsApp/push viram no-op silencioso.
+// Notificações: não derrubam o boot, mas sem elas WhatsApp/push/email viram no-op silencioso
+// (email.service.ts já trata RESEND_API_KEY ausente com warn + return, sem crashar).
 // Warn alto no startup para o deploy nunca subir "verde" com canal de notificação morto.
+// RESEND_API_KEY era FATAL até 11/07/2026 — derrubou o site inteiro por 4 dias por causa
+// só do email transacional. Rebaixado para warn: a plataforma inteira não pode ficar refém
+// de um único canal de notificação secundário.
+if (!process.env.RESEND_API_KEY) {
+  console.warn('⚠️  AVISO: RESEND_API_KEY não configurado — emails transacionais desativados.')
+}
 if (!process.env.ZAPI_INSTANCE || !process.env.ZAPI_TOKEN) {
   console.warn('⚠️  AVISO: ZAPI_INSTANCE/ZAPI_TOKEN não configurados — TODAS as mensagens de WhatsApp estão desativadas.')
 }
