@@ -22,6 +22,8 @@ import {
   markPayoutPaidHandler,
 } from './payouts/payouts.controller'
 import { listCoupons, createCoupon, toggleCoupon } from '../coupons/coupons.service'
+import { discoverAcougues } from '../leads/leads.service'
+import { reportIfUnexpected } from '../../utils/report'
 import { z } from 'zod'
 
 const createCouponSchema = z.object({
@@ -159,6 +161,23 @@ export async function adminRoutes(app: FastifyInstance) {
     const { status } = z.object({ status: z.string() }).parse(req.body)
     const updated = await prisma.lead.update({ where: { id }, data: { status } })
     return reply.send(updated)
+  })
+
+  // ── Descoberta de açougues via Apify (Google Maps) + qualificação por IA.
+  // Cria os leads como "new" com mensagem de abertura pronta em `notes` —
+  // fica na fila de aprovação em /admin/leads, ninguém é contatado automaticamente.
+  app.post('/admin/leads/discover', { config: { rateLimit: { max: 5, timeWindow: '10 minutes' } } }, async (req, reply) => {
+    try {
+      const { region, maxResults } = z.object({
+        region: z.string().min(3),
+        maxResults: z.number().int().min(1).max(100).optional(),
+      }).parse(req.body)
+      const result = await discoverAcougues(region, maxResults)
+      return reply.send(result)
+    } catch (err: any) {
+      reportIfUnexpected(err)
+      return reply.status(400).send({ error: err.message })
+    }
   })
 
   // ── Z-API health check
