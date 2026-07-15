@@ -1,5 +1,8 @@
 .vercel
 
+# Config local do Claude Code (pessoal, não compartilhado)
+**/.claude/settings.local.json
+
 # Android keystore — NUNCA commitar
 *.keystore
 *.jks
@@ -33,3 +36,9 @@ tools/video_pro/
 tools/MPT.zip
 *.mp4
 *.mp3
+
+# Mídia gerada pelas ferramentas de conteúdo — grande demais para git
+tools/fotos_reais_instagram/
+tools/imagens_instagram/
+tools/video_lancamento/
+__pycache__/
