@@ -86,7 +86,13 @@ export async function handleMPWebhook(payload: any) {
     if (!orderId) return { received: true }
 
     const updateResult = await prisma.order.updateMany({
-      where: { id: orderId, paymentStatus: { not: 'PAID' }, status: { notIn: ['CANCELLED', 'COMPLETED'] } },
+      // paymentStatus nasce NULL e { not: 'PAID' } exclui NULL no Prisma — sem o
+      // OR explícito, NENHUM pagamento era confirmado (verificado contra produção em 15/07)
+      where: {
+        id: orderId,
+        OR: [{ paymentStatus: null }, { paymentStatus: { not: 'PAID' } }],
+        status: { notIn: ['CANCELLED', 'COMPLETED'] },
+      },
       data: {
         paymentId: String(paymentId),
         paymentStatus: 'PAID',

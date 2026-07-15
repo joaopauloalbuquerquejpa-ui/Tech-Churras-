@@ -274,12 +274,13 @@ export async function getDashboardStats() {
     prisma.order.count(),
     prisma.boutique.count(),
     prisma.grillmaster.count(),
-    prisma.order.aggregate({ _sum: { totalPrice: true } }),
+    // Receita = apenas dinheiro que entrou de fato (pedido pago), janelas por paidAt
+    prisma.order.aggregate({ where: { paymentStatus: 'PAID' }, _sum: { totalPrice: true } }),
     prisma.order.count({ where: { createdAt: { gte: todayStart } } }),
-    prisma.order.aggregate({ where: { createdAt: { gte: todayStart } }, _sum: { totalPrice: true } }),
+    prisma.order.aggregate({ where: { paymentStatus: 'PAID', paidAt: { gte: todayStart } }, _sum: { totalPrice: true } }),
     prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
     prisma.order.count({ where: { status: { in: ['CONFIRMED', 'IN_PROGRESS'] } } }),
-    prisma.order.aggregate({ where: { createdAt: { gte: weekStart } }, _sum: { totalPrice: true } }),
+    prisma.order.aggregate({ where: { paymentStatus: 'PAID', paidAt: { gte: weekStart } }, _sum: { totalPrice: true } }),
   ])
 
   return {

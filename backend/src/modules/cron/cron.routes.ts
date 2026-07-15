@@ -111,7 +111,22 @@ export async function cronRoutes(app: FastifyInstance) {
     // Follow-ups automáticos para leads captados via WhatsApp
     await sendFollowUps().catch((e) => console.error('[FollowUp]', e?.message))
 
-    return { ok: true, sent48, sent24, sentGm24 }
+    // Pedidos PENDING sem pagamento há 7+ dias são checkout abandonado — cancela
+    // para não inflar métricas nem ficar elegível a lembrete/repasse para sempre.
+    // Se o pagamento chegar depois, o webhook do MP já alerta o admin para estorno
+    // manual (não reativa pedido cancelado).
+    const expirationCutoff = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const expired = await prisma.order.updateMany({
+      where: {
+        status: 'PENDING',
+        OR: [{ paymentStatus: null }, { paymentStatus: { not: 'PAID' } }],
+        createdAt: { lt: expirationCutoff },
+      },
+      data: { status: 'CANCELLED', statusDetail: 'Expirado: pagamento não concluído em 7 dias' },
+    })
+    if (expired.count > 0) console.log(`[cron] ${expired.count} pedido(s) PENDING expirados e cancelados`)
+
+    return { ok: true, sent48, sent24, sentGm24, expired: expired.count }
     } catch (err: any) {
       req.log.error('[cron/event-reminders] erro:', err?.message)
       return reply.status(500).send({ error: 'Erro interno no cron de reminders' })

@@ -172,6 +172,9 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         totalPrice,
         laborPrice: grillmasterCost,
         serviceFee,
+        // Nunca deixar NULL: filtros Prisma com { not: ... } excluem NULL e já
+        // quebraram a confirmação de pagamento do webhook
+        paymentStatus: 'PENDING',
         couponCode: appliedCouponCode,
         discountAmount,
         gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,

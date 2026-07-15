@@ -143,7 +143,7 @@ export async function markOnboardingCompleted(userId: string) {
 export async function registerGuest(data: { name: string; phone: string }) {
   const email = `guest_${randomUUID()}@guest.techchurras.com`
   const password = randomUUID()
-  const hashedPassword = await bcrypt.hash(password, 10)
+  const hashedPassword = await bcrypt.hash(password, 12)
 
   const user = await prisma.user.create({
     data: {

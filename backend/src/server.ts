@@ -112,7 +112,9 @@ app.register(cors, {
     if (ALLOWED_ORIGINS.includes(origin)) {
       return cb(null, true)
     }
-    cb(new Error(`Origin não permitida: ${origin}`), false)
+    const err = new Error(`Origin não permitida: ${origin}`) as Error & { statusCode: number }
+    err.statusCode = 403
+    cb(err, false)
   },
   credentials: true,
   methods: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -158,10 +160,15 @@ app.get('/sentry-test', async () => {
   return { ok: true, message: 'Evento enviado ao Sentry. Verifique o dashboard.' }
 })
 
-// Captura erros não tratados no Fastify e envia para o Sentry
-app.setErrorHandler((error, _request, reply) => {
-  Sentry.captureException(error)
-  reply.status(500).send({ error: 'Erro interno do servidor' })
+// Erros 4xx (CORS negado, validação, rate limit) voltam com o próprio status e
+// não vão ao Sentry — só 5xx inesperado é incidente
+app.setErrorHandler((error: Error & { statusCode?: number }, _request, reply) => {
+  const statusCode = error.statusCode && error.statusCode >= 400 ? error.statusCode : 500
+  if (statusCode >= 500) {
+    Sentry.captureException(error)
+    return reply.status(statusCode).send({ error: 'Erro interno do servidor' })
+  }
+  reply.status(statusCode).send({ error: error.message })
 })
 
 const start = async () => {
