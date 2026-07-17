@@ -47,7 +47,7 @@ export default function PriceCalculator() {
           </div>
         </div>
         <div className="text-center">
-          <Link href="/menu/novo"
+          <Link href="/pedido"
             className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-xl text-sm transition-colors">
             Montar kit real agora →
           </Link>

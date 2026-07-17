@@ -337,7 +337,7 @@ export default function BoutiqueProfilePage() {
                         <p className="text-lg font-black text-orange-400">R$ {finalPrice.toFixed(2)}</p>
                       </div>
                       <button
-                        onClick={() => { setBoutiqueId(boutique.id); router.push('/menu/novo') }}
+                        onClick={() => { setBoutiqueId(boutique.id); router.push('/pedido?boutiqueId=' + boutique.id) }}
                         className="bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors"
                       >
                         Pedir
@@ -524,7 +524,7 @@ export default function BoutiqueProfilePage() {
           <p className="text-sm text-gray-400">Escolha produtos de {boutique.name} para o seu evento.</p>
         </div>
         <button
-          onClick={() => { setBoutiqueId(boutique.id); router.push('/menu/novo') }}
+          onClick={() => { setBoutiqueId(boutique.id); router.push('/pedido?boutiqueId=' + boutique.id) }}
           className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-xl transition-colors whitespace-nowrap shrink-0"
         >
           {cartCount > 0 ? 'Ver carrinho' : 'Montar pedido'}

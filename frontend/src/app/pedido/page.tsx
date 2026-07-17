@@ -70,6 +70,7 @@ function PedidoForm() {
   const boutiqueId = params.get('boutiqueId') ?? ''
 
   const [boutique, setBoutique] = useState<Boutique | null>(null)
+  const [allBoutiques, setAllBoutiques] = useState<Boutique[]>([])
   const [products, setProducts] = useState<Product[]>([])
   const [kits, setKits] = useState<Kit[]>([])
   const [selectedKit, setSelectedKit] = useState<string | null>(null)
@@ -108,7 +109,15 @@ function PedidoForm() {
   const categorias = [...new Set(products.map(p => p.category))]
 
   useEffect(() => {
-    if (!boutiqueId) { setLoading(false); return }
+    if (!boutiqueId) {
+      // Passo 0: sem açougue na URL, carrega a lista para o visitante escolher (funil guest da home)
+      fetch(`${API_URL}/boutiques`)
+        .then(r => r.ok ? r.json() : [])
+        .then((bs) => setAllBoutiques((Array.isArray(bs) ? bs : []).filter((b: Boutique & { approved?: boolean }) => b.approved !== false)))
+        .catch(() => {})
+        .finally(() => setLoading(false))
+      return
+    }
     Promise.all([
       fetch(`${API_URL}/boutiques/${boutiqueId}`).then(r => r.ok ? r.json() : null),
       fetch(`${API_URL}/boutiques/${boutiqueId}/products`).then(r => r.json()),
@@ -166,17 +175,21 @@ function PedidoForm() {
     if (phone.length < 10) { alert('Digite um WhatsApp válido com DDD'); return }
     setSubmitting(true)
     try {
-      // 1. Create guest account
-      const authRes = await fetch(`${API_URL}/auth/guest`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: guestName.trim(), phone }),
-      })
-      if (!authRes.ok) throw new Error((await authRes.json()).error)
-      const { user, token } = await authRes.json()
-
-      // 2. Store in localStorage so dashboard layout recognises the session
-      localStorage.setItem('auth-storage', JSON.stringify({ state: { user, token }, version: 0 }))
+      // 1. Reaproveita sessão logada se existir; senão cria conta guest
+      let token: string | null = null
+      try { token = JSON.parse(localStorage.getItem('auth-storage') || 'null')?.state?.token ?? null } catch {}
+      if (!token) {
+        const authRes = await fetch(`${API_URL}/auth/guest`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: guestName.trim(), phone }),
+        })
+        if (!authRes.ok) throw new Error((await authRes.json()).error)
+        const guest = await authRes.json()
+        token = guest.token
+        // 2. Persiste para o layout do dashboard reconhecer a sessão
+        localStorage.setItem('auth-storage', JSON.stringify({ state: { user: guest.user, token }, version: 0 }))
+      }
 
       // 3. Create order
       const orderItems = products.filter(p => (qty[p.id] || 0) > 0).map(p => ({ productId: p.id, quantity: qty[p.id] }))
@@ -203,16 +216,45 @@ function PedidoForm() {
     }
   }
 
-  if (!boutiqueId) {
-    router.replace('/')
-    return null
-  }
-
   if (loading) return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-gray-400 text-sm">Carregando cardápio...</p>
+      </div>
+    </div>
+  )
+
+  // Passo 0 — visitante chega sem açougue: escolhe aqui, sem precisar de conta
+  if (!boutiqueId) return (
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3">
+        <span className="font-black text-lg">Tech <span className="text-orange-500">Churras</span></span>
+      </div>
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        <h1 className="text-2xl font-black mb-1">Escolha seu açougue parceiro</h1>
+        <p className="text-gray-400 text-sm mb-6">Os cortes do seu churrasco vêm de um açougue real, selecionado pela Tech Churras. Sem cadastro — você só cria sua conta na hora de confirmar.</p>
+        {allBoutiques.length === 0 ? (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center text-gray-400 text-sm">
+            Nenhum açougue disponível agora. Tente novamente em instantes.
+          </div>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {allBoutiques.map(b => (
+              <button key={b.id} onClick={() => router.replace(`/pedido?boutiqueId=${b.id}`)}
+                className="text-left bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-orange-500/60 rounded-2xl p-5 transition-colors">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-bold text-lg">{b.name}</span>
+                  <span className={'text-xs font-bold px-2 py-0.5 rounded-full ' + (b.open ? 'bg-green-500/15 text-green-400' : 'bg-gray-700 text-gray-400')}>
+                    {b.open ? 'Aberto' : 'Fechado'}
+                  </span>
+                </div>
+                <p className="text-gray-400 text-sm mt-1">{b.city}{b.state ? ` — ${b.state}` : ''}</p>
+                <p className="text-orange-400 text-sm font-medium mt-2">Montar meu churrasco aqui →</p>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
