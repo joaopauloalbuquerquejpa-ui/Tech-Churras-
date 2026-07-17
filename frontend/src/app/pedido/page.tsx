@@ -187,8 +187,11 @@ function PedidoForm() {
         if (!authRes.ok) throw new Error((await authRes.json()).error)
         const guest = await authRes.json()
         token = guest.token
-        // 2. Persiste para o layout do dashboard reconhecer a sessão
+        // 2. Persiste para o layout do dashboard reconhecer a sessão — e os cookies
+        // que o middleware confere, senão o guest é barrado no /orders/:id/payment
         localStorage.setItem('auth-storage', JSON.stringify({ state: { user: guest.user, token }, version: 0 }))
+        document.cookie = 'tc-auth=1; path=/; max-age=2592000; SameSite=Lax'
+        document.cookie = 'tc-role=CUSTOMER; path=/; max-age=2592000; SameSite=Lax'
       }
 
       // 3. Create order
