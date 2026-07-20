@@ -183,6 +183,32 @@ export default async function HomePage() {
   return (
     <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Tech Churras",
+      "url": "https://www.techchurras.com.br",
+      "logo": "https://www.techchurras.com.br/icon-512.png",
+      "description": "Marketplace de churrasco a domicílio: churrasqueiro profissional + carnes de açougue parceiro, em um pedido único online. São Paulo, Brasil.",
+      "founder": { "@type": "Person", "name": "João Paulo Albuquerque", "alternateName": "Jota", "jobTitle": "BBQ Master" },
+      "taxID": "67.830.186/0001-87",
+      "areaServed": { "@type": "City", "name": "São Paulo" },
+    }) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "serviceType": "Churrasco a domicílio com churrasqueiro profissional",
+      "provider": { "@type": "Organization", "name": "Tech Churras", "url": "https://www.techchurras.com.br" },
+      "areaServed": { "@type": "City", "name": "São Paulo" },
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "BRL",
+        "lowPrice": "800",
+        "highPrice": "2500",
+        "description": "Churrasco completo: churrasqueiro profissional + kit de carnes de açougue parceiro + taxa de serviço. Pedido online sem cadastro prévio.",
+        "url": "https://www.techchurras.com.br/pedido",
+      },
+    }) }} />
     <div className="min-h-screen bg-gray-950 text-white">
 
       {/* Nav */}

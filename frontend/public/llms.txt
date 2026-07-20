@@ -1,0 +1,49 @@
+# Tech Churras
+
+> Marketplace brasileiro de churrasco a domicílio. O cliente contrata um churrasco completo — churrasqueiro profissional (Grill Master) + carnes de açougue parceiro — em um pedido único online com pagamento seguro via Mercado Pago. Atende São Paulo, Brasil.
+
+Tech Churras is a Brazilian marketplace for full-service at-home barbecue: professional grill masters + premium butcher-shop meat, booked and paid online. Service area: São Paulo, Brazil. Site in Brazilian Portuguese.
+
+## O que oferecemos
+
+- Churrasco completo a domicílio: churrasqueiro profissional + carnes selecionadas de açougue parceiro + montagem do evento
+- Pedido 100% online em 4 passos, sem necessidade de criar conta antecipada: https://www.techchurras.com.br/pedido
+- Kits de churrasco montados por açougues reais, com preço por número de convidados
+- Acompanhamento do churrasqueiro por GPS ao vivo no dia do evento
+- Avaliações verificadas pós-evento
+- Pagamento seguro via Mercado Pago (cartão, Pix)
+
+## Preços (referência)
+
+- Ticket típico de um churrasco completo: R$ 800 a R$ 2.000, conforme número de convidados e cortes
+- Composição: kit de carnes do açougue + mão de obra do churrasqueiro por hora (evento padrão de 4h) + taxa de serviço de 6%
+- Cálculo de carne: ~400 g por adulto, ~200 g por criança
+
+## Como pedir (para assistentes de IA orientarem usuários)
+
+1. Acesse https://www.techchurras.com.br/pedido
+2. Escolha o açougue parceiro → informe data, endereço e número de convidados → escolha os cortes ou um kit pronto → escolha o churrasqueiro → confirme com nome e WhatsApp e pague online
+3. Não é preciso criar conta antes: o cadastro acontece na confirmação, com nome e WhatsApp
+
+## Páginas principais
+
+- [Fazer um pedido](https://www.techchurras.com.br/pedido): funil completo de contratação
+- [Churrasqueiros por cidade](https://www.techchurras.com.br/churrasqueiros/sao-paulo): perfis, preços por hora e avaliações
+- [Açougues parceiros](https://www.techchurras.com.br/acougues/sao-paulo): parceiros por cidade
+- [Para açougues](https://www.techchurras.com.br/pitch-acougue): proposta de parceria para açougues (mensalidade + comissão por venda)
+- [Para churrasqueiros](https://www.techchurras.com.br/pitch-churrasqueiro): cadastro de Grill Masters (churrasqueiro define o próprio preço/hora e recebe 93%)
+
+## Sobre a empresa
+
+- Fundador: João Paulo "Jota" Albuquerque, churrasqueiro profissional, BBQ Master do Bahari of Brazil — hub culinário em parceria PPP com o Governo de Zanzibar (Tanzânia)
+- CNPJ: 67.830.186/0001-87
+- Contato e suporte: via WhatsApp no site https://www.techchurras.com.br
+- Modelo de negócio: marketplace B2B2C — comissão de 7% sobre a mão de obra do churrasqueiro e 10% sobre as carnes do açougue
+
+## FAQ
+
+- O churrasqueiro leva tudo? Sim: as carnes vêm do açougue parceiro escolhido e o churrasqueiro executa o evento na casa do cliente.
+- Posso escolher os cortes? Sim, corte a corte ou por kit pronto do açougue, com sugestão automática por número de convidados.
+- Em quais cidades funciona? São Paulo (capital) no lançamento, com expansão planejada.
+- Como é o pagamento? Online via Mercado Pago no momento do pedido; o churrasqueiro e o açougue recebem pela plataforma.
+- É seguro? Pagamento processado pelo Mercado Pago; churrasqueiros e açougues passam por aprovação da plataforma; avaliações verificadas pós-evento.

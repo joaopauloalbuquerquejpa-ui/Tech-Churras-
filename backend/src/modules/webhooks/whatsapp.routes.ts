@@ -5,6 +5,37 @@ import { fetchWithTimeout } from '../../utils/http'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
+// Catálogo ao vivo injetado no prompt do concierge (cache 5 min)
+let catalogCache: { text: string; at: number } | null = null
+async function buildCatalogContext(): Promise<string> {
+  if (catalogCache && Date.now() - catalogCache.at < 5 * 60 * 1000) return catalogCache.text
+  try {
+    const [boutiques, gms] = await Promise.all([
+      prisma.boutique.findMany({
+        where: { approved: true },
+        take: 3,
+        select: { id: true, name: true, city: true, kits: { take: 4, select: { name: true, price: true, discountPrice: true, minGuests: true, maxGuests: true } } },
+      }),
+      prisma.grillmaster.findMany({
+        where: { approved: true, available: true },
+        take: 5,
+        orderBy: { rating: 'desc' },
+        select: { pricePerHour: true, rating: true, user: { select: { name: true } } },
+      }),
+    ])
+    const bText = boutiques.map(b =>
+      `- ${b.name} (${b.city}) — link do pedido: https://www.techchurras.com.br/pedido?boutiqueId=${b.id}\n` +
+      b.kits.map(k => `  · Kit "${k.name}": R$ ${(k.discountPrice ?? k.price).toFixed(0)} (${k.minGuests}-${k.maxGuests} pessoas)`).join('\n')
+    ).join('\n')
+    const gText = gms.map(g => `- ${g.user.name}: R$ ${g.pricePerHour.toFixed(0)}/hora${g.rating > 0 ? ` · ${g.rating.toFixed(1)}★` : ''}`).join('\n')
+    const text = `AÇOUGUES PARCEIROS E KITS (preços reais):\n${bText || '- (nenhum kit cadastrado no momento)'}\n\nCHURRASQUEIROS DISPONÍVEIS (mão de obra por hora, evento padrão 4h):\n${gText || '- (consultar no site)'}`
+    catalogCache = { text, at: Date.now() }
+    return text
+  } catch {
+    return 'CATÁLOGO INDISPONÍVEL — direcione para https://www.techchurras.com.br/pedido'
+  }
+}
+
 const SYSTEM_PROMPT = `Você é a equipe da Tech Churras respondendo WhatsApp em nome de Jota Albuquerque.
 
 SOBRE JOTA ALBUQUERQUE:
@@ -16,7 +47,7 @@ Plataforma que transforma açougues em hubs de eventos de churrasco em São Paul
 - Açougue recebe no Pix toda semana
 - Igual ao iFood, mas para açougues
 
-OFERTA DE LANÇAMENTO (06/07/2026):
+OFERTA DE LANÇAMENTO:
 - 60 dias 100% GRÁTIS para os primeiros açougues
 - Depois: R$ 369/mês + 10% sobre as carnes só quando vender
 - Cancela quando quiser, sem multa
@@ -24,18 +55,26 @@ OFERTA DE LANÇAMENTO (06/07/2026):
 - Landing page: techchurras.com.br/lancamento-acougue
 
 FLUXO DA CONVERSA:
-1. Entenda se é dono de açougue ou cliente final
+1. Entenda se é dono de açougue ou cliente final (quem quer CONTRATAR um churrasco)
 2. Se açougue: apresente com entusiasmo — foque nos 60 dias grátis e na dor de perder cliente para o supermercado na sexta
 3. Colete naturalmente: nome, nome do açougue, bairro em SP
 4. Quando demonstrar interesse real: mande o link techchurras.com.br/lancamento-acougue e ofereça conectar com o Jota
-5. Se for cliente final: direcione para techchurras.com.br
+5. Se for CLIENTE FINAL: você é o CONCIERGE DE CHURRASCO. Fluxo:
+   a. Pergunte: quantas pessoas, que data, e qual bairro/cidade
+   b. Monte um ORÇAMENTO ESTIMADO na conversa usando o CATÁLOGO abaixo: kit do açougue mais adequado ao nº de pessoas + churrasqueiro (preço/hora × 4h padrão) + 6% de taxa de serviço. Apresente como estimativa: "fica em torno de R$ X"
+   c. Feche mandando o LINK DO PEDIDO do açougue escolhido (está no catálogo) — o cliente monta e paga em 3 minutos, sem precisar criar conta
+   d. Se pedirem falar com humano, diga que o Jota responde pessoalmente em seguida
+   Regra de carne se perguntarem: ~400g por adulto, 200g por criança.
+
+QUALIFICAÇÃO DE CLIENTE FINAL:
+Quando um cliente final informar nº de pessoas E data (mesmo aproximada), coloque exatamente "PEDIDO_LEAD: [pessoas] pessoas | [data] | [bairro]" na PRIMEIRA LINHA da resposta (será removida antes de enviar) — só na primeira vez.
 
 RESPOSTAS PARA OBJEÇÕES COMUNS:
 - "não tenho tempo": 20 minutos para cadastrar, tudo pelo celular, igual iFood
 - "quanto custa?": 60 dias grátis, depois R$ 369/mês, 1 pedido já paga o mês
 - "não sei mexer com tecnologia": mais simples que o iFood, tem suporte direto
 - "já tenho clientes fixos": esses clientes vão gastar mais comprando kit completo em vez de só o corte
-- "vou pensar": os 60 dias grátis só valem para quem entrar antes de 06/07, vagas limitadas
+- "vou pensar": os 60 dias grátis são só para os primeiros açougues fundadores, vagas limitadas por região
 
 ESTILO:
 - Respostas CURTAS — máximo 3 parágrafos pequenos
@@ -187,11 +226,19 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
       body.isGroup === true ||
       body.isStatusReply === true ||
       body.broadcast === true ||
-      body.type !== 'ReceivedCallback' ||
-      !body.text?.message
+      body.type !== 'ReceivedCallback'
     ) {
       return reply.send({ ok: true })
     }
+
+    // Áudio: sem transcrição por enquanto — resposta graciosa pedindo texto
+    if (!body.text?.message && (body.audio || body.ptt)) {
+      const audioPhone = String(body.phone || '').trim()
+      if (audioPhone) await zapiSend(audioPhone, 'Opa, recebi teu áudio! 🔥 Me manda em texto rapidinho (aqui do churrasco a gente responde na hora) — quantas pessoas e pra que data?')
+      return reply.send({ ok: true })
+    }
+
+    if (!body.text?.message) return reply.send({ ok: true })
 
     const phone       = String(body.phone || '').trim()
     const userMessage = String(body.text.message || '').trim()
@@ -237,10 +284,11 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
     const updated = [...messages, { role: 'user' as const, content: userMessage }]
 
     try {
+      const catalog = await buildCatalogContext()
       const aiResp = await anthropic.messages.create({
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 500,
-        system: SYSTEM_PROMPT,
+        system: `${SYSTEM_PROMPT}\n\n${catalog}`,
         messages: updated,
       })
 
@@ -256,6 +304,17 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
           const leadInfo = leadLine.replace('LEAD_QUALIFICADO:', '').trim()
           saveLead(phone, leadInfo).catch(() => {})
           notifyAdmin(leadInfo, phone).catch(() => {})
+        }
+      } else if (rawText.startsWith('PEDIDO_LEAD:')) {
+        const [leadLine, ...rest] = rawText.split('\n')
+        replyText = rest.join('\n').trim()
+        if (!leadSaved) {
+          newLeadSaved = true
+          const info = leadLine.replace('PEDIDO_LEAD:', '').trim()
+          zapiSend(
+            process.env.ADMIN_WHATSAPP_PHONE || '',
+            `🥩 *CLIENTE QUENTE NO CONCIERGE!*\n\n${info}\nTel: wa.me/55${phone.replace(/\D/g, '')}\n\n_O bot está fechando o orçamento — acompanhe e assuma se precisar._`
+          ).catch(() => {})
         }
       }
 
@@ -288,14 +347,10 @@ export async function sendFollowUps(): Promise<void> {
     },
   })
 
-  const LAUNCH = new Date('2026-07-06T00:00:00-03:00')
-  const daysLeft = Math.max(0, Math.ceil((LAUNCH.getTime() - Date.now()) / 86400000))
-  const countdown = daysLeft === 0 ? 'hoje' : daysLeft === 1 ? 'amanhã' : `em *${daysLeft} dias*`
-
   for (const lead of due) {
     const msg = lead.status === 'qualified'
-      ? `Oi${lead.name ? ` ${lead.name.split(' ')[0]}` : ''}! 👋\n\nPassando pra lembrar que o lançamento da Tech Churras é ${countdown} e as vagas de açougue fundador estão acabando.\n\nQuem entrar antes do lançamento garante *3 meses grátis* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/pitch-acougue`
-      : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nEstamos lançando ${countdown} em São Paulo — QR code no balcão do açougue para vender carne + churrasqueiro pelo celular.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
+      ? `Oi${lead.name ? ` ${lead.name.split(' ')[0]}` : ''}! 👋\n\nPassando pra lembrar que as vagas de *açougue fundador* da Tech Churras são limitadas por região — 1 por bairro.\n\nQuem entra como fundador garante *3 meses grátis* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/pitch-acougue`
+      : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nSomos a plataforma que transforma açougues de São Paulo em hub de churrasco — QR code no balcão para vender carne + churrasqueiro pelo celular.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
 
     await zapiSend(lead.phone, msg)
     await prisma.lead.update({
