@@ -1,5 +1,35 @@
 import { prisma } from '../../../config/prisma'
 
+// ── Comissão por nota (proposta aprovada 21/07/2026, desligada até o Jota ativar) ──
+// Desligada: COMMISSION_BY_RATING_ENABLED=false (ou ausente) mantém os 7% flat de sempre.
+// Janela móvel dos últimos 15 eventos avaliados; menos de 5 eventos = grace period (7% flat).
+const COMMISSION_BY_RATING_ENABLED = process.env.COMMISSION_BY_RATING_ENABLED === 'true'
+const RATING_WINDOW = 15
+const MIN_EVENTS_FOR_TIER = 5
+
+function commissionTierFromRating(avgRating: number): { commission: number; tier: string } {
+  if (avgRating >= 4.8) return { commission: 5, tier: 'ELITE' }
+  if (avgRating >= 4.5) return { commission: 7, tier: 'PADRAO' }
+  if (avgRating >= 4.0) return { commission: 9, tier: 'ATENCAO' }
+  return { commission: 12, tier: 'RISCO' }
+}
+
+async function resolveGmCommission(grillmasterId: string, flatRate: number): Promise<{ commission: number; tier: string }> {
+  if (!COMMISSION_BY_RATING_ENABLED) return { commission: flatRate, tier: 'FLAT' }
+
+  const recentReviews = await prisma.review.findMany({
+    where: { grillmasterId, grillRating: { not: null } },
+    orderBy: { createdAt: 'desc' },
+    take: RATING_WINDOW,
+    select: { grillRating: true },
+  })
+
+  if (recentReviews.length < MIN_EVENTS_FOR_TIER) return { commission: flatRate, tier: 'NOVATO' }
+
+  const avg = recentReviews.reduce((s, r) => s + (r.grillRating ?? 0), 0) / recentReviews.length
+  return commissionTierFromRating(avg)
+}
+
 function getWeekBounds(date: Date = new Date()) {
   const d = new Date(date)
   const day = d.getDay()
@@ -115,13 +145,14 @@ export async function generatePayouts() {
     if (order.grillmasterId && !existingSet.has(`${order.id}:GRILLMASTER`)) {
       const laborGross = +((order.laborPrice ?? 0) * (1 - discountRatio)).toFixed(2)
       if (laborGross > 0) {
+        const { commission } = await resolveGmCommission(order.grillmasterId, GM_COMMISSION)
         toCreate.push({
           type: 'GRILLMASTER',
           recipientId: order.grillmasterId,
           orderId: order.id,
           grossAmount: laborGross,
-          commission: GM_COMMISSION,
-          amount: +(laborGross * 0.93).toFixed(2),
+          commission,
+          amount: +(laborGross * (1 - commission / 100)).toFixed(2),
           weekStart: monday,
           weekEnd: sunday,
           pixKey: order.grillmaster?.pixKey ?? null,
