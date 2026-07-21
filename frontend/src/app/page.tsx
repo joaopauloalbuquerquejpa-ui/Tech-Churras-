@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import PriceCalculator from '@/components/PriceCalculator'
+import GarantiaSelo from '@/components/GarantiaSelo'
 import HomeMobileMenu from '@/components/HomeMobileMenu'
 import { API_URL } from '@/lib/api'
 
@@ -264,6 +265,13 @@ export default async function HomePage() {
       </section>
 
       <PriceCalculator />
+
+      {/* Garantia — eliminação de risco logo abaixo do CTA principal */}
+      <section className="max-w-6xl mx-auto px-4 pb-8">
+        <div className="max-w-xl mx-auto">
+          <GarantiaSelo />
+        </div>
+      </section>
 
       {/* Para quem é? */}
       <section className="max-w-6xl mx-auto px-4 py-20">

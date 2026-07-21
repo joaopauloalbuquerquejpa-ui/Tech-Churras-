@@ -2,6 +2,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
+import GarantiaSelo from '@/components/GarantiaSelo'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
@@ -538,6 +539,8 @@ function PedidoForm() {
                 <span className="text-2xl font-black text-orange-400">R$ {total.toFixed(2)}</span>
               </div>
             </div>
+
+            <GarantiaSelo compact />
 
             <p className="text-xs text-gray-600 text-center">
               Ao confirmar, criamos seu perfil automaticamente. O preço final é confirmado pelo churrasqueiro antes do pagamento.

@@ -1,10 +1,42 @@
 import { FastifyInstance } from 'fastify'
 import { prisma } from '../../config/prisma'
 import { z } from 'zod'
+import { sendWhatsAppToAdmin } from '../push/push.service'
 
 const uuidParam = z.string().uuid()
 
 export async function publicRoutes(app: FastifyInstance) {
+  // Lead corporativo — landing /churrasco-corporativo (janela de confras jul-set)
+  app.post('/public/corporate-lead', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, async (req, reply) => {
+    const schema = z.object({
+      empresa: z.string().min(2).max(200),
+      nome: z.string().min(2).max(100),
+      telefone: z.string().min(8).max(20),
+      pessoas: z.coerce.number().int().min(1).max(5000).optional(),
+      mesEvento: z.string().max(40).optional(),
+      observacoes: z.string().max(500).optional(),
+    })
+    const parsed = schema.safeParse(req.body)
+    if (!parsed.success) return reply.status(400).send({ error: 'Dados inválidos' })
+    const { empresa, nome, telefone, pessoas, mesEvento, observacoes } = parsed.data
+    const phone = telefone.replace(/\D/g, '')
+    const notes = [pessoas ? `${pessoas} pessoas` : null, mesEvento ? `mês: ${mesEvento}` : null, observacoes]
+      .filter(Boolean).join(' | ')
+    try {
+      await prisma.lead.upsert({
+        where: { phone },
+        update: { name: nome, boutique: `[Corporativo] ${empresa}`, status: 'qualified', source: 'corporativo', notes, followUpAt: new Date(Date.now() + 24 * 60 * 60 * 1000), followUpSent: false },
+        create: { phone, name: nome, boutique: `[Corporativo] ${empresa}`, status: 'qualified', source: 'corporativo', notes, followUpAt: new Date(Date.now() + 24 * 60 * 60 * 1000) },
+      })
+      sendWhatsAppToAdmin(
+        `🏢 *LEAD CORPORATIVO — Tech Churras!*\n\nEmpresa: ${empresa}\nContato: ${nome}\n${notes ? notes + '\n' : ''}Tel: wa.me/55${phone}\n\n_Confra de fim de ano se fecha entre julho e setembro — responder HOJE._`
+      ).catch(() => {})
+      return reply.send({ ok: true })
+    } catch {
+      return reply.status(500).send({ error: 'Erro ao registrar interesse' })
+    }
+  })
+
   app.get('/public/orders/:token', async (req, reply) => {
     const { token } = req.params as { token: string }
     const order = await prisma.order.findUnique({

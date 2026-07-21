@@ -33,9 +33,20 @@ export default function PitchAcougue() {
           <span className="text-orange-500">Nós trazemos<br />o churrasqueiro.</span>
         </h1>
 
-        <p className="text-gray-400 text-base leading-relaxed mb-6">
+        <p className="text-gray-400 text-base leading-relaxed mb-4">
           A Tech Churras conecta clientes que querem fazer churrasco com churrasqueiros profissionais — e o açougue parceiro é quem fornece a carne. O pedido chega no seu app, o churrasqueiro retira no balcão. Você não muda nada na sua operação.
         </p>
+
+        {/* Argumento central: cliente premium garantido (Kantar 2025: canal açougue -6%, perdendo lares de alta renda) */}
+        <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 mb-6">
+          <p className="text-sm text-gray-300 leading-relaxed">
+            <b className="text-orange-400">O cliente que mais gasta está sumindo do balcão.</b> O açougue de bairro
+            perdeu 6% de volume no último ano — e quem foi embora foi justamente o cliente de alta renda, pro
+            supermercado e pras boutiques. A Tech Churras traz esse cliente de volta: <b className="text-white">pedido
+            de churrasco completo, ticket de R$ 250 a R$ 1.000 em carne</b>, direto no seu açougue. Um pedido grande
+            por mês já paga a mensalidade.
+          </p>
+        </div>
 
         {/* Quick numbers */}
         <div className="grid grid-cols-3 gap-3 mb-2">
