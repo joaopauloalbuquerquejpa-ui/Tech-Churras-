@@ -1,0 +1,21 @@
+{
+  "name": "tech-churras-remotion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vídeos gerados por código para a Tech Churras — templates data-driven (avaliação 5 estrelas, boas-vindas de GM, etc).",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts",
+    "still": "remotion still src/index.ts"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.290",
+    "@remotion/cli": "^4.0.290"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}
