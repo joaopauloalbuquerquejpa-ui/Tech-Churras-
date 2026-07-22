@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { login } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
 
-const VIDEO_FOGO = 'https://videos.pexels.com/video-files/4763824/4763824-uhd_2560_1440_25fps.mp4'
-
 const TRUST_BADGES = [
   '+1.800 eventos realizados em São Paulo',
   'Churrasqueiros certificados e avaliados pela comunidade',
@@ -51,15 +49,6 @@ export default function LoginPage() {
 
       {/* ── Lado esquerdo: vídeo + conteúdo (apenas md+) ── */}
       <div className="hidden md:flex md:w-1/2 relative flex-col items-center justify-between overflow-hidden py-12 px-10">
-
-        {/* Vídeo de fundo */}
-        <video
-          autoPlay muted loop playsInline preload="auto"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ zIndex: 0 }}
-        >
-          <source src={VIDEO_FOGO} type="video/mp4" />
-        </video>
 
         {/* Overlay escuro */}
         <div
