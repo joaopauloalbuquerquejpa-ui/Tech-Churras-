@@ -6,7 +6,7 @@ import { login } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
 
 const TRUST_BADGES = [
-  '+1.800 eventos realizados em São Paulo',
+  'Fundado por um churrasqueiro profissional certificado',
   'Churrasqueiros certificados e avaliados pela comunidade',
   'Carne entregue pelo próprio churrasqueiro no dia do evento',
 ]
@@ -112,7 +112,7 @@ export default function LoginPage() {
             style={{ animation: 'slideInFromBottom 0.5s ease forwards', animationDelay: '1.35s', opacity: 0 }}
           >
             <span>🔥</span>
-            <span>47 churrascos agendados essa semana em SP</span>
+            <span>BBQ Master certificado, em parceria com o Governo de Zanzibar</span>
           </div>
 
           {/* Métodos de pagamento */}
@@ -152,7 +152,7 @@ export default function LoginPage() {
               </div>
             ))}
             <p className="text-xs text-orange-400/70 mt-1 flex items-center gap-1">
-              <span>🔥</span> 47 churrascos agendados essa semana em SP
+              <span>🔥</span> BBQ Master certificado, em parceria com o Governo de Zanzibar
             </p>
           </div>
 
