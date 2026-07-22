@@ -4,7 +4,7 @@ import { withSentryConfig } from '@sentry/nextjs'
 const CSP = [
   "default-src 'self'",
   // Scripts: self + inline (Next.js requer) + analytics externos
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://plausible.io https://js.sentry-cdn.com https://www.clarity.ms https://us-assets.i.posthog.com",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://analytics.tiktok.com https://plausible.io https://js.sentry-cdn.com https://www.clarity.ms https://us-assets.i.posthog.com https://googleads.g.doubleclick.net",
   // Estilos: self + inline (Tailwind CSS-in-JS)
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   // Fontes
