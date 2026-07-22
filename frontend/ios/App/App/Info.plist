@@ -24,6 +24,14 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Usamos sua localização para mostrar ao cliente onde o churrasqueiro está a caminho do evento.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Precisamos da câmera para você tirar fotos de produtos, do seu perfil ou da sua avaliação do churrasco.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Precisamos acessar suas fotos para você enviar imagens de produtos, do seu perfil ou da sua avaliação do churrasco.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
