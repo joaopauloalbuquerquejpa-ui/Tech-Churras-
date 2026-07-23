@@ -54,7 +54,8 @@ export async function listPayouts(status?: string, weekStart?: string, type?: st
   const payouts = await prisma.payout.findMany({ where, orderBy: { createdAt: 'desc' } })
 
   const gmIds = payouts.filter(p => p.type === 'GRILLMASTER').map(p => p.recipientId)
-  const btIds = payouts.filter(p => p.type === 'BOUTIQUE').map(p => p.recipientId)
+  // REFERRAL_BONUS também usa boutique.id como recipientId (bônus de indicação de cliente)
+  const btIds = payouts.filter(p => p.type === 'BOUTIQUE' || p.type === 'REFERRAL_BONUS').map(p => p.recipientId)
 
   const [gms, bts] = await Promise.all([
     gmIds.length > 0
@@ -71,13 +72,11 @@ export async function listPayouts(status?: string, weekStart?: string, type?: st
   const gmMap = new Map(gms.map(g => [g.id, g.user.name]))
   const btMap = new Map((bts as { id: string; name: string }[]).map(b => [b.id, b.name]))
 
-  return payouts.map(p => ({
-    ...p,
-    recipientName:
-      p.type === 'GRILLMASTER'
-        ? (gmMap.get(p.recipientId) ?? 'Churrasqueiro')
-        : (btMap.get(p.recipientId) ?? 'Acougue'),
-  }))
+  return payouts.map(p => {
+    if (p.type === 'GRILLMASTER') return { ...p, recipientName: gmMap.get(p.recipientId) ?? 'Churrasqueiro' }
+    const nome = btMap.get(p.recipientId) ?? 'Acougue'
+    return { ...p, recipientName: p.type === 'REFERRAL_BONUS' ? `${nome} (bônus indicação)` : nome }
+  })
 }
 
 export async function getPayoutsSummary() {
