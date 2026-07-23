@@ -559,7 +559,7 @@ export default function FounderPage() {
             >
               <Image
                 src="/jota.jpg"
-                alt="João Paulo Albuquerque — Grillmaster e Fundador da Tech Churras"
+                alt="Jota Albuquerque — Grillmaster e Fundador da Tech Churras"
                 width={280}
                 height={360}
                 className="object-cover object-top block"
@@ -646,7 +646,7 @@ export default function FounderPage() {
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden border border-orange-500/40">
-                <Image src="/jota.jpg" alt="João Paulo Albuquerque" width={40} height={40} className="object-cover" />
+                <Image src="/jota.jpg" alt="Jota Albuquerque" width={40} height={40} className="object-cover" />
               </div>
               <div>
                 <p className="text-white font-bold text-sm">Jota Albuquerque</p>

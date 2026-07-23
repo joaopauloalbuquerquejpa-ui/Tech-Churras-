@@ -191,7 +191,7 @@ export default async function HomePage() {
       "url": "https://www.techchurras.com.br",
       "logo": "https://www.techchurras.com.br/icon-512.png",
       "description": "Marketplace de churrasco a domicílio: churrasqueiro profissional + carnes de açougue parceiro, em um pedido único online. São Paulo, Brasil.",
-      "founder": { "@type": "Person", "name": "João Paulo Albuquerque", "alternateName": "Jota", "jobTitle": "BBQ Master" },
+      "founder": { "@type": "Person", "name": "Jota Albuquerque", "jobTitle": "BBQ Master" },
       "taxID": "67.830.186/0001-87",
       "areaServed": { "@type": "City", "name": "São Paulo" },
     }) }} />
