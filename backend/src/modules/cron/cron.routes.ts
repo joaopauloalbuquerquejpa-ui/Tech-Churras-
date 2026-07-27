@@ -5,6 +5,14 @@ import { sendFollowUps } from '../webhooks/whatsapp.routes'
 import { sendDailySummary } from '../admin/admin.service'
 import { fetchWithTimeout } from '../../utils/http'
 
+// Dead-man's-switch: avisa se o cron-job.org parar de chamar essa rota (já aconteceu antes, sem alerta).
+// HEALTHCHECKS_PING_URL vem de https://healthchecks.io — sem a env var configurada, é só um no-op.
+function pingHeartbeat(suffix: '' | '/fail' = '') {
+  const url = process.env.HEALTHCHECKS_PING_URL
+  if (!url) return
+  fetchWithTimeout(`${url}${suffix}`, { method: 'GET' }).catch(() => {})
+}
+
 async function sendWhatsAppReminder(phone: string, customerName: string, orderId: string, eventDate: Date, hoursLabel: string) {
   const instance = process.env.ZAPI_INSTANCE
   const token = process.env.ZAPI_TOKEN
@@ -126,9 +134,11 @@ export async function cronRoutes(app: FastifyInstance) {
     })
     if (expired.count > 0) console.log(`[cron] ${expired.count} pedido(s) PENDING expirados e cancelados`)
 
+    pingHeartbeat()
     return { ok: true, sent48, sent24, sentGm24, expired: expired.count }
     } catch (err: any) {
       req.log.error('[cron/event-reminders] erro:', err?.message)
+      pingHeartbeat('/fail')
       return reply.status(500).send({ error: 'Erro interno no cron de reminders' })
     }
   })

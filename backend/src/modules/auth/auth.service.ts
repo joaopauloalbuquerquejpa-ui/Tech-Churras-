@@ -51,7 +51,7 @@ export async function registerUser(data: RegisterInput) {
       termsAcceptedAt: new Date(),
       termsVersion: TERMS_VERSION,
     },
-    select: { id: true, name: true, email: true, role: true, onboardingCompleted: true, createdAt: true },
+    select: { id: true, name: true, email: true, role: true, onboardingCompleted: true, createdAt: true, tokenVersion: true },
   })
 
   if (referredByBoutiqueId) {
@@ -133,6 +133,8 @@ export async function loginUser(data: LoginInput) {
     email: user.email,
     role: user.role,
     onboardingCompleted: user.onboardingCompleted,
+    tokenVersion: user.tokenVersion,
+    totpEnabled: user.totpEnabled,
   }
 }
 
@@ -153,7 +155,7 @@ export async function registerGuest(data: { name: string; phone: string }) {
       phone: data.phone.trim(),
       role: 'CUSTOMER',
     },
-    select: { id: true, name: true, email: true, role: true, onboardingCompleted: true },
+    select: { id: true, name: true, email: true, role: true, onboardingCompleted: true, tokenVersion: true },
   })
 
   sendWhatsAppToAdmin(

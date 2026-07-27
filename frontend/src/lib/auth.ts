@@ -2,6 +2,14 @@ import { api } from './api'
 
 export async function login(email: string, password: string) {
   const { data } = await api.post('/auth/login', { email, password })
+  if (data.token) localStorage.setItem('token', data.token)
+  return data
+}
+
+export async function verifyTotp(preToken: string, code: string) {
+  const { data } = await api.post('/auth/2fa/verify', { code }, {
+    headers: { Authorization: `Bearer ${preToken}` },
+  })
   localStorage.setItem('token', data.token)
   return data
 }

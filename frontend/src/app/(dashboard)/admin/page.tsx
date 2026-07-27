@@ -402,6 +402,12 @@ export default function AdminPage() {
               Atualizado às {lastUpdated.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
           )}
+          <a
+            href="/admin/seguranca"
+            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            🔒 Segurança
+          </a>
           <button
             onClick={() => fetchAll(true)}
             disabled={refreshing}

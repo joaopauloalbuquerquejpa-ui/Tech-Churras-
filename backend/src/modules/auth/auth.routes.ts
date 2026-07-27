@@ -6,6 +6,7 @@ import { prisma } from '../../config/prisma'
 import { randomBytes } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { emailPasswordReset } from '../email/email.service'
+import { generateTotpSecret, verifyTotpCode, buildTotpQrCode } from './totp.service'
 
 export async function authRoutes(app: FastifyInstance) {
   app.post('/auth/register', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, register)
@@ -17,8 +18,9 @@ export async function authRoutes(app: FastifyInstance) {
       if (!name || name.trim().length < 2) return reply.status(400).send({ error: 'Nome obrigatório (mínimo 2 caracteres)' })
       if (!phone || phone.trim().length < 10) return reply.status(400).send({ error: 'WhatsApp obrigatório' })
       const user = await registerGuest({ name, phone })
-      const token = await reply.jwtSign({ id: user.id, role: user.role }, { expiresIn: '30d' })
-      return reply.status(201).send({ user, token })
+      const token = await reply.jwtSign({ id: user.id, role: user.role, tokenVersion: user.tokenVersion }, { expiresIn: '30d' })
+      const { tokenVersion, ...publicUser } = user
+      return reply.status(201).send({ user: publicUser, token })
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
     }
@@ -37,7 +39,7 @@ export async function authRoutes(app: FastifyInstance) {
       const { prisma } = await import('../../config/prisma')
       const user = await prisma.user.findUnique({
         where: { id: (req.user as any).id },
-        select: { id: true, name: true, email: true, phone: true, role: true, points: true, averageRating: true, createdAt: true },
+        select: { id: true, name: true, email: true, phone: true, role: true, points: true, averageRating: true, createdAt: true, totpEnabled: true },
       })
       if (!user) return reply.status(404).send({ error: 'Usuário não encontrado' })
       return reply.send(user)
@@ -54,6 +56,78 @@ export async function authRoutes(app: FastifyInstance) {
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
     }
+  })
+
+  // ── 2FA (admin, TOTP) ─────────────────────────────────────────────────
+  app.post('/auth/2fa/verify', { config: { rateLimit: { max: 10, timeWindow: '1 minute' } } }, async (req, reply) => {
+    try {
+      await req.jwtVerify()
+    } catch {
+      return reply.status(401).send({ error: 'Token inválido ou expirado' })
+    }
+    const payload = req.user as { id: string; scope?: string }
+    if (payload.scope !== 'pre2fa') return reply.status(401).send({ error: 'Token inválido' })
+
+    const { code } = req.body as { code: string }
+    const user = await prisma.user.findUnique({ where: { id: payload.id } })
+    if (!user || !user.totpSecret || !user.totpEnabled) {
+      return reply.status(400).send({ error: '2FA não configurado para este usuário' })
+    }
+    if (!code || !(await verifyTotpCode(user.totpSecret, code))) {
+      return reply.status(401).send({ error: 'Código inválido' })
+    }
+
+    const token = await reply.jwtSign({ id: user.id, role: user.role, tokenVersion: user.tokenVersion }, { expiresIn: '30d' })
+    return reply.send({
+      user: { id: user.id, name: user.name, email: user.email, role: user.role, onboardingCompleted: user.onboardingCompleted },
+      token,
+    })
+  })
+
+  app.post('/auth/2fa/setup', { preHandler: [authenticate] }, async (req, reply) => {
+    const userId = (req.user as any).id
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user || user.role !== 'ADMIN') return reply.status(403).send({ error: 'Restrito a administradores' })
+
+    // 2FA já ativo: só troca a chave provando o código atual — impede que uma sessão
+    // roubada troque o segredo em silêncio e derrube a proteção sem o admin perceber.
+    if (user.totpEnabled) {
+      const { code } = req.body as { code?: string }
+      if (!user.totpSecret || !code || !(await verifyTotpCode(user.totpSecret, code))) {
+        return reply.status(401).send({ error: 'Informe o código TOTP atual para gerar uma nova chave' })
+      }
+    }
+
+    const secret = generateTotpSecret()
+    await prisma.user.update({ where: { id: userId }, data: { totpSecret: secret, totpEnabled: false } })
+    const qrCode = await buildTotpQrCode(user.email, secret)
+    return reply.send({ secret, qrCode })
+  })
+
+  app.post('/auth/2fa/enable', { preHandler: [authenticate] }, async (req, reply) => {
+    const userId = (req.user as any).id
+    const { code } = req.body as { code: string }
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user || user.role !== 'ADMIN' || !user.totpSecret) {
+      return reply.status(400).send({ error: 'Chame /auth/2fa/setup antes de ativar' })
+    }
+    if (!code || !(await verifyTotpCode(user.totpSecret, code))) {
+      return reply.status(401).send({ error: 'Código inválido' })
+    }
+    await prisma.user.update({ where: { id: userId }, data: { totpEnabled: true } })
+    return reply.send({ ok: true })
+  })
+
+  app.post('/auth/2fa/disable', { preHandler: [authenticate] }, async (req, reply) => {
+    const userId = (req.user as any).id
+    const { code } = req.body as { code: string }
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user || user.role !== 'ADMIN') return reply.status(403).send({ error: 'Restrito a administradores' })
+    if (!user.totpSecret || !code || !(await verifyTotpCode(user.totpSecret, code))) {
+      return reply.status(401).send({ error: 'Código inválido' })
+    }
+    await prisma.user.update({ where: { id: userId }, data: { totpEnabled: false, totpSecret: null } })
+    return reply.send({ ok: true })
   })
 
   // ── Esqueci minha senha ──────────────────────────────────────────────
@@ -96,7 +170,7 @@ export async function authRoutes(app: FastifyInstance) {
       }
 
       const hashed = await bcrypt.hash(password, 12)
-      await prisma.user.update({ where: { id: record.userId }, data: { password: hashed } })
+      await prisma.user.update({ where: { id: record.userId }, data: { password: hashed, tokenVersion: { increment: 1 } } })
       await prisma.passwordResetToken.delete({ where: { token } })
 
       return reply.send({ ok: true })

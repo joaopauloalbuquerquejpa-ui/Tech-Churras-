@@ -40,6 +40,9 @@ model User {
   averageRating Float?
   points        Int      @default(0)
   onboardingCompleted  Boolean  @default(false)
+  tokenVersion         Int      @default(0)
+  totpSecret           String?
+  totpEnabled          Boolean  @default(false)
   referredByBoutiqueId String?
   firstOrderCouponUsed Boolean  @default(false)
   termsAcceptedAt      DateTime?
@@ -447,5 +450,19 @@ model AlphaTester {
   whatsapp  String
   createdAt DateTime @default(now())
 
+  @@index([createdAt])
+}
+
+model PaymentEvent {
+  id         String   @id @default(uuid())
+  paymentId  String
+  orderId    String?
+  type       String?
+  status     String?
+  rawPayload Json
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([orderId])
   @@index([createdAt])
 }

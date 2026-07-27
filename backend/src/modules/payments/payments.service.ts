@@ -81,6 +81,18 @@ export async function handleMPWebhook(payload: any) {
     throw new Error(`Falha ao buscar pagamento ${paymentId}`)
   }
 
+  // Log de auditoria: registra o payload bruto do MP independente do status,
+  // para investigar depois se um pagamento "sumir". Nunca deve bloquear o webhook.
+  prisma.paymentEvent.create({
+    data: {
+      paymentId: String(paymentId),
+      orderId: payment.external_reference ?? null,
+      type,
+      status: payment.status ?? null,
+      rawPayload: payment,
+    },
+  }).catch((e: any) => console.error('[webhook] Falha ao gravar payment_event:', e?.message))
+
   if (payment.status === 'approved') {
     const orderId = payment.external_reference
     if (!orderId) return { received: true }

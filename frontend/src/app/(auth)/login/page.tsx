@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { login } from '@/lib/auth'
+import { login, verifyTotp } from '@/lib/auth'
 import { useAuthStore } from '@/store/authStore'
 
 const TRUST_BADGES = [
@@ -21,6 +21,17 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [preToken, setPreToken] = useState<string | null>(null)
+  const [totpCode, setTotpCode] = useState('')
+
+  function goToRoleHome(role: string) {
+    const next = searchParams.get('redirect')
+    if (next) router.push(next)
+    else if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
+    else if (role === 'BOUTIQUE') router.push('/boutiques/dashboard')
+    else if (role === 'ADMIN') router.push('/admin')
+    else router.push('/dashboard')
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -28,17 +39,32 @@ export default function LoginPage() {
     setError('')
     try {
       const data = await login(email, password)
+      if (data.needsTotp) {
+        setPreToken(data.preToken)
+        return
+      }
       setUser(data.user)
       setToken(data.token)
-      const next = searchParams.get('redirect')
-      const role = data.user?.role
-      if (next) router.push(next)
-      else if (role === 'GRILLMASTER') router.push('/grillmasters/dashboard')
-      else if (role === 'BOUTIQUE') router.push('/boutiques/dashboard')
-      else if (role === 'ADMIN') router.push('/admin')
-      else router.push('/dashboard')
+      goToRoleHome(data.user?.role)
     } catch {
       setError('Email ou senha incorretos')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleVerifyTotp(e: React.FormEvent) {
+    e.preventDefault()
+    if (!preToken) return
+    setLoading(true)
+    setError('')
+    try {
+      const data = await verifyTotp(preToken, totpCode)
+      setUser(data.user)
+      setToken(data.token)
+      goToRoleHome(data.user?.role)
+    } catch {
+      setError('Código inválido')
     } finally {
       setLoading(false)
     }
@@ -146,10 +172,10 @@ export default function LoginPage() {
 
           {/* Header do form */}
           <h1 className="text-3xl font-black text-white mb-1">
-            Entre e peça seu churrasco
+            {preToken ? 'Código de verificação' : 'Entre e peça seu churrasco'}
           </h1>
           <p className="text-gray-500 mb-8 text-sm">
-            Ou crie sua conta em 1 minuto — é grátis
+            {preToken ? 'Abra seu app autenticador e digite o código de 6 dígitos' : 'Ou crie sua conta em 1 minuto — é grátis'}
           </p>
 
           {error && (
@@ -158,6 +184,44 @@ export default function LoginPage() {
             </div>
           )}
 
+          {preToken ? (
+            <form onSubmit={handleVerifyTotp} className="space-y-4">
+              <div>
+                <label className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
+                  Código TOTP
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus
+                  value={totpCode}
+                  onChange={e => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full bg-gray-900 text-white px-4 py-3 rounded-xl border border-gray-700 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500/30 transition-colors placeholder-gray-600 tracking-[0.5em] text-center text-lg"
+                  placeholder="000000"
+                  maxLength={6}
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || totpCode.length !== 6}
+                className="relative w-full text-white font-bold py-3.5 rounded-xl text-base transition-all overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{
+                  background: 'linear-gradient(135deg, rgb(249,115,22) 0%, rgb(234,88,12) 100%)',
+                  boxShadow: '0 4px 24px rgba(249,115,22,0.40)',
+                }}
+              >
+                {loading ? 'Verificando...' : 'Confirmar'}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPreToken(null); setTotpCode(''); setError('') }}
+                className="w-full text-center text-xs text-gray-500 hover:text-orange-400 transition-colors pt-1"
+              >
+                Voltar
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
@@ -221,8 +285,10 @@ export default function LoginPage() {
               🔒 Pagamento 100% seguro via Pix ou cartão
             </p>
           </form>
+          )}
 
           {/* CTA de criação de conta */}
+          {!preToken && (
           <div className="mt-6 text-center">
             <a
               href="/register"
@@ -232,8 +298,10 @@ export default function LoginPage() {
               <span className="group-hover:translate-x-1 transition-transform">→</span>
             </a>
           </div>
+          )}
 
           {/* Pagamentos — mobile */}
+          {!preToken && (
           <div className="md:hidden mt-6 flex items-center justify-center gap-2 flex-wrap">
             <span className="text-gray-600 text-xs">Aceito por:</span>
             {PAYMENT_METHODS.map((m, i) => (
@@ -242,6 +310,7 @@ export default function LoginPage() {
               </span>
             ))}
           </div>
+          )}
         </div>
       </div>
 
