@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react'
+import { ChartIcon, GiftIcon, MeatIcon, ChefIcon, CheckIcon, RocketIcon, PersonIcon, ChatIcon, CameraIcon, StoreIcon, PhoneIcon, PrinterIcon, CashIcon } from '@/components/icons/Icons'
+import type { ComponentType } from 'react'
 
 async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve) => {
@@ -518,7 +520,7 @@ export default function BoutiqueDashboardPage() {
     <div className="max-w-lg mx-auto px-4 py-12">
       <div className="text-center mb-8">
         <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <span className="text-4xl">🥩</span>
+          <MeatIcon size={36} className="text-orange-400" />
         </div>
         <h1 className="font-display text-2xl font-bold mb-2">Cadastre seu açougue!</h1>
         <p className="text-gray-400 text-sm">Venda cortes nobres para clientes que estão organizando churrascos na sua cidade.</p>
@@ -565,11 +567,11 @@ export default function BoutiqueDashboardPage() {
   const balcaoUrl = SITE_URL + '/menu/novo?boutiqueId=' + boutique.id + '&utm_source=qr_balcao'
   const activeDiscountCount = boutique.products.filter(isDiscountActive).length
 
-  const TABS: { id: Tab; label: string; icon: string }[] = [
-    { id: 'overview', label: 'Visão Geral', icon: '📊' },
-    { id: 'referrals', label: 'Indicações', icon: '🎁' },
-    { id: 'balcao', label: 'Balcão', icon: '🏪' },
-    { id: 'produtos', label: 'Produtos', icon: '🥩' },
+  const TABS: { id: Tab; label: string; icon: ComponentType<{ size?: number; className?: string }> }[] = [
+    { id: 'overview', label: 'Visão Geral', icon: ChartIcon },
+    { id: 'referrals', label: 'Indicações', icon: GiftIcon },
+    { id: 'balcao', label: 'Balcão', icon: StoreIcon },
+    { id: 'produtos', label: 'Produtos', icon: MeatIcon },
   ]
 
   return (
@@ -610,7 +612,7 @@ export default function BoutiqueDashboardPage() {
         )
         return (
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-5 py-3 flex items-center gap-3">
-            <span className="text-green-400">🎁</span>
+            <GiftIcon size={18} className="text-green-400" />
             <p className="text-green-300 text-sm"><span className="font-bold">{daysLeft} dias gratuitos</span> restantes — aproveite sem custo!</p>
           </div>
         )
@@ -638,7 +640,7 @@ export default function BoutiqueDashboardPage() {
                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800')
             }
           >
-            <span className="text-base leading-none">{tab.icon}</span>
+            <span className="leading-none"><tab.icon size={16} /></span>
             <span className="hidden sm:inline">{tab.label}</span>
             {tab.id === 'referrals' && (referralStats?.totalReferrals ?? 0) > 0 && (
               <span className={'text-xs px-1.5 py-0.5 rounded-full font-bold ' + (activeTab === 'referrals' ? 'bg-white/20 text-white' : 'bg-green-500/20 text-green-400')}>
@@ -670,7 +672,7 @@ export default function BoutiqueDashboardPage() {
           {boutique.products.length === 0 && (
             <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/40 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-4">
-                <span className="text-2xl">🚀</span>
+                <RocketIcon size={22} className="text-orange-400" />
                 <div>
                   <h2 className="font-bold text-white">Primeiros passos — comece a vender hoje</h2>
                   <p className="text-xs text-gray-400 mt-0.5">Complete abaixo para aparecer nas buscas e receber seus primeiros pedidos</p>
@@ -825,7 +827,7 @@ export default function BoutiqueDashboardPage() {
                               {new Date(o.eventDate).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
                               {o.guestCount ? ` · ${o.guestCount} convidados` : ''}
                             </p>
-                            {o.grillmasterName && <p className="text-xs text-gray-600 mt-0.5">👨‍🍳 {o.grillmasterName}</p>}
+                            {o.grillmasterName && <p className="text-xs text-gray-600 mt-0.5 inline-flex items-center gap-1"><ChefIcon size={11} /> {o.grillmasterName}</p>}
                           </div>
                           <div className="shrink-0 text-right">
                             <p className="text-sm font-bold text-orange-400">R$ {o.totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
@@ -898,7 +900,7 @@ export default function BoutiqueDashboardPage() {
 
                       {readyOrderIds.has(o.id) && (
                         <div className="px-4 pb-3">
-                          <p className="text-xs text-green-400 text-center bg-green-500/10 rounded-lg py-2">✓ Churrasqueiro notificado para buscar os cortes</p>
+                          <p className="text-xs text-green-400 text-center bg-green-500/10 rounded-lg py-2 inline-flex items-center justify-center gap-1.5 w-full"><CheckIcon size={12} /> Churrasqueiro notificado para buscar os cortes</p>
                         </div>
                       )}
                     </div>
@@ -951,7 +953,7 @@ export default function BoutiqueDashboardPage() {
                     <div className="bg-gray-800 rounded-xl px-4 py-2.5 flex items-center justify-between gap-2">
                       <p className="text-xs text-gray-300 font-mono truncate">{referralLink}</p>
                       <button onClick={copyFullReferralLink} className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors">
-                        {copiedReferral ? '✓ Copiado' : 'Copiar'}
+                        {copiedReferral ? (<span className="inline-flex items-center gap-1"><CheckIcon size={12} /> Copiado</span>) : 'Copiar'}
                       </button>
                     </div>
                   </div>
@@ -991,17 +993,17 @@ export default function BoutiqueDashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {[
                 {
-                  n: '1', icon: '📱',
+                  n: '1', icon: PhoneIcon,
                   titulo: 'Compartilhe o QR Code',
                   desc: 'Imprima e coloque no balcão. Mande o link no WhatsApp e Instagram.',
                 },
                 {
-                  n: '2', icon: '👤',
+                  n: '2', icon: PersonIcon,
                   titulo: 'Cliente se cadastra',
                   desc: 'Ele escaneia, cria conta e faz o primeiro pedido. Fica vinculado ao seu açougue.',
                 },
                 {
-                  n: '3', icon: '💸',
+                  n: '3', icon: CashIcon,
                   titulo: 'R$ 40 no repasse',
                   desc: 'O bônus cai automaticamente no seu repasse semanal via PIX. Sem burocracia.',
                 },
@@ -1011,7 +1013,7 @@ export default function BoutiqueDashboardPage() {
                     {s.n}
                   </div>
                   <div>
-                    <p className="text-base mb-1">{s.icon}</p>
+                    <p className="mb-1 text-orange-400"><s.icon size={18} /></p>
                     <p className="text-sm font-bold text-white mb-1">{s.titulo}</p>
                     <p className="text-xs text-gray-400 leading-relaxed">{s.desc}</p>
                   </div>
@@ -1026,21 +1028,21 @@ export default function BoutiqueDashboardPage() {
             <div className="space-y-3">
               {[
                 {
-                  icon: '🖨️',
+                  icon: PrinterIcon,
                   titulo: 'Placa no balcão',
                   desc: 'Imprima o QR code em tamanho A5 ou A4 e coloque na frente do caixa. Clientes que estão comprando carne para evento já estão no perfil certo.',
                   acao: 'Imprimir placa',
                   href: '/boutiques/dashboard/qrcode-impressao',
                 },
                 {
-                  icon: '💬',
+                  icon: ChatIcon,
                   titulo: 'Script para o atendente',
                   desc: '"Você vai fazer churrasco? A gente tem parceria com churrasqueiros profissionais — você escaneia esse QR e a carne já vem separada daqui. Tudo num app."',
                   acao: null,
                   href: null,
                 },
                 {
-                  icon: '📲',
+                  icon: PhoneIcon,
                   titulo: 'Status do WhatsApp',
                   desc: 'Mande o link de indicação como status. Clientes que já compram aqui são os mais propensos a usar.',
                   acao: null,
@@ -1048,7 +1050,7 @@ export default function BoutiqueDashboardPage() {
                 },
               ].map((d, i) => (
                 <div key={i} className="flex gap-3 bg-gray-800 rounded-xl p-4">
-                  <span className="text-xl shrink-0">{d.icon}</span>
+                  <span className="shrink-0 text-orange-400"><d.icon size={18} /></span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-white mb-1">{d.titulo}</p>
                     <p className="text-xs text-gray-400 leading-relaxed italic">{d.desc}</p>
@@ -1148,7 +1150,7 @@ export default function BoutiqueDashboardPage() {
                       onClick={() => copyBalcaoLink(balcaoUrl)}
                       className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
                     >
-                      {copiedBalcao ? '✓ Copiado' : 'Copiar'}
+                      {copiedBalcao ? (<span className="inline-flex items-center gap-1"><CheckIcon size={12} /> Copiado</span>) : 'Copiar'}
                     </button>
                   </div>
                   <div className="flex gap-2">
@@ -1461,7 +1463,7 @@ export default function BoutiqueDashboardPage() {
               >
                 {photoState === 'analyzing' ? (
                   <><span className="inline-block w-3.5 h-3.5 border-2 border-gray-400/30 border-t-gray-300 rounded-full animate-spin" /> Analisando...</>
-                ) : <>📸 Adicionar por foto</>}
+                ) : <span className="inline-flex items-center gap-1.5"><CameraIcon size={14} /> Adicionar por foto</span>}
               </button>
               <button onClick={() => { cancelForm(); setShowForm(true) }} className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium">
                 + Adicionar produto
@@ -1610,7 +1612,7 @@ export default function BoutiqueDashboardPage() {
                       {p.imageUrl ? (
                         <img src={p.imageUrl} alt={p.name} className={'w-12 h-12 rounded-lg object-cover ' + (!p.available ? 'opacity-40' : '')} />
                       ) : (
-                        <div className={'w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center text-xl ' + (!p.available ? 'opacity-40' : '')}>🥩</div>
+                        <div className={'w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center text-orange-400/60 ' + (!p.available ? 'opacity-40' : '')}><MeatIcon size={20} /></div>
                       )}
                       {!p.available && (
                         <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] font-black px-1 py-0.5 rounded leading-none">FORA</span>

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
-import { HandshakeIcon } from '@/components/icons/Icons'
+import { HandshakeIcon, FlameIcon, CheckIcon, PinIcon, CashIcon } from '@/components/icons/Icons'
 
 
 function getToken() {
@@ -437,7 +437,7 @@ export default function GrillmasterDashboardPage() {
       <div className="max-w-lg mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-4xl">🔥</span>
+            <FlameIcon size={36} className="text-orange-400" />
           </div>
           <h1 className="font-display text-2xl font-bold mb-2">Bem-vindo à Tech Churras!</h1>
           <p className="text-gray-400 text-sm">Você está a poucos passos de começar a receber pedidos de churrasco.</p>
@@ -491,7 +491,7 @@ export default function GrillmasterDashboardPage() {
 
         <div className="bg-gray-900 rounded-xl p-5 mb-6 space-y-3">
           <div className="flex items-center gap-3">
-            <span className="text-green-400">✓</span>
+            <CheckIcon size={16} className="text-green-400" />
             <span className="text-sm text-gray-300">Perfil enviado</span>
           </div>
           <div className="flex items-center gap-3">
@@ -712,7 +712,7 @@ export default function GrillmasterDashboardPage() {
                         disabled={gpsStatus === 'requesting'}
                         className="shrink-0 bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-bold px-4 py-2 rounded-xl text-sm transition-colors"
                       >
-                        {gpsStatus === 'requesting' ? 'Ativando...' : '📍 Ativar GPS'}
+                        {gpsStatus === 'requesting' ? 'Ativando...' : (<span className="inline-flex items-center gap-1.5"><PinIcon size={15} /> Ativar GPS</span>)}
                       </button>
                     </div>
                   ))}
@@ -912,7 +912,7 @@ export default function GrillmasterDashboardPage() {
                                 disabled={!!actionLoading}
                                 className="flex-1 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-semibold py-1.5 rounded-lg transition-colors disabled:opacity-50"
                               >
-                                🔥 Iniciar evento
+                                <span className="inline-flex items-center gap-1"><FlameIcon size={12} /> Iniciar evento</span>
                               </button>
                             </>
                           )}
@@ -1123,7 +1123,7 @@ export default function GrillmasterDashboardPage() {
                   {checks.map(c => (
                     <div key={c.label} className={`flex items-center gap-1.5 text-xs ${c.done ? 'text-gray-400' : 'text-gray-600'}`}>
                       <span className={c.done ? 'text-green-400' : 'text-gray-700'}>
-                        {c.done ? '✓' : '○'}
+                        {c.done ? <CheckIcon size={12} /> : '○'}
                       </span>
                       {c.label}
                     </div>
@@ -1467,7 +1467,7 @@ export default function GrillmasterDashboardPage() {
                   <div key={mod.id} className={`rounded-xl border p-5 transition-colors ${done ? 'bg-green-500/5 border-green-500/30' : 'bg-gray-900 border-gray-800'}`}>
                     <div className="flex items-start gap-3">
                       <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${done ? 'bg-green-500 text-white' : 'bg-gray-800 text-gray-400'}`}>
-                        {done ? '✓' : mod.id}
+                        {done ? <CheckIcon size={16} /> : mod.id}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`font-semibold text-sm ${done ? 'text-green-300' : 'text-white'}`}>Módulo {mod.id} — {mod.title}</p>
@@ -1597,7 +1597,7 @@ export default function GrillmasterDashboardPage() {
 
           {/* Next payout banner */}
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-5 py-4 flex items-center gap-4">
-            <div className="shrink-0 w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-xl">💰</div>
+            <div className="shrink-0 w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400"><CashIcon size={20} /></div>
             <div>
               <p className="font-semibold text-green-300 text-sm">Próximo repasse</p>
               <p className="text-xs text-gray-400 mt-0.5">Todo domingo os valores de eventos concluídos na semana são enviados ao seu PIX cadastrado.</p>

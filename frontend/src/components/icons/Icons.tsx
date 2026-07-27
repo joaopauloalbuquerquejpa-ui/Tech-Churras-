@@ -129,6 +129,119 @@ export function AlertIcon({ className, size = 20 }: IconProps) {
   )
 }
 
+export function ChatIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M4 5h16v11H9l-5 4z" />
+    </svg>
+  )
+}
+
+export function CashIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <rect x="3" y="7" width="18" height="10" rx="1.5" />
+      <circle cx="12" cy="12" r="2.3" />
+    </svg>
+  )
+}
+
+export function RocketIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M12 3c3 1 5 4 5 8 0 3-1.5 6-5 10-3.5-4-5-7-5-10 0-4 2-7 5-8z" />
+      <circle cx="12" cy="10" r="1.6" />
+      <path d="M8 16l-3 4M16 16l3 4" />
+    </svg>
+  )
+}
+
+export function BellIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M6 10a6 6 0 0112 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z" />
+      <path d="M10 19a2 2 0 004 0" />
+    </svg>
+  )
+}
+
+export function ClockIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </svg>
+  )
+}
+
+export function CameraIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M4 8h3l1.5-2h7L17 8h3v11H4z" />
+      <circle cx="12" cy="13.5" r="3.3" />
+    </svg>
+  )
+}
+
+export function ClipboardIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <rect x="6" y="4.5" width="12" height="16" rx="1.5" />
+      <path d="M9 4V3.5a1 1 0 011-1h4a1 1 0 011 1V4" />
+      <path d="M9 11h6M9 15h6" />
+    </svg>
+  )
+}
+
+export function TargetIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="4.5" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function PersonIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M5 20c0-4 3-6.5 7-6.5s7 2.5 7 6.5" />
+    </svg>
+  )
+}
+
+export function PhoneIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <rect x="7" y="2.5" width="10" height="19" rx="1.5" />
+      <path d="M11 18h2" />
+    </svg>
+  )
+}
+
+export function PrinterIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M6 9V3h12v6" />
+      <rect x="4" y="9" width="16" height="8" rx="1.2" />
+      <path d="M6 14h12v7H6z" />
+    </svg>
+  )
+}
+
+export function StoreIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M4 9l1-5h14l1 5" />
+      <path d="M4 9a2.3 2.3 0 004.4 1 2.3 2.3 0 004.4 0 2.3 2.3 0 004.4 0 2.3 2.3 0 004.4-1" />
+      <path d="M5 10v10h14V10" />
+      <path d="M10 20v-5h4v5" />
+    </svg>
+  )
+}
+
 export function GiftIcon({ className, size = 20 }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
