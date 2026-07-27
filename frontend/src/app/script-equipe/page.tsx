@@ -323,10 +323,10 @@ export default function ScriptEquipe() {
             <Step n="5" label="A oferta — 10 vagas Fundador" />
             <Fala>
               Os primeiros dez churrasqueiros que entrarem em SP viram Churrasqueiro Fundador.
-              Você tem treinamento presencial com o Jota — que tem 1.800 eventos feitos,
-              já fez para Madonna, Lady Gaga, Neymar — badge permanente no app e prioridade
-              máxima nas buscas por seis meses. Essas vagas estão acabando. Você seria um
-              dos primeiros da plataforma em SP.
+              Você tem entrevista pessoal com o Jota — 13 anos de Jota BBQ Eventos,
+              já fez para Madonna, Lady Gaga, Neymar — antes da Chancela, badge permanente
+              no app e prioridade máxima nas buscas por seis meses. Essas vagas estão
+              acabando. Você seria um dos primeiros da plataforma em SP.
             </Fala>
           </div>
 

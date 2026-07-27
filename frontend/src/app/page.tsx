@@ -481,7 +481,7 @@ export default async function HomePage() {
             <div className="p-8 md:p-10 flex flex-col justify-center">
               <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Quem está por trás</p>
               <h2 className="font-display text-3xl font-black text-white mb-2">Jota Albuquerque</h2>
-              <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13+ anos · 1.800+ eventos</p>
+              <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13 anos de Jota BBQ Eventos · SP e RJ</p>
               <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
               <p className="text-gray-300 text-base leading-relaxed mb-8">
                 Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.

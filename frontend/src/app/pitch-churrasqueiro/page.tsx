@@ -130,7 +130,7 @@ export default function PitchChurrasqueiro() {
             />
             <div>
               <p className="font-black text-white">Chancelamento Jota Albuquerque</p>
-              <p className="text-xs text-gray-500">1.800+ eventos · 3 continentes</p>
+              <p className="text-xs text-gray-500">13 anos de Jota BBQ Eventos · SP e RJ</p>
               <p className="text-xs text-orange-400 mt-0.5">Madonna · Lady Gaga · Neymar</p>
             </div>
           </div>
@@ -218,9 +218,9 @@ export default function PitchChurrasqueiro() {
 
         <div className="grid grid-cols-2 gap-3">
           {[
-            { valor: '1.800+', label: 'eventos realizados' },
-            { valor: '3', label: 'continentes' },
-            { valor: '13+', label: 'anos de experiência' },
+            { valor: '13', label: 'anos de experiência' },
+            { valor: 'SP e RJ', label: 'Jota BBQ Eventos' },
+            { valor: 'AAA', label: 'clientela atendida' },
             { valor: 'Gov. Zanzibar', label: 'parceiro institucional' },
           ].map(s => (
             <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">

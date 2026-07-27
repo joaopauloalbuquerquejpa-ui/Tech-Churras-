@@ -594,7 +594,7 @@ export default function FounderPage() {
             </motion.span>
 
             {[
-              'Jota Albuquerque começou acendendo brasa em festas de família. Hoje, com 13+ anos de trajetória e mais de 1.800 eventos em 3 países, é um dos Grillmasters mais respeitados do Brasil e do mundo.',
+              'Jota Albuquerque começou acendendo brasa em festas de família. Hoje, com 13 anos de Jota BBQ Eventos servindo clientela triple AAA em São Paulo e no Rio de Janeiro, é um dos Grillmasters mais respeitados do Brasil.',
               'Grillmaster das maiores celebridades — atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais nacionais e levou o churrasco brasileiro para a África e o Mediterrâneo. Fez tudo isso — e percebeu que faltava algo.',
               'A Tech Churras nasceu para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.',
             ].map((para, i) => (
@@ -616,9 +616,9 @@ export default function FounderPage() {
               className="flex flex-wrap gap-8 mt-6 pt-6 border-t border-gray-800"
             >
               {[
-                { n: '13+', l: 'anos' },
-                { n: '1.800+', l: 'eventos' },
-                { n: '3', l: 'países' },
+                { n: '13', l: 'anos' },
+                { n: 'SP', l: 'e RJ' },
+                { n: 'AAA', l: 'clientela' },
               ].map((s) => (
                 <div key={s.l} className="text-center">
                   <p className="text-2xl font-black text-orange-500">{s.n}</p>

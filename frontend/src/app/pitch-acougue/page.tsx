@@ -181,7 +181,7 @@ export default function PitchAcougue() {
           />
           <div>
             <p className="font-black text-white text-lg leading-tight">Jota Albuquerque</p>
-            <p className="text-xs text-gray-500">Fundador & CEO · 13+ anos · 1.800+ eventos</p>
+            <p className="text-xs text-gray-500">Fundador & CEO · 13 anos de Jota BBQ Eventos</p>
             <p className="text-xs text-orange-400 mt-1">Madonna · Lady Gaga · Neymar</p>
           </div>
         </div>

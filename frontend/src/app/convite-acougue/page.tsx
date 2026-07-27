@@ -113,7 +113,7 @@ function ConviteContent() {
               <div>
                 <p className="text-white font-bold text-sm">Jota Albuquerque</p>
                 <p className="text-gray-500 text-xs">Fundador & CEO, Tech Churras</p>
-                <p className="text-gray-600 text-xs mt-0.5">13+ anos · 1.800+ eventos · Madonna, Lady Gaga, Neymar</p>
+                <p className="text-gray-600 text-xs mt-0.5">13 anos · Jota BBQ Eventos · Madonna, Lady Gaga, Neymar</p>
               </div>
             </div>
           </div>
@@ -122,8 +122,7 @@ function ConviteContent() {
         {/* Credenciais em chips */}
         <div className="flex flex-wrap gap-2 mb-10">
           {[
-            { icon: '🔥', label: '1.800+ eventos realizados' },
-            { icon: '🌍', label: 'Brasil, EUA e Europa' },
+            { icon: '🔥', label: 'Jota BBQ Eventos — São Paulo e Rio de Janeiro' },
             { icon: '⭐', label: 'Madonna · Lady Gaga · Neymar' },
             { icon: '🏆', label: '13 anos de experiência' },
           ].map(c => (
@@ -200,7 +199,7 @@ function ConviteContent() {
               <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-1">Diferencial exclusivo</p>
               <h3 className="font-black text-white text-lg mb-2">Churrasqueiros 100% chancelados pela Tech Churras</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                Nenhum churrasqueiro entra na plataforma sem passar pelo programa de chancelamento da Tech Churras — treinamento presencial desenvolvido por Jota com 1.800+ eventos de experiência. Técnicas de corte, controle de fogo, temperos, equipamentos e postura profissional. Só quem é aprovado e mantém avaliação acima de 4.5★ continua ativo.
+                Nenhum churrasqueiro entra na plataforma sem passar pelo programa de chancelamento da Tech Churras — onboarding no padrão desenvolvido por Jota a partir de 13 anos de Jota BBQ Eventos, seguido de entrevista pessoal com ele antes da Chancela ser concedida. Técnicas de corte, controle de fogo, temperos, equipamentos e postura profissional. Só quem é aprovado e mantém avaliação acima de 4.5★ continua ativo.
               </p>
               <div className="flex flex-wrap gap-2">
                 {['Técnicas de corte certificadas', 'Controle de fogo', 'Equipamentos homologados', 'Avaliação mínima 4.5★'].map(t => (

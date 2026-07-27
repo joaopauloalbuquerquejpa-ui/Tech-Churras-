@@ -208,7 +208,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                     <p className="text-xs text-gray-400 mb-3">Primeiros 10 churrasqueiros chancelados em São Paulo:</p>
                     <div className="space-y-1.5">
                       {[
-                        'Treinamento presencial com Jota Albuquerque — 1.800+ eventos',
+                        'Entrevista pessoal e Chancela concedida por Jota Albuquerque — 13 anos de Jota BBQ Eventos',
                         'Badge "Churrasqueiro Fundador" permanente na plataforma',
                         'Prioridade máxima nas buscas por 6 meses',
                         'Acesso direto ao fundador via WhatsApp',
@@ -355,8 +355,8 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
             <div className="space-y-4">
               {[
                 {
-                  icon: '👨‍🏫', titulo: 'Treinamento com Jota Albuquerque',
-                  desc: 'Treinamento presencial desenvolvido por Jota — 1.800+ eventos, Madonna, Lady Gaga, Neymar. Técnicas de corte, controle de fogo, temperos, apresentação e postura profissional.',
+                  icon: '👨‍🏫', titulo: 'Onboarding e entrevista com Jota Albuquerque',
+                  desc: 'Onboarding no padrão de 13 anos de Jota BBQ Eventos — clientes como Madonna, Lady Gaga e Neymar — seguido de entrevista pessoal antes da Chancela. Técnicas de corte, controle de fogo, temperos, apresentação e postura profissional.',
                 },
                 {
                   icon: '📋', titulo: 'Avaliação e aprovação',
@@ -386,7 +386,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                 <img src="/jota.jpg" alt="Jota Albuquerque" className="w-14 h-14 rounded-full object-cover object-top border-2 border-orange-500/40" />
                 <div>
                   <p className="font-black text-white">Jota Albuquerque</p>
-                  <p className="text-xs text-gray-500">Fundador & CEO · 1.800+ eventos</p>
+                  <p className="text-xs text-gray-500">Fundador & CEO · 13 anos de Jota BBQ Eventos</p>
                 </div>
               </div>
               <p className="text-3xl text-orange-500 font-black leading-none mb-3">"</p>

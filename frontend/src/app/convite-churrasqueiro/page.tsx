@@ -99,7 +99,7 @@ function ConviteContent() {
               <div>
                 <p className="text-white font-bold text-sm">Jota Albuquerque</p>
                 <p className="text-gray-500 text-xs">Fundador & CEO, Tech Churras</p>
-                <p className="text-gray-600 text-xs mt-0.5">BBQ Master · PPP Governo de Zanzibar · 1.800+ eventos</p>
+                <p className="text-gray-600 text-xs mt-0.5">BBQ Master · PPP Governo de Zanzibar · 13 anos de Jota BBQ Eventos</p>
               </div>
             </div>
           </div>
@@ -134,8 +134,7 @@ function ConviteContent() {
         {/* Credenciais compactas */}
         <div className="flex flex-wrap gap-2 mb-10">
           {[
-            { icon: '🔥', label: '1.800+ eventos realizados' },
-            { icon: '🌍', label: 'Brasil, EUA e Europa' },
+            { icon: '🔥', label: 'Jota BBQ Eventos — São Paulo e Rio de Janeiro' },
             { icon: '⭐', label: 'Madonna · Lady Gaga · Neymar' },
             { icon: '🏆', label: '13 anos de experiência' },
           ].map(c => (
