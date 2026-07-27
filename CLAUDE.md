@@ -101,9 +101,9 @@ O cliente contrata um churrasco completo. O Grill Master executa. O açougue for
 
 ## Contas de teste
 
-- Admin: admin@techchurras.com.br
-- GM fundador: teamjota@techchurras.com.br
-- Açougue teste: acougue@techchurras.com.br
+- Admin: joaopauloalbuquerque.jpa@gmail.com (não existe conta admin@techchurras.com.br)
+- GM fundador: techchurras@gmail.com (não existe conta teamjota@techchurras.com.br)
+- Açougue fundador: acougue@techchurras.com.br
 
 ## Tom de voz
 

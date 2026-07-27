@@ -26,6 +26,9 @@ tools/video_pexels.env
 checkout_creds.json
 *_creds.json
 
+# Documento pessoal de senhas e acessos do Jota — NUNCA commitar
+credenciais-tech-churras.md
+
 # Repositório aninhado (submodule não configurado)
 tools/cve-mcp-server/
 
