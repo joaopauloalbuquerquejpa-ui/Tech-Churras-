@@ -88,7 +88,6 @@ interface PendingBoutique {
 }
 
 interface GmApproveState {
-  isChancelado: boolean
   pricePerHour: number
 }
 
@@ -185,6 +184,8 @@ export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [pendingGrillmasters, setPendingGrillmasters] = useState<PendingGrillmaster[]>([])
+  const [awaitingCertification, setAwaitingCertification] = useState<PendingGrillmaster[]>([])
+  const [certifyingId, setCertifyingId] = useState<string | null>(null)
   const [pendingBoutiques, setPendingBoutiques] = useState<PendingBoutique[]>([])
   const [gmApproveState, setGmApproveState] = useState<Record<string, GmApproveState>>({})
   const [contracts, setContracts] = useState<AdminContract[]>([])
@@ -215,10 +216,11 @@ export default function AdminPage() {
     else setRefreshing(true)
     const h = { Authorization: 'Bearer ' + getToken() }
     try {
-      const [s, o, pg, pb, c, allGms, lds] = await Promise.all([
+      const [s, o, pg, awaitCert, pb, c, allGms, lds] = await Promise.all([
         fetch(API_URL + '/admin/stats', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/orders', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
+        fetch(API_URL + '/admin/grillmasters/awaiting-certification', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/grillmasters', { headers: h }).then(r => r.ok ? r.json() : []),
@@ -229,8 +231,9 @@ export default function AdminPage() {
       const gms: PendingGrillmaster[] = Array.isArray(pg) ? pg : []
       setPendingGrillmasters(gms)
       const init: Record<string, GmApproveState> = {}
-      gms.forEach(g => { init[g.id] = { isChancelado: false, pricePerHour: g.pricePerHour } })
+      gms.forEach(g => { init[g.id] = { pricePerHour: g.pricePerHour } })
       setGmApproveState(prev => ({ ...init, ...prev }))
+      setAwaitingCertification(Array.isArray(awaitCert) ? awaitCert : [])
       setPendingBoutiques(Array.isArray(pb) ? pb : [])
       setContracts(Array.isArray(c) ? c : [])
       setLeads(Array.isArray(lds) ? lds : [])
@@ -338,13 +341,29 @@ export default function AdminPage() {
   }
 
   async function approveGrillmaster(id: string) {
-    const state = gmApproveState[id] || { isChancelado: false, pricePerHour: 0 }
+    const state = gmApproveState[id] || { pricePerHour: 0 }
     const res = await fetch(API_URL + '/admin/grillmasters/' + id + '/approve', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
-      body: JSON.stringify({ isChancelado: state.isChancelado, pricePerHour: state.pricePerHour }),
+      body: JSON.stringify({ pricePerHour: state.pricePerHour }),
     })
-    if (res.ok) setPendingGrillmasters(prev => prev.filter(g => g.id !== id))
+    if (res.ok) {
+      setPendingGrillmasters(prev => prev.filter(g => g.id !== id))
+      fetchAll(true)
+    }
+  }
+
+  async function certifyGrillmaster(id: string) {
+    setCertifyingId(id)
+    try {
+      const res = await fetch(API_URL + '/admin/grillmasters/' + id + '/certify', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken() },
+      })
+      if (res.ok) setAwaitingCertification(prev => prev.filter(g => g.id !== id))
+    } finally {
+      setCertifyingId(null)
+    }
   }
 
   async function rejectGrillmaster(id: string) {
@@ -383,7 +402,7 @@ export default function AdminPage() {
     if (res.ok) setPendingBoutiques(prev => prev.filter(b => b.id !== id))
   }
 
-  function setGmField(id: string, field: keyof GmApproveState, value: boolean | number) {
+  function setGmField(id: string, field: keyof GmApproveState, value: number) {
     setGmApproveState(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }))
   }
 
@@ -680,18 +699,13 @@ export default function AdminPage() {
             )}
             <div className="space-y-3">
               {pendingGrillmasters.map(g => {
-                const gmState = gmApproveState[g.id] || { isChancelado: false, pricePerHour: g.pricePerHour }
+                const gmState = gmApproveState[g.id] || { pricePerHour: g.pricePerHour }
                 return (
                   <div key={g.id} className="bg-gray-900 rounded-xl p-4">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold">{g.user.name}</p>
-                          {gmState.isChancelado && (
-                            <span className="text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 px-2 py-0.5 rounded-full font-medium">
-                              Chancelado
-                            </span>
-                          )}
                         </div>
                         <p className="text-xs text-gray-400 mb-0.5">{g.user.email}</p>
                         {g.user.phone && <p className="text-xs text-gray-400 mb-1">📞 {g.user.phone}</p>}
@@ -736,15 +750,6 @@ export default function AdminPage() {
 
                     {/* Campos de aprovação */}
                     <div className="border-t border-gray-800 pt-3 flex flex-wrap items-center gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={gmState.isChancelado}
-                          onChange={e => setGmField(g.id, 'isChancelado', e.target.checked)}
-                          className="accent-orange-500 w-4 h-4"
-                        />
-                        <span className="text-sm text-gray-300">Conceder Chancela Jota</span>
-                      </label>
                       <div className="flex items-center gap-2">
                         <label className="text-sm text-gray-400 whitespace-nowrap">Valor por hora (R$)</label>
                         <input
@@ -758,7 +763,7 @@ export default function AdminPage() {
                       </div>
                       <div className="flex items-center gap-2 ml-auto">
                         {g.trainingModules?.length === 4 && (
-                          <span className="text-xs text-green-400 font-medium">Treinamento ✓</span>
+                          <span className="text-xs text-green-400 font-medium">Onboarding ✓</span>
                         )}
                         <button
                           onClick={() => markUniformSent(g.id)}
@@ -776,6 +781,41 @@ export default function AdminPage() {
                   </div>
                 )
               })}
+            </div>
+          </div>
+
+          {/* Aguardando Chancela — pós-entrevista pessoal com o Jota */}
+          <div>
+            <h2 className="text-lg font-semibold mb-3">
+              Aguardando Chancela ({awaitingCertification.length})
+            </h2>
+            {awaitingCertification.length === 0 && (
+              <p className="text-gray-400 text-sm">Nenhum churrasqueiro aprovado aguardando entrevista.</p>
+            )}
+            <div className="space-y-3">
+              {awaitingCertification.map(g => (
+                <div key={g.id} className="bg-gray-900 rounded-xl p-4 flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold">{g.user.name}</p>
+                      {g.trainingModules?.length === 4 ? (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-medium">Onboarding ✓</span>
+                      ) : (
+                        <span className="text-xs bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full">Onboarding {g.trainingModules?.length ?? 0}/4</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-400 mb-0.5">{g.user.email}</p>
+                    {g.user.phone && <p className="text-xs text-gray-400">📞 {g.user.phone}</p>}
+                  </div>
+                  <button
+                    onClick={() => certifyGrillmaster(g.id)}
+                    disabled={certifyingId === g.id}
+                    className="shrink-0 bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+                  >
+                    {certifyingId === g.id ? 'Certificando...' : '🏅 Certificar (pós-entrevista)'}
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
 

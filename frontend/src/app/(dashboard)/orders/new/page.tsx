@@ -77,7 +77,8 @@ function NewOrderForm() {
     notes: '',
   })
 
-  const today = new Date().toISOString().split('T')[0]
+  const [today, setToday] = useState('')
+  useEffect(() => { setToday(new Date().toISOString().split('T')[0]) }, [])
 
   useEffect(() => {
     const gmId = searchParams.get('grillmasterId')

@@ -73,7 +73,7 @@ export async function listPendingGrillmasters() {
 
 export async function approveGrillmaster(
   grillmasterId: string,
-  extras?: { isChancelado?: boolean; pricePerHour?: number }
+  extras?: { pricePerHour?: number }
 ) {
   const gm = await prisma.grillmaster.findUnique({
     where: { id: grillmasterId },
@@ -84,7 +84,6 @@ export async function approveGrillmaster(
     data: {
       approved: true,
       available: true,
-      ...(extras?.isChancelado !== undefined ? { isChancelado: extras.isChancelado } : {}),
       ...(extras?.pricePerHour !== undefined ? { pricePerHour: extras.pricePerHour } : {}),
     },
   })
@@ -126,6 +125,50 @@ export async function rejectGrillmaster(grillmasterId: string) {
       'Precisamos de mais informações sobre seu perfil. Entre em contato com o suporte.',
       '/grillmasters/dashboard'
     ).catch((e) => console.error("[notif]", e?.message))
+  }
+  return updated
+}
+
+// GMs já aprovados (podem trabalhar) mas ainda sem Chancela — aguardando entrevista pessoal com o Jota
+export async function listAwaitingCertification() {
+  return prisma.grillmaster.findMany({
+    where: { approved: true, certifiedAt: null },
+    include: { user: { select: { name: true, email: true, phone: true } } },
+    orderBy: { createdAt: 'desc' },
+  })
+}
+
+// Chancela concedida manualmente pelo admin, depois da entrevista pessoal — nunca automática
+export async function certifyGrillmaster(grillmasterId: string) {
+  const gm = await prisma.grillmaster.findUnique({
+    where: { id: grillmasterId },
+    include: { user: { select: { id: true, name: true, phone: true } } },
+  })
+  if (!gm) throw new Error('Churrasqueiro não encontrado')
+  const { randomUUID } = await import('crypto')
+  const updated = await prisma.grillmaster.update({
+    where: { id: grillmasterId },
+    data: {
+      isChancelado: true,
+      certificationCode: 'TC-' + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase(),
+      certifiedAt: new Date(),
+    },
+  })
+  console.log(JSON.stringify({ audit: 'GRILLMASTER_CERTIFIED', grillmasterId, name: gm.user?.name, ts: new Date().toISOString() }))
+  if (gm.user) {
+    sendPushToUser(
+      gm.user.id,
+      '🏅 Chancela Tech Churras!',
+      'Parabéns! Depois da nossa conversa, você recebeu a Chancela Tech Churras. Seu certificado já está no painel.',
+      '/grillmasters/dashboard'
+    ).catch((e) => console.error("[notif]", e?.message))
+    if (gm.user.phone) {
+      sendWhatsApp(
+        gm.user.phone,
+        `🏅 Parabéns! Você recebeu a *Chancela Tech Churras* depois da nossa conversa.\n\nSeu certificado já está disponível no seu painel:\nhttps://www.techchurras.com.br/grillmasters/dashboard`,
+        'gm-certificado'
+      ).catch((e) => console.error("[notif]", e?.message))
+    }
   }
   return updated
 }

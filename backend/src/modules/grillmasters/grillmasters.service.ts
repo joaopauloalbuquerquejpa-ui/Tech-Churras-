@@ -290,19 +290,15 @@ export async function toggleScheduleDay(userId: string, dateStr: string) {
   })
 }
 
+// Completar os 4 módulos é onboarding (entender o padrão Tech Churras), não gera
+// certificação sozinho — a Chancela só é concedida manualmente pelo admin
+// (certifyGrillmaster em admin.service.ts) depois da entrevista pessoal com o Jota.
 export async function completeTrainingModule(userId: string, moduleId: number) {
   if (moduleId < 1 || moduleId > 4) throw new Error('Modulo invalido')
   const gm = await prisma.grillmaster.findUnique({ where: { userId } })
   if (!gm) throw new Error('Perfil de churrasqueiro nao encontrado')
   const modules = Array.from(new Set([...gm.trainingModules, moduleId])).sort()
-  const allDone = [1, 2, 3, 4].every(m => modules.includes(m))
-  const data: any = { trainingModules: modules }
-  if (allDone && !gm.certifiedAt) {
-    const { randomUUID } = await import('crypto')
-    data.certificationCode = 'TC-' + randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()
-    data.certifiedAt = new Date()
-  }
-  return prisma.grillmaster.update({ where: { userId }, data })
+  return prisma.grillmaster.update({ where: { userId }, data: { trainingModules: modules } })
 }
 
 export async function markUniformSent(grillmasterId: string) {

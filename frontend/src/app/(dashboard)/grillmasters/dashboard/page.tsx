@@ -99,27 +99,49 @@ type Tab = 'eventos' | 'agenda' | 'perfil' | 'treinamento' | 'financeiro'
 const TRAINING_MODULES = [
   {
     id: 1,
-    title: 'Apresentação Tech Churras',
-    desc: 'Nossos valores, missão e o que significa ser um churrasqueiro Tech Churras. Postura profissional, uniforme e pontualidade.',
-    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_1',
+    title: 'De Onde Vem o Padrão Tech Churras',
+    content: `A Tech Churras nasce de uma experiência bem específica: 13 anos da Jota BBQ Eventos, empresa de churrasco e eventos do fundador Jota Albuquerque, atuando forte em São Paulo e no Rio de Janeiro.
+
+Nesses 13 anos, a carteira de clientes nunca foi genérica — foi construída pra atender exclusivamente um perfil: artistas, jogadores de futebol, grandes empresários e celebridades. Cliente triple AAA.
+
+Esse tipo de cliente não aceita erro. Não aceita atraso, não aceita explicação depois do evento, não aceita "quase deu certo". Aceita um resultado só: perfeito, do início ao fim.
+
+É essa régua — a régua de quem serviu quem não perdoa falha — que a Tech Churras traz pra dentro da plataforma. Todo evento feito por um churrasqueiro Tech Churras, seja pra um cliente triple AAA ou pra um aniversário de bairro, roda com o mesmo padrão de exigência. Isso não é discurso de marketing. É o motivo pelo qual a Tech Churras existe.`,
   },
   {
     id: 2,
-    title: 'Padrão de Cortes e Técnicas',
-    desc: 'A qualidade dos cortes nobres que usamos, controle de temperatura, ponto certo da carne e preparo das guarnições.',
-    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_2',
+    title: 'Como a Tech Churras Atende',
+    content: `Nenhum cliente deveria perceber diferença entre um churrasqueiro e outro na hora do atendimento — só na especialidade de cada um. Isso significa, na prática:
+
+Chegar no horário combinado, nunca depois. Vestir o uniforme Tech Churras, sempre. Se apresentar ao anfitrião assim que chegar, explicando rapidamente como vai funcionar o evento.
+
+Manter educação e discrição com os convidados — o churrasqueiro é parte da experiência do evento, não um prestador de serviço invisível, e também não é o protagonista que rouba a cena.
+
+Ao final, deixar o espaço de trabalho limpo e se despedir pessoalmente do anfitrião.
+
+Qualquer imprevisto — atraso no trânsito, falta de algum insumo, problema de saúde — deve ser reportado pelo chat da plataforma imediatamente, nunca escondido ou resolvido "por fora". A régua de exigência do módulo anterior só vira realidade se for seguida à risca, evento após evento.`,
   },
   {
     id: 3,
-    title: 'Experiência do Cliente',
-    desc: 'Como chegamos no evento, como nos apresentamos ao anfitrião, como interagimos com os convidados e como finalizamos com excelência.',
-    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_3',
+    title: 'Sua Especialidade a Favor da Experiência',
+    content: `Cada churrasqueiro tem um estilo — e isso é uma vantagem, não uma variação a ser escondida.
+
+Alguns dominam cortes nobres e técnicas de altíssimo padrão. Outros têm mais experiência com eventos grandes e times de apoio. Outros se destacam no relacionamento com convidados VIP, na apresentação dos pratos, ou num churrasco com pegada mais regional e afetiva.
+
+A Tech Churras usa exatamente essa especialidade pra decidir qual churrasqueiro recomendar pra qual tipo de evento e cliente. Quanto mais completo e honesto for o seu perfil — aba Perfil: especialidades, estilo de churrasco, fotos e vídeos reais do seu trabalho — melhor a plataforma consegue te colocar na frente do cliente certo, não só do primeiro pedido que aparecer.
+
+Preencher isso com cuidado não é burocracia. É a forma mais direta de conseguir mais eventos que combinam com o que você faz de melhor.`,
   },
   {
     id: 4,
-    title: 'Uso da Plataforma',
-    desc: 'Como aceitar e recusar pedidos, usar o chat com o cliente, atualizar status do evento e reportar problemas.',
-    videoPlaceholder: 'https://youtube.com/watch?v=PLACEHOLDER_MODULO_4',
+    title: 'Usando a Plataforma no Dia a Dia',
+    content: `Pedidos chegam com todos os detalhes do evento: data, endereço, quantidade de convidados e cortes escolhidos pelo cliente. Aceitar ou recusar um pedido deve ser feito o quanto antes — o cliente está esperando confirmação.
+
+Toda comunicação com o cliente e com o açougue parceiro acontece pelo chat dentro da plataforma. Isso protege você e a Tech Churras caso haja qualquer divergência depois.
+
+No dia do evento, ative o rastreamento por GPS assim que sair de casa — é isso que dá ao cliente a confiança de acompanhar sua chegada em tempo real, um dos pontos que mais gera avaliação positiva.
+
+Ao final do evento, atualize o status do pedido como concluído. Isso libera automaticamente o seu repasse e a avaliação do cliente.`,
   },
 ]
 
@@ -542,7 +564,8 @@ export default function GrillmasterDashboardPage() {
   })
   const MONTHS_PT = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
 
-  const trainingDone = profile?.certifiedAt
+  const certified = !!profile?.certifiedAt
+  const modulesComplete = checkedModules.size === 4
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -556,11 +579,16 @@ export default function GrillmasterDashboardPage() {
                 CHANCELADO TC
               </span>
             )}
-            {!profile?.isChancelado && !trainingDone && (
+            {!certified && !modulesComplete && (
               <button onClick={() => setTab('treinamento')}
                 className="bg-orange-500/10 text-orange-400 border border-orange-500/30 text-xs font-semibold px-2 py-0.5 rounded-full hover:bg-orange-500/20 transition-colors">
-                Completar treinamento →
+                Completar onboarding →
               </button>
+            )}
+            {!certified && modulesComplete && (
+              <span className="bg-blue-500/10 text-blue-400 border border-blue-500/30 text-xs font-semibold px-2 py-0.5 rounded-full">
+                Onboarding concluído — aguardando entrevista
+              </span>
             )}
           </div>
           <p className="text-sm text-gray-500">
@@ -644,7 +672,7 @@ export default function GrillmasterDashboardPage() {
                 {pendingOrders.length}
               </span>
             )}
-            {t === 'treinamento' && !trainingDone && (
+            {t === 'treinamento' && !certified && !modulesComplete && (
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
             )}
           </button>
@@ -1350,12 +1378,12 @@ export default function GrillmasterDashboardPage() {
       {/* ── ABA TREINAMENTO ── */}
       {tab === 'treinamento' && (
         <div className="space-y-6">
-          {trainingDone ? (
+          {certified ? (
             /* Certificado */
             <div>
               <style>{`@media print { .no-print { display: none !important; } body { background: white !important; } }`}</style>
               <div className="no-print mb-4 flex items-center justify-between">
-                <p className="text-green-400 font-semibold text-sm">Treinamento concluído! Seu certificado está abaixo.</p>
+                <p className="text-green-400 font-semibold text-sm">Chancela concedida! Seu certificado está abaixo.</p>
                 <button onClick={() => window.print()}
                   className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
                   Imprimir certificado
@@ -1369,7 +1397,7 @@ export default function GrillmasterDashboardPage() {
                 <p className="text-gray-700 text-sm mb-3">Certificamos que</p>
                 <p className="text-3xl font-black text-gray-900 mb-3">{user?.name ?? 'Churrasqueiro'}</p>
                 <p className="text-gray-700 text-sm mb-6 max-w-sm mx-auto">
-                  concluiu com êxito o <strong>Programa de Formação e Chancela Tech Churras</strong>, atestando domínio dos padrões de qualidade, atendimento ao cliente e uso da plataforma.
+                  recebeu a <strong>Chancela Tech Churras</strong>, concedida pessoalmente pelo fundador após onboarding e entrevista, atestando domínio dos padrões de qualidade, atendimento ao cliente e uso da plataforma.
                 </p>
                 <div className="flex items-center justify-center gap-8 mb-6 text-sm text-gray-600">
                   <div>
@@ -1388,13 +1416,22 @@ export default function GrillmasterDashboardPage() {
                 </div>
               </div>
             </div>
+          ) : modulesComplete ? (
+            /* Onboarding concluído, aguardando entrevista */
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 text-center">
+              <p className="text-3xl mb-2">🤝</p>
+              <h2 className="font-bold text-blue-300 mb-1">Onboarding concluído!</h2>
+              <p className="text-sm text-gray-400 max-w-md mx-auto">
+                Você já leu os 4 módulos e entende como a Tech Churras trabalha. O próximo passo é uma conversa pessoal com o Jota — ele vai entender onde você já trabalhou e sua especialidade antes de conceder a Chancela Tech Churras. Aguarde o contato.
+              </p>
+            </div>
           ) : (
-            /* Treinamento pendente */
+            /* Onboarding pendente */
             <div className="space-y-4">
               <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-5">
-                <h2 className="font-bold text-orange-300 mb-1">Treinamento obrigatório para Chancela Tech Churras</h2>
+                <h2 className="font-bold text-orange-300 mb-1">Onboarding Tech Churras</h2>
                 <p className="text-sm text-gray-400">
-                  Complete os 4 módulos abaixo para receber seu certificado digital e ser exibido como churrasqueiro chancelado na plataforma.
+                  Leia os 4 módulos abaixo pra entender como a Tech Churras trabalha. Depois disso, o Jota vai te chamar pra uma conversa pessoal — é essa entrevista que decide a Chancela Tech Churras, não os módulos sozinhos.
                 </p>
                 <div className="mt-3 flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-gray-800 rounded-full">
@@ -1414,12 +1451,7 @@ export default function GrillmasterDashboardPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className={`font-semibold text-sm ${done ? 'text-green-300' : 'text-white'}`}>Módulo {mod.id} — {mod.title}</p>
-                        <p className="text-xs text-gray-400 mt-1">{mod.desc}</p>
-                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                          <span>🎬</span>
-                          <span className="font-mono truncate">{mod.videoPlaceholder}</span>
-                          <span className="text-gray-600">(vídeo em breve)</span>
-                        </div>
+                        <p className="text-sm text-gray-400 mt-2 whitespace-pre-line leading-relaxed">{mod.content}</p>
                         <label className="flex items-center gap-2 mt-3 cursor-pointer group">
                           <input type="checkbox" checked={done}
                             onChange={e => {
@@ -1428,7 +1460,7 @@ export default function GrillmasterDashboardPage() {
                               setCheckedModules(next)
                             }}
                             className="w-4 h-4 accent-orange-500" />
-                          <span className="text-xs text-gray-400 group-hover:text-white transition-colors">Assisti e entendi o conteúdo deste módulo</span>
+                          <span className="text-xs text-gray-400 group-hover:text-white transition-colors">Li e entendi o conteúdo deste módulo</span>
                         </label>
                       </div>
                     </div>
@@ -1439,7 +1471,7 @@ export default function GrillmasterDashboardPage() {
               <button onClick={handleCompleteTraining}
                 disabled={checkedModules.size < 4 || certifying}
                 className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition-colors">
-                {certifying ? 'Gerando certificado...' : checkedModules.size < 4 ? `Conclua todos os módulos (${checkedModules.size}/4)` : 'Concluir treinamento e gerar certificado'}
+                {certifying ? 'Salvando...' : checkedModules.size < 4 ? `Conclua todos os módulos (${checkedModules.size}/4)` : 'Concluir onboarding'}
               </button>
             </div>
           )}

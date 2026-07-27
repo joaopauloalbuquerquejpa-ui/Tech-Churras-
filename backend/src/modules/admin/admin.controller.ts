@@ -3,7 +3,6 @@ import { z } from 'zod'
 
 const uuidSchema = z.string().uuid('ID inválido')
 const approveGrillmasterBodySchema = z.object({
-  isChancelado: z.boolean().optional(),
   pricePerHour: z.number().positive().optional(),
 })
 import {
@@ -13,6 +12,8 @@ import {
   listPendingGrillmasters,
   approveGrillmaster,
   rejectGrillmaster,
+  listAwaitingCertification,
+  certifyGrillmaster,
   listPendingBoutiques,
   approveBoutique,
   rejectBoutique,
@@ -61,8 +62,8 @@ export async function approveGrillmasterHandler(req: FastifyRequest, reply: Fast
   try {
     const { grillmasterId } = req.params as { grillmasterId: string }
     uuidSchema.parse(grillmasterId)
-    const { isChancelado, pricePerHour } = approveGrillmasterBodySchema.parse(req.body ?? {})
-    return reply.send(await approveGrillmaster(grillmasterId, { isChancelado, pricePerHour }))
+    const { pricePerHour } = approveGrillmasterBodySchema.parse(req.body ?? {})
+    return reply.send(await approveGrillmaster(grillmasterId, { pricePerHour }))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }
@@ -73,6 +74,24 @@ export async function rejectGrillmasterHandler(req: FastifyRequest, reply: Fasti
     const { grillmasterId } = req.params as { grillmasterId: string }
     uuidSchema.parse(grillmasterId)
     return reply.send(await rejectGrillmaster(grillmasterId))
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function listAwaitingCertificationHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    return reply.send(await listAwaitingCertification())
+  } catch (err: any) {
+    return reply.status(500).send({ error: err.message })
+  }
+}
+
+export async function certifyGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { grillmasterId } = req.params as { grillmasterId: string }
+    uuidSchema.parse(grillmasterId)
+    return reply.send(await certifyGrillmaster(grillmasterId))
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

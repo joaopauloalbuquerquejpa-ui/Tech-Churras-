@@ -7,6 +7,8 @@ import {
   listPendingGrillmastersHandler,
   approveGrillmasterHandler,
   rejectGrillmasterHandler,
+  listAwaitingCertificationHandler,
+  certifyGrillmasterHandler,
   listPendingBoutiquesHandler,
   approveBoutiqueHandler,
   rejectBoutiqueHandler,
@@ -72,6 +74,8 @@ export async function adminRoutes(app: FastifyInstance) {
   app.get('/admin/grillmasters/pending', listPendingGrillmastersHandler)
   app.patch('/admin/grillmasters/:grillmasterId/approve', approveGrillmasterHandler)
   app.patch('/admin/grillmasters/:grillmasterId/reject', rejectGrillmasterHandler)
+  app.get('/admin/grillmasters/awaiting-certification', listAwaitingCertificationHandler)
+  app.post('/admin/grillmasters/:grillmasterId/certify', certifyGrillmasterHandler)
   app.patch('/admin/grillmasters/:grillmasterId/profile', async (req, reply) => {
     try {
       const { grillmasterId } = req.params as { grillmasterId: string }
@@ -190,7 +194,7 @@ export async function adminRoutes(app: FastifyInstance) {
         `https://api.z-api.io/instances/${instance}/token/${token}/status`,
         { signal: AbortSignal.timeout(5000) }
       )
-      if (!res.ok) return reply.send({ status: 'error', code: res.status })
+      if (!res.ok) return reply.send({ status: 'error', code: res.status, message: `Z-API respondeu HTTP ${res.status} — provável assinatura vencida ou token inválido` })
       const data = await res.json() as any
       return reply.send({ status: 'ok', connected: data?.connected ?? false, phone: data?.phone ?? null })
     } catch (err: any) {
