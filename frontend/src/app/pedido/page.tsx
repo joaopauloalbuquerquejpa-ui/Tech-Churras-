@@ -3,6 +3,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
+import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
@@ -52,7 +53,7 @@ function StepBar({ step }: { step: number }) {
               <div className={
                 'w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all ' +
                 (done ? 'bg-green-500 text-white' : active ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30' : 'bg-gray-800 text-gray-500')
-              }>{done ? '✓' : n}</div>
+              }>{done ? <CheckIcon size={16} /> : n}</div>
               <span className={'text-xs hidden sm:block ' + (active ? 'text-orange-400 font-medium' : done ? 'text-green-400' : 'text-gray-600')}>{s}</span>
             </div>
           )
@@ -382,7 +383,7 @@ function PedidoForm() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-bold text-white text-sm">{kit.name}</p>
-                              {sel && <span className="text-xs text-green-400 font-medium">✓ Selecionado</span>}
+                              {sel && <span className="text-xs text-green-400 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado</span>}
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">{kit.description}</p>
                             <p className="text-xs text-gray-500 mt-1">{kit.minGuests}–{kit.maxGuests} convidados</p>
@@ -483,7 +484,7 @@ function PedidoForm() {
                       </div>
                     </div>
                     {sel && (
-                      <p className="text-xs text-green-400 mt-2 font-medium">✓ Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours).toFixed(2)}</p>
+                      <p className="text-xs text-green-400 mt-2 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours).toFixed(2)}</p>
                     )}
                   </div>
                 )
@@ -564,7 +565,7 @@ function PedidoForm() {
           ) : (
             <button onClick={handleConfirm} disabled={submitting}
               className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold transition-all hover:shadow-lg hover:shadow-orange-500/20">
-              {submitting ? 'Criando pedido...' : '🔥 Confirmar Churrasco'}
+              {submitting ? 'Criando pedido...' : (<span className="inline-flex items-center gap-2"><FlameIcon size={18} /> Confirmar Churrasco</span>)}
             </button>
           )}
         </div>

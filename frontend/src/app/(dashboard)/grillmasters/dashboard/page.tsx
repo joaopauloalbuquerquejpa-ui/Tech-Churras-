@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
+import { HandshakeIcon } from '@/components/icons/Icons'
 
 
 function getToken() {
@@ -1438,7 +1439,7 @@ export default function GrillmasterDashboardPage() {
           ) : modulesComplete ? (
             /* Onboarding concluído, aguardando entrevista */
             <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-6 text-center">
-              <p className="text-3xl mb-2">🤝</p>
+              <div className="flex justify-center mb-2"><HandshakeIcon size={32} className="text-blue-300" /></div>
               <h2 className="font-bold text-blue-300 mb-1">Onboarding concluído!</h2>
               <p className="text-sm text-gray-400 max-w-md mx-auto">
                 Você já leu os 4 módulos e entende como a Tech Churras trabalha. O próximo passo é uma conversa pessoal com o Jota — ele vai entender onde você já trabalhou e sua especialidade antes de conceder a Chancela Tech Churras. Aguarde o contato.

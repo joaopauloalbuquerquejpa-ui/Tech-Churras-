@@ -2,6 +2,7 @@
 import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { LockIcon } from '@/components/icons/Icons'
 
 
 function getToken() {
@@ -423,9 +424,9 @@ export default function AdminPage() {
           )}
           <a
             href="/admin/seguranca"
-            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg transition-colors"
+            className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg transition-colors inline-flex items-center gap-1.5"
           >
-            🔒 Segurança
+            <LockIcon size={12} /> Segurança
           </a>
           <button
             onClick={() => fetchAll(true)}

@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import { FlameIcon, MeatIcon, ChefIcon, CelebrationIcon, CheckIcon, TrophyIcon } from '@/components/icons/Icons'
 import PriceCalculator from '@/components/PriceCalculator'
 import GarantiaSelo from '@/components/GarantiaSelo'
 import HomeMobileMenu from '@/components/HomeMobileMenu'
@@ -76,7 +77,7 @@ async function getTestimonials(): Promise<Testimonial[]> {
 
 const PERSONAS = [
   {
-    icon: '🎉',
+    icon: CelebrationIcon,
     badge: 'Para você',
     badgeColor: 'text-orange-400',
     titulo: 'Churrasco completo, sem stress',
@@ -91,7 +92,7 @@ const PERSONAS = [
     cor: 'border-orange-500/30 bg-orange-500/5',
   },
   {
-    icon: '👨‍🍳',
+    icon: ChefIcon,
     badge: 'Para Grillmasters',
     badgeColor: 'text-yellow-400',
     titulo: 'Mais pedidos. Mais renda.',
@@ -106,7 +107,7 @@ const PERSONAS = [
     cor: 'border-yellow-500/20 bg-yellow-500/5',
   },
   {
-    icon: '🥩',
+    icon: MeatIcon,
     badge: 'Para açougues',
     badgeColor: 'text-red-400',
     titulo: 'Mais receita. Marketing orgânico. Zero logística.',
@@ -125,17 +126,17 @@ const PERSONAS = [
 
 const HOW_IT_WORKS = [
   {
-    step: '1', icon: '👨‍🍳',
+    step: '1', icon: ChefIcon,
     title: 'Escolha o Grillmaster',
     desc: 'Busque pelos Grillmasters chancelados na sua cidade. Leia avaliações, veja o portfólio, compare preços e escolha o estilo certo para o seu evento.',
   },
   {
-    step: '2', icon: '🥩',
+    step: '2', icon: MeatIcon,
     title: 'Monte o kit com açougue parceiro',
     desc: 'A IA sugere os cortes e quantidades certas para o número de convidados — incluindo opções vegetarianas e veganas. Os cortes são separados e o Grillmaster retira no dia.',
   },
   {
-    step: '3', icon: '🔥',
+    step: '3', icon: FlameIcon,
     title: 'Curta. Acompanhe ao vivo.',
     desc: 'No dia do evento, o Grillmaster aparece no mapa em tempo real. Você e seus convidados acompanham tudo pelo app. Só relaxar e curtir.',
   },
@@ -224,7 +225,7 @@ export default async function HomePage() {
           <Link href="/grillmasters" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Churrasqueiros</Link>
           <Link href="/boutiques" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Açougues</Link>
           <Link href="/kit-perfeito" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">IA ✨</Link>
-          <Link href="/churras-club" className="text-sm text-orange-400 hover:text-orange-300 transition-colors hidden sm:block font-semibold">🏆 Club</Link>
+          <Link href="/churras-club" className="text-sm text-orange-400 hover:text-orange-300 transition-colors hidden sm:inline-flex items-center gap-1 font-semibold"><TrophyIcon size={14} /> Club</Link>
           <Link href="/login" className="text-sm bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg transition-colors">Entrar</Link>
           <Link href="/register" className="text-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded-lg font-semibold transition-colors hidden sm:inline-block">Cadastrar</Link>
           <HomeMobileMenu />
@@ -254,8 +255,8 @@ export default async function HomePage() {
             Contratar Grillmaster
           </Link>
           <Link href="/boutiques"
-            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors border border-gray-700">
-            🥩 Ver açougues parceiros
+            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors border border-gray-700 inline-flex items-center gap-2">
+            <MeatIcon size={18} /> Ver açougues parceiros
           </Link>
           <Link href="/kit-perfeito"
             className="text-orange-400 hover:text-orange-300 font-semibold px-4 py-4 text-base transition-colors">
@@ -283,13 +284,13 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {PERSONAS.map(p => (
             <div key={p.titulo} className={`border ${p.cor} rounded-2xl p-7 flex flex-col`}>
-              <div className="text-4xl mb-4">{p.icon}</div>
+              <div className="mb-4"><p.icon size={34} className="text-orange-400" /></div>
               <span className={`text-xs font-bold uppercase tracking-widest mb-2 ${p.badgeColor}`}>{p.badge}</span>
               <h3 className="font-black text-white text-xl mb-4">{p.titulo}</h3>
               <ul className="space-y-2 flex-1 mb-6">
                 {p.items.map(item => (
                   <li key={item} className="flex items-start gap-2 text-gray-400 text-sm">
-                    <span className="text-orange-500 mt-0.5 shrink-0">✓</span>
+                    <CheckIcon size={15} className="text-orange-500 mt-0.5 shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -319,7 +320,7 @@ export default async function HomePage() {
             ))}
           </div>
           <p className="text-center text-xs text-gray-600 mt-8">
-            Fundada por{' '}<span className="text-gray-400 font-semibold">Jota Albuquerque</span>{' '}— BBQ Master reconhecido pelo Governo de Zanzibar · 1.800+ eventos em 3 continentes
+            Fundada por{' '}<span className="text-gray-400 font-semibold">Jota Albuquerque</span>{' '}— 13 anos de Jota BBQ Eventos servindo clientela triple AAA em São Paulo e Rio de Janeiro
           </p>
         </div>
       </section>
@@ -331,8 +332,8 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {HOW_IT_WORKS.map(s => (
             <div key={s.step} className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-3xl mx-auto mb-4">
-                {s.icon}
+              <div className="w-16 h-16 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mx-auto mb-4">
+                <s.icon size={30} className="text-orange-400" />
               </div>
               <div className="inline-flex items-center justify-center w-6 h-6 bg-orange-500 text-white text-xs font-black rounded-full mb-3">
                 {s.step}
@@ -376,7 +377,7 @@ export default async function HomePage() {
         <section className="max-w-6xl mx-auto px-4 pb-20">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-1">👨‍🍳 Chancelados</p>
+              <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-1 inline-flex items-center gap-1.5"><ChefIcon size={14} /> Chancelados</p>
               <h2 className="font-display text-3xl font-black">Grillmasters disponíveis</h2>
             </div>
             <Link href="/grillmasters" className="text-sm text-orange-400 hover:text-orange-300 font-semibold transition-colors">
@@ -390,10 +391,10 @@ export default async function HomePage() {
                 <div className="h-44 bg-gray-800 relative overflow-hidden">
                   {gm.photoUrl
                     ? <img src={gm.photoUrl} alt={gm.user.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    : <div className="w-full h-full flex items-center justify-center text-6xl">🔥</div>
+                    : <div className="w-full h-full flex items-center justify-center text-orange-500/40"><FlameIcon size={56} /></div>
                   }
                   {gm.certifiedAt && (
-                    <div className="absolute top-3 right-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full">✓ CERTIFICADO</div>
+                    <div className="absolute top-3 right-3 bg-yellow-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1"><CheckIcon size={10} /> CERTIFICADO</div>
                   )}
                 </div>
                 <div className="p-4">
@@ -419,7 +420,7 @@ export default async function HomePage() {
         <section className="max-w-6xl mx-auto px-4 pb-20">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <p className="text-sm text-red-400 font-semibold uppercase tracking-wide mb-1">🥩 Validados</p>
+              <p className="text-sm text-red-400 font-semibold uppercase tracking-wide mb-1 inline-flex items-center gap-1.5"><MeatIcon size={14} /> Validados</p>
               <h2 className="font-display text-3xl font-black">Açougues parceiros</h2>
             </div>
             <Link href="/boutiques" className="text-sm text-orange-400 hover:text-orange-300 font-semibold transition-colors">
@@ -433,9 +434,9 @@ export default async function HomePage() {
                 <div className="h-44 bg-gray-800 relative overflow-hidden">
                   {b.photoUrl
                     ? <img src={b.photoUrl} alt={b.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    : <div className="w-full h-full flex items-center justify-center text-6xl">🥩</div>
+                    : <div className="w-full h-full flex items-center justify-center text-red-500/40"><MeatIcon size={56} /></div>
                   }
-                  <div className="absolute top-3 right-3 bg-green-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full">✓ VALIDADO</div>
+                  <div className="absolute top-3 right-3 bg-green-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1"><CheckIcon size={10} /> VALIDADO</div>
                 </div>
                 <div className="p-4">
                   <h3 className="font-bold text-white mb-1">{b.name}</h3>
@@ -458,7 +459,7 @@ export default async function HomePage() {
       {/* Churras Club teaser */}
       <section className="border-y border-gray-800 py-12">
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <h2 className="font-display text-2xl font-black mb-2">🏆 Churras Club</h2>
+          <h2 className="font-display text-2xl font-black mb-2 inline-flex items-center gap-2"><TrophyIcon size={22} /> Churras Club</h2>
           <p className="text-gray-400 text-sm mb-5">
             Faz churrasco todo mês? Assine por R$ 49/mês e economize 5% em cada pedido, acesso prioritário aos melhores Grillmasters e suporte VIP.
           </p>
