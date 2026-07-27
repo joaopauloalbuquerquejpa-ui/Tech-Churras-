@@ -242,6 +242,17 @@ export function StoreIcon({ className, size = 20 }: IconProps) {
   )
 }
 
+export function CarIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M4 16l1.5-5.5A2 2 0 017.4 9h9.2a2 2 0 011.9 1.5L20 16" />
+      <path d="M3 16h18v3a1 1 0 01-1 1h-1.5a1 1 0 01-1-1v-1h-11v1a1 1 0 01-1 1H4a1 1 0 01-1-1z" />
+      <circle cx="7.5" cy="16" r="1.3" />
+      <circle cx="16.5" cy="16" r="1.3" />
+    </svg>
+  )
+}
+
 export function GiftIcon({ className, size = 20 }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>

@@ -2,7 +2,7 @@
 import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { LockIcon } from '@/components/icons/Icons'
+import { LockIcon, ChartIcon, PinIcon, FlameIcon, MeatIcon, CheckIcon, CameraIcon } from '@/components/icons/Icons'
 
 
 function getToken() {
@@ -447,7 +447,7 @@ export default function AdminPage() {
           { key: 'contracts', label: 'Contratos (' + contracts.length + ')' },
           { key: 'equipe', label: 'Minha Equipe' },
           { key: 'leads', label: leads.length > 0 ? 'Leads (' + leads.length + ')' : 'Leads' },
-          { key: 'metricas', label: '📊 Métricas IA' },
+          { key: 'metricas', label: 'Métricas IA' },
         ] as { key: Tab; label: string }[]).map(t => (
           <button
             key={t.key}
@@ -608,7 +608,7 @@ export default function AdminPage() {
                     {/* Evento */}
                     <div>
                       <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Evento</p>
-                      <p className="text-sm text-white">📍 {order.eventAddress}</p>
+                      <p className="text-sm text-white inline-flex items-center gap-1.5"><PinIcon size={13} /> {order.eventAddress}</p>
                       <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-400">
                         <span>📅 {new Date(order.eventDate).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
                         <span>⏱ {order.eventHours}h</span>
@@ -622,10 +622,10 @@ export default function AdminPage() {
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Parceiros</p>
                         {order.grillmaster?.user && (
-                          <p className="text-xs text-gray-300">🔥 Churrasqueiro: {order.grillmaster.user.name}{order.grillmaster.user.phone ? ` · ${order.grillmaster.user.phone}` : ''}</p>
+                          <p className="text-xs text-gray-300 inline-flex items-center gap-1.5"><FlameIcon size={11} /> Churrasqueiro: {order.grillmaster.user.name}{order.grillmaster.user.phone ? ` · ${order.grillmaster.user.phone}` : ''}</p>
                         )}
                         {order.boutique && (
-                          <p className="text-xs text-gray-300">🥩 Açougue: {order.boutique.name}</p>
+                          <p className="text-xs text-gray-300 inline-flex items-center gap-1.5"><MeatIcon size={11} /> Açougue: {order.boutique.name}</p>
                         )}
                       </div>
                     )}
@@ -764,7 +764,7 @@ export default function AdminPage() {
                       </div>
                       <div className="flex items-center gap-2 ml-auto">
                         {g.trainingModules?.length === 4 && (
-                          <span className="text-xs text-green-400 font-medium">Onboarding ✓</span>
+                          <span className="text-xs text-green-400 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Onboarding</span>
                         )}
                         <button
                           onClick={() => markUniformSent(g.id)}
@@ -775,7 +775,7 @@ export default function AdminPage() {
                               : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
                           }`}
                         >
-                          {g.uniformSent ? '✓ Uniforme enviado' : 'Marcar uniforme enviado'}
+                          {g.uniformSent ? (<span className="inline-flex items-center gap-1"><CheckIcon size={11} /> Uniforme enviado</span>) : 'Marcar uniforme enviado'}
                         </button>
                       </div>
                     </div>
@@ -800,7 +800,7 @@ export default function AdminPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold">{g.user.name}</p>
                       {g.trainingModules?.length === 4 ? (
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-medium">Onboarding ✓</span>
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1"><CheckIcon size={10} /> Onboarding</span>
                       ) : (
                         <span className="text-xs bg-gray-700 text-gray-400 px-2 py-0.5 rounded-full">Onboarding {g.trainingModules?.length ?? 0}/4</span>
                       )}
@@ -813,7 +813,7 @@ export default function AdminPage() {
                     disabled={certifyingId === g.id}
                     className="shrink-0 bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                   >
-                    {certifyingId === g.id ? 'Certificando...' : '🏅 Certificar (pós-entrevista)'}
+                    {certifyingId === g.id ? 'Certificando...' : 'Certificar (pós-entrevista)'}
                   </button>
                 </div>
               ))}
@@ -858,8 +858,8 @@ export default function AdminPage() {
                   {b.description && <p className="text-sm text-gray-300 mb-2">{b.description}</p>}
 
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-400 mb-2">
-                    <span>📍 {b.address ? `${b.address}, ` : ''}{b.city}, {b.state}</span>
-                    {b.instagram && <span className="text-pink-400">📸 @{b.instagram}</span>}
+                    <span className="inline-flex items-center gap-1"><PinIcon size={11} /> {b.address ? `${b.address}, ` : ''}{b.city}, {b.state}</span>
+                    {b.instagram && <span className="text-pink-400 inline-flex items-center gap-1"><CameraIcon size={11} /> @{b.instagram}</span>}
                     {b.openingHours && <span>🕐 {b.openingHours}</span>}
                     {b.deliveryOrPickup && <span>🚚 {b.deliveryOrPickup}</span>}
                     {b.pixKey && <span>💸 Pix: {b.pixKey}</span>}

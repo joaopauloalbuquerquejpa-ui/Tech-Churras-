@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
+import { CelebrationIcon, ClipboardIcon, CardIcon, FlameIcon, CheckIcon, CarIcon } from '@/components/icons/Icons'
+import type { ComponentType } from 'react'
 import { Events } from '@/lib/analytics'
 import { OrderInviteCard } from '@/components/OrderInviteCard'
 
@@ -450,8 +452,8 @@ export default function OrderDetailPage() {
       {paymentResult === 'success' && order && (
         <div className="mb-6 bg-green-900/30 border border-green-500/40 rounded-2xl p-5">
           <div className="text-center mb-4">
-            <p className="text-5xl mb-3 animate-pulseScale">🎉</p>
-            <h2 className="text-xl font-black text-green-300 mb-1">Churrasco reservado!</h2>
+            <div className="flex justify-center mb-3 text-orange-400 animate-pulseScale"><FlameIcon size={44} /></div>
+            <h2 className="text-xl font-black text-green-300 mb-1">Fogo aceso — seu churrasco já começou a existir!</h2>
             <p className="text-gray-400 text-sm">
               {order.grillmaster?.user?.name ?? 'O churrasqueiro'} foi notificado e confirmará em breve.
             </p>
@@ -524,12 +526,12 @@ export default function OrderDetailPage() {
 
       {/* Journey Timeline */}
       {order.status !== 'CANCELLED' && (() => {
-        const journeySteps = [
-          { label: 'Pedido feito', icon: '📋' },
-          { label: 'Pagamento confirmado', icon: '💳' },
-          { label: 'Churrasqueiro a caminho', icon: '🚗' },
-          { label: 'Churrasco em andamento', icon: '🔥' },
-          { label: 'Concluído', icon: '🎉' },
+        const journeySteps: { label: string; icon: ComponentType<{ size?: number; className?: string }> }[] = [
+          { label: 'Pedido feito', icon: ClipboardIcon },
+          { label: 'Pagamento confirmado', icon: CardIcon },
+          { label: 'Churrasqueiro a caminho', icon: CarIcon },
+          { label: 'Churrasco em andamento', icon: FlameIcon },
+          { label: 'Concluído', icon: CelebrationIcon },
         ]
         let currentStep = 0
         if (order.status === 'CONFIRMED') {
@@ -553,7 +555,7 @@ export default function OrderDetailPage() {
                         'w-8 h-8 rounded-full flex items-center justify-center text-sm shrink-0',
                         isDone ? 'bg-green-500 text-white' : isCurrent ? 'bg-orange-500 text-white ring-4 ring-orange-500/20' : 'bg-gray-800 text-gray-600',
                       ].join(' ')}>
-                        {isDone ? '✓' : step.icon}
+                        {isDone ? <CheckIcon size={14} /> : <step.icon size={14} />}
                       </div>
                       {i < journeySteps.length - 1 && (
                         <div className={['w-0.5 flex-1 min-h-[16px] my-1', isDone ? 'bg-green-500/40' : 'bg-gray-800'].join(' ')} />
@@ -582,7 +584,7 @@ export default function OrderDetailPage() {
       {!isGrillmaster && order.status === 'CONFIRMED' && order.paymentStatus !== 'PAID' && (
         <div className="bg-orange-500/10 border border-orange-500/40 rounded-2xl p-5 mb-5">
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-2xl">💳</span>
+            <CardIcon size={22} className="text-orange-400" />
             <div>
               <p className="font-bold text-white">Confirme o pagamento</p>
               <p className="text-xs text-gray-400">Seu churrasco está reservado — finalize o pagamento para garantir</p>
@@ -605,7 +607,7 @@ export default function OrderDetailPage() {
                 Aguarde...
               </>
             ) : (
-              <>💳 Pagar agora</>
+              <><CardIcon size={17} /> Pagar agora</>
             )}
           </button>
           <p className="text-center text-xs text-gray-600 mt-2">Pix, cartão de crédito ou débito via Mercado Pago</p>
