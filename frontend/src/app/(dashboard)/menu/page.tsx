@@ -136,7 +136,7 @@ export default function MenuPage() {
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse at center, rgba(249,115,22,0.16) 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse at center, rgba(194,54,22,0.16) 0%, transparent 70%)',
             zIndex: 2,
           }}
         />
@@ -151,7 +151,7 @@ export default function MenuPage() {
               bottom: p.bottom,
               width: p.size,
               height: p.size,
-              background: `radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(249,115,22,0.7) 60%, transparent 100%)`,
+              background: `radial-gradient(circle, rgba(251,191,36,0.9) 0%, rgba(194,54,22,0.7) 60%, transparent 100%)`,
               animationDelay: p.delay,
               animationDuration: p.dur,
               zIndex: 3,
@@ -252,10 +252,10 @@ export default function MenuPage() {
               extraStyle.backgroundSize = '200% 200%'
             }
             if (isHovered && k.hoverEffect === 'fire') {
-              extraStyle.boxShadow = '0 0 30px rgba(239,68,68,0.4), 0 0 60px rgba(249,115,22,0.2)'
+              extraStyle.boxShadow = '0 0 30px rgba(239,68,68,0.4), 0 0 60px rgba(194,54,22,0.2)'
             }
             if (isHovered && k.hoverEffect === 'flame') {
-              extraStyle.boxShadow = '0 0 20px rgba(249,115,22,0.3)'
+              extraStyle.boxShadow = '0 0 20px rgba(194,54,22,0.3)'
             }
             return (
               <div
@@ -334,9 +334,9 @@ export default function MenuPage() {
         {/* Kit Personalizado */}
         <div
           className="border-2 border-dashed rounded-2xl p-8 text-center transition-all hover:-translate-y-0.5 bg-orange-500/5 group"
-          style={{ borderColor: 'rgba(249,115,22,0.4)' }}
-          onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(249,115,22,0.7)')}
-          onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(249,115,22,0.4)')}
+          style={{ borderColor: 'rgba(194,54,22,0.4)' }}
+          onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(194,54,22,0.7)')}
+          onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(194,54,22,0.4)')}
         >
           <div className="text-4xl mb-3 text-orange-400 font-bold group-hover:animate-pulseScale inline-block">&#9998;</div>
           <h3 className="text-xl font-bold text-white mb-2">Monte do Seu Jeito</h3>

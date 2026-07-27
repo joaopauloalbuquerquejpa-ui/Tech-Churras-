@@ -79,7 +79,7 @@ export default function OnboardingTour({ userId, role }: Props) {
       run={run}
       continuous
       options={{
-        primaryColor: '#f97316',
+        primaryColor: '#c23616',
         backgroundColor: '#1f2937',
         textColor: '#f9fafb',
         overlayColor: 'rgba(0,0,0,0.65)',

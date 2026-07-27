@@ -53,7 +53,7 @@ function Slider({ label, value, min, max, step, onChange, format }: {
           onChange={e => onChange(Number(e.target.value))}
           className="w-full h-2 rounded-full appearance-none cursor-pointer"
           style={{
-            background: `linear-gradient(to right, #f97316 ${pct}%, #374151 ${pct}%)`,
+            background: `linear-gradient(to right, #c23616 ${pct}%, #374151 ${pct}%)`,
           }}
         />
       </div>
@@ -129,7 +129,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
   ]
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#1c1714] text-white">
 
       {/* ── NAV ──────────────────────────────────────────────────────── */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 backdrop-blur-xl bg-black/60">
@@ -157,7 +157,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
         {/* BG glow */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full"
-            style={{ background: 'radial-gradient(ellipse, rgba(249,115,22,0.12) 0%, transparent 70%)' }} />
+            style={{ background: 'radial-gradient(ellipse, rgba(194,54,22,0.12) 0%, transparent 70%)' }} />
         </div>
 
         <div className="relative max-w-5xl mx-auto">
@@ -297,7 +297,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               </div>
               {/* Glow */}
               <div className="absolute -inset-4 rounded-3xl pointer-events-none"
-                style={{ background: 'radial-gradient(ellipse at center, rgba(249,115,22,0.06) 0%, transparent 70%)' }} />
+                style={{ background: 'radial-gradient(ellipse at center, rgba(194,54,22,0.06) 0%, transparent 70%)' }} />
             </div>
           </div>
         </div>
@@ -964,7 +964,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
         <div className="max-w-3xl mx-auto text-center">
           <div className="relative">
             <div className="absolute inset-0 -mx-8 -my-4 rounded-3xl pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse at center, rgba(249,115,22,0.08) 0%, transparent 70%)' }} />
+              style={{ background: 'radial-gradient(ellipse at center, rgba(194,54,22,0.08) 0%, transparent 70%)' }} />
             <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-4">Seja parceiro</p>
             <h2 className="text-3xl sm:text-4xl font-black mb-4 leading-tight">
               Pronto para transformar seu balcão em um canal digital?

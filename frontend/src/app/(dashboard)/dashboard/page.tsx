@@ -211,7 +211,7 @@ export default function DashboardPage() {
         <div
           className="absolute inset-0"
           style={{
-            background: 'radial-gradient(ellipse at 70% 50%, rgba(249,115,22,0.25) 0%, transparent 65%), #111111',
+            background: 'radial-gradient(ellipse at 70% 50%, rgba(194,54,22,0.25) 0%, transparent 65%), #111111',
             zIndex: 0,
           }}
         />

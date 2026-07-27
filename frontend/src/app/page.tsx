@@ -237,7 +237,7 @@ export default async function HomePage() {
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
           Grillmaster + Açougue + IA + Localização ao vivo
         </div>
-        <h1 className="text-5xl md:text-7xl font-black leading-none mb-6">
+        <h1 className="font-display text-5xl md:text-7xl font-black leading-none mb-6">
           O melhor churrasco{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-400 to-orange-600">
             da sua vida
@@ -276,7 +276,7 @@ export default async function HomePage() {
       {/* Para quem é? */}
       <section className="max-w-6xl mx-auto px-4 py-20">
         <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Para quem é?</p>
-        <h2 className="text-3xl md:text-4xl font-black text-center mb-4">Uma plataforma. Três soluções.</h2>
+        <h2 className="font-display text-3xl md:text-4xl font-black text-center mb-4">Uma plataforma. Três soluções.</h2>
         <p className="text-center text-gray-500 max-w-xl mx-auto mb-12 text-base">
           Cliente, Grillmaster ou açougue — a Tech Churras tem uma solução feita para você.
         </p>
@@ -327,7 +327,7 @@ export default async function HomePage() {
       {/* How it works */}
       <section className="max-w-5xl mx-auto px-4 py-20">
         <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Como funciona</p>
-        <h2 className="text-3xl font-black text-center mb-12">Churrasco completo em 3 passos</h2>
+        <h2 className="font-display text-3xl font-black text-center mb-12">Churrasco completo em 3 passos</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {HOW_IT_WORKS.map(s => (
             <div key={s.step} className="text-center">
@@ -348,7 +348,7 @@ export default async function HomePage() {
       {testimonials.length > 0 && (
         <section className="max-w-6xl mx-auto px-4 pb-20" suppressHydrationWarning>
           <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Quem usou, aprovou</p>
-          <h2 className="text-3xl font-black text-center mb-12">O que nossos clientes dizem</h2>
+          <h2 className="font-display text-3xl font-black text-center mb-12">O que nossos clientes dizem</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {testimonials.slice(0, 6).map(t => (
               <div key={t.id} className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex flex-col gap-4">
@@ -377,7 +377,7 @@ export default async function HomePage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-1">👨‍🍳 Chancelados</p>
-              <h2 className="text-3xl font-black">Grillmasters disponíveis</h2>
+              <h2 className="font-display text-3xl font-black">Grillmasters disponíveis</h2>
             </div>
             <Link href="/grillmasters" className="text-sm text-orange-400 hover:text-orange-300 font-semibold transition-colors">
               Ver todos →
@@ -420,7 +420,7 @@ export default async function HomePage() {
           <div className="flex items-center justify-between mb-8">
             <div>
               <p className="text-sm text-red-400 font-semibold uppercase tracking-wide mb-1">🥩 Validados</p>
-              <h2 className="text-3xl font-black">Açougues parceiros</h2>
+              <h2 className="font-display text-3xl font-black">Açougues parceiros</h2>
             </div>
             <Link href="/boutiques" className="text-sm text-orange-400 hover:text-orange-300 font-semibold transition-colors">
               Ver todos →
@@ -458,7 +458,7 @@ export default async function HomePage() {
       {/* Churras Club teaser */}
       <section className="border-y border-gray-800 py-12">
         <div className="max-w-2xl mx-auto px-4 text-center">
-          <h2 className="text-2xl font-black mb-2">🏆 Churras Club</h2>
+          <h2 className="font-display text-2xl font-black mb-2">🏆 Churras Club</h2>
           <p className="text-gray-400 text-sm mb-5">
             Faz churrasco todo mês? Assine por R$ 49/mês e economize 5% em cada pedido, acesso prioritário aos melhores Grillmasters e suporte VIP.
           </p>
@@ -479,7 +479,7 @@ export default async function HomePage() {
             </div>
             <div className="p-8 md:p-10 flex flex-col justify-center">
               <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Quem está por trás</p>
-              <h2 className="text-3xl font-black text-white mb-2">Jota Albuquerque</h2>
+              <h2 className="font-display text-3xl font-black text-white mb-2">Jota Albuquerque</h2>
               <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13+ anos · 1.800+ eventos</p>
               <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
               <p className="text-gray-300 text-base leading-relaxed mb-8">

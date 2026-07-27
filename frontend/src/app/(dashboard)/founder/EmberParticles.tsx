@@ -62,7 +62,7 @@ export default function EmberParticles({ className = '' }: { className?: string 
       gl={{ alpha: true, antialias: false }}
     >
       {/* Camada 1: brasas pequenas e rápidas — laranjas */}
-      <EmberPoints count={350} size={0.12} opacity={0.9} speed={0.018} color="#f97316" spread={16} />
+      <EmberPoints count={350} size={0.12} opacity={0.9} speed={0.018} color="#c23616" spread={16} />
       {/* Camada 2: brasas maiores e lentas — amarelo-âmbar, dão profundidade */}
       <EmberPoints count={100} size={0.22} opacity={0.6} speed={0.009} color="#fbbf24" spread={14} />
       {/* Camada 3: faíscas vermelhas no fundo */}

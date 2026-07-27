@@ -75,20 +75,20 @@ export default function QRCodeImpressaoPage() {
             id="placa-qr"
             className="
               relative overflow-hidden rounded-3xl
-              bg-[#0a0a0a] text-white
+              bg-[#1c1714] text-white
               border-4 border-orange-500
               p-8 flex flex-col items-center gap-6
               print:rounded-none print:border-0 print:shadow-none
             "
             style={{
-              background: 'linear-gradient(145deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)',
-              boxShadow: '0 0 60px rgba(249,115,22,0.25), inset 0 0 60px rgba(249,115,22,0.04)',
+              background: 'linear-gradient(145deg, #1c1714 0%, #1a0a00 50%, #1c1714 100%)',
+              boxShadow: '0 0 60px rgba(194,54,22,0.25), inset 0 0 60px rgba(194,54,22,0.04)',
             }}
           >
             {/* Glow decoration */}
             <div
               className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[200px] pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse, rgba(249,115,22,0.18) 0%, transparent 70%)' }}
+              style={{ background: 'radial-gradient(ellipse, rgba(194,54,22,0.18) 0%, transparent 70%)' }}
             />
 
             {/* Logo */}
@@ -109,7 +109,7 @@ export default function QRCodeImpressaoPage() {
               <p
                 className="text-4xl font-black leading-tight"
                 style={{
-                  background: 'linear-gradient(90deg, #f97316, #fbbf24)',
+                  background: 'linear-gradient(90deg, #c23616, #fbbf24)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}
@@ -124,13 +124,13 @@ export default function QRCodeImpressaoPage() {
             {/* QR code */}
             <div
               className="p-4 rounded-2xl"
-              style={{ background: 'white', boxShadow: '0 0 30px rgba(249,115,22,0.3)' }}
+              style={{ background: 'white', boxShadow: '0 0 30px rgba(194,54,22,0.3)' }}
             >
               <QRCodeSVG
                 value={referralUrl}
                 size={200}
                 level="H"
-                fgColor="#0a0a0a"
+                fgColor="#1c1714"
                 bgColor="#ffffff"
               />
             </div>

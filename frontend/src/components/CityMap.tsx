@@ -16,7 +16,7 @@ export interface CityMapItem {
 }
 
 const pinIcon = (emoji: string) => L.divIcon({
-  html: `<div style="width:34px;height:34px;background:#f97316;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center">
+  html: `<div style="width:34px;height:34px;background:#c23616;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center">
     <span style="transform:rotate(45deg);font-size:14px;line-height:1">${emoji}</span>
   </div>`,
   iconSize: [34, 34],

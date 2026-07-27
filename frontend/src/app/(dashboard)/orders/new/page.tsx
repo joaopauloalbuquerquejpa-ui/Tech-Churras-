@@ -254,7 +254,7 @@ function NewOrderForm() {
       {step === 0 && (
         <div className="space-y-5">
           <div>
-            <h1 className="text-2xl font-black text-white">Quando é o churrasco?</h1>
+            <h1 className="font-display text-2xl font-black text-white">Quando é o churrasco?</h1>
             <p className="text-gray-500 text-sm mt-1">Data, local e duração do evento</p>
           </div>
 
@@ -304,7 +304,7 @@ function NewOrderForm() {
       {step === 1 && (
         <div className="space-y-5">
           <div>
-            <h1 className="text-2xl font-black text-white">Quantas pessoas?</h1>
+            <h1 className="font-display text-2xl font-black text-white">Quantas pessoas?</h1>
             <p className="text-gray-500 text-sm mt-1">A IA calcula os insumos ideais para o seu churrasco</p>
           </div>
 
@@ -340,7 +340,7 @@ function NewOrderForm() {
       {step === 2 && (
         <div className="space-y-5">
           <div>
-            <h1 className="text-2xl font-black text-white">Escolha o churrasqueiro</h1>
+            <h1 className="font-display text-2xl font-black text-white">Escolha o churrasqueiro</h1>
             <p className="text-gray-500 text-sm mt-1">
               {form.eventDate ? new Date(form.eventDate + 'T12:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }) : ''}
               {' · '}{insumos.totalPessoas} pessoas · {form.eventHours}h
@@ -478,7 +478,7 @@ function NewOrderForm() {
       {step === 3 && (
         <div className="space-y-5">
           <div>
-            <h1 className="text-2xl font-black text-white">Açougue & kits</h1>
+            <h1 className="font-display text-2xl font-black text-white">Açougue & kits</h1>
             <p className="text-gray-500 text-sm mt-1">O churrasqueiro busca tudo no açougue no dia do evento</p>
           </div>
 

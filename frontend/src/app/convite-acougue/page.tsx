@@ -69,7 +69,7 @@ function ConviteContent() {
   const maxLiquido = ESCALA_GANHOS[ESCALA_GANHOS.length - 1].liquidoFundador
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#1c1714] text-white">
 
       {/* Nav */}
       <nav className="border-b border-white/5 px-4 py-4 flex items-center justify-between max-w-3xl mx-auto">

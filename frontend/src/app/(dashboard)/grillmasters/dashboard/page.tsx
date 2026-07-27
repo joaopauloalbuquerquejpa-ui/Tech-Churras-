@@ -438,7 +438,7 @@ export default function GrillmasterDashboardPage() {
           <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-4xl">🔥</span>
           </div>
-          <h1 className="text-2xl font-bold mb-2">Bem-vindo à Tech Churras!</h1>
+          <h1 className="font-display text-2xl font-bold mb-2">Bem-vindo à Tech Churras!</h1>
           <p className="text-gray-400 text-sm">Você está a poucos passos de começar a receber pedidos de churrasco.</p>
         </div>
 
@@ -484,7 +484,7 @@ export default function GrillmasterDashboardPage() {
           <div className="w-20 h-20 bg-yellow-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-4xl">⏳</span>
           </div>
-          <h1 className="text-2xl font-bold mb-2">Perfil em análise</h1>
+          <h1 className="font-display text-2xl font-bold mb-2">Perfil em análise</h1>
           <p className="text-gray-400 text-sm">Recebemos seu cadastro! Nossa equipe está revisando suas informações.</p>
         </div>
 
@@ -573,7 +573,7 @@ export default function GrillmasterDashboardPage() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <h1 className="text-2xl font-bold">Meu Dashboard</h1>
+            <h1 className="font-display text-2xl font-bold">Meu Dashboard</h1>
             {profile?.isChancelado && (
               <span className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-bold px-2 py-0.5 rounded-full">
                 CHANCELADO TC
@@ -1389,30 +1389,49 @@ export default function GrillmasterDashboardPage() {
                   Imprimir certificado
                 </button>
               </div>
-              <div id="certificado" className="bg-white text-gray-900 rounded-2xl p-10 border-4 border-orange-400 text-center">
-                <div className="mb-6">
-                  <p className="text-orange-600 font-black text-2xl tracking-wide">🔥 TECH CHURRAS</p>
-                  <p className="text-gray-500 text-xs mt-1 tracking-widest uppercase">Plataforma de Churrasqueiros Premium</p>
+              <div id="certificado" className="bg-[#EDE6DA] text-[#1C1714] rounded-[4px_28px_4px_28px] p-10 border-[3px] border-[#B8862E]/60 text-center">
+                <div className="mb-7">
+                  <p className="font-display font-black text-xl tracking-wide text-[#1C1714]">TECH CHURRAS</p>
+                  <p className="text-[#6B4226] text-xs mt-1 tracking-widest uppercase font-mono">Plataforma de Churrasqueiros Premium</p>
                 </div>
-                <p className="text-gray-700 text-sm mb-3">Certificamos que</p>
-                <p className="text-3xl font-black text-gray-900 mb-3">{user?.name ?? 'Churrasqueiro'}</p>
-                <p className="text-gray-700 text-sm mb-6 max-w-sm mx-auto">
+
+                {/* Selo de ferro/latão com monograma */}
+                <div className="flex justify-center mb-7">
+                  <div
+                    className="w-32 h-32 rounded-full flex items-center justify-center relative"
+                    style={{
+                      background: 'conic-gradient(from 180deg, #B8862E, #8f6a1f, #B8862E, #d4a340, #B8862E)',
+                      boxShadow: '0 0 0 1px rgba(184,134,46,0.5), 0 8px 20px rgba(28,23,20,0.25), inset 0 2px 6px rgba(0,0,0,0.35)',
+                    }}
+                  >
+                    <div className="absolute inset-[10px] rounded-full border border-dashed border-[#1C1714]/30" />
+                    <div className="text-center">
+                      <p className="font-display font-black text-3xl leading-none text-[#1C1714]">JA</p>
+                      <p className="font-mono text-[8px] tracking-widest uppercase text-[#3d2c0f] mt-1">Tech Churras</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p className="text-[#6B4226] text-sm mb-2">Certificamos que</p>
+                <p className="font-display text-3xl font-black text-[#1C1714] mb-1">{user?.name ?? 'Churrasqueiro'}</p>
+                <p className="font-mono text-xs text-[#B8862E] mb-5">Chancela Nº {(profile!.certificationCode ?? '').replace('TC-', '').slice(0, 6).toUpperCase()}</p>
+                <p className="text-[#4a3f37] text-sm mb-6 max-w-sm mx-auto leading-relaxed">
                   recebeu a <strong>Chancela Tech Churras</strong>, concedida pessoalmente pelo fundador após onboarding e entrevista, atestando domínio dos padrões de qualidade, atendimento ao cliente e uso da plataforma.
                 </p>
-                <div className="flex items-center justify-center gap-8 mb-6 text-sm text-gray-600">
+                <div className="flex items-center justify-center gap-8 mb-6 text-sm">
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Data de conclusão</p>
-                    <p className="font-bold">{new Date(profile!.certifiedAt!).toLocaleDateString('pt-BR')}</p>
+                    <p className="text-xs text-[#6B4226] mb-0.5 font-mono uppercase tracking-wide">Data de conclusão</p>
+                    <p className="font-bold text-[#1C1714]">{new Date(profile!.certifiedAt!).toLocaleDateString('pt-BR')}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400 mb-0.5">Código de certificação</p>
-                    <p className="font-mono font-bold text-orange-600">{profile!.certificationCode}</p>
+                    <p className="text-xs text-[#6B4226] mb-0.5 font-mono uppercase tracking-wide">Código de certificação</p>
+                    <p className="font-mono font-bold text-[#9e2d12]">{profile!.certificationCode}</p>
                   </div>
                 </div>
-                <div className="border-t border-gray-200 pt-5">
-                  <p className="text-xs text-gray-400 mb-1">Assinado por</p>
-                  <p className="font-bold text-gray-800">Jota Albuquerque</p>
-                  <p className="text-xs text-gray-500">Fundador — Tech Churras</p>
+                <div className="border-t border-[#B8862E]/30 pt-5">
+                  <p className="text-xs text-[#6B4226] mb-1 font-mono uppercase tracking-wide">Assinado por</p>
+                  <p className="font-display font-bold italic text-lg text-[#1C1714]">Jota Albuquerque</p>
+                  <p className="text-xs text-[#6B4226]">Fundador — Tech Churras</p>
                 </div>
               </div>
             </div>

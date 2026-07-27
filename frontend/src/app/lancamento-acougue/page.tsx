@@ -28,7 +28,7 @@ function Num({ n, label }: { n: number; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-black text-white tabular-nums"
-        style={{ background: 'linear-gradient(135deg,#1c0800,#2d1200)', border: '1px solid rgba(249,115,22,0.35)' }}>
+        style={{ background: 'linear-gradient(135deg,#1c0800,#2d1200)', border: '1px solid rgba(194,54,22,0.35)' }}>
         {String(n).padStart(2, '0')}
       </div>
       <p className="text-[10px] text-gray-600 uppercase tracking-widest">{label}</p>
@@ -97,7 +97,7 @@ export default function LancamentoAcouguePage() {
         <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] mb-5">
           Transforme seu açougue em{' '}
           <br className="hidden sm:block" />
-          <span style={{ background: 'linear-gradient(90deg,#f97316,#fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <span style={{ background: 'linear-gradient(90deg,#c23616,#fbbf24)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Hub de Eventos
           </span>
         </h1>
@@ -138,7 +138,7 @@ export default function LancamentoAcouguePage() {
           </div>
           <button type="submit" disabled={loading}
             className="w-full font-black text-white text-base py-4 rounded-2xl transition-all active:scale-95 disabled:opacity-70"
-            style={{ background: 'linear-gradient(90deg,#f97316,#ea580c)', boxShadow: '0 0 30px rgba(249,115,22,0.4)' }}>
+            style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 30px rgba(194,54,22,0.4)' }}>
             {loading ? 'Redirecionando...' : '🔥 Entrar na lista de lançamento →'}
           </button>
           <p className="text-[11px] text-gray-600 text-center mt-3">Sem spam. Você recebe só o link de cadastro.</p>
@@ -180,7 +180,7 @@ export default function LancamentoAcouguePage() {
             ].map(s => (
               <div key={s.n} className="flex gap-4">
                 <div className="shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-xs font-black text-orange-400"
-                  style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.2)' }}>
+                  style={{ background: 'rgba(194,54,22,0.1)', border: '1px solid rgba(194,54,22,0.2)' }}>
                   {s.n}
                 </div>
                 <div>
@@ -284,7 +284,7 @@ export default function LancamentoAcouguePage() {
       <section className="border-t border-gray-900 bg-gray-950 py-16">
         <div className="max-w-3xl mx-auto px-5 text-center">
           <div className="rounded-3xl border border-orange-500/30 p-10"
-            style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.08), #060606)' }}>
+            style={{ background: 'linear-gradient(135deg, rgba(194,54,22,0.08), #060606)' }}>
             <p className="text-7xl font-black text-orange-400 leading-none mb-1">60</p>
             <p className="text-2xl font-bold text-white mb-1">dias 100% gratuitos</p>
             <p className="text-gray-500 text-sm mb-6">Depois do lançamento</p>
@@ -308,7 +308,7 @@ export default function LancamentoAcouguePage() {
             <Link href="/register?role=BOUTIQUE&utm_source=lancamento_freemium"
               onClick={() => Events.boutiqueFounderClick('freemium')}
               className="inline-block font-black text-white text-lg px-10 py-5 rounded-2xl transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(90deg,#f97316,#ea580c)', boxShadow: '0 0 40px rgba(249,115,22,0.4)' }}>
+              style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 40px rgba(194,54,22,0.4)' }}>
               Cadastrar meu açougue agora →
             </Link>
             <p className="text-xs text-gray-600 mt-3">São Paulo Capital · Início 06/07/2026 · Expansão nacional em seguida</p>
@@ -350,7 +350,7 @@ export default function LancamentoAcouguePage() {
         <Link href="/register?role=BOUTIQUE&utm_source=lancamento_final_cta"
           onClick={() => Events.boutiqueFounderClick('final_cta')}
           className="inline-block font-black text-white text-xl px-12 py-6 rounded-3xl transition-all hover:scale-105 active:scale-95"
-          style={{ background: 'linear-gradient(90deg,#f97316,#ea580c)', boxShadow: '0 0 60px rgba(249,115,22,0.4)' }}>
+          style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 60px rgba(194,54,22,0.4)' }}>
           🔥 Quero ser açougue fundador →
         </Link>
         <p className="text-xs text-gray-600 mt-4">60 dias grátis · Sem cartão · Cancele quando quiser</p>

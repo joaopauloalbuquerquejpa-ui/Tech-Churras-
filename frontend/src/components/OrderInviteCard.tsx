@@ -46,21 +46,21 @@ function CardContent({ data }: { data: InviteCardProps }) {
         position: 'absolute', top: -60, right: -60,
         width: 240, height: 240,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(194,54,22,0.15) 0%, transparent 70%)',
       }} />
       <div style={{
         position: 'absolute', bottom: -40, left: -40,
         width: 180, height: 180,
         borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(249,115,22,0.10) 0%, transparent 70%)',
+        background: 'radial-gradient(circle, rgba(194,54,22,0.10) 0%, transparent 70%)',
       }} />
 
       {/* Barra laranja topo */}
-      <div style={{ height: 4, background: 'linear-gradient(90deg, #f97316, #fb923c)', borderRadius: 2, marginBottom: 32 }} />
+      <div style={{ height: 4, background: 'linear-gradient(90deg, #c23616, #fb923c)', borderRadius: 2, marginBottom: 32 }} />
 
       {/* Header */}
       <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 13, color: '#f97316', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
+        <div style={{ fontSize: 13, color: '#c23616', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>
           Convite
         </div>
         <div style={{ fontSize: 36, fontWeight: 900, lineHeight: 1.1, marginBottom: 6 }}>
@@ -68,7 +68,7 @@ function CardContent({ data }: { data: InviteCardProps }) {
         </div>
         <div style={{
           fontSize: 48, fontWeight: 900, lineHeight: 1,
-          background: 'linear-gradient(90deg, #f97316, #fb923c)',
+          background: 'linear-gradient(90deg, #c23616, #fb923c)',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
         }}>
@@ -77,7 +77,7 @@ function CardContent({ data }: { data: InviteCardProps }) {
       </div>
 
       {/* Divider */}
-      <div style={{ height: 1, background: 'rgba(249,115,22,0.25)', marginBottom: 24 }} />
+      <div style={{ height: 1, background: 'rgba(194,54,22,0.25)', marginBottom: 24 }} />
 
       {/* Info grid */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 24 }}>
@@ -98,7 +98,7 @@ function CardContent({ data }: { data: InviteCardProps }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
                 width: 40, height: 40, borderRadius: '50%',
-                background: 'linear-gradient(135deg, #f97316, #fb923c)',
+                background: 'linear-gradient(135deg, #c23616, #fb923c)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 18, flexShrink: 0,
               }}>
@@ -129,8 +129,8 @@ function CardContent({ data }: { data: InviteCardProps }) {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
               {topItems.map((item, i) => (
                 <div key={i} style={{
-                  background: 'rgba(249,115,22,0.12)',
-                  border: '1px solid rgba(249,115,22,0.25)',
+                  background: 'rgba(194,54,22,0.12)',
+                  border: '1px solid rgba(194,54,22,0.25)',
                   borderRadius: 20,
                   padding: '5px 12px',
                   fontSize: 13,
@@ -146,16 +146,16 @@ function CardContent({ data }: { data: InviteCardProps }) {
       )}
 
       {/* Footer */}
-      <div style={{ height: 1, background: 'rgba(249,115,22,0.2)', marginBottom: 16 }} />
+      <div style={{ height: 1, background: 'rgba(194,54,22,0.2)', marginBottom: 16 }} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 900, color: '#f97316', letterSpacing: 0.5 }}>Tech Churras</div>
+          <div style={{ fontSize: 14, fontWeight: 900, color: '#c23616', letterSpacing: 0.5 }}>Tech Churras</div>
           <div style={{ fontSize: 11, color: '#6b7280', marginTop: 1 }}>techchurras.com.br</div>
         </div>
         <div style={{
           fontSize: 10, color: '#374151',
-          background: 'rgba(249,115,22,0.08)',
-          border: '1px solid rgba(249,115,22,0.15)',
+          background: 'rgba(194,54,22,0.08)',
+          border: '1px solid rgba(194,54,22,0.15)',
           borderRadius: 8, padding: '4px 8px',
           fontWeight: 600, letterSpacing: 0.5,
         }}>

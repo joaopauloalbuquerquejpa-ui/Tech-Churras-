@@ -22,7 +22,7 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
           onMouseEnter={() => setHovered(star)}
           onMouseLeave={() => setHovered(0)}
           className="text-2xl transition-transform hover:scale-110"
-          style={{ color: star <= (hovered || value) ? '#f97316' : '#4b5563' }}
+          style={{ color: star <= (hovered || value) ? '#c23616' : '#4b5563' }}
         >
           &#9733;
         </button>

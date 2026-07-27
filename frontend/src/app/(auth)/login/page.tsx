@@ -71,7 +71,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex">
+    <div className="min-h-screen bg-[#1c1714] flex">
 
       {/* ── Lado esquerdo: vídeo + conteúdo (apenas md+) ── */}
       <div className="hidden md:flex md:w-1/2 relative flex-col items-center justify-between overflow-hidden py-12 px-10">
@@ -85,7 +85,7 @@ export default function LoginPage() {
         {/* Overlay laranja radial */}
         <div
           className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse at 50% 80%, rgba(249,115,22,0.22) 0%, transparent 65%)', zIndex: 2 }}
+          style={{ background: 'radial-gradient(ellipse at 50% 80%, rgba(194,54,22,0.22) 0%, transparent 65%)', zIndex: 2 }}
         />
 
         {/* Logo */}
@@ -100,7 +100,7 @@ export default function LoginPage() {
         {/* Headline + subtítulo */}
         <div className="relative text-center px-4" style={{ zIndex: 3 }}>
           <h2
-            className="text-4xl font-black text-white mb-4 leading-tight animate-fadeInUp"
+            className="font-display text-4xl font-black text-white mb-4 leading-tight animate-fadeInUp"
             style={{ animationDelay: '0.4s', opacity: 0 }}
           >
             O churrasco perfeito<br />
@@ -125,8 +125,10 @@ export default function LoginPage() {
               className="flex items-center gap-3 bg-black/40 backdrop-blur-sm border border-orange-500/20 rounded-xl px-4 py-2.5 text-sm text-white"
               style={{ animation: 'slideInFromBottom 0.5s ease forwards', animationDelay: `${0.9 + i * 0.15}s`, opacity: 0 }}
             >
-              <span className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center text-xs font-bold shrink-0">
-                ✓
+              <span className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center shrink-0">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12.5l4.5 5L19 7" />
+                </svg>
               </span>
               {badge}
             </div>
@@ -148,7 +150,7 @@ export default function LoginPage() {
       </div>
 
       {/* ── Lado direito: formulário ── */}
-      <div className="w-full md:w-1/2 flex items-center justify-center px-6 py-12 bg-[#0a0a0a]">
+      <div className="w-full md:w-1/2 flex items-center justify-center px-6 py-12 bg-[#1c1714]">
         <div
           className="w-full max-w-sm animate-fadeInUp"
           style={{ animationDelay: '0.3s', opacity: 0 }}
@@ -164,14 +166,18 @@ export default function LoginPage() {
           <div className="md:hidden flex flex-col gap-1.5 mb-6">
             {TRUST_BADGES.map((badge, i) => (
               <div key={i} className="flex items-center gap-2 text-xs text-gray-400">
-                <span className="w-4 h-4 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center text-[10px] shrink-0">✓</span>
+                <span className="w-4 h-4 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+                  <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12.5l4.5 5L19 7" />
+                  </svg>
+                </span>
                 {badge}
               </div>
             ))}
           </div>
 
           {/* Header do form */}
-          <h1 className="text-3xl font-black text-white mb-1">
+          <h1 className="font-display text-3xl font-black text-white mb-1">
             {preToken ? 'Código de verificação' : 'Entre e peça seu churrasco'}
           </h1>
           <p className="text-gray-500 mb-8 text-sm">
@@ -207,8 +213,8 @@ export default function LoginPage() {
                 disabled={loading || totpCode.length !== 6}
                 className="relative w-full text-white font-bold py-3.5 rounded-xl text-base transition-all overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{
-                  background: 'linear-gradient(135deg, rgb(249,115,22) 0%, rgb(234,88,12) 100%)',
-                  boxShadow: '0 4px 24px rgba(249,115,22,0.40)',
+                  background: 'linear-gradient(135deg, rgb(194,54,22) 0%, rgb(158,45,18) 100%)',
+                  boxShadow: '0 4px 24px rgba(194,54,22,0.40)',
                 }}
               >
                 {loading ? 'Verificando...' : 'Confirmar'}
@@ -262,9 +268,9 @@ export default function LoginPage() {
               className="relative w-full text-white font-bold py-3.5 rounded-xl text-base transition-all overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed"
               style={{
                 background: loading
-                  ? 'rgb(249,115,22)'
-                  : 'linear-gradient(135deg, rgb(249,115,22) 0%, rgb(234,88,12) 100%)',
-                boxShadow: loading ? 'none' : '0 4px 24px rgba(249,115,22,0.40)',
+                  ? 'rgb(194,54,22)'
+                  : 'linear-gradient(135deg, rgb(194,54,22) 0%, rgb(158,45,18) 100%)',
+                boxShadow: loading ? 'none' : '0 4px 24px rgba(194,54,22,0.40)',
               }}
             >
               {loading ? (

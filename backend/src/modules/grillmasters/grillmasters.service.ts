@@ -80,7 +80,7 @@ export async function listGrillmasters(params: {
   radiusKm?: number
 } = {}) {
   const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9, lat, lng, radiusKm = 20 } = params
-  const where: any = {}
+  const where: any = { approved: true }
   if (available) where.available = true
   if (city) where.city = { contains: city, mode: 'insensitive' }
   if (minPrice != null) where.pricePerHour = { ...where.pricePerHour, gte: minPrice }

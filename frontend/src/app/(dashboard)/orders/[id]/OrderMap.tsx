@@ -12,7 +12,7 @@ const eventIcon = L.divIcon({
 })
 
 const grillmasterIcon = L.divIcon({
-  html: '<div style="width:16px;height:16px;background:#f97316;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.6)"></div>',
+  html: '<div style="width:16px;height:16px;background:#c23616;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.6)"></div>',
   iconSize: [16, 16],
   iconAnchor: [8, 8],
   className: '',

@@ -11,9 +11,9 @@ const config: Record<PlaceholderType, { gradient: string; icon: string }> = {
   grillmaster: {
     gradient: 'from-orange-900/60 to-gray-900',
     icon: `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="32" cy="22" r="12" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M10 54c0-12.15 9.85-22 22-22s22 9.85 22 22" stroke="#f97316" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M26 42l3 4 4-6" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="32" cy="22" r="12" stroke="#c23616" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M10 54c0-12.15 9.85-22 22-22s22 9.85 22 22" stroke="#c23616" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M26 42l3 4 4-6" stroke="#c23616" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`,
   },
   'boutique-logo': {

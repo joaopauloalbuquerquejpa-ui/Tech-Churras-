@@ -520,7 +520,7 @@ export default function BoutiqueDashboardPage() {
         <div className="w-20 h-20 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
           <span className="text-4xl">🥩</span>
         </div>
-        <h1 className="text-2xl font-bold mb-2">Cadastre seu açougue!</h1>
+        <h1 className="font-display text-2xl font-bold mb-2">Cadastre seu açougue!</h1>
         <p className="text-gray-400 text-sm">Venda cortes nobres para clientes que estão organizando churrascos na sua cidade.</p>
       </div>
 
@@ -577,7 +577,7 @@ export default function BoutiqueDashboardPage() {
       {/* Header — sempre visível */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">{boutique.name}</h1>
+          <h1 className="font-display text-2xl font-bold">{boutique.name}</h1>
           <p className="text-sm text-gray-400 mt-0.5">{boutique.city}, {boutique.state}</p>
           <span className={'text-xs px-2 py-0.5 rounded-full mt-2 inline-block ' + (boutique.approved ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400')}>
             {boutique.approved ? 'Aprovado' : 'Aguardando aprovação'}
@@ -747,8 +747,8 @@ export default function BoutiqueDashboardPage() {
                 <AreaChart data={stats.revenueByDay} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#c23616" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#c23616" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} tickFormatter={(v: string) => v.slice(5)} />
@@ -757,7 +757,7 @@ export default function BoutiqueDashboardPage() {
                     contentStyle={{ background: '#111', border: '1px solid #374151', borderRadius: 8, fontSize: 12 }}
                     formatter={(v) => ['R$ ' + Number(v).toFixed(2), 'Faturamento']}
                   />
-                  <Area type="monotone" dataKey="revenue" stroke="#f97316" strokeWidth={2} fill="url(#revenueGrad)" />
+                  <Area type="monotone" dataKey="revenue" stroke="#c23616" strokeWidth={2} fill="url(#revenueGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

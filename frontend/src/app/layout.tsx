@@ -1,19 +1,29 @@
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
+import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from 'next/font/google'
 import Script from 'next/script'
 import { PostHogProvider } from '@/components/PostHogProvider'
 import { CookieConsent } from '@/components/CookieConsent'
 import { TrackingScripts } from '@/components/TrackingScripts'
 import './globals.css'
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const fraunces = Fraunces({
+  variable: '--font-fraunces',
   subsets: ['latin'],
+  weight: 'variable',
+  style: ['normal', 'italic'],
+  axes: ['opsz'],
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const plexSans = IBM_Plex_Sans({
+  variable: '--font-plex-sans',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+})
+
+const plexMono = IBM_Plex_Mono({
+  variable: '--font-plex-mono',
+  subsets: ['latin'],
+  weight: ['400', '500'],
 })
 
 export const viewport: Viewport = {
@@ -76,13 +86,13 @@ export default function RootLayout({
   return (
     <html lang='pt-BR'>
       <head>
-        <meta name="theme-color" content="#f97316" />
+        <meta name="theme-color" content="#c23616" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="TechChurras" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} h-full`}>
+      <body className={`${fraunces.variable} ${plexSans.variable} ${plexMono.variable} h-full`}>
         <PostHogProvider>
         {/* ── JSON-LD Schema Markup ── */}
         <script

@@ -227,7 +227,7 @@ function FireCursor() {
           y: t2y,
           width: size * 0.35,
           height: size * 0.35,
-          background: 'rgba(249,115,22,0.18)',
+          background: 'rgba(194,54,22,0.18)',
           mixBlendMode: 'screen',
           transition: 'width 0.15s,height 0.15s',
         }}
@@ -239,7 +239,7 @@ function FireCursor() {
           y: t1y,
           width: size * 0.62,
           height: size * 0.62,
-          background: 'rgba(249,115,22,0.32)',
+          background: 'rgba(194,54,22,0.32)',
           mixBlendMode: 'screen',
           transition: 'width 0.15s,height 0.15s',
         }}
@@ -252,7 +252,7 @@ function FireCursor() {
           width: size,
           height: size,
           background:
-            'radial-gradient(circle, rgba(251,191,36,0.95) 0%, rgba(249,115,22,0.7) 50%, transparent 70%)',
+            'radial-gradient(circle, rgba(251,191,36,0.95) 0%, rgba(194,54,22,0.7) 50%, transparent 70%)',
           mixBlendMode: 'screen',
           transition: 'width 0.15s,height 0.15s',
         }}
@@ -500,7 +500,7 @@ export default function FounderPage() {
               className="inline-block text-xs font-black px-5 py-1.5 rounded-full uppercase tracking-widest text-black animate-shimmer"
               style={{
                 background:
-                  'linear-gradient(90deg, #f97316 0%, #fbbf24 50%, #f97316 100%)',
+                  'linear-gradient(90deg, #c23616 0%, #fbbf24 50%, #c23616 100%)',
                 backgroundSize: '200% 100%',
               }}
             >
@@ -636,7 +636,7 @@ export default function FounderPage() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           className="relative mb-16 rounded-2xl overflow-hidden"
-          style={{ background: 'linear-gradient(135deg, #1a0a00 0%, #0a0a0a 100%)', border: '1px solid rgba(249,115,22,0.25)' }}
+          style={{ background: 'linear-gradient(135deg, #1a0a00 0%, #1c1714 100%)', border: '1px solid rgba(194,54,22,0.25)' }}
         >
           <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-orange-500 to-orange-800 rounded-l-2xl" />
           <div className="px-8 py-10">
@@ -671,7 +671,7 @@ export default function FounderPage() {
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
           className="mb-24 rounded-2xl overflow-hidden border border-amber-500/20"
-          style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08) 0%, #0a0a0a 100%)' }}
+          style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08) 0%, #1c1714 100%)' }}
         >
           <div className="grid md:grid-cols-[340px_1fr]">
             <div className="relative h-60 md:h-auto bg-gray-900">
@@ -819,7 +819,7 @@ export default function FounderPage() {
         <div
           ref={chancelaRef}
           className="relative rounded-2xl overflow-hidden py-24 px-6 text-center mb-8"
-          style={{ background: '#060606', border: '1px solid rgba(249,115,22,0.15)' }}
+          style={{ background: '#060606', border: '1px solid rgba(194,54,22,0.15)' }}
         >
           {/* Three.js Ember Particles */}
           <div className="absolute inset-0" style={{ zIndex: 0 }}>
@@ -925,7 +925,7 @@ export default function FounderPage() {
                 className="inline-block text-black font-black px-10 py-4 rounded-xl text-lg animate-shimmer"
                 style={{
                   background:
-                    'linear-gradient(90deg, #f97316 0%, #fbbf24 50%, #f97316 100%)',
+                    'linear-gradient(90deg, #c23616 0%, #fbbf24 50%, #c23616 100%)',
                   backgroundSize: '200% 100%',
                 }}
               >

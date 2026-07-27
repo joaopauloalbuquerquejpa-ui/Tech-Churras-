@@ -144,7 +144,7 @@ export default function AdminSegurancaPage() {
               type="submit"
               disabled={submitting || code.length !== 6}
               className="w-full text-white font-bold py-3 rounded-xl disabled:opacity-50 transition-colors"
-              style={{ background: 'linear-gradient(135deg, rgb(249,115,22) 0%, rgb(234,88,12) 100%)' }}
+              style={{ background: 'linear-gradient(135deg, rgb(194,54,22) 0%, rgb(158,45,18) 100%)' }}
             >
               {submitting ? 'Confirmando...' : 'Confirmar e ativar'}
             </button>
@@ -159,7 +159,7 @@ export default function AdminSegurancaPage() {
           <button
             onClick={handleStartSetup}
             className="w-full text-white font-bold py-3 rounded-xl transition-colors"
-            style={{ background: 'linear-gradient(135deg, rgb(249,115,22) 0%, rgb(234,88,12) 100%)' }}
+            style={{ background: 'linear-gradient(135deg, rgb(194,54,22) 0%, rgb(158,45,18) 100%)' }}
           >
             Ativar 2FA
           </button>

@@ -42,7 +42,7 @@ const DIFERENCIAIS = [
 
 export default function ChurrascoCorporativoPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#1c1714] text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Header */}

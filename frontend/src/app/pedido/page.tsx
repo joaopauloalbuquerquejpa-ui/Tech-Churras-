@@ -221,7 +221,7 @@ function PedidoForm() {
   }
 
   if (loading) return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+    <div className="min-h-screen bg-[#1c1714] flex items-center justify-center">
       <div className="text-center">
         <div className="w-10 h-10 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
         <p className="text-gray-400 text-sm">Carregando cardápio...</p>
@@ -231,12 +231,12 @@ function PedidoForm() {
 
   // Passo 0 — visitante chega sem açougue: escolhe aqui, sem precisar de conta
   if (!boutiqueId) return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#1c1714] text-white">
       <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3">
         <span className="font-black text-lg">Tech <span className="text-orange-500">Churras</span></span>
       </div>
       <div className="max-w-2xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-black mb-1">Escolha seu açougue parceiro</h1>
+        <h1 className="font-display text-2xl font-black mb-1">Escolha seu açougue parceiro</h1>
         <p className="text-gray-400 text-sm mb-6">Os cortes do seu churrasco vêm de um açougue real, selecionado pela Tech Churras. Sem cadastro — você só cria sua conta na hora de confirmar.</p>
         {allBoutiques.length === 0 ? (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center text-gray-400 text-sm">
@@ -264,7 +264,7 @@ function PedidoForm() {
   )
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-[#1c1714] text-white">
       {/* Header */}
       <div className="bg-gray-900 border-b border-gray-800 px-4 py-3 flex items-center gap-3">
         <span className="font-black text-lg">Tech <span className="text-orange-500">Churras</span></span>
@@ -277,7 +277,7 @@ function PedidoForm() {
 
       <div className="max-w-lg mx-auto p-4 pb-20">
         <div className="mt-6 mb-2">
-          <h1 className="text-xl font-black">Monte seu Churrasco</h1>
+          <h1 className="font-display text-xl font-black">Monte seu Churrasco</h1>
           <p className="text-sm text-gray-500">Sem cadastro, sem fila. Paga e aproveita. 🔥</p>
         </div>
 
@@ -576,7 +576,7 @@ function PedidoForm() {
 export default function PedidoPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-[#1c1714] flex items-center justify-center">
         <div className="w-10 h-10 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
       </div>
     }>
