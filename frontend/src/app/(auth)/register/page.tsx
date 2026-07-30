@@ -20,7 +20,7 @@ const ROLE_OPTIONS = [
     role: 'GRILLMASTER',
     icon: '👨‍🍳',
     titulo: 'Sou churrasqueiro',
-    desc: 'Quero receber pedidos, aumentar minha renda e ter a chancela Jota',
+    desc: 'Quero receber pedidos, aumentar minha renda e ter a chancela Jota Albuquerque',
     cor: 'border-yellow-500/30 hover:border-yellow-400 bg-yellow-500/5',
     badge: 'Grillmaster parceiro',
   },

@@ -452,7 +452,7 @@ function PedidoForm() {
           <div className="space-y-4">
             <div>
               <h2 className="font-bold text-base">Escolha o Churrasqueiro</h2>
-              <p className="text-xs text-gray-500">Profissionais certificados pela Chancela Jota</p>
+              <p className="text-xs text-gray-500">Profissionais certificados pela Chancela Jota Albuquerque</p>
             </div>
             {grillmasters.length === 0 && (
               <p className="text-gray-500 text-center py-10">Nenhum churrasqueiro disponível no momento.</p>

@@ -61,7 +61,7 @@ const kits = [
     tituloCls: 'text-red-400',
     nome: 'Kit Firetech',
     para: '30+ pessoas',
-    inclui: ['Cortes Nobres Selecionados', 'Wagyu', 'Acompanhamentos Premium', 'Barman', 'Chancela Jota'],
+    inclui: ['Cortes Nobres Selecionados', 'Wagyu', 'Acompanhamentos Premium', 'Barman', 'Chancela Jota Albuquerque'],
     preco: 'Sob Consulta',
     btnLabel: 'Falar com Especialista',
     btnCls: 'bg-red-600 hover:bg-red-700 text-white',
