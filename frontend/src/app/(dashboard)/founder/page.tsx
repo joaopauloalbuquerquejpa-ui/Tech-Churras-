@@ -595,7 +595,7 @@ export default function FounderPage() {
 
             {[
               'Jota Albuquerque começou acendendo brasa em festas de família. Hoje, com 13 anos de Jota BBQ Eventos servindo clientela triple AAA em São Paulo e no Rio de Janeiro, é um dos Grillmasters mais respeitados do Brasil.',
-              'Grillmaster de celebridades — já fez churrasco para Madonna, Lady Gaga e Neymar Jr. Hoje é sócio executivo do Bahari of Brazil, hub culinário em parceria com o governo de Zanzibar, na Tanzânia. Fez tudo isso — e percebeu que faltava algo.',
+              'Grillmaster das maiores celebridades — atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais de churrasco do Brasil e hoje é sócio executivo do Bahari of Brazil, hub culinário em parceria com o governo de Zanzibar, na Tanzânia. Fez tudo isso — e percebeu que faltava algo.',
               'A Tech Churras nasceu para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.',
             ].map((para, i) => (
               <motion.p
