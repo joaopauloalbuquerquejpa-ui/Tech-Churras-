@@ -124,19 +124,19 @@ export default function DashboardLayout({
   return (
     <div className='min-h-screen bg-gray-950 text-white'>
       <PushBanner />
-      <nav className='bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between'>
-        <div className='flex items-center gap-6'>
+      <nav className='bg-gray-900 border-b border-gray-800 px-6 py-4 flex items-center justify-between gap-4'>
+        <div className='flex items-center gap-6 min-w-0'>
           <Link href='/' className='flex items-center gap-2 shrink-0'>
             <div className='h-8 overflow-hidden relative w-9'>
               <img src='/logo-flame.png' alt='' role='presentation' className='absolute bottom-0 h-14 w-auto' />
             </div>
             <span className='font-black text-xl text-white leading-none'>Tech <span className='text-orange-500'>Churras</span></span>
           </Link>
-          <div className='hidden md:flex items-center gap-1'>
+          <div className='hidden md:flex items-center gap-1 min-w-0 overflow-x-auto whitespace-nowrap'>
             {links.map(link => (
               <Link key={link.href} href={link.href}
                 {...(link.tour ? { 'data-tour': link.tour } : {})}
-                className={'px-3 py-1.5 rounded-lg text-sm font-medium transition ' +
+                className={'shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition ' +
                   (pathname === link.href || pathname.startsWith(link.href + '/')
                     ? 'bg-orange-500 text-white'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800')}>
@@ -145,8 +145,8 @@ export default function DashboardLayout({
             ))}
           </div>
         </div>
-        <div className='flex items-center gap-3'>
-          {user && <span className='text-gray-400 text-sm hidden md:block'>Ola, {user.name}</span>}
+        <div className='flex items-center gap-3 shrink-0'>
+          {user && <span className='text-gray-400 text-sm hidden md:block whitespace-nowrap max-w-[160px] truncate'>Ola, {user.name}</span>}
           <CartIcon count={itemCount} />
           {user && <NotificationBell />}
           {user ? (
