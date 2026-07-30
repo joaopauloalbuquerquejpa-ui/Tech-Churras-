@@ -31,6 +31,19 @@ function calculateInsumos(homens: number, mulheres: number, criancas: number) {
 const SIDE_DISH_RATE_ACOUGUE = 12.50
 const SIDE_DISH_RATE_GRILLMASTER = 17.00
 
+// gramas por convidado (pesquisa de mercado — Rei dos Eventos / Cronoshare)
+const SIDE_DISH_ITEMS = [
+  { name: 'Arroz', gramsPerPerson: 120 },
+  { name: 'Farofa', gramsPerPerson: 70 },
+  { name: 'Vinagrete', gramsPerPerson: 50 },
+  { name: 'Maionese', gramsPerPerson: 100 },
+]
+
+function sideDishBreakdown(guests: number) {
+  if (guests <= 0) return SIDE_DISH_ITEMS.map(i => i.name).join(' · ')
+  return SIDE_DISH_ITEMS.map(i => `${i.name} ${((i.gramsPerPerson * guests) / 1000).toFixed(1)}kg`).join(' · ')
+}
+
 const STEPS = ['Quando e onde', 'Convidados', 'Churrasqueiro', 'Açougue & Kits']
 
 function Counter({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
@@ -153,9 +166,40 @@ function NewOrderForm() {
           Math.abs(curr.minGuests - insumos.totalPessoas) < Math.abs(prev.minGuests - insumos.totalPessoas) ? curr : prev)
       : null)
 
+  // Itens do kit sao calibrados pro teto da faixa (maxGuests) — escala pra
+  // quantidade real de convidados, senao a carne fica fixa independente do
+  // numero de pessoas do evento.
+  function applyKit(kit: Kit) {
+    try {
+      const items: { productName: string; quantity: number; unit: string }[] = JSON.parse(kit.items)
+      const scale = insumos.totalPessoas > 0 ? insumos.totalPessoas / kit.maxGuests : 1
+      const newQty: Record<string, number> = {}
+      for (const item of items) {
+        const match = boutiqueProducts.find(p =>
+          p.name.toLowerCase().includes(item.productName.toLowerCase()) ||
+          item.productName.toLowerCase().includes(p.name.toLowerCase())
+        )
+        if (match) {
+          newQty[match.id] = item.unit === 'kg'
+            ? Math.round(item.quantity * scale * 10) / 10
+            : Math.max(1, Math.round(item.quantity * scale))
+        }
+      }
+      setSelectedQty(newQty)
+      setSelectedKitId(kit.id)
+    } catch { /* items malformados — nao aplica */ }
+  }
+
   useEffect(() => {
-    if (bestKit && selectedKitId === null) setSelectedKitId(bestKit.id)
+    if (bestKit && selectedKitId === null) applyKit(bestKit)
   }, [bestKit?.id])
+
+  // Recalcula se o cliente mudar o numero de convidados com um kit ja aplicado
+  useEffect(() => {
+    if (!selectedKitId) return
+    const kit = boutiqueKits.find(k => k.id === selectedKitId)
+    if (kit) applyKit(kit)
+  }, [insumos.totalPessoas])
 
   function validateStep() {
     setStepError('')
@@ -530,7 +574,10 @@ function NewOrderForm() {
                     <button
                       key={k.id}
                       type="button"
-                      onClick={() => setSelectedKitId(isSelected ? null : k.id)}
+                      onClick={() => {
+                        if (isSelected) { setSelectedKitId(null); setSelectedQty({}) }
+                        else applyKit(k)
+                      }}
                       className={'w-full text-left rounded-xl p-4 border transition-all ' + (isSelected
                         ? 'border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30'
                         : 'border-gray-700 bg-gray-900 hover:border-gray-600')}
@@ -637,9 +684,10 @@ function NewOrderForm() {
             <div className="space-y-2">
               <button type="button" onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
                 className={'w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ' + (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-900 hover:border-gray-600')}>
-                <div>
+                <div className="min-w-0">
                   <span className="text-sm text-white">Açougue prepara pronto</span>
                   <p className="text-xs text-gray-500">Pronto pra retirar no evento</p>
+                  <p className="text-xs text-gray-600 mt-0.5">{sideDishBreakdown(insumos.totalPessoas)}</p>
                 </div>
                 <span className={'text-xs font-bold shrink-0 ' + (sideDishChoice === 'ACOUGUE' ? 'text-orange-400' : 'text-gray-500')}>R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
               </button>
@@ -647,9 +695,10 @@ function NewOrderForm() {
               {selectedGrillmaster?.offersSideDishPrep && (
                 <button type="button" onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : 'GRILLMASTER')}
                   className={'w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ' + (sideDishChoice === 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-900 hover:border-gray-600')}>
-                  <div>
+                  <div className="min-w-0">
                     <span className="text-sm text-white">{selectedGrillmaster.user?.name} prepara no local</span>
                     <p className="text-xs text-gray-500">Fresco, feito na hora do evento</p>
+                    <p className="text-xs text-gray-600 mt-0.5">{sideDishBreakdown(insumos.totalPessoas)}</p>
                   </div>
                   <span className={'text-xs font-bold shrink-0 ' + (sideDishChoice === 'GRILLMASTER' ? 'text-orange-400' : 'text-gray-500')}>R$ {SIDE_DISH_RATE_GRILLMASTER.toFixed(2)}/pessoa</span>
                 </button>

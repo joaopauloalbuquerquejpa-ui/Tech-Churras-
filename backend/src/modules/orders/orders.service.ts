@@ -157,7 +157,11 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
 
   // Cria pedido + incrementa cupom + valida disponibilidade do GM atomicamente para evitar race condition
   const order = await prisma.$transaction(async (tx) => {
-    if (data.grillmasterId) {
+    // GMs com unlimitedAvailability representam uma equipe (varios churrasqueiros
+    // reais atendendo em paralelo), nao uma unica pessoa — pulam o check de
+    // conflito de agenda que existe pra impedir um GM individual de ser
+    // escalado em dois eventos no mesmo dia.
+    if (data.grillmasterId && !grillmaster?.unlimitedAvailability) {
       const dayStart = new Date(data.eventDate); dayStart.setHours(0, 0, 0, 0)
       const dayEnd = new Date(data.eventDate); dayEnd.setHours(23, 59, 59, 999)
 

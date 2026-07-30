@@ -42,6 +42,19 @@ function renderStars(r: number) {
 const SIDE_DISH_RATE_ACOUGUE = 12.50
 const SIDE_DISH_RATE_GRILLMASTER = 17.00
 
+// gramas por convidado (pesquisa de mercado — Rei dos Eventos / Cronoshare)
+const SIDE_DISH_ITEMS = [
+  { name: 'Arroz', gramsPerPerson: 120 },
+  { name: 'Farofa', gramsPerPerson: 70 },
+  { name: 'Vinagrete', gramsPerPerson: 50 },
+  { name: 'Maionese', gramsPerPerson: 100 },
+]
+
+function sideDishBreakdown(guests: number) {
+  if (guests <= 0) return SIDE_DISH_ITEMS.map(i => i.name).join(' · ')
+  return SIDE_DISH_ITEMS.map(i => `${i.name} ${((i.gramsPerPerson * guests) / 1000).toFixed(1)}kg`).join(' · ')
+}
+
 const STEPS = ['Seu Evento', 'Escolha os Cortes', 'Churrasqueiro', 'Confirmar']
 
 function StepBar({ step }: { step: number }) {
@@ -159,18 +172,33 @@ function PedidoForm() {
   function applyKit(kit: Kit) {
     try {
       const items: KitItem[] = JSON.parse(kit.items)
+      // Itens do kit sao calibrados pro teto da faixa (maxGuests) — escala pra
+      // quantidade real de convidados informada, senao um evento de 15 pessoas
+      // recebe a mesma carne calculada pra 30.
+      const scale = totalPeople > 0 ? totalPeople / kit.maxGuests : 1
       const newQty: Record<string, number> = {}
       for (const item of items) {
         const match = products.find(p =>
           p.name.toLowerCase().includes(item.productName.toLowerCase()) ||
           item.productName.toLowerCase().includes(p.name.toLowerCase())
         )
-        if (match) newQty[match.id] = item.quantity
+        if (match) {
+          const scaledQty = item.unit === 'kg' ? Math.round(item.quantity * scale * 10) / 10 : Math.max(1, Math.round(item.quantity * scale))
+          newQty[match.id] = scaledQty
+        }
       }
       setQty(newQty)
       setSelectedKit(kit.id)
     } catch {}
   }
+
+  // Se o cliente voltar e mudar o numero de convidados com um kit ja aplicado,
+  // reescala as quantidades em vez de deixar o kit "preso" no headcount anterior.
+  useEffect(() => {
+    if (!selectedKit) return
+    const kit = kits.find(k => k.id === selectedKit)
+    if (kit) applyKit(kit)
+  }, [totalPeople])
 
   function next() {
     if (step === 1 && (!eventDate || !eventAddress.trim())) { alert('Preencha a data e o endereço do evento'); return }
@@ -510,9 +538,10 @@ function PedidoForm() {
                   <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
                     className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
                       (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-sm font-medium text-white">{boutique?.name ?? 'Açougue'} prepara pronto</p>
                       <p className="text-xs text-gray-500">Pronto pra retirar no evento</p>
+                      <p className="text-xs text-gray-600 mt-0.5">{sideDishBreakdown(totalPeople)}</p>
                     </div>
                     <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
                   </button>
@@ -521,9 +550,10 @@ function PedidoForm() {
                     <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : 'GRILLMASTER')}
                       className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
                         (sideDishChoice === 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
-                      <div>
+                      <div className="min-w-0">
                         <p className="text-sm font-medium text-white">{gm.user.name} prepara no local</p>
                         <p className="text-xs text-gray-500">Fresco, feito na hora do evento</p>
+                        <p className="text-xs text-gray-600 mt-0.5">{sideDishBreakdown(totalPeople)}</p>
                       </div>
                       <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_GRILLMASTER.toFixed(2)}/pessoa</span>
                     </button>
