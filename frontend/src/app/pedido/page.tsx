@@ -534,7 +534,7 @@ function PedidoForm() {
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
                 <div>
                   <h3 className="font-bold text-sm">Quem prepara os acompanhamentos?</h3>
-                  <p className="text-xs text-gray-500">Farofa, arroz, vinagrete, maionese — opcional</p>
+                  <p className="text-xs text-gray-500">Arroz, farofa, vinagrete, maionese, salada, chimichurri — opcional</p>
                 </div>
                 <div className="space-y-2">
                   <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}

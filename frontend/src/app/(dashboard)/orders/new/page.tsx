@@ -682,7 +682,7 @@ function NewOrderForm() {
 
           {/* Quem prepara farofa, arroz, vinagrete, maionese */}
           <div>
-            <p className="text-sm text-gray-400 mb-2">Quem prepara os acompanhamentos completos? <span className="text-gray-600">(farofa, arroz, vinagrete, maionese — opcional)</span></p>
+            <p className="text-sm text-gray-400 mb-2">Quem prepara os acompanhamentos completos? <span className="text-gray-600">(arroz, farofa, vinagrete, maionese, salada, chimichurri — opcional)</span></p>
             <div className="space-y-2">
               <button type="button" onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
                 className={'w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ' + (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-900 hover:border-gray-600')}>
