@@ -42,7 +42,7 @@ export default function ExcluirContaPage() {
         <p className="text-gray-400 text-sm leading-7 mb-8">
           Seus dados foram removidos da plataforma Tech Churras conforme a LGPD.<br />
           Se tiver dúvidas, escreva para{' '}
-          <a href="mailto:contato@techchurras.com.br" className="text-orange-400 underline">contato@techchurras.com.br</a>.
+          <a href="mailto:techchurras@gmail.com" className="text-orange-400 underline">techchurras@gmail.com</a>.
         </p>
         <Link href="/" className="text-orange-400 font-bold text-sm hover:text-orange-300">← Voltar ao início</Link>
       </div>
@@ -133,8 +133,8 @@ export default function ExcluirContaPage() {
           Leia nossa Política de Privacidade
         </Link>
         {' '}ou escreva para{' '}
-        <a href="mailto:contato@techchurras.com.br" className="text-orange-400 hover:text-orange-300 underline">
-          contato@techchurras.com.br
+        <a href="mailto:techchurras@gmail.com" className="text-orange-400 hover:text-orange-300 underline">
+          techchurras@gmail.com
         </a>.
       </div>
     </div>

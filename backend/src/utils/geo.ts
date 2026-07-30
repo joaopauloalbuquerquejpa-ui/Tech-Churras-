@@ -44,7 +44,7 @@ async function _fetchGeocode(address: string): Promise<{ lat: number; lng: numbe
     const query = encodeURIComponent(address + ', Brasil')
     const url = `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1&countrycodes=br`
     const res = await fetchWithTimeout(url, {
-      headers: { 'User-Agent': 'TechChurras/1.0 (contato@techchurras.com.br)' },
+      headers: { 'User-Agent': 'TechChurras/1.0 (techchurras@gmail.com)' },
     })
     if (!res.ok) return null
     const data = await res.json() as Array<{ lat: string; lon: string }>

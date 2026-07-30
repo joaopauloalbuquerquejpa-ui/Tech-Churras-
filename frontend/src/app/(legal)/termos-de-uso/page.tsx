@@ -176,7 +176,7 @@ export default function TermosDeUsoPage() {
 
       <div className="mt-12 pt-6 border-t border-gray-800 text-xs text-gray-600 space-y-1">
         <p>Tech Churras · CNPJ 67.830.186/0001-87</p>
-        <p>São Paulo/SP · contato@techchurras.com.br</p>
+        <p>São Paulo/SP · techchurras@gmail.com</p>
         <p>Versão 1.2 — Junho de 2026</p>
       </div>
     </article>
