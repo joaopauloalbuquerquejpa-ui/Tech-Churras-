@@ -19,6 +19,13 @@ const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
 // Receita 100% da plataforma — não entra no repasse de GM nem açougue.
 export const SERVICE_FEE_RATE = 0.06
 
+// Preço padrão da plataforma pra quem prepara acompanhamentos (farofa, arroz,
+// vinagrete, maionese) — por convidado. Fixo, não configurável por açougue/GM,
+// pra evitar o problema que já derrubou o gmAccompaniments antigo (preço vindo
+// do cliente sem backing no servidor).
+export const SIDE_DISH_RATE_ACOUGUE = 12.50
+export const SIDE_DISH_RATE_GRILLMASTER = 17.00
+
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
   boutiqueId: z.string().optional(),
@@ -42,6 +49,7 @@ export const createOrderSchema = z.object({
     name: z.string().min(2),
     laborPrice: z.number().nonnegative(),
   })).optional(),
+  sideDishPreparedBy: z.enum(['ACOUGUE', 'GRILLMASTER']).optional(),
 })
 
 export type CreateOrderInput = z.infer<typeof createOrderSchema>
@@ -92,7 +100,7 @@ async function detectSuspiciousOrder(order: OrderFraudCheck, customerId: string)
 }
 
 export async function createOrder(customerId: string, data: CreateOrderInput) {
-  const { items, couponCode, gmAccompaniments, ...orderData } = data
+  const { items, couponCode, gmAccompaniments, sideDishPreparedBy: _rawSideDish, ...orderData } = data
 
   // Fetch real prices from DB — never trust client-supplied prices
   let itemsWithPrice: { productId: string; quantity: number; unitPrice: number }[] = []
@@ -117,7 +125,20 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   // F1: gmAccompaniments removidos do MVP — preço não tem backing em DB, cliente poderia manipular
   const accompLaborTotal = 0
 
-  const subtotal = itemsTotal + grillmasterCost + accompLaborTotal
+  // Preço fixo do servidor (nunca confia em valor vindo do cliente). Se o cliente
+  // pediu GRILLMASTER mas o GM escolhido não oferece o serviço, ignora silenciosamente
+  // (mesmo padrão de "nunca confiar no cliente" já usado pros preços de produto acima).
+  let sideDishPreparedBy: 'ACOUGUE' | 'GRILLMASTER' | undefined
+  let sideDishFee = 0
+  if (data.sideDishPreparedBy === 'ACOUGUE') {
+    sideDishPreparedBy = 'ACOUGUE'
+    sideDishFee = +(SIDE_DISH_RATE_ACOUGUE * data.guestCount).toFixed(2)
+  } else if (data.sideDishPreparedBy === 'GRILLMASTER' && grillmaster?.offersSideDishPrep) {
+    sideDishPreparedBy = 'GRILLMASTER'
+    sideDishFee = +(SIDE_DISH_RATE_GRILLMASTER * data.guestCount).toFixed(2)
+  }
+
+  const subtotal = itemsTotal + grillmasterCost + accompLaborTotal + sideDishFee
 
   let discountAmount = 0
   let appliedCouponCode: string | undefined
@@ -178,6 +199,8 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         couponCode: appliedCouponCode,
         discountAmount,
         gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
+        sideDishPreparedBy,
+        sideDishFee,
         items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
       },
       include: {

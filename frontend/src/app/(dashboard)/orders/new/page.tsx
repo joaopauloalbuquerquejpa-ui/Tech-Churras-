@@ -27,6 +27,10 @@ function calculateInsumos(homens: number, mulheres: number, criancas: number) {
   return { totalCarne, totalCarvao, totalPessoas }
 }
 
+// espelha SIDE_DISH_RATE_ACOUGUE / SIDE_DISH_RATE_GRILLMASTER do backend
+const SIDE_DISH_RATE_ACOUGUE = 12.50
+const SIDE_DISH_RATE_GRILLMASTER = 17.00
+
 const STEPS = ['Quando e onde', 'Convidados', 'Churrasqueiro', 'Açougue & Kits']
 
 function Counter({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
@@ -62,7 +66,7 @@ function NewOrderForm() {
   const [boutiqueKits, setBoutiqueKits] = useState<Kit[]>([])
   const [selectedKitId, setSelectedKitId] = useState<string | null>(null)
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
-  const [selectedGmAccomp, setSelectedGmAccomp] = useState<string[]>([])
+  const [sideDishChoice, setSideDishChoice] = useState<'' | 'ACOUGUE' | 'GRILLMASTER'>('')
   const [loading, setLoading] = useState(false)
   const [stepError, setStepError] = useState('')
   const [form, setForm] = useState({
@@ -114,6 +118,7 @@ function NewOrderForm() {
     if (!form.grillmasterId) return
     const gm = grillmasters.find(g => g.id === form.grillmasterId)
     if (gm?.defaultBoutiqueId) setForm(prev => ({ ...prev, boutiqueId: gm.defaultBoutiqueId }))
+    if (gm && !gm.offersSideDishPrep) setSideDishChoice(c => c === 'GRILLMASTER' ? '' : c)
   }, [form.grillmasterId, grillmasters])
 
   useEffect(() => {
@@ -133,13 +138,11 @@ function NewOrderForm() {
     const p = boutiqueProducts.find(p => p.id === pid)
     return sum + (p ? p.price * qty : 0)
   }, 0)
-  const gmAccompList: { name: string; laborPrice: number }[] = selectedGrillmaster?.accompaniments ?? []
-  const accompLaborTotal = selectedGmAccomp.reduce((sum, name) => {
-    const a = gmAccompList.find(a => a.name === name)
-    return sum + (a?.laborPrice ?? 0)
-  }, 0)
-  const serviceFeeEstimate = +((grillmasterCost + itemsTotal + accompLaborTotal) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
-  const totalEstimate = grillmasterCost + itemsTotal + accompLaborTotal + serviceFeeEstimate
+  const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * insumos.totalPessoas).toFixed(2)
+    : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * insumos.totalPessoas).toFixed(2)
+    : 0
+  const serviceFeeEstimate = +((grillmasterCost + itemsTotal + sideDishFee) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
+  const totalEstimate = grillmasterCost + itemsTotal + sideDishFee + serviceFeeEstimate
 
   const productsCarnes = boutiqueProducts.filter(p => p.category !== 'ACOMPANHAMENTO')
   const productsAcomp = boutiqueProducts.filter(p => p.category === 'ACOMPANHAMENTO')
@@ -186,10 +189,6 @@ function NewOrderForm() {
           const p = boutiqueProducts.find(p => p.id === productId)!
           return { productId, quantity, unitPrice: p.price }
         })
-      const gmAccompaniments = selectedGmAccomp
-        .map(name => gmAccompList.find(a => a.name === name))
-        .filter(Boolean) as { name: string; laborPrice: number }[]
-
       const res = await fetch(API_URL + '/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
@@ -203,7 +202,7 @@ function NewOrderForm() {
           notes: form.notes || undefined,
           kitId: selectedKitId || undefined,
           items: items.length > 0 ? items : undefined,
-          gmAccompaniments: gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
+          sideDishPreparedBy: sideDishChoice || undefined,
         }),
       })
       if (res.ok) {
@@ -243,7 +242,7 @@ function NewOrderForm() {
           <div className="flex items-center gap-2 text-xs text-gray-500 overflow-hidden">
             {grillmasterCost > 0 && <span className="shrink-0">GM R${grillmasterCost.toFixed(0)}</span>}
             {itemsTotal > 0 && <span className="shrink-0">· Carnes R${itemsTotal.toFixed(0)}</span>}
-            {accompLaborTotal > 0 && <span className="shrink-0">· Extras R${accompLaborTotal.toFixed(0)}</span>}
+            {sideDishFee > 0 && <span className="shrink-0">· Acomp. R${sideDishFee.toFixed(0)}</span>}
             {serviceFeeEstimate > 0 && <span className="shrink-0">· Taxa R${serviceFeeEstimate.toFixed(0)}</span>}
           </div>
           <span className="text-lg font-black text-orange-400 shrink-0 ml-2">R$ {totalEstimate.toFixed(2)}</span>
@@ -605,10 +604,10 @@ function NewOrderForm() {
             </div>
           )}
 
-          {/* Acompanhamentos */}
-          {(productsAcomp.length > 0 || gmAccompList.length > 0) && (
+          {/* Acompanhamentos avulsos do açougue (produtos prontos, ex: pão de alho, queijo coalho) */}
+          {productsAcomp.length > 0 && (
             <div>
-              <p className="text-sm text-gray-400 mb-2">Acompanhamentos <span className="text-gray-600">(opcional)</span></p>
+              <p className="text-sm text-gray-400 mb-2">Acompanhamentos do cardápio <span className="text-gray-600">(opcional)</span></p>
               <div className="space-y-2">
                 {productsAcomp.map(p => {
                   const qty = selectedQty[p.id] || 0
@@ -628,26 +627,40 @@ function NewOrderForm() {
                     </div>
                   )
                 })}
-                {gmAccompList.map(a => {
-                  const selected = selectedGmAccomp.includes(a.name)
-                  return (
-                    <button key={a.name} type="button"
-                      onClick={() => setSelectedGmAccomp(prev => selected ? prev.filter(n => n !== a.name) : [...prev, a.name])}
-                      className={'w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ' + (selected ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-900 hover:border-gray-600')}
-                    >
-                      <div>
-                        <span className="text-sm text-white">{a.name}</span>
-                        <p className="text-xs text-gray-500">Feito na hora · você traz os ingredientes</p>
-                      </div>
-                      <span className={'text-xs font-bold shrink-0 ' + (selected ? 'text-orange-400' : 'text-gray-500')}>
-                        {a.laborPrice > 0 ? `+R$ ${a.laborPrice.toFixed(2)}` : 'Incluído'}
-                      </span>
-                    </button>
-                  )
-                })}
               </div>
             </div>
           )}
+
+          {/* Quem prepara farofa, arroz, vinagrete, maionese */}
+          <div>
+            <p className="text-sm text-gray-400 mb-2">Quem prepara os acompanhamentos completos? <span className="text-gray-600">(farofa, arroz, vinagrete, maionese — opcional)</span></p>
+            <div className="space-y-2">
+              <button type="button" onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
+                className={'w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ' + (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-900 hover:border-gray-600')}>
+                <div>
+                  <span className="text-sm text-white">Açougue prepara pronto</span>
+                  <p className="text-xs text-gray-500">Pronto pra retirar no evento</p>
+                </div>
+                <span className={'text-xs font-bold shrink-0 ' + (sideDishChoice === 'ACOUGUE' ? 'text-orange-400' : 'text-gray-500')}>R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
+              </button>
+
+              {selectedGrillmaster?.offersSideDishPrep && (
+                <button type="button" onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : 'GRILLMASTER')}
+                  className={'w-full flex items-center justify-between px-4 py-3 rounded-xl border transition-colors text-left ' + (sideDishChoice === 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-900 hover:border-gray-600')}>
+                  <div>
+                    <span className="text-sm text-white">{selectedGrillmaster.user?.name} prepara no local</span>
+                    <p className="text-xs text-gray-500">Fresco, feito na hora do evento</p>
+                  </div>
+                  <span className={'text-xs font-bold shrink-0 ' + (sideDishChoice === 'GRILLMASTER' ? 'text-orange-400' : 'text-gray-500')}>R$ {SIDE_DISH_RATE_GRILLMASTER.toFixed(2)}/pessoa</span>
+                </button>
+              )}
+
+              <button type="button" onClick={() => setSideDishChoice('')}
+                className={'w-full px-4 py-3 rounded-xl border transition-colors text-left text-sm text-white ' + (sideDishChoice === '' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-gray-900 hover:border-gray-600')}>
+                Não, eu levo por conta
+              </button>
+            </div>
+          </div>
 
           {/* Observações */}
           <div>
@@ -674,10 +687,10 @@ function NewOrderForm() {
                   <span>R$ {itemsTotal.toFixed(2)}</span>
                 </div>
               )}
-              {accompLaborTotal > 0 && (
+              {sideDishFee > 0 && (
                 <div className="flex justify-between text-gray-400">
-                  <span>Acomp. mão de obra</span>
-                  <span>R$ {accompLaborTotal.toFixed(2)}</span>
+                  <span>Acompanhamentos ({sideDishChoice === 'ACOUGUE' ? 'açougue' : 'churrasqueiro'})</span>
+                  <span>R$ {sideDishFee.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-2 border-t border-gray-700">

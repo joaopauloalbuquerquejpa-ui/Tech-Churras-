@@ -7,7 +7,7 @@ import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
-interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; user: { name: string } }
+interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; user: { name: string } }
 interface KitItem { productName: string; quantity: number; unit: string }
 interface Kit { id: string; name: string; description: string; price: number; discountPrice?: number | null; minGuests: number; maxGuests: number; items: string }
 
@@ -37,6 +37,10 @@ function buildSuggested(products: Product[], men: number, women: number, kids: n
 function renderStars(r: number) {
   return Array.from({ length: 5 }, (_, i) => i < Math.floor(r) ? '★' : '☆').join('')
 }
+
+// espelha SIDE_DISH_RATE_ACOUGUE / SIDE_DISH_RATE_GRILLMASTER do backend
+const SIDE_DISH_RATE_ACOUGUE = 12.50
+const SIDE_DISH_RATE_GRILLMASTER = 17.00
 
 const STEPS = ['Seu Evento', 'Escolha os Cortes', 'Churrasqueiro', 'Confirmar']
 
@@ -96,6 +100,7 @@ function PedidoForm() {
 
   // Step 3 — churrasqueiro
   const [selectedGm, setSelectedGm] = useState('')
+  const [sideDishChoice, setSideDishChoice] = useState<'' | 'ACOUGUE' | 'GRILLMASTER'>('')
 
   // Step 4 — guest
   const [guestName, setGuestName] = useState('')
@@ -106,8 +111,11 @@ function PedidoForm() {
   const productsCost = products.reduce((s, p) => s + (qty[p.id] || 0) * p.price, 0)
   const gm = grillmasters.find(g => g.id === selectedGm)
   const gmCost = gm ? gm.pricePerHour * eventHours : 0
-  const serviceFee = +((productsCost + gmCost) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
-  const total = productsCost + gmCost + serviceFee
+  const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * totalPeople).toFixed(2)
+    : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * totalPeople).toFixed(2)
+    : 0
+  const serviceFee = +((productsCost + gmCost + sideDishFee) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
+  const total = productsCost + gmCost + sideDishFee + serviceFee
   const categorias = [...new Set(products.map(p => p.category))]
 
   useEffect(() => {
@@ -209,6 +217,7 @@ function PedidoForm() {
           eventHours,
           guestCount: totalPeople || 1,
           items: orderItems.length > 0 ? orderItems : undefined,
+          sideDishPreparedBy: sideDishChoice || undefined,
         }),
       })
       if (!orderRes.ok) throw new Error((await orderRes.json()).error)
@@ -461,7 +470,7 @@ function PedidoForm() {
               {grillmasters.map(g => {
                 const sel = selectedGm === g.id
                 return (
-                  <div key={g.id} onClick={() => setSelectedGm(g.id)}
+                  <div key={g.id} onClick={() => { setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
                     className={'bg-gray-900 rounded-2xl p-4 cursor-pointer border-2 transition-all ' +
                       (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40')}>
                     <div className="flex items-center gap-3">
@@ -490,6 +499,44 @@ function PedidoForm() {
                 )
               })}
             </div>
+
+            {gm && (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
+                <div>
+                  <h3 className="font-bold text-sm">Quem prepara os acompanhamentos?</h3>
+                  <p className="text-xs text-gray-500">Farofa, arroz, vinagrete, maionese — opcional</p>
+                </div>
+                <div className="space-y-2">
+                  <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
+                    className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
+                      (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                    <div>
+                      <p className="text-sm font-medium text-white">{boutique?.name ?? 'Açougue'} prepara pronto</p>
+                      <p className="text-xs text-gray-500">Pronto pra retirar no evento</p>
+                    </div>
+                    <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
+                  </button>
+
+                  {gm.offersSideDishPrep && (
+                    <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : 'GRILLMASTER')}
+                      className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
+                        (sideDishChoice === 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                      <div>
+                        <p className="text-sm font-medium text-white">{gm.user.name} prepara no local</p>
+                        <p className="text-xs text-gray-500">Fresco, feito na hora do evento</p>
+                      </div>
+                      <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_GRILLMASTER.toFixed(2)}/pessoa</span>
+                    </button>
+                  )}
+
+                  <button onClick={() => setSideDishChoice('')}
+                    className={'w-full text-left rounded-xl p-3 border-2 transition-all ' +
+                      (sideDishChoice === '' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                    <p className="text-sm font-medium text-white">Não, eu levo por conta</p>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -534,6 +581,12 @@ function PedidoForm() {
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
               {productsCost > 0 && <div className="flex justify-between text-gray-400"><span>Cortes</span><span className="text-orange-400">R$ {productsCost.toFixed(2)}</span></div>}
               {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h)</span><span className="text-orange-400">R$ {gmCost.toFixed(2)}</span></div>}
+              {sideDishFee > 0 && (
+                <div className="flex justify-between text-gray-400">
+                  <span>Acompanhamentos ({sideDishChoice === 'ACOUGUE' ? 'açougue' : 'churrasqueiro'})</span>
+                  <span className="text-orange-400">R$ {sideDishFee.toFixed(2)}</span>
+                </div>
+              )}
               {serviceFee > 0 && <div className="flex justify-between text-gray-400"><span>Taxa de serviço</span><span className="text-orange-400">R$ {serviceFee.toFixed(2)}</span></div>}
               <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
                 <span className="font-bold text-white">Total estimado</span>

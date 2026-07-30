@@ -92,6 +92,7 @@ model Grillmaster {
   uniformSentAt      DateTime?
   defaultBoutiqueId  String?
   accompaniments     Json?    @default("[]")
+  offersSideDishPrep Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -222,6 +223,8 @@ model Order {
   notes                 String?
   kitId                 String?
   gmAccompaniments      Json?    @default("[]")
+  sideDishPreparedBy    String?
+  sideDishFee           Float    @default(0)
   paymentId      String?
   paymentStatus  String?
   paidAt         DateTime?
