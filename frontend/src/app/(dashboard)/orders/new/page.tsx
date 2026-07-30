@@ -28,15 +28,17 @@ function calculateInsumos(homens: number, mulheres: number, criancas: number) {
 }
 
 // espelha SIDE_DISH_RATE_ACOUGUE / SIDE_DISH_RATE_GRILLMASTER do backend
-const SIDE_DISH_RATE_ACOUGUE = 12.50
-const SIDE_DISH_RATE_GRILLMASTER = 17.00
+const SIDE_DISH_RATE_ACOUGUE = 18.50
+const SIDE_DISH_RATE_GRILLMASTER = 25.00
 
-// gramas por convidado (pesquisa de mercado — Rei dos Eventos / Cronoshare)
+// gramas por convidado (pesquisa de mercado — Rei dos Eventos / Cronoshare / Troppo Artesanal)
 const SIDE_DISH_ITEMS = [
   { name: 'Arroz', gramsPerPerson: 120 },
   { name: 'Farofa', gramsPerPerson: 70 },
   { name: 'Vinagrete', gramsPerPerson: 50 },
   { name: 'Maionese', gramsPerPerson: 100 },
+  { name: 'Salada', gramsPerPerson: 80 },
+  { name: 'Chimichurri', gramsPerPerson: 30 },
 ]
 
 function sideDishBreakdown(guests: number) {

@@ -19,12 +19,12 @@ const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
 // Receita 100% da plataforma — não entra no repasse de GM nem açougue.
 export const SERVICE_FEE_RATE = 0.06
 
-// Preço padrão da plataforma pra quem prepara acompanhamentos (farofa, arroz,
-// vinagrete, maionese) — por convidado. Fixo, não configurável por açougue/GM,
-// pra evitar o problema que já derrubou o gmAccompaniments antigo (preço vindo
-// do cliente sem backing no servidor).
-export const SIDE_DISH_RATE_ACOUGUE = 12.50
-export const SIDE_DISH_RATE_GRILLMASTER = 17.00
+// Preço padrão da plataforma pra quem prepara acompanhamentos (arroz, farofa,
+// vinagrete, maionese, salada, chimichurri) — por convidado. Fixo, não
+// configurável por açougue/GM, pra evitar o problema que já derrubou o
+// gmAccompaniments antigo (preço vindo do cliente sem backing no servidor).
+export const SIDE_DISH_RATE_ACOUGUE = 18.50
+export const SIDE_DISH_RATE_GRILLMASTER = 25.00
 
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),

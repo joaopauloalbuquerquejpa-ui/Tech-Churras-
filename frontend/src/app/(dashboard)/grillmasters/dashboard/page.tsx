@@ -1317,7 +1317,7 @@ export default function GrillmasterDashboardPage() {
             <div className="flex items-center justify-between py-2">
               <div>
                 <p className="text-sm text-white font-medium">Preparo acompanhamentos no local</p>
-                <p className="text-xs text-gray-500">Farofa, arroz, vinagrete, maionese — R$ 17,00/convidado, cobrado no pedido</p>
+                <p className="text-xs text-gray-500">Arroz, farofa, vinagrete, maionese, salada, chimichurri — R$ 25,00/convidado, cobrado no pedido</p>
               </div>
               <button onClick={() => setProfileForm(f => ({ ...f, offersSideDishPrep: !f.offersSideDishPrep }))}
                 className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ${profileForm.offersSideDishPrep ? 'bg-orange-500' : 'bg-gray-700'}`}>
