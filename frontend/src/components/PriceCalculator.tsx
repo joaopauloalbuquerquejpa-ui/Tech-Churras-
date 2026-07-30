@@ -6,7 +6,9 @@ export default function PriceCalculator() {
   const [guests, setGuests] = useState(20)
   const [hours, setHours] = useState(4)
 
-  const gmCost = Math.max(150, hours * 80)
+  // R$100/h reflete a diaria real do Team Jota (unico GM ativo hoje);
+  // R$35/pessoa reflete o preco medio dos kits Acessiveis do Boutique FireBox
+  const gmCost = hours * 100
   const meatCost = guests * 35
   const total = gmCost + meatCost
 
