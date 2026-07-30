@@ -8,7 +8,6 @@ const PROTECTED_PREFIXES = [
   '/boutiques/new',
   '/dashboard',
   '/favoritos',
-  '/founder',
   '/grillmasters/dashboard',
   '/grillmasters/new',
   '/grillmasters/orders',
@@ -21,7 +20,7 @@ const PROTECTED_PREFIXES = [
 ]
 
 // Dentro das protegidas, apenas ADMIN pode acessar
-const ADMIN_PREFIXES = ['/admin', '/founder']
+const ADMIN_PREFIXES = ['/admin']
 
 // Páginas de auth — redireciona para o dashboard se já estiver logado
 const AUTH_ONLY_ROUTES = ['/login', '/register', '/esqueci-senha', '/redefinir-senha']

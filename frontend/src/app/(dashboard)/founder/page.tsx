@@ -595,7 +595,7 @@ export default function FounderPage() {
 
             {[
               'Jota Albuquerque começou acendendo brasa em festas de família. Hoje, com 13 anos de Jota BBQ Eventos servindo clientela triple AAA em São Paulo e no Rio de Janeiro, é um dos Grillmasters mais respeitados do Brasil.',
-              'Grillmaster das maiores celebridades — atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais nacionais e levou o churrasco brasileiro para a África e o Mediterrâneo. Fez tudo isso — e percebeu que faltava algo.',
+              'Grillmaster de celebridades — já fez churrasco para Madonna, Lady Gaga e Neymar Jr. Hoje é sócio executivo do Bahari of Brazil, hub culinário em parceria com o governo de Zanzibar, na Tanzânia. Fez tudo isso — e percebeu que faltava algo.',
               'A Tech Churras nasceu para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.',
             ].map((para, i) => (
               <motion.p
@@ -657,11 +657,16 @@ export default function FounderPage() {
         </motion.div>
 
         {/* ── STATS COUNTERS ── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-16 border-y border-gray-800 mb-24">
-          <AnimatedCounter value={1800} suffix="+" label="eventos realizados" />
+        <div className="grid grid-cols-3 gap-8 py-16 border-y border-gray-800 mb-24">
           <AnimatedCounter value={13} suffix="+" label="anos de experiência" />
-          <AnimatedCounter value={3} label="países atendidos" />
-          <AnimatedCounter value={100} suffix="%" label="aprovação" />
+          <div className="text-center">
+            <p className="text-5xl font-black text-orange-500 leading-none mb-2">AAA</p>
+            <p className="text-xs text-gray-400 uppercase tracking-widest">clientela em SP e RJ</p>
+          </div>
+          <div className="text-center">
+            <p className="text-5xl font-black text-orange-500 leading-none mb-2">1</p>
+            <p className="text-xs text-gray-400 uppercase tracking-widest">hub culinário em Zanzibar</p>
+          </div>
         </div>
 
         {/* ── BAHARI OF BRAZIL ── */}

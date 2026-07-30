@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 
-const VIDEO_CARNE = 'https://videos.pexels.com/video-files/5409634/5409634-uhd_2560_1440_25fps.mp4'
+const VIDEO_CARNE = 'https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
