@@ -10,7 +10,7 @@ const CSP = [
   // Fontes
   "font-src 'self' https://fonts.gstatic.com",
   // Imagens: self + data URIs + Supabase + Google + pixels de conversão (Meta/Google Ads)
-  "img-src 'self' data: blob: https://*.supabase.co https://www.googletagmanager.com https://www.google.com https://www.google.com.br https://www.facebook.com https://googleads.g.doubleclick.net https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://*.tile.openstreetmap.fr https://*.tile.openstreetmap.de",
+  "img-src 'self' data: blob: https://*.supabase.co https://www.googletagmanager.com https://www.google.com https://www.google.com.br https://www.facebook.com https://googleads.g.doubleclick.net https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://*.tile.openstreetmap.fr https://*.tile.openstreetmap.de https://image.pollinations.ai",
   // Conexões de rede: backend + analytics + Supabase (https+wss p/ Realtime) + maps + Sentry + pixels de conversão
   "connect-src 'self' https://tech-churras-production.up.railway.app https://*.supabase.co wss://*.supabase.co https://www.google-analytics.com https://analytics.google.com https://stats.g.doubleclick.net https://ad.doubleclick.net https://googleads.g.doubleclick.net https://www.google.com https://www.google.com.br https://o4507954432344064.ingest.us.sentry.io https://nominatim.openstreetmap.org https://*.tile.openstreetmap.org https://plausible.io https://posthog.com https://app.posthog.com https://us.i.posthog.com https://us-assets.i.posthog.com https://www.facebook.com https://analytics.tiktok.com https://analytics-ipv6.tiktokw.us https://www.clarity.ms https://viacep.com.br",
   // Frames: apenas Mercado Pago (checkout)
