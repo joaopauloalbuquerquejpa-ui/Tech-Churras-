@@ -8,6 +8,7 @@ import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } fr
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { refundPayment } from '../payments/payments.service'
 import { fetchWithTimeout } from '../../utils/http'
+import { withSerializableRetry } from '../../utils/db-retry'
 
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   PENDING:     ['CONFIRMED', 'CANCELLED'],
@@ -155,8 +156,10 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   const serviceFee = +(netSubtotal * SERVICE_FEE_RATE).toFixed(2)
   const totalPrice = +(netSubtotal + serviceFee).toFixed(2)
 
-  // Cria pedido + incrementa cupom + valida disponibilidade do GM atomicamente para evitar race condition
-  const order = await prisma.$transaction(async (tx) => {
+  // Cria pedido + incrementa cupom + valida disponibilidade do GM atomicamente para evitar race condition.
+  // withSerializableRetry: se dois clientes colidirem no mesmo GM/horario, o Postgres aborta
+  // uma das duas transacoes (40001) de proposito — tenta de novo em vez de estourar 500 direto.
+  const order = await withSerializableRetry(() => prisma.$transaction(async (tx) => {
     // GMs com unlimitedAvailability representam uma equipe (varios churrasqueiros
     // reais atendendo em paralelo), nao uma unica pessoa — pulam o check de
     // conflito de agenda que existe pra impedir um GM individual de ser
@@ -213,7 +216,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         boutique: { select: { id: true, name: true, logoUrl: true, city: true, state: true, rating: true } },
       },
     })
-  }, { isolationLevel: 'Serializable' })
+  }, { isolationLevel: 'Serializable' }))
 
   // Notify all admins of new order (push + WhatsApp)
   const adminDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' }).format(order.eventDate)

@@ -13,6 +13,7 @@ import jwt from '@fastify/jwt'
 import cookie from '@fastify/cookie'
 import multipart from '@fastify/multipart'
 import rateLimit from '@fastify/rate-limit'
+import helmet from '@fastify/helmet'
 import dotenv from 'dotenv'
 import { authRoutes } from './modules/auth/auth.routes'
 import { grillmastersRoutes } from './modules/grillmasters/grillmasters.routes'
@@ -80,6 +81,13 @@ if (!process.env.CRON_SECRET) {
 const app = Fastify({ logger: true })
 
 // Plugins
+// API pura em JSON — desliga CSP do helmet (é pra paginas HTML, o frontend na Vercel
+// ja tem o proprio CSP) e mantem so os headers que fazem sentido pra uma API:
+// nosniff, HSTS, X-Frame-Options, sem referrer pra fora.
+app.register(helmet, {
+  contentSecurityPolicy: false,
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+})
 app.register(rateLimit, {
   global: true,
   max: 120,
