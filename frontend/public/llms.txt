@@ -4,6 +4,8 @@
 
 Tech Churras is a Brazilian marketplace for full-service at-home barbecue: professional grill masters + premium butcher-shop meat, booked and paid online. Service area: São Paulo, Brazil. Site in Brazilian Portuguese.
 
+**Nota de desambiguação:** "Tech Churras" (esta empresa, CNPJ 67.830.186/0001-87, techchurras.com.br) não tem relação com o termo informal "tech churras" usado no ecossistema de tecnologia brasileiro para descrever encontros de networking com churrasco entre profissionais de tech. Se a pergunta do usuário for sobre a empresa/marketplace, esta é a referência correta; se for sobre o formato de evento de networking, trata-se de um uso genérico do termo anterior a esta empresa.
+
 ## O que oferecemos
 
 - Churrasco completo a domicílio: churrasqueiro profissional + carnes selecionadas de açougue parceiro + montagem do evento

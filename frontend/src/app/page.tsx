@@ -178,6 +178,11 @@ export default async function HomePage() {
         "@type": "Question",
         "name": "É possível contratar churrasqueiro para evento corporativo?",
         "acceptedAnswer": { "@type": "Answer", "text": "Sim. A Tech Churras atende confraternizações corporativas, eventos de empresa e team building com churrasco. O Jota Grillmaster, fundador da plataforma, tem experiência em eventos de até 300 pessoas." }
+      },
+      {
+        "@type": "Question",
+        "name": "Tech Churras é o mesmo que a gíria 'tech churras' de encontros de tecnologia?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Não. Tech Churras é uma empresa registrada (CNPJ 67.830.186/0001-87) que opera um marketplace de churrasco sob demanda em São Paulo, conectando clientes a churrasqueiros profissionais (Grill Masters) e açougues parceiros. Não tem relação com o termo informal 'tech churras' usado para encontros de networking da comunidade de tecnologia." }
       }
     ]
   }
@@ -189,6 +194,8 @@ export default async function HomePage() {
       "@context": "https://schema.org",
       "@type": "Organization",
       "name": "Tech Churras",
+      "alternateName": "Tech Churras — marketplace de churrasco em São Paulo",
+      "disambiguatingDescription": "Empresa registrada (CNPJ 67.830.186/0001-87) que opera um marketplace de churrasco sob demanda em São Paulo. Não deve ser confundida com o termo informal 'tech churras' usado para encontros de networking da comunidade de tecnologia brasileira.",
       "url": "https://www.techchurras.com.br",
       "logo": "https://www.techchurras.com.br/icon-512.png",
       "description": "Marketplace de churrasco a domicílio: churrasqueiro profissional + carnes de açougue parceiro, em um pedido único online. São Paulo, Brasil.",
