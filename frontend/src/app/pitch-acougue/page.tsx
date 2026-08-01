@@ -40,11 +40,11 @@ export default function PitchAcougue() {
         {/* Argumento central: cliente premium garantido (Kantar 2025: canal açougue -6%, perdendo lares de alta renda) */}
         <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 mb-6">
           <p className="text-sm text-gray-300 leading-relaxed">
-            <b className="text-orange-400">O cliente que mais gasta está sumindo do balcão.</b> O açougue de bairro
-            perdeu 6% de volume no último ano — e quem foi embora foi justamente o cliente de alta renda, pro
-            supermercado e pras boutiques. A Tech Churras traz esse cliente de volta: <b className="text-white">pedido
-            de churrasco completo, ticket de R$ 250 a R$ 1.000 em carne</b>, direto no seu açougue. Um pedido grande
-            por mês já paga a mensalidade.
+            <b className="text-orange-400">O cliente que mais gasta está sumindo do balcão tradicional.</b> O comércio
+            de bairro perdeu 6% de volume no último ano — e quem foi embora foi justamente o cliente de alta renda,
+            pro digital e pra quem já vende online. A Tech Churras traz esse cliente de volta pra você: <b className="text-white">pedido
+            de churrasco completo, ticket a partir de R$ 350 (podendo passar de R$ 1.000) em carne</b>, direto no seu
+            açougue. Um pedido grande por mês já paga a mensalidade.
           </p>
         </div>
 
@@ -64,6 +64,66 @@ export default function PitchAcougue() {
         <p className="text-xs text-gray-600 text-center">* Primeiros 5 parceiros fundadores: R$ 369/mês · Demais: R$ 497/mês</p>
       </section>
 
+      {/* ── QUEM ESTÁ POR TRÁS ── */}
+      <section className="px-5 pb-8">
+        <div className="bg-gradient-to-br from-gray-900 to-gray-900/60 border border-amber-500/30 rounded-2xl p-5">
+          <div className="flex gap-4 items-start mb-4">
+            <div className="relative shrink-0">
+              <img
+                src="/jota.jpg"
+                alt="Jota Albuquerque"
+                className="w-24 h-24 rounded-2xl object-cover object-top border-2 border-amber-500/40"
+              />
+              <span className="absolute -bottom-1.5 -right-1.5 bg-amber-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded-full">✓ REAL</span>
+            </div>
+            <div>
+              <p className="font-black text-white text-xl leading-tight">Jota Albuquerque</p>
+              <p className="text-xs text-gray-400 mt-0.5">Fundador & CEO · 13 anos de Jota BBQ Eventos</p>
+              <p className="text-sm text-orange-400 font-semibold mt-1">Madonna · Lady Gaga · Neymar</p>
+              <div className="flex items-center gap-3 mt-2.5">
+                <a
+                  href="https://www.instagram.com/jota.grillmaster"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-gray-300 hover:text-orange-400 underline underline-offset-2"
+                >
+                  📷 @jota.grillmaster
+                </a>
+                <a
+                  href="https://www.linkedin.com/in/jo%C3%A3o-jota-albuquerque-/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-semibold text-gray-300 hover:text-orange-400 underline underline-offset-2"
+                >
+                  💼 LinkedIn
+                </a>
+              </div>
+            </div>
+          </div>
+          <p className="text-[11px] text-gray-500 mb-4">Verifique você mesmo quem está te chamando — perfil real, sem letra miúda.</p>
+
+          <div className="bg-black/40 border border-amber-500/20 rounded-xl p-4 mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-lg">🌍</span>
+              <div>
+                <p className="text-sm font-bold text-white">Bahari of Brazil — Zanzibar, Tanzânia</p>
+                <p className="text-xs text-amber-400">Parceria oficial com o Governo de Zanzibar</p>
+              </div>
+            </div>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              Jota é sócio e BBQ Master do Bahari of Brazil, hub culinário criado em PPP com o Ministério de TI e Inovação da Tanzânia. Quem constrói um restaurante com governo africano traz o mesmo padrão de qualidade para os açougues parceiros da Tech Churras.
+            </p>
+          </div>
+
+          <blockquote className="border-l-2 border-orange-500 pl-4">
+            <p className="text-gray-300 text-sm italic leading-relaxed">
+              "Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua cidade — e o seu açougue vai estar no meio disso."
+            </p>
+            <p className="text-xs text-orange-400 mt-2">— Jota Albuquerque, fundador</p>
+          </blockquote>
+        </div>
+      </section>
+
       {/* ── 5 FONTES DE FATURAMENTO ── */}
       <section className="px-5 py-8 border-t border-gray-900">
         <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-1">O que muda no seu faturamento</p>
@@ -73,7 +133,7 @@ export default function PitchAcougue() {
             {
               n: '1', icon: '🥩',
               titulo: 'Venda de carne recorrente',
-              desc: 'Cada evento fechado no app é pedido garantido de carne — ticket de R$ 250 a R$ 1.000, direto no seu açougue, toda semana.',
+              desc: 'Cada evento fechado no app é pedido garantido de carne — ticket a partir de R$ 350, podendo passar de R$ 1.000, direto no seu açougue, toda semana.',
             },
             {
               n: '2', icon: '📸',
@@ -113,8 +173,8 @@ export default function PitchAcougue() {
         <div className="mt-6 bg-green-500/5 border border-green-500/20 rounded-2xl p-5">
           <p className="text-xs text-green-400 font-bold uppercase tracking-wide mb-2">A conta na prática — só com venda de carne</p>
           <p className="text-xs text-gray-500 leading-relaxed mb-4">
-            Evento mínimo: 10 convidados × ~475g de proteína por pessoa = 4,75kg de carne.
-            Com preço médio de R$ 74/kg (mix de cortes), dá <strong className="text-white">~R$ 350 por evento</strong>.
+            Evento mínimo: 10 convidados × ~450g de proteína por pessoa = 4,5kg de carne.
+            Com o kg médio a R$ 75 (mix de cortes), dá <strong className="text-white">~R$ 350 por evento</strong>.
             Você fica com <strong className="text-white">90%</strong> disso — os outros 10% são a comissão da Tech Churras.
             Isso é o piso: eventos maiores que 10 pessoas rendem mais.
           </p>
@@ -201,26 +261,6 @@ export default function PitchAcougue() {
             </div>
           ))}
         </div>
-
-        {/* Estimativa rápida */}
-        <div className="bg-green-500/5 border border-green-500/20 rounded-2xl p-5">
-          <p className="text-xs text-green-400 font-bold uppercase tracking-wide mb-3">Estimativa de renda extra</p>
-          <div className="space-y-2.5">
-            {[
-              { eventos: 5,  receita: 1400,  label: '5 eventos/mês' },
-              { eventos: 20, receita: 5600,  label: '20 eventos/mês' },
-              { eventos: 40, receita: 11200, label: '40 eventos/mês' },
-            ].map(e => (
-              <div key={e.eventos} className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">{e.label}</span>
-                <span className="text-sm font-black text-green-400">
-                  + R$ {e.receita.toLocaleString('pt-BR')}/mês
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-gray-600 mt-3">* Ticket médio de R$ 280 por evento. Estimativa.</p>
-        </div>
       </section>
 
       {/* ── OFERTA PARCEIRO FUNDADOR ── */}
@@ -252,63 +292,6 @@ export default function PitchAcougue() {
             <p className="text-orange-400 font-black text-sm mt-0.5">Você paga R$ 0 nos primeiros 3 meses</p>
           </div>
         </div>
-      </section>
-
-      {/* ── QUEM É O JOTA ── */}
-      <section className="px-5 py-8 border-t border-gray-900">
-        <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-5">Quem está por trás</p>
-
-        <div className="flex gap-4 items-start mb-5">
-          <img
-            src="/jota.jpg"
-            alt="Jota Albuquerque"
-            className="w-16 h-16 rounded-2xl object-cover object-top shrink-0"
-          />
-          <div>
-            <p className="font-black text-white text-lg leading-tight">Jota Albuquerque</p>
-            <p className="text-xs text-gray-500">Fundador & CEO · 13 anos de Jota BBQ Eventos</p>
-            <p className="text-xs text-orange-400 mt-1">Madonna · Lady Gaga · Neymar</p>
-            <div className="flex items-center gap-3 mt-2">
-              <a
-                href="https://www.instagram.com/jota.grillmaster"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-400 hover:text-orange-400 underline underline-offset-2"
-              >
-                📷 @jota.grillmaster
-              </a>
-              <a
-                href="https://www.linkedin.com/in/jo%C3%A3o-jota-albuquerque-/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-gray-400 hover:text-orange-400 underline underline-offset-2"
-              >
-                💼 LinkedIn
-              </a>
-            </div>
-            <p className="text-[10px] text-gray-600 mt-1">Pode verificar quem eu sou — perfil real, sem letra miúda.</p>
-          </div>
-        </div>
-
-        <div className="bg-gray-900 border border-amber-500/20 rounded-2xl p-4 mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">🌍</span>
-            <div>
-              <p className="text-sm font-bold text-white">Bahari of Brazil — Zanzibar, Tanzânia</p>
-              <p className="text-xs text-amber-400">Parceria oficial com o Governo de Zanzibar</p>
-            </div>
-          </div>
-          <p className="text-xs text-gray-400 leading-relaxed">
-            Jota é sócio e BBQ Master do Bahari of Brazil, hub culinário criado em PPP com o Ministério de TI e Inovação da Tanzânia. Quem constrói um restaurante com governo africano traz o mesmo padrão de qualidade para os açougues parceiros da Tech Churras.
-          </p>
-        </div>
-
-        <blockquote className="border-l-2 border-orange-500 pl-4">
-          <p className="text-gray-300 text-sm italic leading-relaxed">
-            "Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua cidade — e o seu açougue vai estar no meio disso."
-          </p>
-          <p className="text-xs text-orange-400 mt-2">— Jota Albuquerque, fundador</p>
-        </blockquote>
       </section>
 
       {/* ── ZERO RISCO ── */}
