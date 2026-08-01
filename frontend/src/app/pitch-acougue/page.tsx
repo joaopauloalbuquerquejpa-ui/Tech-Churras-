@@ -109,6 +109,7 @@ export default function PitchAcougue() {
             { icon: '📈', texto: 'Marketing orgânico: seu açougue aparece para quem está planejando churrasco' },
             { icon: '🏅', texto: 'Badge "Açougue Parceiro" verificado no app — diferencial frente a concorrentes' },
             { icon: '📊', texto: 'Dashboard com pedidos, faturamento e previsão de demanda em tempo real' },
+            { icon: '📸', texto: 'Conteúdo pronto pra Instagram, de graça: manda uma foto real do balcão e a IA escreve a legenda pra você' },
           ].map(item => (
             <div key={item.texto} className="flex gap-3 items-start">
               <span className="text-lg shrink-0">{item.icon}</span>
@@ -135,6 +136,26 @@ export default function PitchAcougue() {
             ))}
           </div>
           <p className="text-xs text-gray-600 mt-3">* Ticket médio de R$ 280 por evento. Estimativa.</p>
+        </div>
+      </section>
+
+      {/* ── DIFERENCIAL: IA PRA INSTAGRAM ── */}
+      <section className="px-5 py-8 border-t border-gray-900">
+        <div className="bg-gray-900 border border-orange-500/30 rounded-2xl p-5">
+          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-4">
+            Ninguém mais oferece isso
+          </div>
+          <p className="font-black text-white text-lg leading-tight mb-2">
+            Seu açougue sem Instagram ativo? A gente resolve isso de graça.
+          </p>
+          <p className="text-gray-400 text-sm leading-relaxed mb-4">
+            Manda uma foto real da sua fachada, de um corte, da vitrine — a inteligência artificial da Tech Churras
+            escreve a legenda pronta e devolve a imagem já com a identidade do seu açougue. Você baixa e posta.
+            Sem agência, sem mensalidade extra, sem enrolação.
+          </p>
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <span className="text-green-400">✓</span> Incluso pra todo açougue parceiro, desde o primeiro dia
+          </div>
         </div>
       </section>
 

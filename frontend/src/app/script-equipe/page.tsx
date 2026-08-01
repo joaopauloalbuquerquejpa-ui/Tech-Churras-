@@ -146,6 +146,17 @@ export default function ScriptEquipe() {
               carne, recebem via PIX toda sexta, e não mudam nada na operação de vocês.
               Sem entrega, sem logística, sem custo pra entrar.
             </Fala>
+            <Fala>
+              E tem mais um diferencial que ninguém mais oferece: vocês mandam uma foto real
+              do balcão, de um corte, da fachada — e a inteligência artificial da Tech Churras
+              já devolve pronto o post com legenda pra vocês colarem no Instagram. De graça,
+              desde o primeiro dia.
+            </Fala>
+            <Dica>
+              Esse gancho funciona MUITO bem com açougue que não tem Instagram ativo — é a
+              maioria. Pergunte antes: "Vocês postam no Instagram? Com que frequência?" — se a
+              resposta for "quase nunca" ou "não tenho tempo", esse é o momento de ouro.
+            </Dica>
           </div>
 
           {/* Passo 3 */}
@@ -158,6 +169,7 @@ export default function ScriptEquipe() {
                 <p>→ Mostrar os três números: R$0, 10%, PIX</p>
                 <p>→ Rolar até "Como funciona" e explicar os 4 passos</p>
                 <p>→ Mostrar a estimativa de renda (5 / 20 / 40 eventos)</p>
+                <p>→ Rolar até "Ninguém mais oferece isso" — mostrar a divulgação com IA de graça</p>
                 <p>→ Mostrar o Pacote Fundador — enfatizar "só 5 vagas em SP, 1 por região"</p>
               </div>
             </div>
@@ -190,6 +202,10 @@ export default function ScriptEquipe() {
             <Objecao
               pergunta="Não tenho tempo pra ficar olhando app"
               resposta="O app não precisa de atenção constante. O pedido chega, você separa a carne como faria para qualquer cliente, e o churrasqueiro retira. No início pode ser 1 ou 2 pedidos por semana — nada que mude sua rotina. Com o tempo, você decide se quer escalar."
+            />
+            <Objecao
+              pergunta="Não tenho ninguém pra cuidar do Instagram"
+              resposta="É exatamente por isso que esse benefício existe. Você manda uma foto pelo celular — de um corte, do balcão, do que for — e a IA da Tech Churras já devolve o post pronto, com legenda. Não precisa contratar ninguém nem saber nada de marketing."
             />
             <Objecao
               pergunta="10% de comissão é muito"
@@ -400,6 +416,7 @@ export default function ScriptEquipe() {
                 <p>• Treinamento presencial com Jota para Churrasqueiro Fundador</p>
                 <p>• 7% de comissão do churrasqueiro / 10% do açougue, só quando o evento é realizado</p>
                 <p>• Repasse semanal via PIX toda sexta</p>
+                <p>• Conteúdo de Instagram gerado por IA de graça pra todo açougue parceiro (foto real + legenda pronta)</p>
                 <p>• 5 vagas de Açougue Fundador em SP · 1 por região · até 06/08</p>
                 <p>• 10 vagas de Churrasqueiro Fundador no total em SP</p>
               </div>
