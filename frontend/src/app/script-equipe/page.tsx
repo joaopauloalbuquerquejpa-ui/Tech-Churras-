@@ -175,7 +175,7 @@ export default function ScriptEquipe() {
                 <p>📱 Abrir <strong>techchurras.com.br/pitch-acougue</strong></p>
                 <p>→ Mostrar os três números: R$0, 10%, PIX</p>
                 <p>→ Rolar até a foto do Jota — mostrar o Instagram e LinkedIn reais, se perguntarem "quem é você mesmo?"</p>
-                <p>→ Rolar até "5 fontes de renda" — explicar cada uma, do dia 1 até o próprio churrasqueiro</p>
+                <p>→ Rolar até "4 fontes de renda" — explicar cada uma, do dia 1 até o próprio churrasqueiro</p>
                 <p>→ Mostrar a tabela de faturamento escalado (2 a 40 eventos/semana)</p>
                 <p>→ Rolar até "Como funciona" e explicar os 3 passos</p>
                 <p>→ Mostrar o Pacote Fundador — enfatizar "só 5 vagas em SP, 1 por região"</p>
@@ -425,7 +425,7 @@ export default function ScriptEquipe() {
                 <p>• 7% de comissão do churrasqueiro / 10% do açougue, só quando o evento é realizado</p>
                 <p>• Repasse semanal via PIX toda sexta</p>
                 <p>• Conteúdo de Instagram gerado por IA de graça pra todo açougue parceiro (foto real + legenda pronta)</p>
-                <p>• 5 vagas de Açougue Fundador em SP · 1 por região · até 06/08</p>
+                <p>• 5 vagas de Açougue Fundador em SP · 1 por região · nenhuma preenchida ainda</p>
                 <p>• 10 vagas de Churrasqueiro Fundador no total em SP</p>
               </div>
             </div>

@@ -37,8 +37,18 @@ export default function PitchAcougue() {
           A Tech Churras conecta clientes que querem fazer churrasco com churrasqueiros profissionais — e o açougue parceiro é quem fornece a carne. O pedido chega no seu app, o churrasqueiro retira no balcão. Você não muda nada na sua operação.
         </p>
 
+        {/* CTA secundário — pra quem já decidiu antes de rolar a página inteira */}
+        <a
+          href={WHATSAPP}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl text-sm mb-6 transition-colors"
+        >
+          💬 Já quero saber mais — falar com o Jota
+        </a>
+
         {/* Argumento central: cliente premium garantido (Kantar 2025: canal açougue -6%, perdendo lares de alta renda) */}
-        <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 mb-6">
+        <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-4 mb-2">
           <p className="text-sm text-gray-300 leading-relaxed">
             <b className="text-orange-400">O cliente que mais gasta está sumindo do balcão tradicional.</b> O comércio
             de bairro perdeu 6% de volume no último ano — e quem foi embora foi justamente o cliente de alta renda,
@@ -46,6 +56,19 @@ export default function PitchAcougue() {
             de churrasco completo, ticket a partir de R$ 350 (podendo passar de R$ 1.000) em carne</b>, direto no seu
             açougue. Um pedido grande por mês já paga a mensalidade.
           </p>
+        </div>
+        <p className="text-[10px] text-gray-600 mb-6">* Fonte: Kantar 2025 — dado de mercado, não específico da Tech Churras.</p>
+
+        {/* Prova social real — rede já em formação, pré-lançamento */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
+            <p className="text-2xl font-black text-orange-400">23</p>
+            <p className="text-[10px] text-gray-500 mt-0.5">açougues em negociação em SP</p>
+          </div>
+          <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
+            <p className="text-2xl font-black text-orange-400">35</p>
+            <p className="text-[10px] text-gray-500 mt-0.5">churrasqueiros já cadastrados, em todas as regiões</p>
+          </div>
         </div>
 
         {/* Quick numbers */}
@@ -127,7 +150,7 @@ export default function PitchAcougue() {
       {/* ── 5 FONTES DE FATURAMENTO ── */}
       <section className="px-5 py-8 border-t border-gray-900">
         <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-1">O que muda no seu faturamento</p>
-        <h2 className="font-black text-white text-xl leading-tight mb-6">5 fontes de renda — de hoje até o seu próprio churrasqueiro</h2>
+        <h2 className="font-black text-white text-xl leading-tight mb-6">4 fontes de renda — de hoje até o seu próprio churrasqueiro</h2>
         <div className="space-y-5">
           {[
             {
@@ -141,17 +164,12 @@ export default function PitchAcougue() {
               desc: 'Manda uma foto real do balcão ou de um corte e a IA devolve pronto o post com legenda pro seu Instagram. Sem agência, sem custo extra.',
             },
             {
-              n: '3', icon: '🗣️',
-              titulo: 'Sua marca na boca de quem estava na festa',
-              desc: 'Todo churrasco que sai do seu açougue vira prova social ao vivo. O convidado pergunta de onde veio aquela carne — e o nome do seu açougue circula entre dezenas de pessoas que também vão querer comprar.',
-            },
-            {
-              n: '4', icon: '🥗',
+              n: '3', icon: '🥗',
               titulo: 'Acompanhamentos: receita que não existia',
               desc: 'Farofa, vinagrete, arroz, molhos — venda também os acompanhamentos de cada evento e aumente o ticket médio sem custo de aquisição de cliente.',
             },
             {
-              n: '5', icon: '👨‍🍳',
+              n: '4', icon: '👨‍🍳',
               titulo: 'O passo seguinte: seu próprio churrasqueiro',
               desc: 'Com o volume de pedidos crescendo semana a semana, seu açougue pode ter um churrasqueiro chancelado pelo próprio Jota Albuquerque. Carne e mão de obra saindo do mesmo lugar — 100% do faturamento do evento fica com vocês, tudo validado pela Tech Churras.',
               destaque: true,
@@ -167,6 +185,15 @@ export default function PitchAcougue() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Boca-a-boca — efeito colateral, não é receita direta */}
+        <div className="mt-5 flex gap-3 items-start bg-gray-900/60 rounded-xl p-4">
+          <span className="text-lg shrink-0">🗣️</span>
+          <p className="text-xs text-gray-400 leading-relaxed">
+            <b className="text-gray-300">De brinde:</b> todo churrasco que sai do seu açougue vira propaganda ao vivo — o
+            convidado pergunta de onde veio a carne, e o nome do seu açougue circula entre quem também vai querer comprar.
+          </p>
         </div>
 
         {/* A conta na prática */}
@@ -270,7 +297,7 @@ export default function PitchAcougue() {
             <span className="text-3xl">🏅</span>
             <div>
               <p className="font-black text-white">Pacote Parceiro Fundador</p>
-              <p className="text-xs text-amber-400">5 vagas em SP · 1 por região · válido até 06/08/2026</p>
+              <p className="text-xs text-amber-400">5 vagas em SP · 1 por região · nenhuma preenchida ainda</p>
             </div>
           </div>
           <div className="space-y-2.5 mb-5">
