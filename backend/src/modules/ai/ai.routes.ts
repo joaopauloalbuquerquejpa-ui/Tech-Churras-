@@ -734,6 +734,18 @@ Responda SOMENTE com o texto da legenda, nada mais — sem aspas, sem markdown.`
     const post = await prisma.socialPost.findUnique({ where: { id } })
     if (!post || post.boutiqueId !== boutique.id) return reply.status(404).send({ error: 'Post não encontrado' })
 
+    // Remove o arquivo real do storage também — sem isso a foto continua
+    // pública pra sempre mesmo depois do parceiro "remover" no histórico.
+    const supabaseUrl = process.env.SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY
+    if (supabaseUrl && supabaseKey) {
+      const fileName = post.imageUrl.split('/partner-images/')[1]
+      if (fileName) {
+        const supabase = createClient(supabaseUrl, supabaseKey)
+        await supabase.storage.from('partner-images').remove([fileName]).catch(() => {})
+      }
+    }
+
     await prisma.socialPost.delete({ where: { id } })
     return reply.send({ ok: true })
   })
