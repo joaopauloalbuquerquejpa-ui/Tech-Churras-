@@ -24,7 +24,7 @@ export default function PitchAcougue() {
       <section className="px-5 pt-2 pb-10">
         <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1 text-xs text-red-400 font-semibold mb-5">
           <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-          5 vagas de Fundador em SP · 1 por região
+1 mês grátis pra todo novo Açougue Embaixador
         </div>
 
         <h1 className="text-3xl font-black leading-tight mb-4">
@@ -290,23 +290,22 @@ export default function PitchAcougue() {
         </div>
       </section>
 
-      {/* ── OFERTA PARCEIRO FUNDADOR ── */}
+      {/* ── PROGRAMA AÇOUGUE EMBAIXADOR ── */}
       <section className="px-5 py-8 border-t border-gray-900">
         <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-3xl">🏅</span>
             <div>
-              <p className="font-black text-white">Pacote Parceiro Fundador</p>
-              <p className="text-xs text-amber-400">5 vagas em SP · 1 por região · nenhuma preenchida ainda</p>
+              <p className="font-black text-white">Programa Açougue Embaixador</p>
+              <p className="text-xs text-amber-400">Pra todo novo parceiro — pra você ver com seus próprios olhos que funciona</p>
             </div>
           </div>
           <div className="space-y-2.5 mb-5">
             {[
-              '3 meses grátis — sem mensalidade (economia de R$ 1.107)',
-              'Badge "Açougue Fundador" permanente no app',
-              'Destaque nas buscas por 6 meses',
+              '1 mês grátis — sem mensalidade',
+              'Badge "Açougue Embaixador" no app',
+              'Destaque nas buscas no primeiro mês',
               'Acesso direto ao Jota Albuquerque via WhatsApp',
-              'Exclusividade da sua região antes do concorrente entrar',
             ].map(b => (
               <div key={b} className="flex items-start gap-2 text-sm text-gray-300">
                 <span className="text-amber-400 mt-0.5 shrink-0">✦</span>
@@ -315,8 +314,7 @@ export default function PitchAcougue() {
             ))}
           </div>
           <div className="bg-black/30 rounded-xl p-3 text-center">
-            <p className="text-xs text-gray-400">Se o seu bairro ainda estiver disponível:</p>
-            <p className="text-orange-400 font-black text-sm mt-0.5">Você paga R$ 0 nos primeiros 3 meses</p>
+            <p className="text-orange-400 font-black text-sm">Você paga R$ 0 no primeiro mês</p>
           </div>
         </div>
       </section>

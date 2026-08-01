@@ -178,7 +178,7 @@ export default function ScriptEquipe() {
                 <p>→ Rolar até "4 fontes de renda" — explicar cada uma, do dia 1 até o próprio churrasqueiro</p>
                 <p>→ Mostrar a tabela de faturamento escalado (2 a 40 eventos/semana)</p>
                 <p>→ Rolar até "Como funciona" e explicar os 3 passos</p>
-                <p>→ Mostrar o Pacote Fundador — enfatizar "só 5 vagas em SP, 1 por região"</p>
+                <p>→ Mostrar o Programa Açougue Embaixador — 1 mês grátis pra todo novo parceiro</p>
               </div>
             </div>
             <Dica>
@@ -189,17 +189,17 @@ export default function ScriptEquipe() {
 
           {/* Passo 4 */}
           <div className="mb-6">
-            <Step n="4" label="A oferta — criar urgência real" />
+            <Step n="4" label="A oferta — Açougue Embaixador" />
             <Fala>
-              A gente está fechando só 5 açougues fundadores em São Paulo — um por região. Os primeiros que
-              fecharem entram como Parceiro Fundador — três meses sem mensalidade e destaque
-              nas buscas por seis meses. Depois disso, quando o bairro de vocês fechar, a
-              próxima oportunidade vai ser sem esse benefício. O seu concorrente aqui no bairro
-              já sabe disso?
+              Todo novo açougue que entrar agora vira Açougue Embaixador — primeiro mês sem
+              mensalidade e destaque nas buscas, pra vocês verem com os próprios olhos que a
+              Tech Churras funciona antes de pagar qualquer coisa. Quanto antes começar, antes
+              os primeiros pedidos chegam.
             </Fala>
             <Dica>
-              A pergunta sobre o concorrente ativa o instinto competitivo. Não é manipulação —
-              é verdade. Quem fechar primeiro leva a vaga.
+              O mês grátis existe pra tirar o risco financeiro da decisão — o açougue testa
+              antes de pagar qualquer coisa. Reforce isso: "você só começa a pagar depois de
+              ver os primeiros pedidos chegando".
             </Dica>
           </div>
 
@@ -217,11 +217,11 @@ export default function ScriptEquipe() {
             />
             <Objecao
               pergunta="10% de comissão é muito"
-              resposta="É 10% sobre o que você vender a mais — receita que não existe hoje. Você não paga nada se não vier pedido nenhum. E nos três primeiros meses como Fundador, a mensalidade é zero. O risco financeiro é literalmente zero."
+              resposta="É 10% sobre o que você vender a mais — receita que não existe hoje. Você não paga nada se não vier pedido nenhum. E no primeiro mês como Açougue Embaixador, a mensalidade é zero. O risco financeiro é literalmente zero."
             />
             <Objecao
               pergunta="Nunca ouvi falar dessa plataforma"
-              resposta="É porque está lançando agora. É exatamente por isso que vale entrar hoje — você pega a vaga do seu bairro antes de qualquer concorrente. Quem entrou na Ifood nos primeiros meses saiu na frente por anos."
+              resposta="É porque está lançando agora. É exatamente por isso que vale entrar hoje — você começa antes de qualquer concorrente do seu bairro. Quem entrou na Ifood nos primeiros meses saiu na frente por anos."
             />
             <Objecao
               pergunta="Preciso pensar"
@@ -420,12 +420,11 @@ export default function ScriptEquipe() {
               <p className="font-bold text-white mb-3">✅ O que você pode prometer</p>
               <div className="space-y-1.5 text-sm text-gray-400">
                 <p>• Zero custo de entrada</p>
-                <p>• 3 meses grátis para Parceiro Fundador açougue</p>
+                <p>• 1 mês grátis para todo novo Açougue Embaixador (sem exclusividade, vale pra qualquer um)</p>
                 <p>• Treinamento presencial com Jota para Churrasqueiro Fundador</p>
                 <p>• 7% de comissão do churrasqueiro / 10% do açougue, só quando o evento é realizado</p>
                 <p>• Repasse semanal via PIX toda sexta</p>
                 <p>• Conteúdo de Instagram gerado por IA de graça pra todo açougue parceiro (foto real + legenda pronta)</p>
-                <p>• 5 vagas de Açougue Fundador em SP · 1 por região · nenhuma preenchida ainda</p>
                 <p>• 10 vagas de Churrasqueiro Fundador no total em SP</p>
               </div>
             </div>

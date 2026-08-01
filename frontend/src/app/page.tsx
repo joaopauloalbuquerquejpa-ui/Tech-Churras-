@@ -117,7 +117,7 @@ const PERSONAS = [
       'Marketing orgânico: apareça para quem já está montando o churrasco',
       'Receita adicional por evento, repasse semanal via PIX',
       'Saia na frente dos concorrentes — seja o primeiro da sua cidade',
-      '2 meses sem mensalidade para os primeiros parceiros',
+      '1 mês grátis pra todo novo Açougue Embaixador',
     ],
     href: '/para-acougues',
     cta: 'Quero ser açougue parceiro',

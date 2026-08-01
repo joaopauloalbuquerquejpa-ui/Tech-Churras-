@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, useSpring, useMotionValue, useTransform, animate } from 'framer-motion'
+import { QRCodeSVG } from 'qrcode.react'
 import Link from 'next/link'
 import { Events } from '@/lib/analytics'
 
@@ -8,7 +9,6 @@ const MENSALIDADE = 369
 const COMISSAO_RATE = 0.10
 const BONUS_POR_CLIENTE = 40
 const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
-const FUNDADOR_DEADLINE = '06/08/2026'
 
 // ── Animated number counter ──────────────────────────────────────────
 function AnimatedNumber({ value, prefix = '', suffix = '', decimals = 0 }: {
@@ -146,7 +146,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               target="_blank" rel="noopener noreferrer"
               className="text-sm font-bold bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
-              Falar no WhatsApp
+              Falar com Jota Albuquerque
             </a>
           </div>
         </div>
@@ -207,7 +207,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   onClick={() => Events.clickWhatsApp('para-acougues-hero')}
                   className="flex items-center justify-center gap-2 border border-gray-700 hover:border-gray-500 text-white font-medium px-8 py-4 rounded-xl text-base transition-colors"
                 >
-                  💬 Falar no WhatsApp
+                  💬 Falar com Jota Albuquerque
                 </a>
               </div>
 
@@ -221,25 +221,25 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 ))}
               </div>
 
-              {/* Parceiro Fundador box */}
+              {/* Açougue Embaixador box */}
               <div className="mt-8 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-5">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">🏅</span>
                   <div className="flex-1">
                     <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="font-black text-white text-sm">Pacote Parceiro Fundador</p>
-                      <span className="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-bold whitespace-nowrap animate-pulse">
-                        1 por região
+                      <p className="font-black text-white text-sm">Programa Açougue Embaixador</p>
+                      <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                        Todo novo parceiro
                       </span>
                     </div>
                     <p className="text-xs text-amber-400/80 mb-3">
-                      Aberto de <strong>06/07</strong> a <strong>06/08/2026</strong> — apenas 1 açougue fundador por região de SP
+                      Pra todo açougue que entrar agora — pra você ver com seus próprios olhos que a Tech Churras funciona
                     </p>
                     <div className="space-y-1.5">
                       {[
-                        '3 meses sem mensalidade (economia de R$ 1.107)',
-                        'Badge "Açougue Fundador" permanente na plataforma',
-                        'Destaque nas buscas por 6 meses',
+                        '1 mês sem mensalidade',
+                        'Badge "Açougue Embaixador" na plataforma',
+                        'Destaque nas buscas no primeiro mês',
                         'Acesso direto ao Jota Albuquerque via WhatsApp',
                       ].map(b => (
                         <div key={b} className="flex items-start gap-2 text-xs text-gray-300">
@@ -249,12 +249,12 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                       ))}
                     </div>
                     <a
-                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero ser Parceiro Fundador do Tech Churras na minha região.')}`}
+                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero ser Açougue Embaixador da Tech Churras.')}`}
                       target="_blank" rel="noopener noreferrer"
                       onClick={() => Events.boutiqueFounderClick('para-acougues-hero')}
                       className="mt-4 inline-block text-xs bg-amber-500 hover:bg-amber-400 text-black font-black px-4 py-2 rounded-lg transition-colors"
                     >
-                      Garantir minha vaga de Fundador →
+                      Quero ser Açougue Embaixador →
                     </a>
                   </div>
                 </div>
@@ -285,8 +285,8 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 </div>
                 {/* QR mockup */}
                 <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/30 rounded-xl p-4 flex items-center gap-4">
-                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0 text-3xl">
-                    ▦
+                  <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0 p-1.5">
+                    <QRCodeSVG value="https://www.techchurras.com.br" size={56} level="L" />
                   </div>
                   <div>
                     <p className="text-xs text-orange-400 font-semibold">Seu QR code exclusivo</p>
@@ -352,7 +352,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 {[
                   { valor: 'Gov. Zanzibar', label: 'Parceiro institucional', icon: '🏛️' },
                   { valor: '06/07/2026', label: 'Lançamento Tech Churras', icon: '🚀' },
-                  { valor: '1 por região', label: 'Vagas Parceiro Fundador', icon: '🏅' },
+                  { valor: '1 mês grátis', label: 'Todo Açougue Embaixador', icon: '🏅' },
                   { valor: 'R$ 15 bi', label: 'Mercado de churrasco/ano', icon: '📈' },
                 ].map(s => (
                   <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
@@ -987,7 +987,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 onClick={() => Events.clickWhatsApp('para-acougues-footer')}
                 className="flex items-center justify-center gap-2 border border-gray-700 hover:border-orange-500/50 hover:bg-orange-500/5 text-white font-medium px-10 py-4 rounded-xl text-lg transition-colors"
               >
-                💬 Falar no WhatsApp
+                💬 Falar com Jota Albuquerque
               </a>
             </div>
             <p className="text-sm text-gray-600 mt-6">
