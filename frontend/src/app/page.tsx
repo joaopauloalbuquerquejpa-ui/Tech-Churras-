@@ -113,6 +113,7 @@ const PERSONAS = [
     titulo: 'Mais receita. Marketing orgânico. Zero logística.',
     items: [
       'Seus clientes já passam pelo balcão — converta-os em pedidos recorrentes',
+      'Fotos e legendas prontas pro seu Instagram, geradas por IA — de graça',
       'Marketing orgânico: apareça para quem já está montando o churrasco',
       'Receita adicional por evento, repasse semanal via PIX',
       'Saia na frente dos concorrentes — seja o primeiro da sua cidade',
