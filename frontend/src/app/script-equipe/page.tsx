@@ -157,6 +157,13 @@ export default function ScriptEquipe() {
               maioria. Pergunte antes: "Vocês postam no Instagram? Com que frequência?" — se a
               resposta for "quase nunca" ou "não tenho tempo", esse é o momento de ouro.
             </Dica>
+            <Fala>
+              E pensa no médio prazo: toda festa que sai carne do seu açougue, o convidado
+              pergunta de onde veio aquele corte — o nome de vocês circula na boca de gente
+              que também vai querer comprar. E quando os pedidos crescerem toda semana, o
+              açougue pode até ter o próprio churrasqueiro chancelado pelo Jota — aí fica com
+              100% do faturamento, da carne à mão de obra.
+            </Fala>
           </div>
 
           {/* Passo 3 */}
@@ -167,9 +174,9 @@ export default function ScriptEquipe() {
               <div className="space-y-2 text-sm text-gray-300">
                 <p>📱 Abrir <strong>techchurras.com.br/pitch-acougue</strong></p>
                 <p>→ Mostrar os três números: R$0, 10%, PIX</p>
-                <p>→ Rolar até "Como funciona" e explicar os 4 passos</p>
+                <p>→ Rolar até "5 fontes de renda" — explicar cada uma, do dia 1 até o próprio churrasqueiro</p>
+                <p>→ Rolar até "Como funciona" e explicar os 3 passos</p>
                 <p>→ Mostrar a estimativa de renda (5 / 20 / 40 eventos)</p>
-                <p>→ Rolar até "Ninguém mais oferece isso" — mostrar a divulgação com IA de graça</p>
                 <p>→ Mostrar o Pacote Fundador — enfatizar "só 5 vagas em SP, 1 por região"</p>
               </div>
             </div>

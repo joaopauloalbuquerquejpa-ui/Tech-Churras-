@@ -64,6 +64,93 @@ export default function PitchAcougue() {
         <p className="text-xs text-gray-600 text-center">* Primeiros 5 parceiros fundadores: R$ 369/mês · Demais: R$ 497/mês</p>
       </section>
 
+      {/* ── 5 FONTES DE FATURAMENTO ── */}
+      <section className="px-5 py-8 border-t border-gray-900">
+        <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-1">O que muda no seu faturamento</p>
+        <h2 className="font-black text-white text-xl leading-tight mb-6">5 fontes de renda — de hoje até o seu próprio churrasqueiro</h2>
+        <div className="space-y-5">
+          {[
+            {
+              n: '1', icon: '🥩',
+              titulo: 'Venda de carne recorrente',
+              desc: 'Cada evento fechado no app é pedido garantido de carne — ticket de R$ 250 a R$ 1.000, direto no seu açougue, toda semana.',
+            },
+            {
+              n: '2', icon: '📸',
+              titulo: 'Marketing de graça, todo mês',
+              desc: 'Manda uma foto real do balcão ou de um corte e a IA devolve pronto o post com legenda pro seu Instagram. Sem agência, sem custo extra.',
+            },
+            {
+              n: '3', icon: '🗣️',
+              titulo: 'Sua marca na boca de quem estava na festa',
+              desc: 'Todo churrasco que sai do seu açougue vira prova social ao vivo. O convidado pergunta de onde veio aquela carne — e o nome do seu açougue circula entre dezenas de pessoas que também vão querer comprar.',
+            },
+            {
+              n: '4', icon: '🥗',
+              titulo: 'Acompanhamentos: receita que não existia',
+              desc: 'Farofa, vinagrete, arroz, molhos — venda também os acompanhamentos de cada evento e aumente o ticket médio sem custo de aquisição de cliente.',
+            },
+            {
+              n: '5', icon: '👨‍🍳',
+              titulo: 'O passo seguinte: seu próprio churrasqueiro',
+              desc: 'Com o volume de pedidos crescendo semana a semana, seu açougue pode ter um churrasqueiro chancelado pelo próprio Jota Albuquerque. Carne e mão de obra saindo do mesmo lugar — 100% do faturamento do evento fica com vocês, tudo validado pela Tech Churras.',
+              destaque: true,
+            },
+          ].map(s => (
+            <div key={s.n} className={'flex gap-4 items-start rounded-2xl p-4 ' + (s.destaque ? 'bg-amber-500/10 border border-amber-500/30' : '')}>
+              <div className={'w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ' + (s.destaque ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-orange-500/10 border border-orange-500/20')}>
+                {s.icon}
+              </div>
+              <div>
+                <p className={'font-bold text-sm ' + (s.destaque ? 'text-amber-300' : 'text-white')}>{s.n}. {s.titulo}</p>
+                <p className="text-gray-400 text-sm mt-1 leading-relaxed">{s.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* A conta na prática */}
+        <div className="mt-6 bg-green-500/5 border border-green-500/20 rounded-2xl p-5">
+          <p className="text-xs text-green-400 font-bold uppercase tracking-wide mb-2">A conta na prática — só com venda de carne</p>
+          <p className="text-xs text-gray-500 leading-relaxed mb-4">
+            Evento mínimo: 10 convidados × ~475g de proteína por pessoa = 4,75kg de carne.
+            Com preço médio de R$ 74/kg (mix de cortes), dá <strong className="text-white">~R$ 350 por evento</strong>.
+            Você fica com <strong className="text-white">90%</strong> disso — os outros 10% são a comissão da Tech Churras.
+            Isso é o piso: eventos maiores que 10 pessoas rendem mais.
+          </p>
+          <div className="overflow-x-auto -mx-1">
+            <table className="w-full text-sm min-w-[420px]">
+              <thead>
+                <tr className="text-gray-500 text-[11px] uppercase tracking-wide">
+                  <th className="text-left font-semibold pb-2 pl-1">Eventos/semana</th>
+                  <th className="text-left font-semibold pb-2">≈ Eventos/mês</th>
+                  <th className="text-right font-semibold pb-2">Fatura em carne</th>
+                  <th className="text-right font-semibold pb-2 pr-1">Você recebe (90%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { semana: 2,  mes: 9,   bruto: 3150,  liquido: 2835 },
+                  { semana: 5,  mes: 22,  bruto: 7700,  liquido: 6930 },
+                  { semana: 10, mes: 43,  bruto: 15050, liquido: 13545 },
+                  { semana: 20, mes: 87,  bruto: 30450, liquido: 27405 },
+                  { semana: 30, mes: 130, bruto: 45500, liquido: 40950 },
+                  { semana: 40, mes: 173, bruto: 60550, liquido: 54495 },
+                ].map((r, i) => (
+                  <tr key={r.semana} className={i % 2 === 0 ? 'bg-black/20' : ''}>
+                    <td className="py-2 pl-1 font-bold text-white">{r.semana}</td>
+                    <td className="py-2 text-gray-400">{r.mes}</td>
+                    <td className="py-2 text-right text-gray-300">R$ {r.bruto.toLocaleString('pt-BR')}</td>
+                    <td className="py-2 pr-1 text-right font-black text-green-400">R$ {r.liquido.toLocaleString('pt-BR')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[11px] text-gray-600 mt-3">* Estimativa conservadora, considerando só o evento mínimo (10 convidados) e apenas a venda de carne — não inclui acompanhamentos nem indicações.</p>
+        </div>
+      </section>
+
       {/* ── COMO FUNCIONA ── */}
       <section className="px-5 py-8 border-t border-gray-900">
         <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-5">Como funciona</p>
@@ -98,18 +185,15 @@ export default function PitchAcougue() {
         </div>
       </section>
 
-      {/* ── QUANTO VOCÊ GANHA ── */}
+      {/* ── FERRAMENTAS INCLUSAS ── */}
       <section className="px-5 py-8 border-t border-gray-900">
-        <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-5">O que você ganha</p>
+        <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-5">E tem mais — ferramentas inclusas</p>
 
         <div className="space-y-3 mb-6">
           {[
-            { icon: '🥩', texto: 'Faturamento com venda de carnes e acompanhamentos para cada evento' },
             { icon: '💰', texto: 'R$ 40 de bônus por cada cliente novo que você indicar via QR code' },
-            { icon: '📈', texto: 'Marketing orgânico: seu açougue aparece para quem está planejando churrasco' },
             { icon: '🏅', texto: 'Badge "Açougue Parceiro" verificado no app — diferencial frente a concorrentes' },
             { icon: '📊', texto: 'Dashboard com pedidos, faturamento e previsão de demanda em tempo real' },
-            { icon: '📸', texto: 'Conteúdo pronto pra Instagram, de graça: manda uma foto real do balcão e a IA escreve a legenda pra você' },
           ].map(item => (
             <div key={item.texto} className="flex gap-3 items-start">
               <span className="text-lg shrink-0">{item.icon}</span>
@@ -136,26 +220,6 @@ export default function PitchAcougue() {
             ))}
           </div>
           <p className="text-xs text-gray-600 mt-3">* Ticket médio de R$ 280 por evento. Estimativa.</p>
-        </div>
-      </section>
-
-      {/* ── DIFERENCIAL: IA PRA INSTAGRAM ── */}
-      <section className="px-5 py-8 border-t border-gray-900">
-        <div className="bg-gray-900 border border-orange-500/30 rounded-2xl p-5">
-          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-orange-400 mb-4">
-            Ninguém mais oferece isso
-          </div>
-          <p className="font-black text-white text-lg leading-tight mb-2">
-            Seu açougue sem Instagram ativo? A gente resolve isso de graça.
-          </p>
-          <p className="text-gray-400 text-sm leading-relaxed mb-4">
-            Manda uma foto real da sua fachada, de um corte, da vitrine — a inteligência artificial da Tech Churras
-            escreve a legenda pronta e devolve a imagem já com a identidade do seu açougue. Você baixa e posta.
-            Sem agência, sem mensalidade extra, sem enrolação.
-          </p>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span className="text-green-400">✓</span> Incluso pra todo açougue parceiro, desde o primeiro dia
-          </div>
         </div>
       </section>
 
@@ -204,6 +268,25 @@ export default function PitchAcougue() {
             <p className="font-black text-white text-lg leading-tight">Jota Albuquerque</p>
             <p className="text-xs text-gray-500">Fundador & CEO · 13 anos de Jota BBQ Eventos</p>
             <p className="text-xs text-orange-400 mt-1">Madonna · Lady Gaga · Neymar</p>
+            <div className="flex items-center gap-3 mt-2">
+              <a
+                href="https://www.instagram.com/jota.grillmaster"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-gray-400 hover:text-orange-400 underline underline-offset-2"
+              >
+                📷 @jota.grillmaster
+              </a>
+              <a
+                href="https://www.linkedin.com/in/jo%C3%A3o-jota-albuquerque-8610b5161/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-gray-400 hover:text-orange-400 underline underline-offset-2"
+              >
+                💼 LinkedIn
+              </a>
+            </div>
+            <p className="text-[10px] text-gray-600 mt-1">Pode verificar quem eu sou — perfil real, sem letra miúda.</p>
           </div>
         </div>
 
