@@ -278,7 +278,7 @@ export default function PitchAcougue() {
                 📷 @jota.grillmaster
               </a>
               <a
-                href="https://www.linkedin.com/in/jo%C3%A3o-jota-albuquerque-8610b5161/"
+                href="https://www.linkedin.com/in/jo%C3%A3o-jota-albuquerque-/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-gray-400 hover:text-orange-400 underline underline-offset-2"
