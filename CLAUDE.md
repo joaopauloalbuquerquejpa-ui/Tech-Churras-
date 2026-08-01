@@ -54,11 +54,10 @@ O cliente contrata um churrasco completo. O Grill Master executa. O açougue for
 **Fontes de receita da plataforma:**
 - **7% da mão de obra do GM** por pedido concluído (GM recebe 93%)
 - **10% das carnes do açougue** por pedido concluído
-- **Mensalidade do açougue:** R$369/mês primeiros 5 fundadores (janela 06/07–06/08/2026) · R$497/mês demais
+- **Mensalidade do açougue:** R$369/mês pra todo parceiro · 1º mês grátis pra novos ("Açougue Embaixador")
 
 **Perfis:**
-- **Açougue Fundador (5 vagas):** R$369/mês + 10% comissão. 1 por região em SP. Período gratuito de 3 meses.
-- **Açougue Padrão (a partir do 6º):** R$497/mês + 10% comissão.
+- **Açougue Embaixador:** R$369/mês + 10% comissão. Aberto a qualquer novo açougue, sem exclusividade regional. 1º mês grátis pra todos verem que a plataforma funciona.
 - **Grill Master:** define própria mão de obra por hora · plataforma retém 7% · GM recebe 93%
 - **Cliente:** paga pelo churrasco via Mercado Pago
 

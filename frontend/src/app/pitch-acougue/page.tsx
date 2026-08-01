@@ -84,7 +84,7 @@ export default function PitchAcougue() {
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-600 text-center">* Primeiros 5 parceiros fundadores: R$ 369/mês · Demais: R$ 497/mês</p>
+        <p className="text-xs text-gray-600 text-center">* Mensalidade R$ 369/mês pra todo açougue parceiro · 1º mês grátis como Açougue Embaixador</p>
       </section>
 
       {/* ── QUEM ESTÁ POR TRÁS ── */}
@@ -124,6 +124,13 @@ export default function PitchAcougue() {
             </div>
           </div>
           <p className="text-[11px] text-gray-500 mb-4">Verifique você mesmo quem está te chamando — perfil real, sem letra miúda.</p>
+
+          {/* Fotos reais — prova visual, sem IA */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <img src="/churrasco-real-1.jpg" alt="Jota Albuquerque preparando um corte nobre" className="w-full h-32 object-cover rounded-xl" />
+            <img src="/churrasco-real-2.jpg" alt="Corte com folha de ouro preparado pelo Jota" className="w-full h-32 object-cover rounded-xl" />
+          </div>
+          <p className="text-[10px] text-gray-600 mb-4">Fotos reais de eventos — nada gerado por IA.</p>
 
           <div className="bg-black/40 border border-amber-500/20 rounded-xl p-4 mb-4">
             <div className="flex items-center gap-2 mb-2">
