@@ -92,6 +92,10 @@ interface Kit {
   minGuests: number; maxGuests: number; items: string
 }
 
+interface SocialPost {
+  id: string; imageUrl: string; caption: string; context?: string | null; createdAt: string
+}
+
 const CATEGORIES: Record<string, string> = {
   CARNE: 'Carne', SAL_TEMPERO: 'Sal e Tempero', CARVAO: 'Carvão',
   ACOMPANHAMENTO: 'Acompanhamento', BEBIDA: 'Bebida', OUTRO: 'Outro',
@@ -118,7 +122,7 @@ const emptyKitForm = {
   price: 0, discountPrice: 0, coverImageUrl: '',
 }
 
-type Tab = 'overview' | 'referrals' | 'balcao' | 'produtos'
+type Tab = 'overview' | 'referrals' | 'balcao' | 'produtos' | 'conteudo'
 
 function priceLabel(unit: string) {
   if (unit === 'kg') return 'Preço por kg (R$)'
@@ -180,7 +184,25 @@ export default function BoutiqueDashboardPage() {
   const [uploadingKitPhoto, setUploadingKitPhoto] = useState(false)
   const kitPhotoRef = useRef<HTMLInputElement>(null)
 
+  // ── Divulgação (conteúdo de redes sociais com fotos reais) ────────────
+  const [contentPreviewUrl, setContentPreviewUrl] = useState('')
+  const [contentContext, setContentContext] = useState('')
+  const [generatingPost, setGeneratingPost] = useState(false)
+  const [postError, setPostError] = useState('')
+  const [currentPost, setCurrentPost] = useState<SocialPost | null>(null)
+  const [editableCaption, setEditableCaption] = useState('')
+  const [brandedImageUrl, setBrandedImageUrl] = useState('')
+  const [copiedCaption, setCopiedCaption] = useState(false)
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([])
+  const [loadingPosts, setLoadingPosts] = useState(false)
+  const [postsLoaded, setPostsLoaded] = useState(false)
+  const contentPhotoRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => { fetchAll() }, [])
+
+  useEffect(() => {
+    if (activeTab === 'conteudo' && !postsLoaded) fetchSocialPosts()
+  }, [activeTab, postsLoaded])
 
   async function fetchAll() {
     try {
@@ -378,6 +400,122 @@ export default function BoutiqueDashboardPage() {
     }
   }
 
+  async function fetchSocialPosts() {
+    setLoadingPosts(true)
+    try {
+      const res = await fetch(API_URL + '/ai/social-posts', { headers: { Authorization: 'Bearer ' + getToken() } })
+      if (res.ok) setSocialPosts(await res.json())
+    } finally {
+      setLoadingPosts(false)
+      setPostsLoaded(true)
+    }
+  }
+
+  function renderBrandedImage(imageUrl: string, name: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          canvas.width = img.width
+          canvas.height = img.height
+          const ctx = canvas.getContext('2d')
+          if (!ctx) { reject(new Error('canvas indisponível')); return }
+          ctx.drawImage(img, 0, 0)
+
+          const scrimHeight = Math.round(canvas.height * 0.3)
+          const grad = ctx.createLinearGradient(0, canvas.height - scrimHeight, 0, canvas.height)
+          grad.addColorStop(0, 'rgba(10,8,6,0)')
+          grad.addColorStop(1, 'rgba(10,8,6,0.82)')
+          ctx.fillStyle = grad
+          ctx.fillRect(0, canvas.height - scrimHeight, canvas.width, scrimHeight)
+
+          const baseX = canvas.width * 0.055
+          const baseY = canvas.height - canvas.height * 0.065
+          const nameSize = Math.round(canvas.width * 0.05)
+          const tagSize = Math.round(nameSize * 0.42)
+
+          ctx.textBaseline = 'alphabetic'
+          ctx.fillStyle = '#ff7a3d'
+          ctx.font = `700 ${tagSize}px Arial, sans-serif`
+          ctx.fillText('TECH CHURRAS · PARCEIRO', baseX, baseY - nameSize - 6)
+
+          ctx.fillStyle = '#ffffff'
+          ctx.font = `800 ${nameSize}px Arial, sans-serif`
+          ctx.fillText(name, baseX, baseY)
+
+          resolve(canvas.toDataURL('image/jpeg', 0.92))
+        } catch (err) { reject(err) }
+      }
+      img.onerror = () => reject(new Error('Não foi possível carregar a imagem'))
+      img.src = imageUrl
+    })
+  }
+
+  async function handleContentPhotoSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setContentPreviewUrl(URL.createObjectURL(file))
+    setCurrentPost(null)
+    setBrandedImageUrl('')
+    setPostError('')
+    await generateSocialPost(file)
+  }
+
+  async function generateSocialPost(file: File) {
+    setGeneratingPost(true)
+    setPostError('')
+    try {
+      const compressed = await compressImage(file)
+      const fd = new FormData()
+      fd.append('context', contentContext)
+      fd.append('file', compressed, 'foto.jpg')
+      const res = await fetch(API_URL + '/ai/social-post', {
+        method: 'POST',
+        headers: { Authorization: 'Bearer ' + getToken() },
+        body: fd,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Falha ao gerar post')
+      setCurrentPost(data)
+      setEditableCaption(data.caption)
+      setSocialPosts(prev => [data, ...prev])
+      try {
+        const branded = await renderBrandedImage(data.imageUrl, boutique?.name || '')
+        setBrandedImageUrl(branded)
+      } catch { /* preview sem moldura ainda funciona */ }
+    } catch (err: any) {
+      setPostError(err.message || 'Erro ao gerar conteúdo')
+    } finally {
+      setGeneratingPost(false)
+      if (contentPhotoRef.current) contentPhotoRef.current.value = ''
+    }
+  }
+
+  function copyCaption() {
+    if (!editableCaption) return
+    navigator.clipboard.writeText(editableCaption)
+    setCopiedCaption(true)
+    setTimeout(() => setCopiedCaption(false), 2000)
+  }
+
+  function downloadBrandedImage() {
+    if (!brandedImageUrl) return
+    const a = document.createElement('a')
+    a.href = brandedImageUrl
+    a.download = 'tech-churras-post.jpg'
+    a.click()
+  }
+
+  async function deleteSocialPost(id: string) {
+    if (!confirm('Remover este post do histórico?')) return
+    const res = await fetch(API_URL + '/ai/social-posts/' + id, {
+      method: 'DELETE', headers: { Authorization: 'Bearer ' + getToken() },
+    })
+    if (res.ok) setSocialPosts(prev => prev.filter(p => p.id !== id))
+  }
+
   async function submitKit() {
     if (!kitForm.name || kitForm.price <= 0) { alert('Preencha nome e preço'); return }
     setSubmittingKit(true)
@@ -572,6 +710,7 @@ export default function BoutiqueDashboardPage() {
     { id: 'referrals', label: 'Indicações', icon: GiftIcon },
     { id: 'balcao', label: 'Balcão', icon: StoreIcon },
     { id: 'produtos', label: 'Produtos', icon: MeatIcon },
+    { id: 'conteudo', label: 'Divulgação', icon: CameraIcon },
   ]
 
   return (
@@ -1662,6 +1801,114 @@ export default function BoutiqueDashboardPage() {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════ DIVULGAÇÃO */}
+      {activeTab === 'conteudo' && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/40 rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-1">
+              <CameraIcon size={20} className="text-orange-400" />
+              <h2 className="font-bold text-white">Conteúdo pra Instagram — de graça, com foto de verdade</h2>
+            </div>
+            <p className="text-xs text-gray-400">
+              Manda uma foto real da sua loja (fachada, corte, vitrine, bastidor) e a IA escreve a legenda pra você. Baixa a imagem já com sua marca e posta direto no seu Instagram.
+            </p>
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
+            <div>
+              <label className="block text-xs text-gray-400 mb-1.5">Contexto (opcional) — o que é a foto?</label>
+              <input
+                type="text"
+                value={contentContext}
+                onChange={e => setContentContext(e.target.value)}
+                placeholder="Ex: picanha maturada 21 dias, fachada nova, chegada de wagyu..."
+                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-gray-600"
+              />
+            </div>
+
+            <input ref={contentPhotoRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleContentPhotoSelect} />
+            <button
+              onClick={() => contentPhotoRef.current?.click()}
+              disabled={generatingPost}
+              className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <CameraIcon size={18} />
+              {generatingPost ? 'Gerando conteúdo...' : 'Enviar foto real e gerar post'}
+            </button>
+
+            {postError && <p className="text-xs text-red-400">{postError}</p>}
+
+            {generatingPost && contentPreviewUrl && (
+              <div className="flex items-center gap-3 bg-gray-800/60 rounded-xl p-3">
+                <img src={contentPreviewUrl} alt="preview" className="w-16 h-16 rounded-lg object-cover opacity-60" />
+                <p className="text-xs text-gray-400">Analisando sua foto e escrevendo a legenda...</p>
+              </div>
+            )}
+
+            {currentPost && !generatingPost && (
+              <div className="border border-orange-500/30 bg-orange-500/5 rounded-2xl p-4 space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs text-gray-500 mb-1.5">Imagem com sua marca</p>
+                    {brandedImageUrl ? (
+                      <img src={brandedImageUrl} alt="post" className="w-full rounded-xl border border-gray-800" />
+                    ) : (
+                      <img src={currentPost.imageUrl} alt="post" className="w-full rounded-xl border border-gray-800" />
+                    )}
+                    <button
+                      onClick={downloadBrandedImage}
+                      disabled={!brandedImageUrl}
+                      className="mt-2 w-full bg-gray-800 hover:bg-gray-700 disabled:opacity-40 text-gray-200 text-sm font-semibold py-2 rounded-lg transition-colors"
+                    >
+                      ⬇️ Baixar imagem
+                    </button>
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-xs text-gray-500 mb-1.5">Legenda (edite se quiser)</p>
+                    <textarea
+                      value={editableCaption}
+                      onChange={e => setEditableCaption(e.target.value)}
+                      rows={8}
+                      className="flex-1 w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5 text-sm text-white resize-none"
+                    />
+                    <button
+                      onClick={copyCaption}
+                      className="mt-2 w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold py-2 rounded-lg transition-colors"
+                    >
+                      {copiedCaption ? (<span className="inline-flex items-center justify-center gap-1"><CheckIcon size={14} /> Copiado</span>) : 'Copiar legenda'}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-gray-600 text-center">Baixa a imagem e cola a legenda direto no seu Instagram — pronto.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <p className="text-sm font-semibold text-white mb-3">Seus posts gerados</p>
+            {loadingPosts ? (
+              <p className="text-xs text-gray-500">Carregando...</p>
+            ) : socialPosts.length === 0 ? (
+              <p className="text-xs text-gray-500">Nenhum post gerado ainda — manda sua primeira foto acima.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {socialPosts.map(p => (
+                  <div key={p.id} className="bg-gray-800 rounded-xl overflow-hidden group relative">
+                    <img src={p.imageUrl} alt="" className="w-full h-28 object-cover" />
+                    <button
+                      onClick={() => deleteSocialPost(p.id)}
+                      className="absolute top-1.5 right-1.5 bg-black/60 hover:bg-red-600 text-white text-xs w-6 h-6 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Remover"
+                    >×</button>
+                    <p className="text-[10px] text-gray-500 px-2 py-1.5 truncate">{new Date(p.createdAt).toLocaleDateString('pt-BR')}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -147,13 +147,26 @@ model Boutique {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  user     User           @relation(fields: [userId], references: [id])
-  products Product[]
-  orders   Order[]
-  kits     KitChurrasco[]
-  reviews  Review[]
+  user        User           @relation(fields: [userId], references: [id])
+  products    Product[]
+  orders      Order[]
+  kits        KitChurrasco[]
+  reviews     Review[]
+  socialPosts SocialPost[]
 
   @@index([city, state, approved])
+}
+
+model SocialPost {
+  id         String   @id @default(uuid())
+  boutiqueId String
+  boutique   Boutique @relation(fields: [boutiqueId], references: [id])
+  imageUrl   String
+  caption    String
+  context    String?
+  createdAt  DateTime @default(now())
+
+  @@index([boutiqueId])
 }
 
 model KitChurrasco {

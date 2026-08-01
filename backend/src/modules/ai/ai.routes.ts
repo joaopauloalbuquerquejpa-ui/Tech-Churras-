@@ -5,14 +5,20 @@ import { authenticate } from '../../middlewares/auth.middleware'
 import { geocodeAddress } from '../../utils/geo'
 import { findNearbyBoutiques } from '../boutiques/boutiques.service'
 import { findNearbyGrillmasters } from '../grillmasters/grillmasters.service'
+import { prisma } from '../../config/prisma'
 
 // Rate limit em memória por usuário para /ai/suggest-product (upload de imagem)
 const suggestRateLimits = new Map<string, { count: number; resetAt: number }>()
+// Reusa a mesma estrutura de rate limit para /ai/social-post (também é upload de imagem)
+const socialPostRateLimits = new Map<string, { count: number; resetAt: number }>()
 // Limpa entradas expiradas a cada 10 minutos para evitar crescimento ilimitado
 setInterval(() => {
   const now = Date.now()
   for (const [key, val] of suggestRateLimits) {
     if (now >= val.resetAt) suggestRateLimits.delete(key)
+  }
+  for (const [key, val] of socialPostRateLimits) {
+    if (now >= val.resetAt) socialPostRateLimits.delete(key)
   }
 }, 10 * 60 * 1000)
 
@@ -610,5 +616,125 @@ REGRAS:
     } catch {
       return reply.status(500).send({ error: 'Falha ao processar sugestão', raw: raw.slice(0, 300) })
     }
+  })
+
+  // ── POST /ai/social-post ─────────────────────────────────────────────
+  // Açougue envia uma foto REAL (fachada, corte, vitrine) e recebe uma
+  // legenda pronta pra postar. Nenhuma imagem é gerada por IA — só a
+  // legenda, a partir do que a IA vê na própria foto do parceiro.
+  app.post('/ai/social-post', { preHandler: [authenticate] }, async (request, reply) => {
+    const userId = (request as any).user?.id as string
+
+    const now = Date.now()
+    const rl = socialPostRateLimits.get(userId)
+    if (rl && now < rl.resetAt) {
+      if (rl.count >= 15) return reply.status(429).send({ error: 'Muitas requisições. Aguarde 1 minuto.' })
+      rl.count++
+    } else {
+      socialPostRateLimits.set(userId, { count: 1, resetAt: now + 60_000 })
+    }
+
+    const boutique = await prisma.boutique.findUnique({ where: { userId } })
+    if (!boutique) return reply.status(403).send({ error: 'Você precisa ter um açougue cadastrado' })
+
+    try {
+      const data = await request.file()
+      if (!data) return reply.status(400).send({ error: 'Nenhuma imagem enviada' })
+
+      const ALLOWED = ['image/jpeg', 'image/png', 'image/webp']
+      if (!ALLOWED.includes(data.mimetype)) {
+        return reply.status(400).send({ error: 'Formato inválido. Use JPG, PNG ou WebP.' })
+      }
+
+      const fields = data.fields as Record<string, { value?: string }>
+      const context = typeof fields?.context?.value === 'string' ? fields.context.value.slice(0, 200) : ''
+
+      const buffer = await data.toBuffer()
+      if (buffer.byteLength > 8 * 1024 * 1024) {
+        return reply.status(400).send({ error: 'Imagem muito grande. Máximo 8MB.' })
+      }
+
+      const supabaseUrl = process.env.SUPABASE_URL
+      const supabaseKey = process.env.SUPABASE_SERVICE_KEY
+      if (!supabaseUrl || !supabaseKey) return reply.status(500).send({ error: 'Supabase não configurado' })
+
+      const supabase = createClient(supabaseUrl, supabaseKey)
+      const ext = (data.filename?.split('.').pop() || 'jpg').toLowerCase()
+      const fileName = `social-${boutique.id}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: uploadErr } = await supabase.storage
+        .from('partner-images')
+        .upload(fileName, buffer, { contentType: data.mimetype, upsert: false })
+      if (uploadErr) return reply.status(500).send({ error: uploadErr.message })
+      const { data: { publicUrl: imageUrl } } = supabase.storage.from('partner-images').getPublicUrl(fileName)
+
+      const base64 = buffer.toString('base64')
+      const mediaType = data.mimetype as 'image/jpeg' | 'image/png' | 'image/webp'
+
+      const SOCIAL_SYSTEM = `Você é especialista em redes sociais para açougues e boutiques de carne no Brasil. Olhe a foto REAL enviada pelo parceiro (fachada, corte, vitrine, bastidor) e escreva uma legenda pronta para postar no Instagram.
+
+REGRAS:
+- Baseie-se SOMENTE no que você vê na foto — não invente produtos ou promoções que não aparecem
+- Tom: caloroso, artesanal, orgulhoso do produto — nunca genérico ou robótico
+- 2-4 frases curtas + 3-5 hashtags relevantes ao final (ex: #açougue #churrasco #carnenobre + algo específico da cidade se souber)
+- Pode usar 1-2 emojis, sem exagero
+- Não mencione preços (o parceiro edita isso separadamente)
+- Se o contexto informado pelo parceiro ajudar, incorpore-o naturalmente
+Responda SOMENTE com o texto da legenda, nada mais — sem aspas, sem markdown.`
+
+      const userText = `Açougue: ${boutique.name}${boutique.city ? ` (${boutique.city}/${boutique.state})` : ''}${context ? `\nContexto informado pelo parceiro: ${context}` : ''}`
+
+      const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+      const message = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 300,
+        system: SOCIAL_SYSTEM,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+            { type: 'text', text: userText },
+          ],
+        }],
+      })
+
+      const caption = message.content[0].type === 'text' ? message.content[0].text.trim() : ''
+      if (!caption) return reply.status(500).send({ error: 'Falha ao gerar legenda. Tente novamente.' })
+
+      const post = await prisma.socialPost.create({
+        data: { boutiqueId: boutique.id, imageUrl, caption, context: context || null },
+      })
+
+      return reply.send(post)
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Falha ao gerar post', details: err.message })
+    }
+  })
+
+  // ── GET /ai/social-posts ─────────────────────────────────────────────
+  app.get('/ai/social-posts', { preHandler: [authenticate] }, async (request, reply) => {
+    const userId = (request as any).user?.id as string
+    const boutique = await prisma.boutique.findUnique({ where: { userId } })
+    if (!boutique) return reply.status(403).send({ error: 'Você precisa ter um açougue cadastrado' })
+
+    const posts = await prisma.socialPost.findMany({
+      where: { boutiqueId: boutique.id },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+    })
+    return reply.send(posts)
+  })
+
+  // ── DELETE /ai/social-posts/:id ──────────────────────────────────────
+  app.delete('/ai/social-posts/:id', { preHandler: [authenticate] }, async (request, reply) => {
+    const userId = (request as any).user?.id as string
+    const { id } = request.params as { id: string }
+    const boutique = await prisma.boutique.findUnique({ where: { userId } })
+    if (!boutique) return reply.status(403).send({ error: 'Você precisa ter um açougue cadastrado' })
+
+    const post = await prisma.socialPost.findUnique({ where: { id } })
+    if (!post || post.boutiqueId !== boutique.id) return reply.status(404).send({ error: 'Post não encontrado' })
+
+    await prisma.socialPost.delete({ where: { id } })
+    return reply.send({ ok: true })
   })
 }
