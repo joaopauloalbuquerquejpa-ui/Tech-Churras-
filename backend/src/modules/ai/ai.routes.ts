@@ -78,6 +78,17 @@ REGRAS ESTRITAS DO JSON:
 Schema exato (copie estrutura):
 {"intro":"string","totalKg":0,"estimatedCost":0,"items":[{"category":"CARNE","name":"string","quantity":0,"unit":"kg","reason":"string","estimatedPrice":0,"priority":"essencial"}],"tips":["string"],"schedule":"string","howItsMade":[{"name":"string","origin":"string","description":"string"}]}`
 
+// Detecta o tipo real pelos magic bytes — nunca confia só no Content-Type
+// declarado pelo cliente no multipart, que é fácil de forjar.
+function detectMagicMime(buf: Buffer): string | null {
+  if (buf.length < 12) return null
+  if (buf[0] === 0xFF && buf[1] === 0xD8 && buf[2] === 0xFF) return 'image/jpeg'
+  if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4E && buf[3] === 0x47) return 'image/png'
+  if (buf.slice(0, 4).toString('ascii') === 'RIFF' && buf.slice(8, 12).toString('ascii') === 'WEBP') return 'image/webp'
+  return null
+}
+const MAGIC_MIME_EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+
 // Normaliza category e priority para os enums esperados pelo frontend
 function normalizeItem(item: Record<string, unknown>): Record<string, unknown> {
   const catMap: Record<string, string> = {
@@ -636,6 +647,7 @@ REGRAS:
 
     const boutique = await prisma.boutique.findUnique({ where: { userId } })
     if (!boutique) return reply.status(403).send({ error: 'Você precisa ter um açougue cadastrado' })
+    if (!boutique.approved) return reply.status(403).send({ error: 'Seu açougue ainda não foi aprovado' })
 
     try {
       const data = await request.file()
@@ -654,21 +666,26 @@ REGRAS:
         return reply.status(400).send({ error: 'Imagem muito grande. Máximo 8MB.' })
       }
 
+      const realMime = detectMagicMime(buffer)
+      if (!realMime) {
+        return reply.status(400).send({ error: 'Arquivo não reconhecido como imagem válida.' })
+      }
+
       const supabaseUrl = process.env.SUPABASE_URL
       const supabaseKey = process.env.SUPABASE_SERVICE_KEY
       if (!supabaseUrl || !supabaseKey) return reply.status(500).send({ error: 'Supabase não configurado' })
 
       const supabase = createClient(supabaseUrl, supabaseKey)
-      const ext = (data.filename?.split('.').pop() || 'jpg').toLowerCase()
+      const ext = MAGIC_MIME_EXT[realMime]
       const fileName = `social-${boutique.id}-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error: uploadErr } = await supabase.storage
         .from('partner-images')
-        .upload(fileName, buffer, { contentType: data.mimetype, upsert: false })
+        .upload(fileName, buffer, { contentType: realMime, upsert: false })
       if (uploadErr) return reply.status(500).send({ error: uploadErr.message })
       const { data: { publicUrl: imageUrl } } = supabase.storage.from('partner-images').getPublicUrl(fileName)
 
       const base64 = buffer.toString('base64')
-      const mediaType = data.mimetype as 'image/jpeg' | 'image/png' | 'image/webp'
+      const mediaType = realMime as 'image/jpeg' | 'image/png' | 'image/webp'
 
       const SOCIAL_SYSTEM = `Você é especialista em redes sociais para açougues e boutiques de carne no Brasil. Olhe a foto REAL enviada pelo parceiro (fachada, corte, vitrine, bastidor) e escreva uma legenda pronta para postar no Instagram.
 

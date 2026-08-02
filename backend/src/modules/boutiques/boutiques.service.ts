@@ -127,7 +127,14 @@ export async function listBoutiques(params: {
   const orderBy: any = sortBy === 'name_asc' ? { name: 'asc' } : { rating: 'desc' }
   const boutiques = await prisma.boutique.findMany({
     where,
-    include: { user: { select: { name: true, email: true } } },
+    select: {
+      id: true, name: true, description: true, city: true, state: true, address: true,
+      phone: true, latitude: true, longitude: true, rating: true, approved: true, open: true,
+      logoUrl: true, facadeUrl: true, galleryUrls: true, instagram: true, openingHours: true,
+      deliveryOrPickup: true, createdAt: true,
+      user: { select: { name: true, email: true } },
+      // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
+    },
     orderBy,
   })
 
@@ -165,9 +172,14 @@ export async function findNearbyBoutiques(lat: number, lng: number, radiusKm = 1
 export async function getBoutiqueById(id: string) {
   const boutique = await prisma.boutique.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true, name: true, description: true, city: true, state: true, address: true,
+      phone: true, latitude: true, longitude: true, rating: true, approved: true, open: true,
+      logoUrl: true, facadeUrl: true, galleryUrls: true, instagram: true, openingHours: true,
+      deliveryOrPickup: true, createdAt: true,
       user: { select: { name: true, email: true } },
       products: { where: { available: true } },
+      // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
     },
   })
   if (!boutique) throw new Error('Acougue nao encontrado')

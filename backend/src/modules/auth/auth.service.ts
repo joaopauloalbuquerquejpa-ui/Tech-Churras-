@@ -168,11 +168,19 @@ export async function registerGuest(data: { name: string; phone: string }) {
 }
 
 export async function updateUserProfile(userId: string, data: { name?: string; phone?: string }) {
+  // Trocar o telefone invalida a verificação anterior — senão o admin veria
+  // "WhatsApp verificado" como garantia de um número que nunca foi confirmado.
+  let phoneChanged = false
+  if (data.phone !== undefined) {
+    const current = await prisma.user.findUnique({ where: { id: userId }, select: { phone: true } })
+    phoneChanged = data.phone.trim() !== (current?.phone ?? '')
+  }
   return prisma.user.update({
     where: { id: userId },
     data: {
       ...(data.name ? { name: data.name.trim() } : {}),
       ...(data.phone !== undefined ? { phone: data.phone.trim() || null } : {}),
+      ...(phoneChanged ? { phoneVerified: false, phoneVerificationCode: null, phoneVerificationExpiresAt: null } : {}),
     },
     select: { id: true, name: true, email: true, phone: true, role: true },
   })

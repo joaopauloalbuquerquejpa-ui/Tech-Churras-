@@ -32,6 +32,8 @@ export const createGrillmasterSchema = z.object({
   accompaniments: z.array(accompanimentItemSchema).optional(),
   offersSideDishPrep: z.boolean().optional(),
   serviceRegions: z.array(z.string()).optional(),
+  pixKey: z.string().optional(),
+  cpfCnpj: z.string().optional(),
 })
 
 export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>
@@ -98,7 +100,16 @@ export async function listGrillmasters(params: {
   const [grillmasters, total] = await Promise.all([
     prisma.grillmaster.findMany({
       where,
-      include: { user: { select: { name: true, email: true } } },
+      select: {
+        id: true, bio: true, experience: true, pricePerHour: true, available: true,
+        city: true, state: true, rating: true, specialties: true, photoUrl: true,
+        galleryUrls: true, instagram: true, churrascoStyle: true, bringsEquipment: true,
+        minGuests: true, maxGuests: true, latitude: true, longitude: true,
+        isChancelado: true, certificationCode: true, certifiedAt: true, videoUrl: true,
+        totalOrders: true, offersSideDishPrep: true, serviceRegions: true, createdAt: true,
+        user: { select: { name: true, email: true } },
+        // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
+      },
       orderBy,
       skip,
       take: limit,
@@ -233,7 +244,16 @@ export async function recommendGrillmasters(params: {
 export async function getGrillmasterById(id: string) {
   const grillmaster = await prisma.grillmaster.findUnique({
     where: { id },
-    include: { user: { select: { name: true, email: true } } },
+    select: {
+      id: true, bio: true, experience: true, pricePerHour: true, available: true,
+      city: true, state: true, rating: true, specialties: true, photoUrl: true,
+      galleryUrls: true, instagram: true, churrascoStyle: true, bringsEquipment: true,
+      minGuests: true, maxGuests: true, latitude: true, longitude: true,
+      isChancelado: true, certificationCode: true, certifiedAt: true, videoUrl: true,
+      totalOrders: true, offersSideDishPrep: true, serviceRegions: true, createdAt: true,
+      user: { select: { name: true, email: true } },
+      // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
+    },
   })
   if (!grillmaster) throw new Error('Churrasqueiro nao encontrado')
   return grillmaster

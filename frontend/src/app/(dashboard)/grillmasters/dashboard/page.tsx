@@ -51,6 +51,7 @@ interface Order {
   status: string
   paymentStatus?: string
   totalPrice: number
+  laborPrice: number
   eventDate: string
   eventAddress: string
   eventHours: number
@@ -586,20 +587,20 @@ export default function GrillmasterDashboardPage() {
   const completedOrders = orders.filter(o => o.status === 'COMPLETED')
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   const startOfYear = new Date(now.getFullYear(), 0, 1)
-  const earnedThisMonth = completedOrders.filter(o => new Date(o.eventDate) >= startOfMonth).reduce((s, o) => s + o.totalPrice * 0.93, 0)
-  const earnedThisYear = completedOrders.filter(o => new Date(o.eventDate) >= startOfYear).reduce((s, o) => s + o.totalPrice * 0.93, 0)
-  const totalEarningsAllTime = completedOrders.reduce((s, o) => s + o.totalPrice * 0.93, 0)
+  const earnedThisMonth = completedOrders.filter(o => new Date(o.eventDate) >= startOfMonth).reduce((s, o) => s + o.laborPrice * 0.93, 0)
+  const earnedThisYear = completedOrders.filter(o => new Date(o.eventDate) >= startOfYear).reduce((s, o) => s + o.laborPrice * 0.93, 0)
+  const totalEarningsAllTime = completedOrders.reduce((s, o) => s + o.laborPrice * 0.93, 0)
   const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay()); startOfWeek.setHours(0, 0, 0, 0)
   const todayMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const earnedToday = completedOrders.filter(o => new Date(o.eventDate) >= todayMidnight).reduce((s, o) => s + o.totalPrice * 0.93, 0)
-  const earnedThisWeek = completedOrders.filter(o => new Date(o.eventDate) >= startOfWeek).reduce((s, o) => s + o.totalPrice * 0.93, 0)
+  const earnedToday = completedOrders.filter(o => new Date(o.eventDate) >= todayMidnight).reduce((s, o) => s + o.laborPrice * 0.93, 0)
+  const earnedThisWeek = completedOrders.filter(o => new Date(o.eventDate) >= startOfWeek).reduce((s, o) => s + o.laborPrice * 0.93, 0)
   const last6Months = Array.from({ length: 6 }).map((_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
     const dEnd = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 0, 23, 59, 59)
     const label = d.toLocaleDateString('pt-BR', { month: 'short' })
     const monthEarnings = completedOrders
       .filter(o => { const od = new Date(o.eventDate); return od >= d && od <= dEnd })
-      .reduce((s, o) => s + o.totalPrice * 0.93, 0)
+      .reduce((s, o) => s + o.laborPrice * 0.93, 0)
     const count = completedOrders.filter(o => { const od = new Date(o.eventDate); return od >= d && od <= dEnd }).length
     return { label, earnings: monthEarnings, count }
   })
@@ -779,8 +780,8 @@ export default function GrillmasterDashboardPage() {
                     <p className="text-[10px] text-gray-500">duração</p>
                   </div>
                   <div className="bg-gray-800 rounded-lg py-2">
-                    <p className="text-lg font-black text-green-400">R$ {fmt(d.order.laborPrice)}</p>
-                    <p className="text-[10px] text-gray-500">sua parte</p>
+                    <p className="text-lg font-black text-green-400">R$ {fmt(d.order.laborPrice * 0.93)}</p>
+                    <p className="text-[10px] text-gray-500">sua parte (93%)</p>
                   </div>
                 </div>
                 {d.order.boutique && (
@@ -911,7 +912,7 @@ export default function GrillmasterDashboardPage() {
               </div>
               <div className="space-y-3">
                 {pendingOrders.map(o => {
-                  const gmEarning = o.totalPrice * 0.93
+                  const gmEarning = o.laborPrice * 0.93
                   return (
                     <div key={o.id} className="bg-gray-900 border border-orange-500/30 rounded-xl p-4">
                       <div className="flex items-start justify-between gap-3 mb-3">
@@ -1001,7 +1002,7 @@ export default function GrillmasterDashboardPage() {
                           </div>
                         </div>
                         <div className="shrink-0 text-right">
-                          <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice * 0.93)}</p>
+                          <p className="text-sm font-bold text-orange-400">R$ {fmt(o.laborPrice * 0.93)}</p>
                           <span className={'text-xs px-2 py-0.5 rounded-full ' + (STATUS_CLASS[o.status] ?? 'bg-gray-700 text-gray-400')}>
                             {STATUS_LABEL[o.status] ?? o.status}
                           </span>
@@ -1123,7 +1124,7 @@ export default function GrillmasterDashboardPage() {
                       </p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="text-sm font-bold text-orange-400">R$ {fmt(o.totalPrice * 0.93)}</p>
+                      <p className="text-sm font-bold text-orange-400">R$ {fmt(o.laborPrice * 0.93)}</p>
                       <p className="text-xs text-gray-600 font-mono">#{o.id.slice(0, 8)}</p>
                     </div>
                   </Link>
@@ -1699,7 +1700,7 @@ export default function GrillmasterDashboardPage() {
                   .sort((a, b) => new Date(b.eventDate).getTime() - new Date(a.eventDate).getTime())
                   .slice(0, 30)
                   .map(o => {
-                    const net = o.totalPrice * 0.93
+                    const net = o.laborPrice * 0.93
                     const fee = o.totalPrice * 0.07
                     return (
                       <div key={o.id} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-gray-800/30 transition-colors">

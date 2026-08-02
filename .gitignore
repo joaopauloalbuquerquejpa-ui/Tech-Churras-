@@ -32,6 +32,11 @@ credenciais-tech-churras.md
 # Repositório aninhado (submodule não configurado)
 tools/cve-mcp-server/
 
+# Snapshots/logs do Playwright MCP — podem capturar valores de formulário
+# (senhas de teste digitadas em campos) em texto puro. Nunca commitar.
+.playwright-mcp/
+**/.playwright-mcp/
+
 # Arquivos de mídia gerados — grandes demais para git
 tools/video_acougue/
 tools/video_output/

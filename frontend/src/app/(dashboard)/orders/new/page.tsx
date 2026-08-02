@@ -81,6 +81,7 @@ function NewOrderForm() {
   const [boutiqueKits, setBoutiqueKits] = useState<Kit[]>([])
   const [selectedKitId, setSelectedKitId] = useState<string | null>(null)
   const [selectedQty, setSelectedQty] = useState<Record<string, number>>({})
+  const [kitApplyError, setKitApplyError] = useState('')
   const [sideDishChoice, setSideDishChoice] = useState<'' | 'ACOUGUE' | 'GRILLMASTER'>('')
   const [loading, setLoading] = useState(false)
   const [stepError, setStepError] = useState('')
@@ -172,24 +173,45 @@ function NewOrderForm() {
   // quantidade real de convidados, senao a carne fica fixa independente do
   // numero de pessoas do evento.
   function applyKit(kit: Kit) {
+    setKitApplyError('')
+    let items: { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }[]
     try {
-      const items: { productName: string; quantity: number; unit: string }[] = JSON.parse(kit.items)
-      const scale = insumos.totalPessoas > 0 ? insumos.totalPessoas / kit.maxGuests : 1
-      const newQty: Record<string, number> = {}
-      for (const item of items) {
-        const match = boutiqueProducts.find(p =>
-          p.name.toLowerCase().includes(item.productName.toLowerCase()) ||
-          item.productName.toLowerCase().includes(p.name.toLowerCase())
-        )
-        if (match) {
-          newQty[match.id] = item.unit === 'kg'
-            ? Math.round(item.quantity * scale * 10) / 10
-            : Math.max(1, Math.round(item.quantity * scale))
-        }
-      }
-      setSelectedQty(newQty)
+      const parsed = JSON.parse(kit.items)
+      if (!Array.isArray(parsed)) throw new Error('formato inesperado')
+      items = parsed
+    } catch {
+      // Dado corrompido (ex: descrição em texto livre em vez de JSON) — avisa
+      // em vez de deixar o pedido seguir sem nenhum item de carne em silêncio.
+      setKitApplyError('Não conseguimos calcular as quantidades desse kit automaticamente. Selecione os cortes manualmente, ou escolha outro kit.')
       setSelectedKitId(kit.id)
-    } catch { /* items malformados — nao aplica */ }
+      return
+    }
+    const scale = insumos.totalPessoas > 0 ? insumos.totalPessoas / kit.maxGuests : 1
+    const newQty: Record<string, number> = {}
+    let unmatchedCount = 0
+    for (const item of items) {
+      const itemName = item.productName ?? item.name ?? ''
+      const itemQty = item.quantity ?? item.qty ?? 0
+      if (!itemName) { unmatchedCount++; continue }
+      const match = boutiqueProducts.find(p =>
+        p.name.toLowerCase().includes(itemName.toLowerCase()) ||
+        itemName.toLowerCase().includes(p.name.toLowerCase())
+      )
+      if (match) {
+        newQty[match.id] = item.unit === 'kg'
+          ? Math.round(itemQty * scale * 10) / 10
+          : Math.max(1, Math.round(itemQty * scale))
+      } else {
+        unmatchedCount++
+      }
+    }
+    setSelectedQty(newQty)
+    setSelectedKitId(kit.id)
+    if (Object.keys(newQty).length === 0) {
+      setKitApplyError('Não conseguimos identificar os cortes desse kit no catálogo do açougue. Selecione os cortes manualmente, ou escolha outro kit.')
+    } else if (unmatchedCount > 0) {
+      setKitApplyError(`${unmatchedCount} item(ns) do kit não foram encontrados no catálogo e ficaram de fora — confira as quantidades antes de continuar.`)
+    }
   }
 
   useEffect(() => {
@@ -227,6 +249,12 @@ function NewOrderForm() {
 
   async function handleSubmit() {
     setStepError('')
+    // Trava de segurança: já aconteceu de kit com dado corrompido resultar em
+    // pedido pago sem NENHUM item de carne indo pro açougue, em silêncio.
+    if (boutiqueProducts.length > 0 && Object.values(selectedQty).every(q => !q)) {
+      setStepError('Você ainda não selecionou nenhum corte de carne. Escolha um kit ou selecione manualmente antes de continuar.')
+      return
+    }
     setLoading(true)
     try {
       const items = Object.entries(selectedQty)
@@ -594,20 +622,24 @@ function NewOrderForm() {
                       <p className="text-xs text-gray-400 mb-2">{k.description}</p>
                       {(() => {
                         try {
-                          const kitProducts: { productName: string; quantity: number; unit: string }[] = JSON.parse(k.items || '[]')
+                          const parsed = JSON.parse(k.items || '[]')
+                          const kitProducts: { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }[] = Array.isArray(parsed) ? parsed : []
                           if (kitProducts.length > 0) return (
                             <ul className="mb-2 space-y-0.5">
                               {kitProducts.map((p, i) => (
                                 <li key={i} className="text-xs text-gray-400 flex items-center gap-1.5">
                                   <span className="w-1 h-1 rounded-full bg-orange-500/60 shrink-0" />
-                                  {p.productName} — {p.quantity}{p.unit}
+                                  {p.productName ?? p.name} — {p.quantity ?? p.qty}{p.unit}
                                 </li>
                               ))}
                             </ul>
                           )
-                        } catch { /* malformed items */ }
+                        } catch { /* malformed items — o botao ainda mostra o aviso ao selecionar */ }
                         return null
                       })()}
+                      {isSelected && kitApplyError && (
+                        <p className="text-xs text-red-300 bg-red-500/10 border border-red-500/30 rounded-lg px-2 py-1.5 mb-2">{kitApplyError}</p>
+                      )}
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-gray-500">{k.minGuests}–{k.maxGuests} pessoas</span>
                         {k.discountPrice ? (

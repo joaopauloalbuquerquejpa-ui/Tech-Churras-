@@ -19,7 +19,20 @@ interface Boutique {
   longitude?: number | null
 }
 
+// Cidades com acento não sobrevivem no slug da URL ("sao-paulo") — sem essa
+// correção, o nome vira "Sao Paulo" e nunca bate com "São Paulo" salvo no
+// banco (o filtro do backend é case-insensitive, não accent-insensitive),
+// fazendo a página de SEO da própria cidade-sede mostrar "nenhum parceiro".
+const CITY_ACCENT_FIX: Record<string, string> = {
+  'sao-paulo': 'São Paulo', 'sao-jose-dos-campos': 'São José dos Campos',
+  'sao-bernardo-do-campo': 'São Bernardo do Campo', 'sao-caetano-do-sul': 'São Caetano do Sul',
+  'brasilia': 'Brasília', 'goiania': 'Goiânia', 'belem': 'Belém', 'cuiaba': 'Cuiabá',
+  'maceio': 'Maceió', 'joao-pessoa': 'João Pessoa', 'niteroi': 'Niterói',
+}
+
 function cityLabel(slug: string) {
+  const fixed = CITY_ACCENT_FIX[slug.toLowerCase()]
+  if (fixed) return fixed
   return slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 

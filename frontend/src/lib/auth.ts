@@ -26,10 +26,6 @@ export async function register(name: string, email: string, password: string, ac
   return data
 }
 
-export function logout() {
-  localStorage.removeItem('token')
-}
-
 export function getToken() {
   return localStorage.getItem('token')
 }

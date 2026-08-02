@@ -8,7 +8,7 @@ import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
 interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; user: { name: string } }
-interface KitItem { productName: string; quantity: number; unit: string }
+interface KitItem { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }
 interface Kit { id: string; name: string; description: string; price: number; discountPrice?: number | null; minGuests: number; maxGuests: number; items: string }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -95,6 +95,7 @@ function PedidoForm() {
   const [products, setProducts] = useState<Product[]>([])
   const [kits, setKits] = useState<Kit[]>([])
   const [selectedKit, setSelectedKit] = useState<string | null>(null)
+  const [kitApplyError, setKitApplyError] = useState('')
   const [grillmasters, setGrillmasters] = useState<Grillmaster[]>([])
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(true)
@@ -172,26 +173,49 @@ function PedidoForm() {
   }
 
   function applyKit(kit: Kit) {
+    setKitApplyError('')
+    let items: KitItem[]
     try {
-      const items: KitItem[] = JSON.parse(kit.items)
-      // Itens do kit sao calibrados pro teto da faixa (maxGuests) — escala pra
-      // quantidade real de convidados informada, senao um evento de 15 pessoas
-      // recebe a mesma carne calculada pra 30.
-      const scale = totalPeople > 0 ? totalPeople / kit.maxGuests : 1
-      const newQty: Record<string, number> = {}
-      for (const item of items) {
-        const match = products.find(p =>
-          p.name.toLowerCase().includes(item.productName.toLowerCase()) ||
-          item.productName.toLowerCase().includes(p.name.toLowerCase())
-        )
-        if (match) {
-          const scaledQty = item.unit === 'kg' ? Math.round(item.quantity * scale * 10) / 10 : Math.max(1, Math.round(item.quantity * scale))
-          newQty[match.id] = scaledQty
-        }
-      }
-      setQty(newQty)
+      const parsed = JSON.parse(kit.items)
+      if (!Array.isArray(parsed)) throw new Error('formato inesperado')
+      items = parsed
+    } catch {
+      // Dado corrompido (ex: descrição em texto livre em vez de JSON) — não
+      // dá pra aplicar automaticamente. Isso já causou pedido pago sem carne
+      // nenhuma indo pro açougue, então avisa em vez de seguir em silêncio.
+      setKitApplyError('Não conseguimos calcular as quantidades desse kit automaticamente. Selecione os cortes manualmente abaixo, ou escolha outro kit.')
       setSelectedKit(kit.id)
-    } catch {}
+      return
+    }
+
+    // Itens do kit sao calibrados pro teto da faixa (maxGuests) — escala pra
+    // quantidade real de convidados informada, senao um evento de 15 pessoas
+    // recebe a mesma carne calculada pra 30.
+    const scale = totalPeople > 0 ? totalPeople / kit.maxGuests : 1
+    const newQty: Record<string, number> = {}
+    let unmatchedCount = 0
+    for (const item of items) {
+      const itemName = item.productName ?? item.name ?? ''
+      const itemQty = item.quantity ?? item.qty ?? 0
+      if (!itemName) { unmatchedCount++; continue }
+      const match = products.find(p =>
+        p.name.toLowerCase().includes(itemName.toLowerCase()) ||
+        itemName.toLowerCase().includes(p.name.toLowerCase())
+      )
+      if (match) {
+        const scaledQty = item.unit === 'kg' ? Math.round(itemQty * scale * 10) / 10 : Math.max(1, Math.round(itemQty * scale))
+        newQty[match.id] = scaledQty
+      } else {
+        unmatchedCount++
+      }
+    }
+    setQty(newQty)
+    setSelectedKit(kit.id)
+    if (Object.keys(newQty).length === 0) {
+      setKitApplyError('Não conseguimos identificar os cortes desse kit no catálogo do açougue. Selecione os cortes manualmente abaixo, ou escolha outro kit.')
+    } else if (unmatchedCount > 0) {
+      setKitApplyError(`${unmatchedCount} item(ns) do kit não foram encontrados no catálogo e ficaram de fora — confira as quantidades abaixo antes de continuar.`)
+    }
   }
 
   // Se o cliente voltar e mudar o numero de convidados com um kit ja aplicado,
@@ -213,6 +237,13 @@ function PedidoForm() {
     if (!guestName.trim() || guestName.trim().length < 2) { alert('Digite seu nome completo'); return }
     const phone = guestPhone.replace(/\D/g, '')
     if (phone.length < 10) { alert('Digite um WhatsApp válido com DDD'); return }
+    // Trava de segurança: já aconteceu de kit com dado corrompido resultar em
+    // pedido pago sem NENHUM item de carne indo pro açougue, em silêncio. Se
+    // tem catálogo disponível mas nada foi selecionado, não deixa prosseguir.
+    if (products.length > 0 && Object.values(qty).every(q => !q)) {
+      alert('Você ainda não selecionou nenhum corte de carne. Escolha um kit ou selecione manualmente antes de continuar.')
+      return
+    }
     setSubmitting(true)
     try {
       // 1. Reaproveita sessão logada se existir; senão cria conta guest
@@ -438,6 +469,11 @@ function PedidoForm() {
                     )
                   })}
                 </div>
+                {kitApplyError && (
+                  <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-3 py-2">
+                    <p className="text-xs text-red-300">{kitApplyError}</p>
+                  </div>
+                )}
                 <p className="text-xs text-gray-600 text-center">Ou monte manualmente abaixo ↓</p>
               </div>
             )}
