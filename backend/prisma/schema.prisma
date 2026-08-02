@@ -94,13 +94,15 @@ model Grillmaster {
   accompaniments     Json?    @default("[]")
   offersSideDishPrep Boolean  @default(false)
   unlimitedAvailability Boolean @default(false)
+  serviceRegions     String[] @default([])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user     User                  @relation(fields: [userId], references: [id])
-  orders   Order[]
-  schedule GrillmasterSchedule[]
-  reviews  Review[]
+  user      User                  @relation(fields: [userId], references: [id])
+  orders    Order[]
+  schedule  GrillmasterSchedule[]
+  reviews   Review[]
+  dispatches OrderDispatch[]
 
   @@index([city, state, approved, available])
 }
@@ -246,6 +248,9 @@ model Order {
   reminder24hSent  Boolean  @default(false)
   reminderGm24hSent Boolean @default(false)
   publicShareToken String?  @unique
+  grillmasterAcceptedAt DateTime?
+  dispatchWave          Int       @default(0)
+  dispatchDeadline      DateTime?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
@@ -256,6 +261,7 @@ model Order {
   items       OrderItem[]
   review      Review?
   messages    Message[]
+  dispatches  OrderDispatch[]
 
   @@index([customerId])
   @@index([grillmasterId])
@@ -264,6 +270,24 @@ model Order {
   @@index([eventDate])
   @@index([createdAt])
   @@index([status, createdAt])
+  @@index([dispatchDeadline])
+}
+
+model OrderDispatch {
+  id            String    @id @default(uuid())
+  orderId       String
+  grillmasterId String
+  wave          Int
+  notifiedAt    DateTime  @default(now())
+  respondedAt   DateTime?
+  response      String?
+
+  order       Order       @relation(fields: [orderId], references: [id])
+  grillmaster Grillmaster @relation(fields: [grillmasterId], references: [id])
+
+  @@unique([orderId, grillmasterId, wave])
+  @@index([orderId])
+  @@index([grillmasterId, response])
 }
 
 model OrderItem {

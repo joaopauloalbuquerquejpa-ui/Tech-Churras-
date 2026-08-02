@@ -11,6 +11,7 @@ import {
   markUniformSentHandler,
 } from './grillmasters.controller'
 import { recommendGrillmasters } from './grillmasters.service'
+import { listPendingDispatchesForGrillmaster, acceptDispatch, declineDispatch } from './dispatch.service'
 
 async function requireAdmin(req: any, reply: any) {
   if (req.user?.role !== 'ADMIN') {
@@ -46,6 +47,33 @@ export async function grillmastersRoutes(app: FastifyInstance) {
   app.post('/grillmasters/training/:moduleId/complete', { preHandler: [app.authenticate] }, completeModuleHandler)
   app.post('/grillmasters', { preHandler: [app.authenticate] }, createGrillmasterHandler)
   app.put('/grillmasters', { preHandler: [app.authenticate] }, updateGrillmasterHandler)
+
+  // Despacho de pedidos — onda de notificação pra GMs disponíveis na região/data
+  app.get('/grillmasters/dispatches/pending', { preHandler: [app.authenticate] }, async (req, reply) => {
+    try {
+      return reply.send(await listPendingDispatchesForGrillmaster((req as any).user.id))
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+  app.patch('/grillmasters/dispatches/:orderId/accept', { preHandler: [app.authenticate] }, async (req, reply) => {
+    try {
+      const { orderId } = req.params as { orderId: string }
+      const order = await acceptDispatch((req as any).user.id, orderId)
+      return reply.send(order)
+    } catch (err: any) {
+      return reply.status(409).send({ error: err.message })
+    }
+  })
+  app.patch('/grillmasters/dispatches/:orderId/decline', { preHandler: [app.authenticate] }, async (req, reply) => {
+    try {
+      const { orderId } = req.params as { orderId: string }
+      await declineDispatch((req as any).user.id, orderId)
+      return reply.send({ ok: true })
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
 
   // Admin
   app.patch('/admin/grillmasters/:grillmasterId/uniform', { preHandler: [app.authenticate, requireAdmin] }, markUniformSentHandler)

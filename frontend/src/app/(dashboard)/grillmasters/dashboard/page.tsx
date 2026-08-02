@@ -94,9 +94,28 @@ interface GrillmasterProfile {
   certifiedAt?: string
   uniformSent: boolean
   defaultBoutiqueId?: string | null
+  serviceRegions?: string[]
 }
 
-type Tab = 'eventos' | 'agenda' | 'perfil' | 'treinamento' | 'financeiro'
+interface PendingDispatch {
+  dispatchId: string
+  wave: number
+  notifiedAt: string
+  order: {
+    id: string
+    eventDate: string
+    eventAddress: string
+    guestCount: number
+    eventHours: number
+    totalPrice: number
+    laborPrice: number
+    boutique?: { name: string; city: string } | null
+  }
+}
+
+const SP_REGIONS = ['Zona Norte', 'Zona Sul', 'Zona Leste', 'Zona Oeste', 'Centro', 'ABC/Grande SP']
+
+type Tab = 'solicitacoes' | 'eventos' | 'agenda' | 'perfil' | 'treinamento' | 'financeiro'
 
 const TRAINING_MODULES = [
   {
@@ -177,6 +196,8 @@ export default function GrillmasterDashboardPage() {
   const [notFound, setNotFound] = useState(false)
   const [togglingAvail, setTogglingAvail] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [dispatches, setDispatches] = useState<PendingDispatch[]>([])
+  const [respondingDispatchId, setRespondingDispatchId] = useState<string | null>(null)
 
   // Profile form
   const [profileForm, setProfileForm] = useState<Partial<GrillmasterProfile>>({})
@@ -239,6 +260,7 @@ export default function GrillmasterDashboardPage() {
           experience: p.experience, defaultBoutiqueId: p.defaultBoutiqueId ?? null,
           accompaniments: p.accompaniments ?? [],
           offersSideDishPrep: p.offersSideDishPrep ?? false,
+          serviceRegions: p.serviceRegions ?? [],
         })
         // Carrega lista de açougues aprovados
         fetch(`${API_URL}/boutiques`, { headers: h })
@@ -256,11 +278,40 @@ export default function GrillmasterDashboardPage() {
         if (Array.isArray(contracts) && contracts.length > 0) setContract(contracts[0])
       }
       if (sRes.ok) setSchedule(await sRes.json())
+      fetchDispatches()
     } catch {
       setNotFound(true)
     } finally {
       setLoading(false)
     }
+  }
+
+  async function fetchDispatches() {
+    try {
+      const res = await fetch(`${API_URL}/grillmasters/dispatches/pending`, { headers: { Authorization: 'Bearer ' + getToken() } })
+      if (res.ok) setDispatches(await res.json())
+    } catch { /* silencioso — não bloqueia o resto do dashboard */ }
+  }
+
+  async function respondDispatch(orderId: string, action: 'accept' | 'decline') {
+    setRespondingDispatchId(orderId)
+    try {
+      const res = await fetch(`${API_URL}/grillmasters/dispatches/${orderId}/${action}`, {
+        method: 'PATCH', headers: { Authorization: 'Bearer ' + getToken() },
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) { alert(d.error ?? 'Erro ao responder'); await fetchDispatches(); return }
+      setDispatches(prev => prev.filter(x => x.order.id !== orderId))
+      if (action === 'accept') await load()
+    } finally { setRespondingDispatchId(null) }
+  }
+
+  function toggleServiceRegion(region: string) {
+    setProfileForm(f => {
+      const current = f.serviceRegions ?? []
+      const next = current.includes(region) ? current.filter(r => r !== region) : [...current, region]
+      return { ...f, serviceRegions: next }
+    })
   }
 
   function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
@@ -664,12 +715,17 @@ export default function GrillmasterDashboardPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-900 p-1 rounded-xl overflow-x-auto">
-        {(['eventos', 'agenda', 'financeiro', 'perfil', 'treinamento'] as Tab[]).map(t => (
+        {(['solicitacoes', 'eventos', 'agenda', 'financeiro', 'perfil', 'treinamento'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={`flex-1 min-w-max py-2 px-4 rounded-lg text-sm font-semibold capitalize transition-colors relative ${
               tab === t ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'
             }`}>
-            {t}
+            {t === 'solicitacoes' ? 'Solicitações' : t}
+            {t === 'solicitacoes' && dispatches.length > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                {dispatches.length}
+              </span>
+            )}
             {t === 'eventos' && pendingOrders.length > 0 && (
               <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                 {pendingOrders.length}
@@ -681,6 +737,68 @@ export default function GrillmasterDashboardPage() {
           </button>
         ))}
       </div>
+
+      {/* ── ABA SOLICITAÇÕES (despacho) ── */}
+      {tab === 'solicitacoes' && (
+        <div className="space-y-4">
+          <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-4">
+            <p className="text-sm text-gray-300">
+              Pedidos disponíveis na sua região e data. <strong className="text-white">Quem aceitar primeiro fica com o evento</strong> — outros churrasqueiros também estão vendo essa mesma solicitação.
+            </p>
+          </div>
+          {dispatches.length === 0 ? (
+            <div className="text-center py-16 text-gray-500">
+              <p>Nenhuma solicitação no momento.</p>
+              <p className="text-xs mt-1">Assim que aparecer um pedido na sua região e data disponível, você vê aqui.</p>
+            </div>
+          ) : (
+            dispatches.map(d => (
+              <div key={d.dispatchId} className="bg-gray-900 border border-orange-500/30 rounded-2xl p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <p className="font-bold text-white">{fmtDate(d.order.eventDate)}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{d.order.eventAddress}</p>
+                  </div>
+                  <span className="text-xs bg-gray-800 text-gray-400 px-2 py-1 rounded-full shrink-0">Onda {d.wave}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mb-4 text-center">
+                  <div className="bg-gray-800 rounded-lg py-2">
+                    <p className="text-lg font-black text-white">{d.order.guestCount}</p>
+                    <p className="text-[10px] text-gray-500">convidados</p>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg py-2">
+                    <p className="text-lg font-black text-white">{d.order.eventHours}h</p>
+                    <p className="text-[10px] text-gray-500">duração</p>
+                  </div>
+                  <div className="bg-gray-800 rounded-lg py-2">
+                    <p className="text-lg font-black text-green-400">R$ {fmt(d.order.laborPrice)}</p>
+                    <p className="text-[10px] text-gray-500">sua parte</p>
+                  </div>
+                </div>
+                {d.order.boutique && (
+                  <p className="text-xs text-gray-500 mb-4">🥩 Açougue: {d.order.boutique.name} ({d.order.boutique.city})</p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => respondDispatch(d.order.id, 'accept')}
+                    disabled={respondingDispatchId === d.order.id}
+                    className="flex-1 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white font-bold py-2.5 rounded-xl transition-colors text-sm"
+                  >
+                    {respondingDispatchId === d.order.id ? 'Confirmando...' : '✅ Aceitar evento'}
+                  </button>
+                  <button
+                    onClick={() => respondDispatch(d.order.id, 'decline')}
+                    disabled={respondingDispatchId === d.order.id}
+                    className="text-gray-400 hover:text-red-400 border border-gray-700 hover:border-red-500 disabled:opacity-50 font-semibold px-4 py-2.5 rounded-xl transition-colors text-sm"
+                  >
+                    Recusar
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
 
       {/* ── ABA EVENTOS ── */}
       {tab === 'eventos' && (
@@ -1247,6 +1365,28 @@ export default function GrillmasterDashboardPage() {
                 <input value={profileForm.instagram ?? ''} onChange={e => setProfileForm(f => ({ ...f, instagram: e.target.value }))}
                   placeholder="@seuperfil"
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1.5">Regiões onde você quer atender</label>
+              <p className="text-[11px] text-gray-600 mb-2">Você só recebe solicitações de pedidos nessas regiões. Marque quantas quiser.</p>
+              <div className="flex flex-wrap gap-2">
+                {SP_REGIONS.map(region => {
+                  const active = (profileForm.serviceRegions ?? []).includes(region)
+                  return (
+                    <button
+                      key={region}
+                      type="button"
+                      onClick={() => toggleServiceRegion(region)}
+                      className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                        active ? 'bg-orange-500 border-orange-500 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
+                      }`}
+                    >
+                      {active ? '✓ ' : ''}{region}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 

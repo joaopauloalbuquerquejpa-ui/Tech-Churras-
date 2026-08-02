@@ -9,6 +9,7 @@ import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { refundPayment } from '../payments/payments.service'
 import { fetchWithTimeout } from '../../utils/http'
 import { withSerializableRetry } from '../../utils/db-retry'
+import { startDispatch } from '../grillmasters/dispatch.service'
 
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   PENDING:     ['CONFIRMED', 'CANCELLED'],
@@ -277,6 +278,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   }
 
   detectSuspiciousOrder(order, customerId).catch(() => {})
+  startDispatch(order.id).catch(e => console.error('[dispatch] startDispatch falhou', order.id, e?.message))
 
   return order
 }

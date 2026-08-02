@@ -31,6 +31,7 @@ export const createGrillmasterSchema = z.object({
   defaultBoutiqueId: z.string().uuid().optional().nullable(),
   accompaniments: z.array(accompanimentItemSchema).optional(),
   offersSideDishPrep: z.boolean().optional(),
+  serviceRegions: z.array(z.string()).optional(),
 })
 
 export type CreateGrillmasterInput = z.infer<typeof createGrillmasterSchema>

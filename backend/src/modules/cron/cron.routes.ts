@@ -5,6 +5,7 @@ import { sendFollowUps } from '../webhooks/whatsapp.routes'
 import { sendDailySummary } from '../admin/admin.service'
 import { fetchWithTimeout } from '../../utils/http'
 import { processNotificationRetries } from '../notifications/retry-queue.service'
+import { processDispatchEscalations } from '../grillmasters/dispatch.service'
 
 // Dead-man's-switch: avisa se o cron-job.org parar de chamar essa rota (já aconteceu antes, sem alerta).
 // HEALTHCHECKS_PING_URL vem de https://healthchecks.io — sem a env var configurada, é só um no-op.
@@ -164,6 +165,23 @@ export async function cronRoutes(app: FastifyInstance) {
     } catch (err: any) {
       req.log.error('[cron/notification-retries] erro:', err?.message)
       return reply.status(500).send({ error: 'Erro interno no cron de retries' })
+    }
+  })
+
+  // ── Escala pedidos sem churrasqueiro pra próxima onda de despacho (timeout)
+  // Rodar a cada 5-15min no cron-job.org — é orientado a evento (dispatchDeadline),
+  // não precisa granularidade de minuto, mas precisa ser bem mais frequente que
+  // os cron de hora em hora já existentes.
+  app.get('/cron/dispatch-escalation', async (req, reply) => {
+    if (!process.env.CRON_SECRET || req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+      return reply.status(401).send({ error: 'Unauthorized' })
+    }
+    try {
+      const result = await processDispatchEscalations()
+      return { ok: true, ...result }
+    } catch (err: any) {
+      req.log.error('[cron/dispatch-escalation] erro:', err?.message)
+      return reply.status(500).send({ error: 'Erro interno no cron de escalação de despacho' })
     }
   })
 }
