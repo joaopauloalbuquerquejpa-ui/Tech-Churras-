@@ -7,6 +7,7 @@ import { randomBytes } from 'crypto'
 import bcrypt from 'bcryptjs'
 import { emailPasswordReset } from '../email/email.service'
 import { generateTotpSecret, verifyTotpCode, buildTotpQrCode } from './totp.service'
+import { sendPhoneVerification, confirmPhoneVerification } from './verification.service'
 
 export async function authRoutes(app: FastifyInstance) {
   app.post('/auth/register', { config: { rateLimit: { max: 5, timeWindow: '1 minute' } } }, register)
@@ -39,7 +40,7 @@ export async function authRoutes(app: FastifyInstance) {
       const { prisma } = await import('../../config/prisma')
       const user = await prisma.user.findUnique({
         where: { id: (req.user as any).id },
-        select: { id: true, name: true, email: true, phone: true, role: true, points: true, averageRating: true, createdAt: true, totpEnabled: true },
+        select: { id: true, name: true, email: true, phone: true, role: true, points: true, averageRating: true, createdAt: true, totpEnabled: true, phoneVerified: true },
       })
       if (!user) return reply.status(404).send({ error: 'Usuário não encontrado' })
       return reply.send(user)
@@ -53,6 +54,26 @@ export async function authRoutes(app: FastifyInstance) {
       const { name, phone } = req.body as { name?: string; phone?: string }
       const updated = await updateUserProfile((req.user as any).id, { name, phone })
       return reply.send(updated)
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+
+  // ── Verificação de WhatsApp (uma vez, no cadastro — não é 2FA recorrente) ──
+  app.post('/auth/phone-verification/send', { preHandler: [authenticate], config: { rateLimit: { max: 3, timeWindow: '5 minutes' } } }, async (req, reply) => {
+    try {
+      const result = await sendPhoneVerification((req.user as any).id)
+      return reply.send(result)
+    } catch (err: any) {
+      return reply.status(400).send({ error: err.message })
+    }
+  })
+  app.post('/auth/phone-verification/confirm', { preHandler: [authenticate], config: { rateLimit: { max: 10, timeWindow: '5 minutes' } } }, async (req, reply) => {
+    try {
+      const { code } = req.body as { code: string }
+      if (!code) return reply.status(400).send({ error: 'Código obrigatório' })
+      const result = await confirmPhoneVerification((req.user as any).id, code)
+      return reply.send(result)
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
     }

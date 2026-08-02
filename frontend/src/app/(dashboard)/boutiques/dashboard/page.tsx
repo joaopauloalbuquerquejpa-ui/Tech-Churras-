@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic'
 import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react'
 import { ChartIcon, GiftIcon, MeatIcon, ChefIcon, CheckIcon, RocketIcon, PersonIcon, ChatIcon, CameraIcon, StoreIcon, PhoneIcon, PrinterIcon, CashIcon } from '@/components/icons/Icons'
 import type { ComponentType } from 'react'
+import PhoneVerificationBanner from '@/components/PhoneVerificationBanner'
 
 async function compressImage(file: File): Promise<Blob> {
   return new Promise((resolve) => {
@@ -63,6 +64,7 @@ interface Product {
 interface Boutique {
   id: string; name: string; city: string; state: string; approved: boolean
   open: boolean; products: Product[]; trialEndsAt?: string | null
+  pixKey?: string | null; cpfCnpj?: string | null
 }
 
 interface OrderItem { name: string; quantity: number; unit: string }
@@ -170,6 +172,10 @@ export default function BoutiqueDashboardPage() {
   const photoInputRef = useRef<HTMLInputElement>(null)
   const productPhotoRef = useRef<HTMLInputElement>(null)
   const [copiedBalcao, setCopiedBalcao] = useState(false)
+  const [phoneVerified, setPhoneVerified] = useState(true)
+  const [pixForm, setPixForm] = useState({ pixKey: '', cpfCnpj: '' })
+  const [savingPix, setSavingPix] = useState(false)
+  const [pixMsg, setPixMsg] = useState('')
 
   const [photoState, setPhotoState] = useState<'idle' | 'analyzing' | 'done' | 'error'>('idle')
   const [photoError, setPhotoError] = useState('')
@@ -220,12 +226,14 @@ export default function BoutiqueDashboardPage() {
         dRes.ok ? dRes.json() : [], cRes.ok ? cRes.json() : [],
       ])
       setBoutique(b)
+      setPixForm({ pixKey: b.pixKey ?? '', cpfCnpj: b.cpfCnpj ?? '' })
       if (s) setStats(s)
       if (Array.isArray(d)) setDemand(d)
       if (Array.isArray(contracts) && contracts.length > 0) setContract(contracts[0])
       if (rRes.ok) setReferralStats(await rRes.json())
       const kRes = await fetch(API_URL + '/boutiques/' + b.id + '/kits')
       if (kRes.ok) setKits(await kRes.json())
+      fetch(API_URL + '/auth/me', { headers: h }).then(r => r.ok ? r.json() : null).then(me => { if (me) setPhoneVerified(!!me.phoneVerified) }).catch(() => {})
     } catch {
       setNotFound(true)
     } finally {
@@ -241,6 +249,25 @@ export default function BoutiqueDashboardPage() {
       body: JSON.stringify({ open: !boutique.open }),
     })
     if (res.ok) setBoutique(prev => prev ? { ...prev, open: !prev.open } : null)
+  }
+
+  async function handleSavePix() {
+    setSavingPix(true); setPixMsg('')
+    try {
+      const res = await fetch(API_URL + '/boutiques', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+        body: JSON.stringify(pixForm),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setBoutique(prev => prev ? { ...prev, ...updated } : null)
+        setPixMsg('Salvo!')
+      } else {
+        const d = await res.json()
+        setPixMsg('Erro: ' + (d.error ?? 'tente novamente'))
+      }
+    } finally { setSavingPix(false) }
   }
 
   async function submitProduct() {
@@ -729,6 +756,8 @@ export default function BoutiqueDashboardPage() {
         </button>
       </div>
 
+      <PhoneVerificationBanner verified={phoneVerified} onVerified={() => setPhoneVerified(true)} />
+
       {boutique.trialEndsAt && (() => {
         const daysLeft = Math.max(0, Math.ceil((new Date(boutique.trialEndsAt).getTime() - Date.now()) / 86400000))
         if (daysLeft === 0) return (
@@ -879,6 +908,32 @@ export default function BoutiqueDashboardPage() {
             ) : (
               <p className="text-sm text-gray-500">Nenhum contrato gerado ainda.</p>
             )}
+          </div>
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <h2 className="font-semibold text-sm text-gray-300 uppercase tracking-wide mb-3">Dados de recebimento</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Chave PIX</label>
+                <input value={pixForm.pixKey} onChange={e => setPixForm(f => ({ ...f, pixKey: e.target.value }))}
+                  placeholder="CPF/CNPJ, email, telefone ou chave aleatória"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">CPF ou CNPJ</label>
+                <input value={pixForm.cpfCnpj} onChange={e => setPixForm(f => ({ ...f, cpfCnpj: e.target.value }))}
+                  placeholder="Só números"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={handleSavePix} disabled={savingPix}
+                className="text-xs bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold px-4 py-2 rounded-lg transition-colors">
+                {savingPix ? 'Salvando...' : 'Salvar'}
+              </button>
+              {pixMsg && <span className="text-xs text-gray-400">{pixMsg}</span>}
+            </div>
+            <p className="text-[11px] text-gray-600 mt-2">Usado só pra garantir que o repasse semanal cai na conta certa — ninguém mais vê esses dados.</p>
           </div>
 
           {stats && stats.revenueByDay.length > 0 && (

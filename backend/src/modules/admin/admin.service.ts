@@ -3,6 +3,7 @@ import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { emailPartnerApproved } from '../email/email.service'
 import { fetchWithTimeout } from '../../utils/http'
 import Anthropic from '@anthropic-ai/sdk'
+import { checkPixOwnership } from '../auth/verification.service'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -64,11 +65,12 @@ export async function listGrillmasters(skip = 0, take = 100) {
 }
 
 export async function listPendingGrillmasters() {
-  return prisma.grillmaster.findMany({
+  const list = await prisma.grillmaster.findMany({
     where: { approved: false },
-    include: { user: { select: { name: true, email: true, phone: true } } },
+    include: { user: { select: { name: true, email: true, phone: true, phoneVerified: true } } },
     orderBy: { createdAt: 'desc' },
   })
+  return list.map(g => ({ ...g, pixOwnership: checkPixOwnership(g.pixKey, g.cpfCnpj) }))
 }
 
 export async function approveGrillmaster(
@@ -174,11 +176,12 @@ export async function certifyGrillmaster(grillmasterId: string) {
 }
 
 export async function listPendingBoutiques() {
-  return prisma.boutique.findMany({
+  const list = await prisma.boutique.findMany({
     where: { approved: false },
-    include: { user: { select: { name: true, email: true, phone: true } } },
+    include: { user: { select: { name: true, email: true, phone: true, phoneVerified: true } } },
     orderBy: { createdAt: 'desc' },
   })
+  return list.map(b => ({ ...b, pixOwnership: checkPixOwnership(b.pixKey, b.cpfCnpj) }))
 }
 
 function generateReferralCode(name: string): string {
@@ -201,25 +204,25 @@ export async function approveBoutique(boutiqueId: string) {
     referralCode = code
   }
 
-  // Apenas os 5 primeiros açougues aprovados são "Fundador": R$369/mês + 3 meses grátis.
-  // Do 6º em diante: R$497/mês, sem trial gratuito.
-  const founderCount = await prisma.boutique.count({ where: { isFounder: true, approved: true } })
-  const isFounder = founderCount < 5
-  const trialEndsAt = isFounder ? (() => { const d = new Date(); d.setDate(d.getDate() + 90); return d })() : null
-  const monthlyFee = isFounder ? 369 : 497
+  // Modelo Açougue Embaixador: todo novo açougue aprovado paga R$369/mês
+  // (mensalidade única, sem plano padrão de R$497) e ganha 1 mês grátis —
+  // sem limite de vagas, sem exclusividade regional. `isFounder` no schema
+  // virou sinônimo de "já é Embaixador" (nome do campo mantido por ora pra
+  // não mexer em migration/índice à toa; o rótulo pro usuário já é outro).
+  const trialEndsAt = (() => { const d = new Date(); d.setDate(d.getDate() + 30); return d })()
+  const monthlyFee = 369
 
   const updated = await prisma.boutique.update({
     where: { id: boutiqueId },
-    data: { approved: true, referralCode, trialEndsAt, isFounder, monthlyFee },
+    data: { approved: true, referralCode, trialEndsAt, isFounder: true, monthlyFee },
   })
-  console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, isFounder, ts: new Date().toISOString() }))
+  console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, ts: new Date().toISOString() }))
   if (boutique.user) {
     const name = boutique.user.name.split(' ')[0]
-    const trialMsg = isFounder ? 'Você é um Açougue Parceiro Fundador! Aproveite 3 meses grátis.' : `Sua mensalidade é de R$ ${monthlyFee}/mês.`
     sendPushToUser(
       boutique.user.id,
-      isFounder ? '🎉 Açougue aprovado! Fundador — 3 meses grátis.' : '🎉 Açougue aprovado!',
-      `Parabéns ${name}! O açougue ${boutique.name} está ativo. ${trialMsg}`,
+      '🎉 Açougue aprovado! Embaixador — 1 mês grátis.',
+      `Parabéns ${name}! O açougue ${boutique.name} está ativo. Você é Açougue Embaixador — 1 mês grátis, depois R$ ${monthlyFee}/mês.`,
       '/boutiques/dashboard'
     ).catch((e) => console.error("[notif]", e?.message))
     emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
@@ -227,9 +230,7 @@ export async function approveBoutique(boutiqueId: string) {
       sendWhatsApp(
         boutique.user.phone,
         `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n` +
-        (isFounder
-          ? `🎁 Você é *Açougue Parceiro Fundador* — *3 meses GRÁTIS* e depois R$369/mês.`
-          : `Mensalidade: *R$${monthlyFee}/mês*.`) +
+        `🎁 Você é *Açougue Embaixador* — *1 mês GRÁTIS* e depois R$${monthlyFee}/mês.` +
         `\n\n*QR code do seu balcão:*\nhttps://www.techchurras.com.br/pedido?boutique=${boutique.id}\n\nAcesse seu painel completo:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
         'boutique-aprovado'
       ).catch((e) => console.error("[notif]", e?.message))

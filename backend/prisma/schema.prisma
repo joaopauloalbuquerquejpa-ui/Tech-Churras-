@@ -47,6 +47,9 @@ model User {
   firstOrderCouponUsed Boolean  @default(false)
   termsAcceptedAt      DateTime?
   termsVersion         String?
+  phoneVerified               Boolean   @default(false)
+  phoneVerificationCode       String?
+  phoneVerificationExpiresAt  DateTime?
   createdAt     DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -84,6 +87,7 @@ model Grillmaster {
   latitude        Float?
   longitude       Float?
   pixKey          String?
+  cpfCnpj         String?
   videoUrl        String?
   certificationCode String? @unique
   certifiedAt     DateTime?
@@ -134,10 +138,11 @@ model Boutique {
   rating         Float    @default(0)
   approved       Boolean  @default(false)
   open           Boolean  @default(true)
-  monthlyFee     Float    @default(497.00)
+  monthlyFee     Float    @default(369.00)
   commissionRate Float    @default(0.10)
   isFounder      Boolean  @default(false)
   pixKey           String?
+  cpfCnpj          String?
   logoUrl          String?
   facadeUrl        String?
   galleryUrls      String[] @default([])

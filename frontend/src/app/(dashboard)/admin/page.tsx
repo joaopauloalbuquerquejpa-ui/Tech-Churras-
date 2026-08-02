@@ -67,7 +67,10 @@ interface PendingGrillmaster {
   galleryUrls?: string[]
   instagram?: string
   churrascoStyle?: string
-  user: { name: string; email: string; phone?: string }
+  pixKey?: string
+  cpfCnpj?: string
+  pixOwnership?: 'match' | 'mismatch' | 'not_verifiable'
+  user: { name: string; email: string; phone?: string; phoneVerified?: boolean }
 }
 
 interface PendingBoutique {
@@ -82,10 +85,12 @@ interface PendingBoutique {
   openingHours?: string
   deliveryOrPickup?: string
   pixKey?: string
+  cpfCnpj?: string
+  pixOwnership?: 'match' | 'mismatch' | 'not_verifiable'
   logoUrl?: string
   facadeUrl?: string
   galleryUrls?: string[]
-  user: { name: string; email: string; phone?: string }
+  user: { name: string; email: string; phone?: string; phoneVerified?: boolean }
 }
 
 interface GmApproveState {
@@ -710,6 +715,17 @@ export default function AdminPage() {
                         </div>
                         <p className="text-xs text-gray-400 mb-0.5">{g.user.email}</p>
                         {g.user.phone && <p className="text-xs text-gray-400 mb-1">📞 {g.user.phone}</p>}
+                        <div className="flex gap-1.5 mb-1 flex-wrap">
+                          <span className={'text-[10px] px-1.5 py-0.5 rounded-full font-semibold ' + (g.user.phoneVerified ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400')}>
+                            {g.user.phoneVerified ? '✓ WhatsApp verificado' : 'WhatsApp não verificado'}
+                          </span>
+                          {g.pixOwnership === 'mismatch' && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-red-500/20 text-red-400">⚠ Chave PIX não bate com CPF/CNPJ</span>
+                          )}
+                          {g.pixOwnership === 'match' && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-green-500/20 text-green-400">✓ PIX confere com CPF/CNPJ</span>
+                          )}
+                        </div>
                         <p className="text-sm text-gray-300 line-clamp-2">{g.bio}</p>
                         <div className="flex gap-3 mt-2 text-xs text-gray-400 flex-wrap">
                           <span>{g.city}, {g.state}</span>
@@ -838,6 +854,17 @@ export default function AdminPage() {
                       {(b.user.phone || b.phone) && (
                         <p className="text-xs text-gray-400">📞 {b.phone || b.user.phone}</p>
                       )}
+                      <div className="flex gap-1.5 mt-1 flex-wrap">
+                        <span className={'text-[10px] px-1.5 py-0.5 rounded-full font-semibold ' + (b.user.phoneVerified ? 'bg-green-500/20 text-green-400' : 'bg-gray-700 text-gray-400')}>
+                          {b.user.phoneVerified ? '✓ WhatsApp verificado' : 'WhatsApp não verificado'}
+                        </span>
+                        {b.pixOwnership === 'mismatch' && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-red-500/20 text-red-400">⚠ Chave PIX não bate com CPF/CNPJ</span>
+                        )}
+                        {b.pixOwnership === 'match' && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-green-500/20 text-green-400">✓ PIX confere com CPF/CNPJ</span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
                       <button

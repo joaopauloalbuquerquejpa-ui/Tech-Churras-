@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { HandshakeIcon, FlameIcon, CheckIcon, PinIcon, CashIcon } from '@/components/icons/Icons'
+import PhoneVerificationBanner from '@/components/PhoneVerificationBanner'
 
 
 function getToken() {
@@ -95,6 +96,8 @@ interface GrillmasterProfile {
   uniformSent: boolean
   defaultBoutiqueId?: string | null
   serviceRegions?: string[]
+  pixKey?: string
+  cpfCnpj?: string
 }
 
 interface PendingDispatch {
@@ -198,6 +201,7 @@ export default function GrillmasterDashboardPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [dispatches, setDispatches] = useState<PendingDispatch[]>([])
   const [respondingDispatchId, setRespondingDispatchId] = useState<string | null>(null)
+  const [phoneVerified, setPhoneVerified] = useState(true)
 
   // Profile form
   const [profileForm, setProfileForm] = useState<Partial<GrillmasterProfile>>({})
@@ -261,6 +265,7 @@ export default function GrillmasterDashboardPage() {
           accompaniments: p.accompaniments ?? [],
           offersSideDishPrep: p.offersSideDishPrep ?? false,
           serviceRegions: p.serviceRegions ?? [],
+          pixKey: p.pixKey ?? '', cpfCnpj: p.cpfCnpj ?? '',
         })
         // Carrega lista de açougues aprovados
         fetch(`${API_URL}/boutiques`, { headers: h })
@@ -279,6 +284,7 @@ export default function GrillmasterDashboardPage() {
       }
       if (sRes.ok) setSchedule(await sRes.json())
       fetchDispatches()
+      fetch(`${API_URL}/auth/me`, { headers: h }).then(r => r.ok ? r.json() : null).then(me => { if (me) setPhoneVerified(!!me.phoneVerified) }).catch(() => {})
     } catch {
       setNotFound(true)
     } finally {
@@ -668,6 +674,8 @@ export default function GrillmasterDashboardPage() {
           </div>
         )}
       </div>
+
+      <PhoneVerificationBanner verified={phoneVerified} onVerified={() => setPhoneVerified(true)} />
 
       {/* ── Completude do perfil ── */}
       {profile && (() => {
@@ -1389,6 +1397,22 @@ export default function GrillmasterDashboardPage() {
                 })}
               </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">Chave PIX (recebimento do repasse)</label>
+                <input value={profileForm.pixKey ?? ''} onChange={e => setProfileForm(f => ({ ...f, pixKey: e.target.value }))}
+                  placeholder="CPF, email, telefone ou chave aleatória"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">CPF ou CNPJ</label>
+                <input value={profileForm.cpfCnpj ?? ''} onChange={e => setProfileForm(f => ({ ...f, cpfCnpj: e.target.value }))}
+                  placeholder="Só números"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 placeholder-gray-600" />
+              </div>
+            </div>
+            <p className="text-[11px] text-gray-600 -mt-2">Usado só pra confirmar que o repasse do PIX vai pra você mesmo — ninguém mais vê esses dados.</p>
 
             <div>
               <label className="block text-xs text-gray-500 mb-1">Vídeo de apresentação (URL YouTube ou Instagram)</label>

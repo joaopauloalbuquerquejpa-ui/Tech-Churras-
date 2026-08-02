@@ -25,6 +25,8 @@ export const createBoutiqueSchema = z.object({
   instagram: z.string().optional(),
   openingHours: z.string().optional(),
   deliveryOrPickup: z.string().optional(),
+  pixKey: z.string().optional(),
+  cpfCnpj: z.string().optional(),
 })
 
 export const updateBoutiqueSchema = z.object({
@@ -41,6 +43,8 @@ export const updateBoutiqueSchema = z.object({
   instagram: z.string().optional(),
   openingHours: z.string().optional(),
   deliveryOrPickup: z.string().optional(),
+  pixKey: z.string().optional(),
+  cpfCnpj: z.string().optional(),
 })
 
 export const createKitSchema = z.object({
