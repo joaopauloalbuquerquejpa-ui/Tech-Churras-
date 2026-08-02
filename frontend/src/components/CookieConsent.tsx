@@ -26,8 +26,8 @@ export function CookieConsent() {
   if (!visible) return null
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[9999] p-4 md:p-6 md:bottom-4 md:left-4 md:right-auto md:max-w-sm">
-      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-4 shadow-2xl">
+    <div className="fixed bottom-0 left-0 right-0 z-[9999] p-4 md:p-6 md:bottom-4 md:left-4 md:right-auto md:max-w-sm pointer-events-none">
+      <div className="bg-gray-900 border border-gray-700 rounded-2xl p-4 shadow-2xl pointer-events-auto">
         <p className="text-sm text-gray-300 mb-3">
           Usamos cookies para analytics e personalização. Veja nossa{' '}
           <a href="/politica-de-privacidade" className="underline text-orange-400">

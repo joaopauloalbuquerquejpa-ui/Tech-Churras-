@@ -160,8 +160,14 @@ export default function DashboardLayout({
           )}
         </div>
       </nav>
-      {user && <OnboardingTour userId={user.id} role={user.role} />}
-      <main className='p-6 pb-24 md:pb-6'>{children}</main>
+      {/* Nunca mostrar o tour em telas de fluxo crítico (pagamento, checkout) —
+          já bloqueou clique no botão de pagar logo depois do guest checkout. */}
+      {user && !pathname.includes('/payment') && pathname !== '/pedido' && pathname !== '/kit-perfeito' && (
+        <OnboardingTour userId={user.id} role={user.role} />
+      )}
+      {/* pb extra no desktop pra sobrar espaço embaixo do conteúdo — o toast de
+          instalar o PWA é fixed bottom-right e cobria cards perto do rodapé. */}
+      <main className='p-6 pb-24 md:pb-28'>{children}</main>
       <MobileNav />
       <PWAInstallPrompt />
       <SupportButton />

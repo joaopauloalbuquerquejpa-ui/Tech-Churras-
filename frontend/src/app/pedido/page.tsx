@@ -551,7 +551,11 @@ function PedidoForm() {
                           )}
                         </div>
                         <p className="text-xs text-gray-400">{g.city}, {g.state}</p>
-                        <p className="text-xs text-yellow-400">{renderStars(g.rating ?? 0)} <span className="text-gray-500">({g.totalOrders ?? 0} eventos)</span></p>
+                        {g.totalOrders > 0 ? (
+                          <p className="text-xs text-yellow-400">{renderStars(g.rating ?? 0)} <span className="text-gray-500">({g.totalOrders} eventos)</span></p>
+                        ) : (
+                          <p className="text-xs text-blue-400">🆕 Novo na plataforma</p>
+                        )}
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-orange-400 font-bold">R$ {g.pricePerHour.toFixed(0)}</p>

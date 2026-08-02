@@ -13,6 +13,11 @@ const TRUST_BADGES = [
 
 const PAYMENT_METHODS = ['Mercado Pago', 'Pix', 'Cartão de crédito']
 
+const REDIRECT_REASONS: Record<string, string> = {
+  '/kit-perfeito': 'Crie sua conta grátis (leva 30 segundos) para a IA montar seu kit de churrasco personalizado.',
+  '/menu/assistente': 'Crie sua conta grátis (leva 30 segundos) para conversar com o assistente e montar seu churrasco.',
+}
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -23,6 +28,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [preToken, setPreToken] = useState<string | null>(null)
   const [totpCode, setTotpCode] = useState('')
+  const redirectReason = REDIRECT_REASONS[searchParams.get('redirect') ?? '']
 
   function goToRoleHome(role: string) {
     const next = searchParams.get('redirect')
@@ -183,6 +189,14 @@ export default function LoginPage() {
           <p className="text-gray-500 mb-8 text-sm">
             {preToken ? 'Abra seu app autenticador e digite o código de 6 dígitos' : 'Ou crie sua conta em 1 minuto — é grátis'}
           </p>
+
+          {/* Explica por que caiu aqui — redirect silencioso confundia quem clicava
+              em "Montar kit com IA" na home sem entender por que precisa logar. */}
+          {!preToken && redirectReason && (
+            <div className="bg-orange-500/10 border border-orange-500/30 text-orange-300 px-4 py-3 rounded-xl mb-5 text-sm">
+              {redirectReason}
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-xl mb-5 text-sm">

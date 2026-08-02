@@ -40,6 +40,7 @@ export default function NewBoutiquePage() {
   const [boutiqueAddress, setBoutiqueAddress] = useState('')
   const [uploadError, setUploadError] = useState('')
   const [descLoading, setDescLoading] = useState(false)
+  const [descError, setDescError] = useState('')
   const [form, setForm] = useState({
     name: '',
     description: '',
@@ -253,6 +254,7 @@ export default function NewBoutiquePage() {
                   const token = getToken()
                   if (!token) return
                   setDescLoading(true)
+                  setDescError('')
                   try {
                     const desc = await generateBoutiqueDesc(token, {
                       name: form.name,
@@ -260,8 +262,9 @@ export default function NewBoutiquePage() {
                       specialties: [form.address, form.deliveryOrPickup].filter(Boolean).join(' — ') || undefined,
                     })
                     setForm(f => ({ ...f, description: desc }))
-                  } catch { /* silently fail */ }
-                  finally { setDescLoading(false) }
+                  } catch (err: any) {
+                    setDescError(err.message || 'Erro ao gerar descricao com IA — escreva manualmente')
+                  } finally { setDescLoading(false) }
                 }}
                 disabled={descLoading || !form.name}
                 className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
@@ -269,6 +272,7 @@ export default function NewBoutiquePage() {
                 {descLoading ? 'Gerando...' : '✨ Gerar com IA'}
               </button>
             </div>
+            {descError && <p className="text-xs text-red-400 mb-1">{descError}</p>}
             <textarea value={form.description}
               onChange={e => setForm({ ...form, description: e.target.value })}
               placeholder="Conte sobre o acougue..."

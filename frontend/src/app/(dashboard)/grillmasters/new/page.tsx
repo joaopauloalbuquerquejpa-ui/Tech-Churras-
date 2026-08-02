@@ -65,6 +65,7 @@ export default function NewGrillmasterPage() {
   const [gmAddress, setGmAddress] = useState('')
   const [uploadError, setUploadError] = useState('')
   const [bioLoading, setBioLoading] = useState(false)
+  const [bioError, setBioError] = useState('')
   const [form, setForm] = useState({
     bio: '',
     experience: 1,
@@ -254,6 +255,7 @@ export default function NewGrillmasterPage() {
                   const token = getToken()
                   if (!token) return
                   setBioLoading(true)
+                  setBioError('')
                   try {
                     const bio = await generateBio(token, {
                       name: getAuthName(),
@@ -263,8 +265,9 @@ export default function NewGrillmasterPage() {
                       experience: form.experience,
                     })
                     setForm(f => ({ ...f, bio }))
-                  } catch { /* silently fail */ }
-                  finally { setBioLoading(false) }
+                  } catch (err: any) {
+                    setBioError(err.message || 'Erro ao gerar bio com IA — escreva manualmente')
+                  } finally { setBioLoading(false) }
                 }}
                 disabled={bioLoading || (!form.city && !form.specialties)}
                 title={!form.city && !form.specialties ? 'Preencha cidade ou especialidades primeiro' : ''}
@@ -273,6 +276,7 @@ export default function NewGrillmasterPage() {
                 {bioLoading ? 'Gerando...' : '✨ Gerar com IA'}
               </button>
             </div>
+            {bioError && <p className="text-xs text-red-400 mb-1">{bioError}</p>}
             <textarea
               value={form.bio}
               onChange={e => setForm({ ...form, bio: e.target.value })}

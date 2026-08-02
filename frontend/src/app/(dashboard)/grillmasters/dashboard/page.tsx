@@ -203,11 +203,13 @@ export default function GrillmasterDashboardPage() {
   const [dispatches, setDispatches] = useState<PendingDispatch[]>([])
   const [respondingDispatchId, setRespondingDispatchId] = useState<string | null>(null)
   const [phoneVerified, setPhoneVerified] = useState(true)
+  const autoSwitchedTabRef = useRef(false)
 
   // Profile form
   const [profileForm, setProfileForm] = useState<Partial<GrillmasterProfile>>({})
   const [savingProfile, setSavingProfile] = useState(false)
   const [generatingBio, setGeneratingBio] = useState(false)
+  const [bioGenError, setBioGenError] = useState('')
   const [profileMsg, setProfileMsg] = useState('')
   const [uploadingGallery, setUploadingGallery] = useState(false)
 
@@ -241,6 +243,17 @@ export default function GrillmasterDashboardPage() {
     if (user.role !== 'GRILLMASTER') { router.replace('/dashboard'); return }
     load()
   }, [user])
+
+  // Abre direto em "Solicitações" se já chegar com pedido pendente — é a ação
+  // mais urgente, não faz sentido esconder atrás de um clique extra em "Eventos".
+  // Só troca uma vez, no carregamento inicial — não força a aba de novo depois.
+  useEffect(() => {
+    if (autoSwitchedTabRef.current) return
+    if (dispatches.length > 0) {
+      setTab('solicitacoes')
+      autoSwitchedTabRef.current = true
+    }
+  }, [dispatches])
 
   async function load() {
     setLoading(true)
@@ -1327,6 +1340,7 @@ export default function GrillmasterDashboardPage() {
                     const token = getToken()
                     if (!token) return
                     setGeneratingBio(true)
+                    setBioGenError('')
                     try {
                       const res = await fetch(API_URL + '/ai/generate-bio', {
                         method: 'POST',
@@ -1341,9 +1355,11 @@ export default function GrillmasterDashboardPage() {
                         }),
                       })
                       const data = await res.json()
-                      if (data.bio) setProfileForm(f => ({ ...f, bio: data.bio }))
-                    } catch { /* silently fail */ }
-                    finally { setGeneratingBio(false) }
+                      if (!res.ok || !data.bio) throw new Error(data.error || 'Erro ao gerar bio')
+                      setProfileForm(f => ({ ...f, bio: data.bio }))
+                    } catch (err: any) {
+                      setBioGenError(err.message || 'Erro ao gerar bio com IA — escreva manualmente')
+                    } finally { setGeneratingBio(false) }
                   }}
                   disabled={generatingBio}
                   className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
@@ -1351,6 +1367,7 @@ export default function GrillmasterDashboardPage() {
                   {generatingBio ? 'Gerando...' : '✨ Gerar com IA'}
                 </button>
               </div>
+              {bioGenError && <p className="text-xs text-red-400 mb-1">{bioGenError}</p>}
               <textarea value={profileForm.bio ?? ''} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} rows={3}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-orange-500 resize-none" />
             </div>
@@ -1645,6 +1662,9 @@ export default function GrillmasterDashboardPage() {
           {/* 6-month chart */}
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
             <h2 className="font-semibold text-sm uppercase tracking-wide text-gray-400 mb-5">Ganhos — Últimos 6 Meses</h2>
+            {last6Months.every(m => m.earnings === 0) && (
+              <p className="text-xs text-gray-600 text-center mb-3">Nenhum evento concluído ainda nesse período — o gráfico preenche conforme você for realizando churrascos.</p>
+            )}
             <div className="flex items-end gap-2 h-36">
               {last6Months.map(m => (
                 <div key={m.label} className="flex-1 flex flex-col items-center gap-1.5">

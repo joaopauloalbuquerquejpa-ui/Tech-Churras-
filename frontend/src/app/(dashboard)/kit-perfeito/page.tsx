@@ -149,9 +149,10 @@ export default function KitPerfeitoPage() {
         </p>
       </div>
 
-      {/* Form */}
-      {!result && !loading && (
-        <form onSubmit={handleSubmit} className="bg-gray-900 rounded-2xl p-6 space-y-5">
+      {/* Form — fica montado mesmo durante loading pra CepAddressInput nao perder
+          o CEP ja digitado se a chamada da IA falhar (só escondemos com CSS). */}
+      {!result && (
+        <form onSubmit={handleSubmit} className={'bg-gray-900 rounded-2xl p-6 space-y-5' + (loading ? ' hidden' : '')}>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Endereço do evento

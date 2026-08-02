@@ -187,6 +187,7 @@ export default function BoutiqueDashboardPage() {
   const [kitItems, setKitItems] = useState<KitItem[]>([])
   const [submittingKit, setSubmittingKit] = useState(false)
   const [generatingKitItems, setGeneratingKitItems] = useState(false)
+  const [kitItemsError, setKitItemsError] = useState('')
   const [uploadingKitPhoto, setUploadingKitPhoto] = useState(false)
   const kitPhotoRef = useRef<HTMLInputElement>(null)
 
@@ -1338,8 +1339,8 @@ export default function BoutiqueDashboardPage() {
                   <QRCodeSVG value={balcaoUrl} size={110} level="H" />
                 </div>
                 <div className="flex-1 space-y-3">
-                  <div className="bg-gray-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2">
-                    <p className="text-xs text-gray-400 font-mono truncate">{balcaoUrl}</p>
+                  <div className="bg-gray-800 rounded-xl px-3 py-2 flex items-center justify-between gap-2 min-w-0">
+                    <p className="text-xs text-gray-400 font-mono truncate min-w-0">{balcaoUrl}</p>
                     <button
                       onClick={() => copyBalcaoLink(balcaoUrl)}
                       className="shrink-0 text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg font-medium transition-colors"
@@ -1476,6 +1477,7 @@ export default function BoutiqueDashboardPage() {
                         onClick={async () => {
                           if (!boutique) return
                           setGeneratingKitItems(true)
+                          setKitItemsError('')
                           try {
                             const guests = kitForm.minGuests || 10
                             const homens = Math.round(guests * 0.55)
@@ -1492,7 +1494,10 @@ export default function BoutiqueDashboardPage() {
                                   .map(p => ({ id: p.id, name: p.name, category: p.category, price: p.price, unit: p.unit })),
                               }),
                             })
-                            if (!res.ok) return
+                            if (!res.ok) {
+                              const err = await res.json().catch(() => ({}))
+                              throw new Error((err as any).error || 'Erro ao sugerir itens com IA')
+                            }
                             const data = await res.json()
                             if (Array.isArray(data.items)) {
                               const productMap = new Map(boutique.products.map(p => [p.id, p]))
@@ -1504,9 +1509,11 @@ export default function BoutiqueDashboardPage() {
                                 })
                                 .filter(Boolean) as KitItem[]
                               if (suggested.length > 0) setKitItems(suggested)
+                              else setKitItemsError('IA não reconheceu itens do seu catálogo — monte manualmente')
                             }
-                          } catch { /* silently fail */ }
-                          finally { setGeneratingKitItems(false) }
+                          } catch (err: any) {
+                            setKitItemsError(err.message || 'Erro ao sugerir itens com IA — monte manualmente')
+                          } finally { setGeneratingKitItems(false) }
                         }}
                         className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-40 flex items-center gap-1"
                       >
@@ -1515,6 +1522,7 @@ export default function BoutiqueDashboardPage() {
                       <button type="button" onClick={addKitItem} className="text-xs text-gray-400 hover:text-gray-300">+ Adicionar</button>
                     </div>
                   </div>
+                  {kitItemsError && <p className="text-xs text-red-400 -mt-2">{kitItemsError}</p>}
 
                   {!boutique || boutique.products.filter(p => p.available).length === 0 ? (
                     <p className="text-xs text-yellow-500/80 bg-yellow-500/10 border border-yellow-500/20 rounded-lg px-3 py-2">
