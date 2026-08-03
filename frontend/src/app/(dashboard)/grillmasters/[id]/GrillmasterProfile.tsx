@@ -345,7 +345,7 @@ export default function GrillmasterProfilePage() {
           </button>
           <button
             disabled={!gm.available}
-            onClick={() => router.push((getToken() ? '/menu/novo' : '/pedido') + '?grillmasterId=' + gm.id)}
+            onClick={() => router.push('/pedido?grillmasterId=' + gm.id)}
             className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-bold px-8 py-3 rounded-xl transition-colors whitespace-nowrap shrink-0"
           >
             {gm.available ? 'Contratar para meu evento' : 'Indisponivel no momento'}

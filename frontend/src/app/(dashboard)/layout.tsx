@@ -63,11 +63,16 @@ export default function DashboardLayout({
     '/admin', '/favoritos',
     '/boutiques/dashboard', '/grillmasters/dashboard',
   ]
+  // /orders/new agora é só um redirecionador pro wizard único /pedido
+  // (guest-friendly) — não expõe dado de pedido nenhum, então fica de fora
+  // do bloqueio genérico de /orders mesmo sem login.
+  const PUBLIC_EXCEPTIONS = ['/orders/new']
 
   useEffect(() => {
     const raw = localStorage.getItem('auth-storage')
     const token = raw ? JSON.parse(raw)?.state?.token : null
-    const isProtected = PROTECTED_PREFIXES.some(
+    const isException = PUBLIC_EXCEPTIONS.some(p => pathname === p || pathname.startsWith(p + '/'))
+    const isProtected = !isException && PROTECTED_PREFIXES.some(
       p => pathname === p || pathname.startsWith(p + '/')
     )
     if (!token && isProtected) {

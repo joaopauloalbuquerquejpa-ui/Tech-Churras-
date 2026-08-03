@@ -175,7 +175,7 @@ export default function FavoritosPage() {
                       </span>
                       <button
                         disabled={!g.available}
-                        onClick={() => router.push('/menu/novo?grillmasterId=' + g.id)}
+                        onClick={() => router.push('/pedido?grillmasterId=' + g.id)}
                         className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm font-medium px-3 py-1.5 rounded-lg transition-colors"
                       >
                         {g.available ? 'Contratar' : 'Indisponivel'}

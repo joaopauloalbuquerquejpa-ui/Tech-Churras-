@@ -6,13 +6,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useFavoritesStore } from '@/store/favorites'
 
-// Convidado (sem login) vai pro wizard sem fricção /pedido; quem já tem conta
-// segue pro fluxo logado — sem isso, todo clique em "Contratar" batia numa
-// tela de login sem necessidade, mesmo a pessoa nunca tendo se cadastrado.
-function hasSession(): boolean {
-  try { return !!JSON.parse(localStorage.getItem('auth-storage') || 'null')?.state?.token } catch { return false }
-}
-
 interface Grillmaster {
   id: string
   bio: string
@@ -369,7 +362,7 @@ export default function GrillmastersPage() {
                     </div>
                     <button
                       disabled={!g.available}
-                      onClick={() => router.push((hasSession() ? '/menu/novo' : '/pedido') + '?grillmasterId=' + g.id)}
+                      onClick={() => router.push('/pedido?grillmasterId=' + g.id)}
                       className="bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed text-white font-semibold px-4 py-2 rounded-lg text-sm transition-colors"
                     >
                       {g.available ? 'Contratar' : 'Indisponivel'}

@@ -7,8 +7,10 @@ function Redirector() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
+    // /pedido virou o wizard único (guest e logado) — antes redirecionava
+    // pra /orders/new, que exigia login mesmo pra quem só estava navegando.
     const params = searchParams.toString()
-    router.replace('/orders/new' + (params ? '?' + params : ''))
+    router.replace('/pedido' + (params ? '?' + params : ''))
   }, [])
 
   return (

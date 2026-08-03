@@ -5,12 +5,18 @@ import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
 import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
 import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER } from '@/lib/pricing'
+import { useCartStore } from '@/store/cart'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
 interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; user: { name: string } }
 interface KitItem { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }
 interface Kit { id: string; name: string; description: string; price: number; discountPrice?: number | null; minGuests: number; maxGuests: number; items: string }
+interface RecommendedGm {
+  id: string; name: string; rating: number; pricePerHour: number
+  photoUrl?: string | null; city?: string; specialties?: string
+  experience?: number; reviewCount: number; distanceKm: number | null; reason: string
+}
 
 const CATEGORY_LABELS: Record<string, string> = {
   CARNE: 'Bovinos e Suínos', SAL_TEMPERO: 'Sal e Temperos', CARVAO: 'Carvão',
@@ -56,6 +62,13 @@ function sideDishBreakdown(guests: number) {
 
 const STEPS = ['Seu Evento', 'Escolha os Cortes', 'Churrasqueiro', 'Confirmar']
 
+// Faixa de convidados de cada tier de kit do /menu — sem isso o parâmetro
+// ?kit= era só decorativo e o cliente caía num formulário zerado.
+const KIT_GUEST_DEFAULTS: Record<string, { men: number; women: number; kids: number }> = {
+  essential: { men: 8, women: 5, kids: 2 }, // ~15 pessoas
+  prime: { men: 16, women: 10, kids: 4 }, // ~30 pessoas
+}
+
 function StepBar({ step }: { step: number }) {
   return (
     <div className="mb-8">
@@ -85,8 +98,14 @@ function StepBar({ step }: { step: number }) {
 function PedidoForm() {
   const params = useSearchParams()
   const router = useRouter()
+  const cart = useCartStore()
   const boutiqueId = params.get('boutiqueId') ?? ''
   const preselectGmId = params.get('grillmasterId') ?? ''
+  // Veio do Kit Perfeito ou do Assistente IA — carrinho já tem açougue/GM/
+  // itens prontos. Sem isso, o cliente montava o kit com a IA, clicava em
+  // "Montar este churrasco" e caía num wizard zerado — o bug mais caro
+  // possível, porque acontece exatamente no clique que fecha a venda.
+  const cameFromAi = !!(cart.grillmasterId || cart.boutiqueId || Object.keys(cart.selectedQty).length > 0)
 
   const [boutique, setBoutique] = useState<Boutique | null>(null)
   const [allBoutiques, setAllBoutiques] = useState<Boutique[]>([])
@@ -95,6 +114,8 @@ function PedidoForm() {
   const [selectedKit, setSelectedKit] = useState<string | null>(null)
   const [kitApplyError, setKitApplyError] = useState('')
   const [grillmasters, setGrillmasters] = useState<Grillmaster[]>([])
+  const [recommendedGms, setRecommendedGms] = useState<RecommendedGm[]>([])
+  const [loadingRecommended, setLoadingRecommended] = useState(false)
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -156,6 +177,17 @@ function PedidoForm() {
     }).catch(() => {}).finally(() => setLoading(false))
   }, [boutiqueId])
 
+  // Cliente veio do Kit Perfeito/Assistente sem boutiqueId na URL ainda —
+  // redireciona já com o açougue (e GM, se a IA também tiver escolhido) que
+  // o carrinho guardou, pra cair direto no wizard certo em vez da tela de
+  // "escolha seu açougue" às cegas.
+  useEffect(() => {
+    if (boutiqueId || !cart.boutiqueId) return
+    const qs = new URLSearchParams({ boutiqueId: cart.boutiqueId })
+    if (cart.grillmasterId) qs.set('grillmasterId', cart.grillmasterId)
+    router.replace(`/pedido?${qs.toString()}`)
+  }, [boutiqueId, cart.boutiqueId, cart.grillmasterId])
+
   // Convidado chegou de um perfil de churrasqueiro específico (ex: "Contratar"
   // na listagem) sem açougue escolhido ainda — busca o açougue padrão desse
   // GM pra já entrar no fluxo certo, em vez de cair numa lista de açougues às
@@ -179,6 +211,27 @@ function PedidoForm() {
     if (grillmasters.some(g => g.id === preselectGmId)) setSelectedGm(preselectGmId)
   }, [preselectGmId, grillmasters])
 
+  // Kit escolhido no /menu (?kit=essential|prime) — prefila a faixa de
+  // convidados correspondente em vez de deixar o parâmetro decorativo.
+  useEffect(() => {
+    const kitDefaults = KIT_GUEST_DEFAULTS[params.get('kit') ?? '']
+    if (kitDefaults) { setMen(kitDefaults.men); setWomen(kitDefaults.women); setKids(kitDefaults.kids) }
+  }, [])
+
+  // Recomendação de GM por IA — endpoint público, não precisa de login.
+  useEffect(() => {
+    if (step !== 3) return
+    setLoadingRecommended(true)
+    const p = new URLSearchParams()
+    if (eventDate) p.set('eventDate', eventDate)
+    if (totalPeople > 0) p.set('guests', String(totalPeople))
+    fetch(`${API_URL}/grillmasters/recommended?${p.toString()}`)
+      .then(r => r.json())
+      .then(d => setRecommendedGms(Array.isArray(d) ? d : []))
+      .catch(() => setRecommendedGms([]))
+      .finally(() => setLoadingRecommended(false))
+  }, [step])
+
   // A promessa do produto é "a IA monta o kit certo pra você" — mas antes a
   // sugestão só rodava se o cliente clicasse. Assim que o catálogo carrega,
   // aplica automaticamente o kit mais compatível (ou a sugestão genérica por
@@ -186,6 +239,7 @@ function PedidoForm() {
   useEffect(() => {
     if (selectedKit !== null || products.length === 0) return
     if (Object.values(qty).some(q => q > 0)) return
+    if (cameFromAi) return // a IA (Kit Perfeito/Assistente) já escolheu os itens — não sobrescreve
     const kit = kits.find(k => totalPeople >= k.minGuests && totalPeople <= k.maxGuests)
       ?? (kits.length > 0
         ? kits.reduce((prev, curr) => Math.abs(curr.minGuests - totalPeople) < Math.abs(prev.minGuests - totalPeople) ? curr : prev)
@@ -193,6 +247,22 @@ function PedidoForm() {
     if (kit) applyKit(kit)
     else applySuggested()
   }, [products, kits])
+
+  // Prefila o restante do formulário com o que veio do Kit Perfeito/Assistente
+  // (endereço, duração, convidados e os cortes já escolhidos), assim que o
+  // catálogo do açougue carregar.
+  useEffect(() => {
+    if (!cameFromAi || products.length === 0) return
+    if (cart.eventData.address) setEventAddress(cart.eventData.address)
+    if (cart.eventData.hours) setEventHours(cart.eventData.hours)
+    if (cart.eventData.homens) setMen(cart.eventData.homens)
+    if (cart.eventData.mulheres != null) setWomen(cart.eventData.mulheres)
+    if (cart.eventData.criancas != null) setKids(cart.eventData.criancas)
+    if (Object.keys(cart.selectedQty).length > 0 && Object.keys(qty).length === 0) {
+      setQty(cart.selectedQty)
+      setSelectedKit('__from_ai__')
+    }
+  }, [products])
 
   async function fetchCep(cep: string) {
     if (cep.length !== 8) return
@@ -319,6 +389,7 @@ function PedidoForm() {
       })
       if (!orderRes.ok) throw new Error((await orderRes.json()).error)
       const order = await orderRes.json()
+      cart.clearCart()
       router.push(`/orders/${order.id}/payment`)
     } catch (err: any) {
       alert('Erro: ' + err.message)
@@ -568,8 +639,62 @@ function PedidoForm() {
             {grillmasters.length === 0 && (
               <p className="text-gray-500 text-center py-10">Nenhum churrasqueiro disponível no momento.</p>
             )}
+
+            {/* Recomendados pela IA */}
+            {(loadingRecommended || recommendedGms.length > 0) && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-1">
+                  ✨ Recomendados para você
+                </p>
+                {loadingRecommended ? (
+                  <div className="text-center py-4 text-gray-500 text-sm">Analisando disponibilidade...</div>
+                ) : (
+                  recommendedGms.map((rg, idx) => {
+                    const sel = selectedGm === rg.id
+                    const cost = rg.pricePerHour * eventHours
+                    return (
+                      <div key={rg.id}
+                        onClick={() => setSelectedGm(rg.id)}
+                        className={'cursor-pointer rounded-2xl p-4 border-2 transition-all ' +
+                          (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60')}>
+                        <div className="flex items-start gap-3">
+                          <div className="relative shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-lg font-black text-orange-400">
+                              {rg.name?.[0]?.toUpperCase() ?? '?'}
+                            </div>
+                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center">
+                              {idx + 1}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-bold text-white truncate">{rg.name}</p>
+                              {sel && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>}
+                            </div>
+                            <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
+                              {rg.rating > 0 && <span className="flex items-center gap-0.5"><span className="text-yellow-400">★</span>{rg.rating.toFixed(1)}</span>}
+                              {rg.reviewCount > 0 && <span>{rg.reviewCount} avaliações</span>}
+                              {rg.distanceKm != null && <span>{rg.distanceKm}km</span>}
+                            </div>
+                            {rg.reason && <p className="text-xs text-orange-300/80 mt-1 italic">{rg.reason}</p>}
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-xs text-gray-500">R$ {rg.pricePerHour}/hora</span>
+                              <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            )}
+            {recommendedGms.length > 0 && grillmasters.length > 0 && (
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Todos os churrasqueiros</p>
+            )}
+
             <div className="space-y-3">
-              {grillmasters.map(g => {
+              {grillmasters.filter(g => !recommendedGms.some(r => r.id === g.id)).map(g => {
                 const sel = selectedGm === g.id
                 return (
                   <div key={g.id} onClick={() => { setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}

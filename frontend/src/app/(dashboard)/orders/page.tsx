@@ -96,7 +96,7 @@ export default function OrdersPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Meus Pedidos</h1>
-        <Link href="/orders/new" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+        <Link href="/pedido" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
           Novo Pedido
         </Link>
       </div>
@@ -114,7 +114,7 @@ export default function OrdersPage() {
       {!loading && orders.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <p className="text-lg">Nenhum pedido ainda.</p>
-          <Link href="/orders/new" className="mt-4 inline-block bg-orange-500 text-white px-6 py-2 rounded-lg">
+          <Link href="/pedido" className="mt-4 inline-block bg-orange-500 text-white px-6 py-2 rounded-lg">
             Fazer primeiro pedido
           </Link>
         </div>

@@ -14,10 +14,15 @@ const PROTECTED_PREFIXES = [
   '/indicar',
   '/kit-perfeito',
   '/menu/assistente',
-  '/menu/novo',
   '/orders',
   '/perfil',
 ]
+
+// Exceções dentro de prefixos protegidos que devem continuar públicas —
+// /orders/new é só um redirecionador pro wizard único /pedido (guest-friendly),
+// não expõe dado de nenhum pedido existente. /menu/novo já não está na lista
+// de prefixos acima (era standalone), então segue público sem exceção.
+const PUBLIC_EXCEPTIONS = ['/orders/new']
 
 // Dentro das protegidas, apenas ADMIN pode acessar
 const ADMIN_PREFIXES = ['/admin']
@@ -41,7 +46,8 @@ export function middleware(request: NextRequest) {
   }
 
   // Rota protegida sem auth → redireciona para login
-  const needsAuth = PROTECTED_PREFIXES.some(p => pathname.startsWith(p))
+  const isPublicException = PUBLIC_EXCEPTIONS.some(p => pathname === p || pathname.startsWith(p + '/'))
+  const needsAuth = !isPublicException && PROTECTED_PREFIXES.some(p => pathname.startsWith(p))
   if (needsAuth && !isAuthenticated) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
