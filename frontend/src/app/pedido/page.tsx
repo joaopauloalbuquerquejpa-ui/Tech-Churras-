@@ -423,7 +423,7 @@ function PedidoForm() {
         ) : (
           <div className="flex flex-col gap-3">
             {allBoutiques.map(b => (
-              <button key={b.id} onClick={() => router.replace(`/pedido?boutiqueId=${b.id}`)}
+              <button key={b.id} onClick={() => router.replace(`/pedido?boutiqueId=${b.id}` + (preselectGmId ? `&grillmasterId=${preselectGmId}` : ''))}
                 className="text-left bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-orange-500/60 rounded-2xl p-5 transition-colors">
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-bold text-lg">{b.name}</span>
