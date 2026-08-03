@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import { HandshakeIcon, FlameIcon, CheckIcon, PinIcon, CashIcon } from '@/components/icons/Icons'
 import PhoneVerificationBanner from '@/components/PhoneVerificationBanner'
+import { VoiceDictateButton } from '@/components/VoiceDictateButton'
 
 
 function getToken() {
@@ -1332,8 +1333,14 @@ export default function GrillmasterDashboardPage() {
             )}
 
             <div>
-              <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center justify-between mb-1 gap-2">
                 <label className="block text-xs text-gray-500">Bio (apresentação)</label>
+                <div className="flex items-center gap-3">
+                <VoiceDictateButton
+                  token={getToken() || ''}
+                  label="Ditar bio"
+                  onTranscribed={text => setProfileForm(f => ({ ...f, bio: f.bio ? f.bio + ' ' + text : text }))}
+                />
                 <button
                   type="button"
                   onClick={async () => {
@@ -1366,6 +1373,7 @@ export default function GrillmasterDashboardPage() {
                 >
                   {generatingBio ? 'Gerando...' : '✨ Gerar com IA'}
                 </button>
+                </div>
               </div>
               {bioGenError && <p className="text-xs text-red-400 mb-1">{bioGenError}</p>}
               <textarea value={profileForm.bio ?? ''} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} rows={3}

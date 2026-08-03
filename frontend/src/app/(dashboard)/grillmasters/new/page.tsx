@@ -3,6 +3,7 @@ import { API_URL } from '@/lib/api'
 import { useRef, useState } from 'react'
 import Link from 'next/link'
 import ContractModal from '@/components/ContractModal'
+import { VoiceDictateButton } from '@/components/VoiceDictateButton'
 
 async function generateBio(token: string, params: { name?: string; city?: string; specialties?: string; churrascoStyle?: string; experience?: number }): Promise<string> {
   const res = await fetch(API_URL + '/ai/generate-bio', {
@@ -247,34 +248,41 @@ export default function NewGrillmasterPage() {
         <div className="bg-gray-900 rounded-xl p-6 space-y-4">
           <h2 className="text-sm font-semibold text-gray-300 mb-2 uppercase tracking-wide">Informacoes basicas</h2>
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1 gap-2">
               <label className="block text-sm text-gray-400">Bio *</label>
-              <button
-                type="button"
-                onClick={async () => {
-                  const token = getToken()
-                  if (!token) return
-                  setBioLoading(true)
-                  setBioError('')
-                  try {
-                    const bio = await generateBio(token, {
-                      name: getAuthName(),
-                      city: form.city,
-                      specialties: form.specialties,
-                      churrascoStyle: form.churrascoStyle,
-                      experience: form.experience,
-                    })
-                    setForm(f => ({ ...f, bio }))
-                  } catch (err: any) {
-                    setBioError(err.message || 'Erro ao gerar bio com IA — escreva manualmente')
-                  } finally { setBioLoading(false) }
-                }}
-                disabled={bioLoading || (!form.city && !form.specialties)}
-                title={!form.city && !form.specialties ? 'Preencha cidade ou especialidades primeiro' : ''}
-                className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
-              >
-                {bioLoading ? 'Gerando...' : '✨ Gerar com IA'}
-              </button>
+              <div className="flex items-center gap-3">
+                <VoiceDictateButton
+                  token={getToken() || ''}
+                  label="Ditar bio"
+                  onTranscribed={text => setForm(f => ({ ...f, bio: f.bio ? f.bio + ' ' + text : text }))}
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const token = getToken()
+                    if (!token) return
+                    setBioLoading(true)
+                    setBioError('')
+                    try {
+                      const bio = await generateBio(token, {
+                        name: getAuthName(),
+                        city: form.city,
+                        specialties: form.specialties,
+                        churrascoStyle: form.churrascoStyle,
+                        experience: form.experience,
+                      })
+                      setForm(f => ({ ...f, bio }))
+                    } catch (err: any) {
+                      setBioError(err.message || 'Erro ao gerar bio com IA — escreva manualmente')
+                    } finally { setBioLoading(false) }
+                  }}
+                  disabled={bioLoading || (!form.city && !form.specialties)}
+                  title={!form.city && !form.specialties ? 'Preencha cidade ou especialidades primeiro' : ''}
+                  className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
+                >
+                  {bioLoading ? 'Gerando...' : '✨ Gerar com IA'}
+                </button>
+              </div>
             </div>
             {bioError && <p className="text-xs text-red-400 mb-1">{bioError}</p>}
             <textarea

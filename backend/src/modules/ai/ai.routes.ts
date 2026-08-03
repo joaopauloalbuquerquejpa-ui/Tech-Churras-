@@ -11,6 +11,8 @@ import { prisma } from '../../config/prisma'
 const suggestRateLimits = new Map<string, { count: number; resetAt: number }>()
 // Reusa a mesma estrutura de rate limit para /ai/social-post (também é upload de imagem)
 const socialPostRateLimits = new Map<string, { count: number; resetAt: number }>()
+// Idem para /ai/transcribe (upload de áudio)
+const transcribeRateLimits = new Map<string, { count: number; resetAt: number }>()
 // Limpa entradas expiradas a cada 10 minutos para evitar crescimento ilimitado
 setInterval(() => {
   const now = Date.now()
@@ -19,6 +21,9 @@ setInterval(() => {
   }
   for (const [key, val] of socialPostRateLimits) {
     if (now >= val.resetAt) socialPostRateLimits.delete(key)
+  }
+  for (const [key, val] of transcribeRateLimits) {
+    if (now >= val.resetAt) transcribeRateLimits.delete(key)
   }
 }, 10 * 60 * 1000)
 
@@ -88,6 +93,10 @@ function detectMagicMime(buf: Buffer): string | null {
   return null
 }
 const MAGIC_MIME_EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }
+
+// Formatos de áudio aceitos pra transcrição — o que o MediaRecorder do navegador
+// e apps de gravação de voz do celular tipicamente produzem.
+const ALLOWED_AUDIO_MIME = ['audio/webm', 'audio/ogg', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/x-m4a', 'audio/m4a', 'audio/3gpp']
 
 // Normaliza category e priority para os enums esperados pelo frontend
 function normalizeItem(item: Record<string, unknown>): Record<string, unknown> {
@@ -503,6 +512,65 @@ Retorne SOMENTE o texto da descrição, nada mais.`
     return reply.send({ bio })
   })
 
+  // ── POST /ai/transcribe ──────────────────────────────────────────────
+  // Recebe uma nota de voz (ex: churrasqueiro/açougue contando sua experiência
+  // em áudio em vez de digitar) e devolve o texto transcrito em português.
+  // Usa Gemini em vez de Claude porque o Claude não processa áudio nativamente
+  // e o Gemini tem tier gratuito — não consome o crédito da Anthropic.
+  app.post('/ai/transcribe', { preHandler: [authenticate], config: { rateLimit: { max: 15, timeWindow: '1 minute' } } }, async (request, reply) => {
+    const userId = (request as any).user?.id as string
+    const geminiKey = process.env.GEMINI_API_KEY
+    if (!geminiKey) return reply.status(503).send({ error: 'Transcrição de áudio ainda não disponível' })
+
+    const now = Date.now()
+    const rl = transcribeRateLimits.get(userId)
+    if (rl && now < rl.resetAt) {
+      if (rl.count >= 15) return reply.status(429).send({ error: 'Muitas requisições. Aguarde 1 minuto.' })
+      rl.count++
+    } else {
+      transcribeRateLimits.set(userId, { count: 1, resetAt: now + 60_000 })
+    }
+
+    try {
+      const data = await request.file()
+      if (!data) return reply.status(400).send({ error: 'Nenhum áudio enviado' })
+      if (!ALLOWED_AUDIO_MIME.includes(data.mimetype)) {
+        return reply.status(400).send({ error: 'Formato de áudio não suportado' })
+      }
+
+      const buffer = await data.toBuffer()
+      if (buffer.byteLength > 15 * 1024 * 1024) {
+        return reply.status(400).send({ error: 'Áudio muito grande. Máximo 15MB (~2 minutos de fala).' })
+      }
+
+      const base64 = buffer.toString('base64')
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: 'Transcreva o áudio a seguir em português do Brasil. Responda SOMENTE com o texto transcrito, sem comentários, sem markdown, sem aspas.' },
+              { inline_data: { mime_type: data.mimetype, data: base64 } },
+            ],
+          }],
+        }),
+      })
+
+      if (!res.ok) {
+        return reply.status(502).send({ error: 'Falha ao transcrever áudio. Tente novamente ou digite manualmente.' })
+      }
+
+      const json: any = await res.json()
+      const text = (json.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim()
+      if (!text) return reply.status(500).send({ error: 'Não conseguimos entender o áudio. Tente falar mais perto do microfone.' })
+
+      return reply.send({ text })
+    } catch (err: any) {
+      return reply.status(500).send({ error: 'Falha ao processar áudio', details: err.message })
+    }
+  })
+
   // ── POST /ai/chat ────────────────────────────────────────────────────
   app.post('/ai/chat', {
     preHandler: [authenticate],
@@ -689,21 +757,29 @@ REGRAS:
 
       const SOCIAL_SYSTEM = `Você é especialista em redes sociais para açougues e boutiques de carne no Brasil. Olhe a foto REAL enviada pelo parceiro (fachada, corte, vitrine, bastidor) e escreva uma legenda pronta para postar no Instagram.
 
-REGRAS:
+ANTES DE ESCREVER A LEGENDA, avalie se a foto é adequada para postar no Instagram do negócio:
+- Rejeite se estiver borrada/escura demais para reconhecer o que é
+- Rejeite se for claramente uma foto de banco de imagens genérica sem relação com o açougue (ex: still de stock photo, não uma foto real do negócio)
+- Aprove fachada, vitrine, corte de carne, bastidor, produto em cima da mesa/balança — mesmo que a foto não seja profissional
+
+REGRAS DA LEGENDA (somente se aprovada):
 - Baseie-se SOMENTE no que você vê na foto — não invente produtos ou promoções que não aparecem
 - Tom: caloroso, artesanal, orgulhoso do produto — nunca genérico ou robótico
 - 2-4 frases curtas + 3-5 hashtags relevantes ao final (ex: #açougue #churrasco #carnenobre + algo específico da cidade se souber)
 - Pode usar 1-2 emojis, sem exagero
 - Não mencione preços (o parceiro edita isso separadamente)
 - Se o contexto informado pelo parceiro ajudar, incorpore-o naturalmente
-Responda SOMENTE com o texto da legenda, nada mais — sem aspas, sem markdown.`
+
+Responda SOMENTE com JSON válido, sem markdown, sem texto extra:
+{"approved":true,"rejectionReason":"","caption":"texto da legenda"}
+Se rejeitar: {"approved":false,"rejectionReason":"motivo curto e claro para o parceiro entender o que trocar","caption":""}`
 
       const userText = `Açougue: ${boutique.name}${boutique.city ? ` (${boutique.city}/${boutique.state})` : ''}${context ? `\nContexto informado pelo parceiro: ${context}` : ''}`
 
       const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
       const message = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
+        max_tokens: 400,
         system: SOCIAL_SYSTEM,
         messages: [{
           role: 'user',
@@ -714,7 +790,21 @@ Responda SOMENTE com o texto da legenda, nada mais — sem aspas, sem markdown.`
         }],
       })
 
-      const caption = message.content[0].type === 'text' ? message.content[0].text.trim() : ''
+      const rawText = message.content[0].type === 'text' ? message.content[0].text.trim() : ''
+      let parsed: { approved?: boolean; rejectionReason?: string; caption?: string } = {}
+      try {
+        const cleaned = rawText.replace(/```json\s*/g, '').replace(/```/g, '').trim()
+        const match = cleaned.match(/\{[\s\S]*\}/)
+        parsed = match ? JSON.parse(match[0]) : {}
+      } catch { /* trata como falha abaixo */ }
+
+      if (!parsed.approved) {
+        // Remove a imagem já enviada ao storage — foto rejeitada não deve ficar órfã no bucket
+        await supabase.storage.from('partner-images').remove([fileName]).catch(() => {})
+        return reply.status(422).send({ error: parsed.rejectionReason || 'Essa foto não é adequada para postar. Tente outra.' })
+      }
+
+      const caption = parsed.caption?.trim() || ''
       if (!caption) return reply.status(500).send({ error: 'Falha ao gerar legenda. Tente novamente.' })
 
       const post = await prisma.socialPost.create({

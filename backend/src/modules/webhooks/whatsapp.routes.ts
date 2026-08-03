@@ -1,5 +1,7 @@
 import { FastifyInstance } from 'fastify'
 import Anthropic from '@anthropic-ai/sdk'
+import { promises as dns } from 'dns'
+import net from 'net'
 import { prisma } from '../../config/prisma'
 import { fetchWithTimeout } from '../../utils/http'
 
@@ -170,6 +172,75 @@ async function zapiSend(phone: string, message: string): Promise<void> {
   }
 }
 
+function isPrivateIp(ip: string): boolean {
+  if (net.isIPv4(ip)) {
+    const [a, b] = ip.split('.').map(Number)
+    return a === 127 || a === 10 || a === 0 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254)
+  }
+  if (net.isIPv6(ip)) {
+    const lower = ip.toLowerCase()
+    if (lower === '::1' || lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd')) return true
+    if (lower.startsWith('::ffff:')) {
+      const v4 = lower.split(':').pop() || ''
+      if (net.isIPv4(v4)) return isPrivateIp(v4)
+    }
+    return false
+  }
+  return true // formato não reconhecido — trata como inseguro por padrão
+}
+
+// audioUrl vem do payload do webhook — conteúdo influenciado por quem manda a
+// mensagem no WhatsApp, repassado pela Z-API. Antes de buscar, garante que
+// aponta pra um host público de verdade (evita SSRF contra rede interna).
+async function isSafeMediaUrl(urlStr: string): Promise<boolean> {
+  try {
+    const url = new URL(urlStr)
+    if (url.protocol !== 'https:') return false
+    const results = await dns.lookup(url.hostname, { all: true })
+    return results.length > 0 && results.every(r => !isPrivateIp(r.address))
+  } catch {
+    return false
+  }
+}
+
+// Transcreve nota de voz recebida no WhatsApp via Gemini (Claude não processa
+// áudio nativamente). Falha em silêncio (retorna null) pra sempre cair no
+// fallback de "manda em texto" que já existia — nunca trava a conversa.
+async function transcribeZapiAudio(audioUrl: string, mimeType: string): Promise<string | null> {
+  const geminiKey = process.env.GEMINI_API_KEY
+  if (!geminiKey || !audioUrl) return null
+  try {
+    if (!(await isSafeMediaUrl(audioUrl))) return null
+    // redirect: 'manual' — um 3xx pra endereço interno não deve ser seguido às cegas
+    const audioRes = await fetchWithTimeout(audioUrl, { redirect: 'manual' }, 15000)
+    if (!audioRes.ok) return null
+    const buffer = Buffer.from(await audioRes.arrayBuffer())
+    const base64 = buffer.toString('base64')
+    const res = await fetchWithTimeout(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${geminiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: 'Transcreva o áudio a seguir em português do Brasil. Responda SOMENTE com o texto transcrito, sem comentários, sem markdown.' },
+              { inline_data: { mime_type: mimeType || 'audio/ogg', data: base64 } },
+            ],
+          }],
+        }),
+      },
+      15000
+    )
+    if (!res.ok) return null
+    const json: any = await res.json()
+    const text = (json.candidates?.[0]?.content?.parts?.[0]?.text ?? '').trim()
+    return text || null
+  } catch {
+    return null
+  }
+}
+
 async function notifyAdmin(leadInfo: string, phone: string): Promise<void> {
   const adminPhone = process.env.ADMIN_WHATSAPP_PHONE
   if (!adminPhone) return
@@ -231,11 +302,20 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
       return reply.send({ ok: true })
     }
 
-    // Áudio: sem transcrição por enquanto — resposta graciosa pedindo texto
+    // Áudio: tenta transcrever via Gemini antes de desistir — se GEMINI_API_KEY
+    // não estiver configurada ou a transcrição falhar, cai no fallback antigo
+    // (pede pra digitar) sem quebrar nada.
     if (!body.text?.message && (body.audio || body.ptt)) {
-      const audioPhone = String(body.phone || '').trim()
-      if (audioPhone) await zapiSend(audioPhone, 'Opa, recebi teu áudio! 🔥 Me manda em texto rapidinho (aqui do churrasco a gente responde na hora) — quantas pessoas e pra que data?')
-      return reply.send({ ok: true })
+      const media = body.audio || body.ptt
+      const mimeType = String(media?.mimeType || 'audio/ogg').split(';')[0].trim()
+      const transcript = await transcribeZapiAudio(media?.audioUrl, mimeType)
+      if (transcript) {
+        body.text = { message: transcript }
+      } else {
+        const audioPhone = String(body.phone || '').trim()
+        if (audioPhone) await zapiSend(audioPhone, 'Opa, recebi teu áudio! 🔥 Não consegui entender dessa vez — me manda em texto rapidinho (aqui do churrasco a gente responde na hora) — quantas pessoas e pra que data?')
+        return reply.send({ ok: true })
+      }
     }
 
     if (!body.text?.message) return reply.send({ ok: true })

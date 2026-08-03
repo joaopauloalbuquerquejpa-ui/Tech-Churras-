@@ -3,6 +3,7 @@ import { API_URL } from '@/lib/api'
 import { useRef, useState } from 'react'
 import Link from 'next/link'
 import ContractModal from '@/components/ContractModal'
+import { VoiceDictateButton } from '@/components/VoiceDictateButton'
 
 async function generateBoutiqueDesc(token: string, params: { name: string; city?: string; specialties?: string }): Promise<string> {
   const res = await fetch(API_URL + '/ai/generate-bio', {
@@ -245,32 +246,39 @@ export default function NewBoutiquePage() {
               className="w-full bg-gray-800 rounded-lg px-3 py-2 text-white" />
           </div>
           <div>
-            <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center justify-between mb-1 gap-2">
               <label className="block text-sm text-gray-400">Descricao</label>
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!form.name) return
-                  const token = getToken()
-                  if (!token) return
-                  setDescLoading(true)
-                  setDescError('')
-                  try {
-                    const desc = await generateBoutiqueDesc(token, {
-                      name: form.name,
-                      city: form.city,
-                      specialties: [form.address, form.deliveryOrPickup].filter(Boolean).join(' — ') || undefined,
-                    })
-                    setForm(f => ({ ...f, description: desc }))
-                  } catch (err: any) {
-                    setDescError(err.message || 'Erro ao gerar descricao com IA — escreva manualmente')
-                  } finally { setDescLoading(false) }
-                }}
-                disabled={descLoading || !form.name}
-                className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
-              >
-                {descLoading ? 'Gerando...' : '✨ Gerar com IA'}
-              </button>
+              <div className="flex items-center gap-3">
+                <VoiceDictateButton
+                  token={getToken() || ''}
+                  label="Ditar descrição"
+                  onTranscribed={text => setForm(f => ({ ...f, description: f.description ? f.description + ' ' + text : text }))}
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (!form.name) return
+                    const token = getToken()
+                    if (!token) return
+                    setDescLoading(true)
+                    setDescError('')
+                    try {
+                      const desc = await generateBoutiqueDesc(token, {
+                        name: form.name,
+                        city: form.city,
+                        specialties: [form.address, form.deliveryOrPickup].filter(Boolean).join(' — ') || undefined,
+                      })
+                      setForm(f => ({ ...f, description: desc }))
+                    } catch (err: any) {
+                      setDescError(err.message || 'Erro ao gerar descricao com IA — escreva manualmente')
+                    } finally { setDescLoading(false) }
+                  }}
+                  disabled={descLoading || !form.name}
+                  className="text-xs text-orange-400 hover:text-orange-300 disabled:opacity-50 flex items-center gap-1"
+                >
+                  {descLoading ? 'Gerando...' : '✨ Gerar com IA'}
+                </button>
+              </div>
             </div>
             {descError && <p className="text-xs text-red-400 mb-1">{descError}</p>}
             <textarea value={form.description}
