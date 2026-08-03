@@ -120,7 +120,7 @@ function ConviteContent() {
               <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">De onde vem o padrão</p>
               <h3 className="font-black text-white text-lg mb-2">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
+                Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia — o primeiro restaurante do país em parceria oficial com o Governo. É a credencial que sustenta a chancela que você está sendo convidado a receber.
               </p>
               <div className="flex flex-wrap gap-2">
                 {['🏛️ Parceria oficial com o Governo', '📐 500m² dentro do Ministério', '👨‍💼 Sócio executivo', '🍖 Cardápio assinado'].map(t => (

@@ -382,7 +382,7 @@ const timeline: TimelineEntry[] = [
     icon: '●',
     title: 'O Início do Fogo',
     year: '+13 anos atrás',
-    desc: 'Começou como churrasqueiro de família, dominando fogo e brasa até virar referência local.',
+    desc: 'Começou como churrasqueiro de família — sem estrutura, sem equipe, só fogo e técnica aprendida na prática até virar referência local.',
   },
   {
     icon: '★',
@@ -406,7 +406,7 @@ const timeline: TimelineEntry[] = [
     icon: '◉',
     title: 'Expansão Internacional',
     year: 'Global',
-    desc: 'Cardápio do One Resort Aquapark & SPA na Tunísia e sócio no Bahari of Brazil em Zanzibar.',
+    desc: 'Levou o cardápio ao One Resort Aquapark & SPA na Tunísia e apostou tudo como sócio no Bahari of Brazil em Zanzibar — trocando conforto e clientela VIP por recomeçar do zero num continente novo.',
   },
   {
     icon: '◈',
@@ -418,7 +418,7 @@ const timeline: TimelineEntry[] = [
     icon: '⬟',
     title: 'Tech Churras',
     year: '2024',
-    desc: 'Fundou a plataforma que une os melhores churrasqueiros, açougues e clientes exigentes do país.',
+    desc: 'Trocou a exclusividade de uma carreira no topo por uma aposta: transformar o churrasco de luxo que dominava em algo que qualquer família pudesse ter no próprio quintal.',
   },
 ]
 
@@ -595,8 +595,9 @@ export default function FounderPage() {
 
             {[
               'Jota Albuquerque começou acendendo brasa em festas de família. Hoje, com 13 anos de Jota BBQ Eventos servindo clientela triple AAA em São Paulo e no Rio de Janeiro, é um dos Grillmasters mais respeitados do Brasil.',
-              'Grillmaster das maiores celebridades — atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais de churrasco do Brasil e hoje é sócio executivo do Bahari of Brazil, hub culinário em parceria com o governo de Zanzibar, na Tanzânia. Fez tudo isso — e percebeu que faltava algo.',
-              'A Tech Churras nasceu para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.',
+              'Grillmaster das maiores celebridades — atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais de churrasco do Brasil e hoje é sócio executivo do Bahari of Brazil, hub culinário em parceria com o governo de Zanzibar, na Tanzânia.',
+              'Mas depois de anos servindo o topo, percebeu o que estava faltando: o churrasco que ele mais amava nunca foi o de palco grande ou clientela exclusiva — era o de quintal, com quem a gente ama por perto, sem produção nenhuma. Construiu a carreira em cima de um evento que, no fundo, deveria ser simples e acessível pra qualquer família. Foi aí que decidiu trocar exclusividade por escala.',
+              'A Tech Churras nasceu dessa virada — para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.',
             ].map((para, i) => (
               <motion.p
                 key={i}
@@ -694,7 +695,7 @@ export default function FounderPage() {
               <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-2">Expansão internacional</p>
               <h3 className="text-2xl font-black text-white mb-3">Bahari of Brazil</h3>
               <p className="text-gray-400 leading-relaxed mb-5">
-                Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
+                Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia — o primeiro restaurante do país em parceria oficial com o Governo. Jota é sócio executivo e assinou pessoalmente o cardápio de cortes nobres que virou referência culinária em Zanzibar.
               </p>
               <div className="flex flex-wrap gap-2">
                 {[

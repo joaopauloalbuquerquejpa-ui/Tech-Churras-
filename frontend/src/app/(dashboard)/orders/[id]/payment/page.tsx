@@ -153,6 +153,8 @@ export default function PaymentPage() {
             <p className="text-gray-600 pt-1">Ao pagar você concorda com nossa política de cancelamento e com os <a href="/termos-de-uso" className="underline hover:text-gray-400">termos de uso</a>.</p>
           </div>
 
+          <p className="text-center text-sm text-gray-400">Tudo certo? Falta só confirmar. 🔥</p>
+
           <a
             href={checkoutUrl}
             className="flex items-center justify-center gap-3 w-full bg-[#009ee3] hover:bg-[#0088c7] text-white font-bold py-4 rounded-xl transition-colors text-base shadow-lg shadow-blue-500/20"

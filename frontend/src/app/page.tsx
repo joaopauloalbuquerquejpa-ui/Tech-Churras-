@@ -127,14 +127,14 @@ const PERSONAS = [
 
 const HOW_IT_WORKS = [
   {
-    step: '1', icon: ChefIcon,
-    title: 'Escolha o Grillmaster',
-    desc: 'Busque pelos Grillmasters chancelados na sua cidade. Leia avaliações, veja o portfólio, compare preços e escolha o estilo certo para o seu evento.',
+    step: '1', icon: CelebrationIcon,
+    title: 'Conte sobre o seu evento',
+    desc: 'Data, endereço e quantas pessoas vêm. A IA já calcula quanta carne vai precisar — sem chute, sem sobra, sem faltar.',
   },
   {
-    step: '2', icon: MeatIcon,
-    title: 'Monte o kit com açougue parceiro',
-    desc: 'A IA sugere os cortes e quantidades certas para o número de convidados — incluindo opções vegetarianas e veganas. Os cortes são separados e o Grillmaster retira no dia.',
+    step: '2', icon: ChefIcon,
+    title: 'Escolha os cortes e o Grillmaster',
+    desc: 'Monte o kit com o açougue parceiro (ou deixe a IA montar sozinha) e escolha o churrasqueiro chancelado certo pro seu estilo de evento.',
   },
   {
     step: '3', icon: FlameIcon,
@@ -244,18 +244,17 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-4 pt-20 pb-16 text-center">
         <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 text-xs text-orange-400 font-semibold mb-8 uppercase tracking-wide">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" />
-          Grillmaster + Açougue + IA + Localização ao vivo
+          Seu único trabalho: chegar e curtir
         </div>
         <h1 className="font-display text-5xl md:text-7xl font-black leading-none mb-6">
-          O melhor churrasco{' '}
+          Reúna todo mundo.{' '}
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-red-400 to-orange-600">
-            da sua vida
+            Sem virar seu trabalho.
           </span>
-          {' '}começa aqui.
         </h1>
         <p className="text-gray-300 text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
-          Grillmaster profissional. Açougue premium. IA que monta tudo.{' '}
-          <span className="text-gray-400">Um ecossistema completo — para festas, eventos corporativos e qualquer ocasião que mereça o melhor.</span>
+          Você escolhe a data e chama a família e os amigos.{' '}
+          <span className="text-gray-400">A gente cuida do churrasqueiro, das carnes e de cada detalhe do dia — pra você estar na mesa, não preso na grelha o evento inteiro.</span>
         </p>
         <div className="flex items-center justify-center gap-3 flex-wrap">
           <Link href="/grillmasters"
@@ -271,6 +270,9 @@ export default async function HomePage() {
             Montar kit com IA ✨
           </Link>
         </div>
+        <p className="text-gray-600 text-xs mt-8 max-w-lg mx-auto">
+          Grillmaster chancelado + açougue parceiro + IA que monta o kit + rastreio ao vivo no dia — sem cobrar seu tempo.
+        </p>
       </section>
 
       <PriceCalculator />
@@ -279,6 +281,36 @@ export default async function HomePage() {
       <section className="max-w-6xl mx-auto px-4 pb-8">
         <div className="max-w-xl mx-auto">
           <GarantiaSelo />
+        </div>
+      </section>
+
+      {/* Founder — logo abaixo da garantia, não escondido no fim da página.
+          É o principal ativo de credibilidade da marca (Zanzibar/Bahari of
+          Brazil) e a citação mais humana que a Tech Churras tem. */}
+      <section className="max-w-5xl mx-auto px-4 py-16">
+        <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            <div className="relative h-72 md:h-auto bg-gray-800">
+              <img src="/jota.jpg" alt="Jota Albuquerque" className="w-full h-full object-cover object-top" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900/30" />
+            </div>
+            <div className="p-8 md:p-10 flex flex-col justify-center">
+              <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Quem está por trás</p>
+              <h2 className="font-display text-3xl font-black text-white mb-2">Jota Albuquerque</h2>
+              <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13 anos de Jota BBQ Eventos · SP e RJ</p>
+              <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
+              <p className="text-gray-300 text-base leading-relaxed mb-6">
+                Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
+              </p>
+              <p className="text-xs text-amber-400/90 mb-8 flex items-center gap-1.5">
+                🌍 Hoje construindo o primeiro hub culinário brasileiro em parceria oficial com o Governo de Zanzibar, Tanzânia.
+              </p>
+              <Link href="/founder"
+                className="inline-block self-start bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors">
+                Conheça a história completa →
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -353,8 +385,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      {testimonials.length > 0 && (
+      {/* Testimonials — se ainda não há avaliação real, mostra estado honesto
+          em vez de a seção inteira sumir sem explicação. */}
+      {testimonials.length > 0 ? (
         <section className="max-w-6xl mx-auto px-4 pb-20" suppressHydrationWarning>
           <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Quem usou, aprovou</p>
           <h2 className="font-display text-3xl font-black text-center mb-12">O que nossos clientes dizem</h2>
@@ -377,6 +410,12 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+        </section>
+      ) : (
+        <section className="max-w-xl mx-auto px-4 pb-20 text-center" suppressHydrationWarning>
+          <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Quem usou, aprovou</p>
+          <h2 className="font-display text-2xl font-black mb-3">Você pode ser a primeira avaliação</h2>
+          <p className="text-gray-500 text-sm">Estamos começando em São Paulo — seja um dos primeiros a contratar e avaliar seu churrasco.</p>
         </section>
       )}
 
@@ -475,31 +514,6 @@ export default async function HomePage() {
             className="inline-block bg-yellow-500 hover:bg-yellow-400 text-black font-black px-6 py-3 rounded-xl transition-colors">
             Conhecer o Churras Club
           </Link>
-        </div>
-      </section>
-
-      {/* Founder */}
-      <section className="max-w-5xl mx-auto px-4 py-20">
-        <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
-          <div className="grid grid-cols-1 md:grid-cols-2">
-            <div className="relative h-72 md:h-auto bg-gray-800">
-              <img src="/jota.jpg" alt="Jota Albuquerque" className="w-full h-full object-cover object-top" />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900/30" />
-            </div>
-            <div className="p-8 md:p-10 flex flex-col justify-center">
-              <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-4">Quem está por trás</p>
-              <h2 className="font-display text-3xl font-black text-white mb-2">Jota Albuquerque</h2>
-              <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13 anos de Jota BBQ Eventos · SP e RJ</p>
-              <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
-              <p className="text-gray-300 text-base leading-relaxed mb-8">
-                Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
-              </p>
-              <Link href="/founder"
-                className="inline-block self-start bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors">
-                Conheça a história completa →
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 

@@ -253,8 +253,22 @@ function NewOrderForm() {
   }
 
   useEffect(() => {
-    if (bestKit && selectedKitId === null) applyKit(bestKit)
-  }, [bestKit?.id])
+    if (selectedKitId !== null) return
+    if (bestKit) { applyKit(bestKit); return }
+    // Açougue sem kit pronto — a promessa do produto é "a IA monta o kit
+    // certo pra você", então sugere quantidades por categoria de carne em
+    // vez de deixar o cliente montando item a item do zero.
+    if (boutiqueProducts.length > 0 && Object.keys(selectedQty).length === 0) {
+      const carnes = boutiqueProducts.filter(p => p.category === 'CARNE')
+      if (carnes.length > 0) {
+        const kgEach = insumos.totalCarne / 1000 / carnes.length
+        const suggested: Record<string, number> = {}
+        for (const p of carnes) suggested[p.id] = Math.max(0.5, Math.round(kgEach * 2) / 2)
+        setSelectedQty(suggested)
+        setSelectedKitId('__suggested__')
+      }
+    }
+  }, [bestKit?.id, boutiqueProducts])
 
   // Recalcula se o cliente mudar o numero de convidados com um kit ja aplicado
   useEffect(() => {

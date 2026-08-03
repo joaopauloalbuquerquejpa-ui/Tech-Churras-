@@ -520,8 +520,11 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
     throw new Error('Nao e possivel cancelar um pedido em andamento, concluido ou ja cancelado')
   }
 
+  // Taxa de cancelamento só se aplica quando é o CLIENTE que desiste em cima
+  // da hora — se o churrasqueiro cancela (ou admin cancela em nome dele), o
+  // cliente não pode ser penalizado por um problema que não é dele.
   let cancellationFee = 0
-  if (order.status === 'CONFIRMED') {
+  if (order.status === 'CONFIRMED' && role !== 'GRILLMASTER') {
     const hoursUntil = (order.eventDate.getTime() - Date.now()) / (1000 * 60 * 60)
     if (hoursUntil < 24) {
       cancellationFee = order.totalPrice * 0.5

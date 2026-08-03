@@ -1,8 +1,9 @@
-import { MeatIcon, PinIcon, LockIcon, ShieldIcon } from '@/components/icons/Icons'
+import { MeatIcon, PinIcon, LockIcon, ShieldIcon, HandshakeIcon } from '@/components/icons/Icons'
 
 const ITENS = [
   { Icon: MeatIcon, text: 'Carne calculada por convidado — não acaba no meio da festa' },
   { Icon: PinIcon, text: 'Churrasqueiro rastreado por GPS no dia do evento' },
+  { Icon: HandshakeIcon, text: 'Churrasqueiro não apareceu? Reembolso integral, sem multa nenhuma' },
   { Icon: LockIcon, text: 'Pagamento seguro via Mercado Pago · reembolso se algo falhar' },
 ]
 

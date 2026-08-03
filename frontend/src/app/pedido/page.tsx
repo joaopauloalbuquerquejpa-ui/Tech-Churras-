@@ -182,6 +182,21 @@ function PedidoForm() {
     if (grillmasters.some(g => g.id === preselectGmId)) setSelectedGm(preselectGmId)
   }, [preselectGmId, grillmasters])
 
+  // A promessa do produto é "a IA monta o kit certo pra você" — mas antes a
+  // sugestão só rodava se o cliente clicasse. Assim que o catálogo carrega,
+  // aplica automaticamente o kit mais compatível (ou a sugestão genérica por
+  // categoria se o açougue não tiver kit pronto), sempre editável depois.
+  useEffect(() => {
+    if (selectedKit !== null || products.length === 0) return
+    if (Object.values(qty).some(q => q > 0)) return
+    const kit = kits.find(k => totalPeople >= k.minGuests && totalPeople <= k.maxGuests)
+      ?? (kits.length > 0
+        ? kits.reduce((prev, curr) => Math.abs(curr.minGuests - totalPeople) < Math.abs(prev.minGuests - totalPeople) ? curr : prev)
+        : null)
+    if (kit) applyKit(kit)
+    else applySuggested()
+  }, [products, kits])
+
   async function fetchCep(cep: string) {
     if (cep.length !== 8) return
     try {

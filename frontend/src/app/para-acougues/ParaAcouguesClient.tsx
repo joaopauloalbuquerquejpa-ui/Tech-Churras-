@@ -177,8 +177,8 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 </div>
                 <div className="w-px h-10 bg-gray-800" />
                 <div>
-                  <p className="text-sm font-bold text-white leading-none">R$ 15 bi</p>
-                  <p className="text-xs text-gray-500 mt-0.5">mercado de churrasco/ano</p>
+                  <p className="text-sm font-bold text-white leading-none">~R$ 15 bi</p>
+                  <p className="text-xs text-gray-500 mt-0.5">mercado de churrasco/ano (estimativa)</p>
                 </div>
               </div>
 
@@ -353,7 +353,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   { valor: 'Gov. Zanzibar', label: 'Parceiro institucional', icon: '🏛️' },
                   { valor: 'CNPJ ativo', label: 'Empresa registrada', icon: '📋' },
                   { valor: '1 mês grátis', label: 'Todo Açougue Embaixador', icon: '🏅' },
-                  { valor: 'R$ 15 bi', label: 'Mercado de churrasco/ano', icon: '📈' },
+                  { valor: '~R$ 15 bi', label: 'Mercado de churrasco/ano (estim.)', icon: '📈' },
                 ].map(s => (
                   <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                     <span className="text-lg">{s.icon}</span>
@@ -384,7 +384,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">O restaurante onde o Jota está agora</p>
                 <h3 className="font-black text-white text-xl mb-3">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
                 <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                  Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
+                  Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia — o primeiro restaurante do país em parceria oficial com o Governo. É o mesmo padrão de exigência que o Jota aplica na escolha de cada açougue parceiro da Tech Churras.
                 </p>
                 <p className="text-xs text-gray-600">
                   Quem constrói um hub culinário com governo africano sabe o que é padrão de qualidade — e é esse padrão que ele está trazendo para os açougues parceiros da Tech Churras.
@@ -691,11 +691,11 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
       {/* ── DOR DO DONO ──────────────────────────────────────────────── */}
       <section className="py-16 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="grid sm:grid-cols-3 gap-4 mb-12">
+          <div className="grid sm:grid-cols-3 gap-4 mb-3">
             {[
-              { stat: '68%', label: 'dos clientes de açougue pesquisam preço online antes de comprar', color: 'red' },
-              { stat: '3x', label: 'mais pedidos por cliente quando o açougue está presente em apps', color: 'orange' },
-              { stat: 'R$ 15 bi', label: 'movimentados por churrasco no Brasil — sem app, você fica fora', color: 'amber' },
+              { stat: '~68%', label: 'dos clientes de açougue pesquisam preço online antes de comprar', color: 'red' },
+              { stat: '~3x', label: 'mais pedidos por cliente quando o açougue está presente em apps', color: 'orange' },
+              { stat: '~R$ 15 bi', label: 'movimentados por churrasco no Brasil todo ano', color: 'amber' },
             ].map(({ stat, label, color }) => (
               <div key={stat} className={`bg-gray-900 border border-gray-800 rounded-2xl p-6 text-center`}>
                 <p className={`text-3xl font-black mb-2 ${color === 'red' ? 'text-red-400' : color === 'orange' ? 'text-orange-400' : 'text-amber-400'}`}>{stat}</p>
@@ -703,14 +703,15 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               </div>
             ))}
           </div>
+          <p className="text-center text-xs text-gray-600 mb-12">Estimativas direcionais do setor de churrasco e food service no Brasil.</p>
 
           <div className="bg-gradient-to-r from-gray-900 to-gray-900/60 border border-red-500/20 rounded-2xl p-6 sm:p-8">
             <div className="flex gap-4 items-start">
               <span className="text-3xl mt-1">⚠️</span>
               <div>
-                <h3 className="text-lg font-black text-white mb-2">O que acontece com o açougue que não digitaliza</h3>
+                <h3 className="text-lg font-black text-white mb-2">Por que entrar agora faz diferença</h3>
                 <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                  O churrasqueiro profissional compra onde já tem parceria. Se o seu concorrente está na plataforma e você não está, <strong className="text-white">o churrasqueiro vai comprar no concorrente</strong> — semana que vem, mês que vem, e para sempre. Sem fidelidade, sem visibilidade, sem dados de demanda.
+                  O churrasqueiro profissional já compra de alguém — hoje pode ser o seu concorrente. Estar na plataforma é a diferença entre <strong className="text-white">ser a primeira opção dele</strong> ou nunca aparecer no radar. Quem entra agora garante fidelidade, visibilidade e dados de demanda que o resto do mercado ainda não tem.
                 </p>
                 <a
                   href={WHATSAPP}

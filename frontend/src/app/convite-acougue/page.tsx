@@ -148,7 +148,7 @@ function ConviteContent() {
               <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">Por que o padrão Tech Churras é diferente</p>
               <h3 className="font-black text-white text-lg mb-2">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
+                Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia — o primeiro restaurante do país em parceria oficial com o Governo. É a mesma exigência que o Jota está trazendo pra escolher os açougues parceiros da Tech Churras.
               </p>
               <p className="text-xs text-gray-600">
                 Essa é a credencial de quem está construindo a Tech Churras — e quem vai trazer clientes para o seu açougue.

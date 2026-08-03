@@ -239,6 +239,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                   <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
                   <div className="w-3 h-3 rounded-full bg-green-500/60" />
                   <span className="ml-2 text-xs text-gray-600">Painel do Churrasqueiro</span>
+                  <span className="ml-auto text-[10px] text-gray-600 uppercase tracking-wide">Exemplo ilustrativo</span>
                 </div>
                 {/* Stats row */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
@@ -340,7 +341,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                 <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">Por que o padrão Jota é diferente</p>
                 <h3 className="font-black text-white text-xl mb-3">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
                 <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                  Nosso restaurante Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia. O primeiro restaurante do país em parceria com o Governo oficialmente. Jota Albuquerque é sócio executivo do projeto Bahari of Brazil e assinou o cardápio dos cortes mais nobres para uma experiência única e marcante.
+                  Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia — o primeiro restaurante do país em parceria oficial com o Governo. Jota assinou o cardápio de cortes nobres pessoalmente — o mesmo padrão que ele exige de cada Grillmaster chancelado.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {['🏛️ Parceria oficial com o Governo', '📐 500m² dentro do Ministério', '👨‍💼 Sócio executivo', '🍖 Cardápio assinado'].map(t => (

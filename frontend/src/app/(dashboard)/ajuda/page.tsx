@@ -26,6 +26,10 @@ const FAQ: Record<string, { q: string; a: string }[]> = {
       a: 'Use o chat interno na página do pedido para se comunicar diretamente com o Grillmaster. Se o problema não for resolvido, entre em contato com nosso suporte via WhatsApp — respondemos em até 1 hora em dias úteis.',
     },
     {
+      q: 'E se o churrasqueiro não aparecer no dia do evento?',
+      a: 'Se o Grillmaster cancelar ou não aparecer, você recebe reembolso integral, sem nenhuma taxa de cancelamento — a multa por cancelamento em cima da hora só se aplica quando é o cliente que desiste, nunca quando o problema é do churrasqueiro. Avise imediatamente pelo chat do pedido ou pelo WhatsApp do suporte para agilizarmos o estorno.',
+    },
+    {
       q: 'Como avalio o churrasqueiro ou o açougue?',
       a: 'Após o evento ser marcado como concluído, um botão "Avaliar" aparece na página do pedido. Você pode dar de 1 a 5 estrelas para o Grillmaster e para o açougue, além de deixar um comentário. Avaliações ajudam outros clientes e reconhecem os melhores profissionais.',
     },
