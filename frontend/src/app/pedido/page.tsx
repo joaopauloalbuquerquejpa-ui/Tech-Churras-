@@ -4,6 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
 import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
+import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER } from '@/lib/pricing'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
@@ -37,10 +38,6 @@ function buildSuggested(products: Product[], men: number, women: number, kids: n
 function renderStars(r: number) {
   return Array.from({ length: 5 }, (_, i) => i < Math.floor(r) ? '★' : '☆').join('')
 }
-
-// espelha SIDE_DISH_RATE_ACOUGUE / SIDE_DISH_RATE_GRILLMASTER do backend
-const SIDE_DISH_RATE_ACOUGUE = 18.50
-const SIDE_DISH_RATE_GRILLMASTER = 25.00
 
 // gramas por convidado (pesquisa de mercado — Rei dos Eventos / Cronoshare / Troppo Artesanal)
 const SIDE_DISH_ITEMS = [
@@ -131,7 +128,7 @@ function PedidoForm() {
   const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * totalPeople).toFixed(2)
     : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * totalPeople).toFixed(2)
     : 0
-  const serviceFee = +((productsCost + gmCost + sideDishFee) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
+  const serviceFee = +((productsCost + gmCost + sideDishFee) * SERVICE_FEE_RATE).toFixed(2)
   const total = productsCost + gmCost + sideDishFee + serviceFee
   const categorias = [...new Set(products.map(p => p.category))]
 

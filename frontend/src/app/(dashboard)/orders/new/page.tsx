@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Events } from '@/lib/analytics'
 import { CepAddressInput } from '@/components/CepAddressInput'
 import { useCartStore } from '@/store/cart'
+import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER } from '@/lib/pricing'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -27,10 +28,6 @@ function calculateInsumos(homens: number, mulheres: number, criancas: number) {
   const totalPessoas = homens + mulheres + criancas
   return { totalCarne, totalCarvao, totalPessoas }
 }
-
-// espelha SIDE_DISH_RATE_ACOUGUE / SIDE_DISH_RATE_GRILLMASTER do backend
-const SIDE_DISH_RATE_ACOUGUE = 18.50
-const SIDE_DISH_RATE_GRILLMASTER = 25.00
 
 // gramas por convidado (pesquisa de mercado — Rei dos Eventos / Cronoshare / Troppo Artesanal)
 const SIDE_DISH_ITEMS = [
@@ -195,7 +192,7 @@ function NewOrderForm() {
   const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * insumos.totalPessoas).toFixed(2)
     : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * insumos.totalPessoas).toFixed(2)
     : 0
-  const serviceFeeEstimate = +((grillmasterCost + itemsTotal + sideDishFee) * 0.06).toFixed(2) // espelha SERVICE_FEE_RATE do backend
+  const serviceFeeEstimate = +((grillmasterCost + itemsTotal + sideDishFee) * SERVICE_FEE_RATE).toFixed(2)
   const totalEstimate = grillmasterCost + itemsTotal + sideDishFee + serviceFeeEstimate
 
   const productsCarnes = boutiqueProducts.filter(p => p.category !== 'ACOMPANHAMENTO')
