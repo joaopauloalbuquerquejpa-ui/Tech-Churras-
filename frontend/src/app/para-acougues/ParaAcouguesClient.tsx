@@ -112,15 +112,23 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
     },
     {
       q: 'Há contratos ou fidelidade mínima?',
-      a: 'Trabalhamos com contratos simples e sem burocracia. Fale com nosso time para mais detalhes sobre as condições de parceria.',
+      a: 'Não. Você pode cancelar a parceria a qualquer momento, mediante aviso prévio de 30 dias — sem multa, sem período mínimo de fidelidade. Não é raro no setor, mas aqui você não fica preso.',
     },
     {
       q: 'Como funciona o repasse semanal?',
       a: 'Toda sexta-feira processamos os pedidos da semana anterior. O valor líquido (faturamento − 10% de comissão) cai na sua conta via PIX até as 18h.',
     },
     {
-      q: 'Preciso mudar minha forma de trabalhar?',
-      a: 'Quase nada muda. Você continua atendendo normalmente — os pedidos da plataforma chegam no seu dashboard e você prepara os itens como faria para qualquer cliente. O Grillmaster retira no balcão.',
+      q: 'Preciso contratar alguém pra tocar isso?',
+      a: 'Não. Você continua atendendo normalmente com a equipe que já tem — os pedidos da plataforma chegam no seu dashboard, você prepara os itens como faria para qualquer cliente, e o Grillmaster retira no balcão. Nenhuma contratação nem treinamento extenso necessário.',
+    },
+    {
+      q: 'Quanto tempo leva pra eu começar a vender?',
+      a: 'Mesmo dia. Assim que você se cadastra e publica seus primeiros produtos no dashboard, eles já ficam disponíveis pra pedidos na plataforma — sem fila de aprovação manual travando o início.',
+    },
+    {
+      q: 'E se eu tiver algum problema ou dúvida no meio do caminho?',
+      a: 'Você fala direto com o Jota Albuquerque (fundador) pelo WhatsApp — não é um chatbot nem uma fila de atendimento genérica. Respondemos de segunda a sábado, das 8h às 20h.',
     },
     {
       q: 'O que acontece se eu não tiver um produto em estoque?',
@@ -232,8 +240,11 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                         Todo novo parceiro
                       </span>
                     </div>
+                    <p className="text-xs text-white font-semibold mb-1">
+                      Seja um dos primeiros embaixadores da sua região
+                    </p>
                     <p className="text-xs text-amber-400/80 mb-3">
-                      Pra todo açougue que entrar agora — pra você ver com seus próprios olhos que a Tech Churras funciona
+                      Aberto pra todo açougue que entrar agora — pra você ver com seus próprios olhos que a Tech Churras funciona
                     </p>
                     <div className="space-y-1.5">
                       {[
@@ -607,6 +618,65 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   O churrasqueiro chancelado passa no seu balcão para retirar a carne e leva os acompanhamentos já prontos — tudo em uma única parada. Sem entrega, sem logística extra para você.
                 </p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── TICKET MÉDIO ANTES/DEPOIS ────────────────────────────────── */}
+      <section className="py-20 px-4 sm:px-6 bg-gray-950/40">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-3">O mesmo cliente, venda maior</p>
+            <h2 className="text-3xl sm:text-4xl font-black mb-4">De vender um corte a vender a experiência completa</h2>
+            <p className="text-gray-400 max-w-xl mx-auto text-sm">
+              O cliente que compra picanha pro churrasco de sábado já decidiu gastar. A diferença é quanto ele leva do seu balcão.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-5 items-stretch">
+            {/* Sem Tech Churras */}
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 flex flex-col">
+              <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-4">Sem a Tech Churras</p>
+              <div className="space-y-2 flex-1">
+                <div className="flex justify-between text-sm text-gray-300">
+                  <span>Picanha Angus 2kg</span><span>R$ 189,80</span>
+                </div>
+              </div>
+              <div className="border-t border-gray-800 mt-4 pt-4 flex justify-between items-center">
+                <span className="text-sm text-gray-500">Venda pro cliente</span>
+                <span className="text-2xl font-black text-gray-400">R$ 189,80</span>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">Cliente sai sem saber quanto comprar, sem churrasqueiro, sem acompanhamento — e talvez sem voltar.</p>
+            </div>
+
+            {/* Com Tech Churras */}
+            <div className="bg-gradient-to-br from-orange-500/10 to-gray-900 border border-orange-500/40 rounded-2xl p-6 flex flex-col relative">
+              <span className="absolute -top-3 right-6 text-xs bg-orange-500 text-white font-black px-3 py-1 rounded-full">Mesmo cliente</span>
+              <p className="text-xs font-bold text-orange-400 uppercase tracking-wide mb-4">Com a Tech Churras</p>
+              <div className="space-y-2 flex-1">
+                {[
+                  ['Picanha Angus 2kg', 'R$ 189,80'],
+                  ['Costela Bovina 1,5kg', 'R$ 73,35'],
+                  ['Linguiça Artesanal 1kg', 'R$ 42,90'],
+                  ['Farofa + Vinagrete', 'R$ 41,80'],
+                ].map(([item, preco]) => (
+                  <div key={item} className="flex justify-between text-sm text-gray-300">
+                    <span>{item}</span><span>{preco}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm text-gray-500 italic pt-1">
+                  <span>+ Grillmaster (não entra no seu faturamento)</span>
+                </div>
+              </div>
+              <div className="border-t border-orange-500/20 mt-4 pt-4 flex justify-between items-center">
+                <span className="text-sm text-gray-400">Venda de produtos pro açougue</span>
+                <span className="text-2xl font-black text-orange-400">R$ 347,85</span>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Líquido pra você (já com {(COMISSAO_RATE * 100).toFixed(0)}% de comissão descontada): <strong className="text-white">R$ {(347.85 * (1 - COMISSAO_RATE)).toFixed(2).replace('.', ',')}</strong>
+              </p>
+              <p className="text-xs text-orange-300/80 mt-2">Quase o dobro da venda avulsa — e o cliente ainda leva um churrasqueiro junto, sem você mexer um dedo a mais.</p>
             </div>
           </div>
         </div>
