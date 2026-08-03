@@ -61,7 +61,7 @@ export default function LancamentoAcouguePage() {
       {/* ── URGENCY BAR ── */}
       <div className="w-full bg-orange-500 text-center py-2 px-4">
         <p className="text-xs sm:text-sm font-bold text-black">
-          🔥 Lançamento oficial <strong>06 de julho de 2026</strong> em São Paulo — 60 dias grátis para os primeiros açougues
+          🔥 Lançamento oficial em breve em São Paulo — 60 dias grátis para os primeiros açougues
         </p>
       </div>
 
@@ -311,7 +311,7 @@ export default function LancamentoAcouguePage() {
               style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 40px rgba(194,54,22,0.4)' }}>
               Cadastrar meu açougue agora →
             </Link>
-            <p className="text-xs text-gray-600 mt-3">São Paulo Capital · Início 06/07/2026 · Expansão nacional em seguida</p>
+            <p className="text-xs text-gray-600 mt-3">São Paulo Capital · Lançamento em breve · Expansão nacional em seguida</p>
           </div>
         </div>
       </section>
@@ -340,7 +340,7 @@ export default function LancamentoAcouguePage() {
 
       {/* ── FINAL CTA ── */}
       <section className="border-t border-gray-900 bg-gray-950 py-16 text-center px-5">
-        <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Lançamento · São Paulo · 06/07/2026</p>
+        <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Lançamento · São Paulo · Em breve</p>
         <h2 className="text-3xl sm:text-4xl font-black text-white mb-5 leading-tight max-w-2xl mx-auto">
           Seu açougue merece mais do que vender corte por corte.
         </h2>

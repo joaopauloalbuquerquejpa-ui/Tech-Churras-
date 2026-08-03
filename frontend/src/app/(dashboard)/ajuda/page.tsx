@@ -37,7 +37,7 @@ const FAQ: Record<string, { q: string; a: string }[]> = {
     },
     {
       q: 'Como funciona o pagamento e repasse?',
-      a: 'A plataforma retém 15% de comissão sobre o valor total do pedido. O repasse líquido (85%) é feito via Pix toda semana para a chave cadastrada no seu perfil. Você pode acompanhar seus repasses no painel do Grillmaster.',
+      a: 'A plataforma retém 7% de comissão sobre sua mão de obra. O repasse líquido (93%) é feito via Pix toda semana para a chave cadastrada no seu perfil. Você pode acompanhar seus repasses no painel do Grillmaster.',
     },
     {
       q: 'Posso recusar um pedido?',
@@ -63,13 +63,13 @@ const FAQ: Record<string, { q: string; a: string }[]> = {
     },
     {
       q: 'Quando recebo pelos pedidos?',
-      a: 'O repasse para açougues parceiros é feito semanalmente via Pix, deduzida a comissão de 3% da plataforma. Os valores são consolidados toda segunda-feira referentes aos pedidos concluídos na semana anterior.',
+      a: 'O repasse para açougues parceiros é feito semanalmente via Pix, deduzida a comissão de 10% da plataforma sobre as carnes vendidas. Os valores são consolidados toda segunda-feira referentes aos pedidos concluídos na semana anterior.',
     },
   ],
   Geral: [
     {
       q: 'Qual a comissão da plataforma?',
-      a: 'A Tech Churras cobra 15% de comissão sobre o valor total dos serviços do Grillmaster e 3% sobre os produtos do açougue. Esses valores são automaticamente deduzidos no repasse semanal. Não há mensalidade para Grillmasters — apenas comissão por pedido realizado.',
+      a: 'A Tech Churras cobra 7% de comissão sobre a mão de obra do Grillmaster e 10% sobre as carnes vendidas pelo açougue. Esses valores são automaticamente deduzidos no repasse semanal. Não há mensalidade para Grillmasters — apenas comissão por pedido realizado. Açougues parceiros pagam R$369/mês (1º mês grátis), além da comissão.',
     },
     {
       q: 'Como entro em contato com o suporte?',

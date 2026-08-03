@@ -272,7 +272,7 @@ export default function BetaTestPage() {
           <p className="text-sm text-gray-300">
             WhatsApp: <a href="https://wa.me/5511970593650" className="text-orange-400 underline">(11) 97059-3650</a>
           </p>
-          <p className="text-xs text-gray-600 mt-3">Obrigado por ajudar a melhorar o Tech Churras!</p>
+          <p className="text-xs text-gray-600 mt-3">Obrigado por ajudar a melhorar a Tech Churras!</p>
         </div>
       </main>
     </div>

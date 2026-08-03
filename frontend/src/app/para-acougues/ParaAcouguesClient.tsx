@@ -351,7 +351,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { valor: 'Gov. Zanzibar', label: 'Parceiro institucional', icon: '🏛️' },
-                  { valor: '06/07/2026', label: 'Lançamento Tech Churras', icon: '🚀' },
+                  { valor: 'CNPJ ativo', label: 'Empresa registrada', icon: '📋' },
                   { valor: '1 mês grátis', label: 'Todo Açougue Embaixador', icon: '🏅' },
                   { valor: 'R$ 15 bi', label: 'Mercado de churrasco/ano', icon: '📈' },
                 ].map(s => (

@@ -670,25 +670,13 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-3 bg-orange-500/10 border border-orange-500/20 rounded-full px-6 py-3 mb-6">
               <span className="text-3xl font-black text-orange-400">{grillmasterCount}</span>
-              <span className="text-sm text-gray-400">churrasqueiros já fazem parte do Tech Churras</span>
+              <span className="text-sm text-gray-400">churrasqueiros já fazem parte da Tech Churras</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-black">Quem já está na plataforma</h2>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-5 mb-10">
+          <div className="grid sm:grid-cols-1 gap-5 mb-10 max-w-md mx-auto">
             {[
-              {
-                name: 'Carlos Mendes',
-                city: 'São Paulo, SP',
-                quote: '"Antes pegava clientes só por indicação. Hoje tenho agenda cheia pelo app e recebo sem precisar cobrar ninguém."',
-                since: 'Parceiro desde 2026',
-              },
-              {
-                name: 'Ricardo Oliveira',
-                city: 'São Paulo, SP',
-                quote: '"O sistema de avaliação me ajudou a construir reputação rápido. Em 3 meses já estava entre os mais bem avaliados."',
-                since: 'Parceiro desde 2026',
-              },
               {
                 name: 'Seu perfil aqui',
                 city: 'Sua cidade, SP',

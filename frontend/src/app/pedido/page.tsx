@@ -89,6 +89,7 @@ function PedidoForm() {
   const params = useSearchParams()
   const router = useRouter()
   const boutiqueId = params.get('boutiqueId') ?? ''
+  const preselectGmId = params.get('grillmasterId') ?? ''
 
   const [boutique, setBoutique] = useState<Boutique | null>(null)
   const [allBoutiques, setAllBoutiques] = useState<Boutique[]>([])
@@ -157,6 +158,29 @@ function PedidoForm() {
       setKits(Array.isArray(k) ? k : [])
     }).catch(() => {}).finally(() => setLoading(false))
   }, [boutiqueId])
+
+  // Convidado chegou de um perfil de churrasqueiro específico (ex: "Contratar"
+  // na listagem) sem açougue escolhido ainda — busca o açougue padrão desse
+  // GM pra já entrar no fluxo certo, em vez de cair numa lista de açougues às
+  // cegas sem nenhum contexto do que o cliente já tinha decidido.
+  useEffect(() => {
+    if (!preselectGmId || boutiqueId) return
+    fetch(`${API_URL}/grillmasters/${preselectGmId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((gm: { defaultBoutiqueId?: string } | null) => {
+        if (gm?.defaultBoutiqueId) {
+          router.replace(`/pedido?boutiqueId=${gm.defaultBoutiqueId}&grillmasterId=${preselectGmId}`)
+        }
+      })
+      .catch(() => {})
+  }, [preselectGmId, boutiqueId])
+
+  // Assim que a lista de churrasqueiros carregar (junto com o açougue), marca
+  // o GM que o cliente já tinha escolhido no perfil/listagem como selecionado.
+  useEffect(() => {
+    if (!preselectGmId || grillmasters.length === 0) return
+    if (grillmasters.some(g => g.id === preselectGmId)) setSelectedGm(preselectGmId)
+  }, [preselectGmId, grillmasters])
 
   async function fetchCep(cep: string) {
     if (cep.length !== 8) return

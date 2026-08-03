@@ -251,6 +251,7 @@ export async function getGrillmasterById(id: string) {
       minGuests: true, maxGuests: true, latitude: true, longitude: true,
       isChancelado: true, certificationCode: true, certifiedAt: true, videoUrl: true,
       totalOrders: true, offersSideDishPrep: true, serviceRegions: true, createdAt: true,
+      defaultBoutiqueId: true,
       user: { select: { name: true, email: true } },
       // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
     },

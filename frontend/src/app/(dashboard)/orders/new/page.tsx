@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Events } from '@/lib/analytics'
 import { CepAddressInput } from '@/components/CepAddressInput'
+import { useCartStore } from '@/store/cart'
 
 function getToken() {
   const raw = localStorage.getItem('auth-storage')
@@ -48,6 +49,14 @@ function sideDishBreakdown(guests: number) {
 
 const STEPS = ['Quando e onde', 'Convidados', 'Churrasqueiro', 'Açougue & Kits']
 
+// Faixa de convidados de cada tier de kit do /menu — antes o parâmetro
+// ?kit= era só decorativo, o cliente escolhia "Kit Prime" e caía no mesmo
+// formulário zerado dos outros, sem nenhum traço da escolha.
+const KIT_GUEST_DEFAULTS: Record<string, { homens: number; mulheres: number; criancas: number }> = {
+  essential: { homens: 8, mulheres: 5, criancas: 2 }, // ~15 pessoas
+  prime: { homens: 16, mulheres: 10, criancas: 4 }, // ~30 pessoas
+}
+
 function Counter({ label, value, onChange }: { label: string; value: number; onChange: (v: number) => void }) {
   return (
     <div className="flex flex-col items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl p-4">
@@ -72,6 +81,7 @@ function Counter({ label, value, onChange }: { label: string; value: number; onC
 function NewOrderForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const cart = useCartStore()
   const [step, setStep] = useState(0)
   const [grillmasters, setGrillmasters] = useState<any[]>([])
   const [recommendedGms, setRecommendedGms] = useState<any[]>([])
@@ -105,6 +115,34 @@ function NewOrderForm() {
     const btqId = searchParams.get('boutiqueId')
     if (gmId) { setForm(prev => ({ ...prev, grillmasterId: gmId })); setStep(2) }
     if (btqId) setForm(prev => ({ ...prev, boutiqueId: btqId }))
+
+    // Preenche com o que já foi montado no Kit Perfeito ou no Assistente IA
+    // (guardado no cart store) — sem isso, o cliente clicava em "Montar este
+    // churrasco" e caía num wizard zerado, perdendo tudo que a IA já calculou.
+    const cameFromAi = cart.grillmasterId || cart.boutiqueId || Object.keys(cart.selectedQty).length > 0
+    if (!cameFromAi) {
+      const kitDefaults = KIT_GUEST_DEFAULTS[searchParams.get('kit') ?? '']
+      if (kitDefaults) setForm(prev => ({ ...prev, ...kitDefaults }))
+    }
+    if (cameFromAi) {
+      setForm(prev => ({
+        ...prev,
+        grillmasterId: gmId || cart.grillmasterId || prev.grillmasterId,
+        boutiqueId: btqId || cart.boutiqueId || prev.boutiqueId,
+        eventAddress: cart.eventData.address || prev.eventAddress,
+        eventHours: cart.eventData.hours || prev.eventHours,
+        homens: cart.eventData.homens || prev.homens,
+        mulheres: cart.eventData.mulheres ?? prev.mulheres,
+        criancas: cart.eventData.criancas ?? prev.criancas,
+      }))
+      if (Object.keys(cart.selectedQty).length > 0) {
+        setSelectedQty(cart.selectedQty)
+        // sentinela: impede o auto-apply do "melhor kit" de sobrescrever a
+        // seleção item-a-item que a IA já fez
+        setSelectedKitId('__from_ai__')
+      }
+      if (!gmId && cart.grillmasterId) setStep(s => Math.max(s, 2))
+    }
   }, [searchParams])
 
   useEffect(() => {
@@ -282,6 +320,7 @@ function NewOrderForm() {
       if (res.ok) {
         const order = await res.json()
         Events.orderCreated(insumos.totalPessoas, order.totalPrice, !!form.boutiqueId)
+        cart.clearCart()
         router.push('/orders/' + order.id + '/payment')
       } else {
         const err = await res.json()

@@ -65,7 +65,10 @@ const kits = [
     preco: 'Sob Consulta',
     btnLabel: 'Falar com Especialista',
     btnCls: 'bg-red-600 hover:bg-red-700 text-white',
-    href: '/menu/novo?kit=firetech',
+    // "Sob Consulta" promete atendimento humano — antes caía no mesmo wizard
+    // self-service dos outros kits, sem nenhum humano do outro lado.
+    href: 'https://wa.me/5511970593650?text=' + encodeURIComponent('Olá! Tenho interesse no Kit Firetech (30+ pessoas, experiência completa) e gostaria de falar com um especialista.'),
+    external: true,
     hoverEffect: 'fire',
   },
 ]
@@ -300,6 +303,7 @@ export default function MenuPage() {
                 <p className="text-2xl font-black text-white mb-4">{k.preco}</p>
                 <Link
                   href={k.href}
+                  {...((k as any).external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                   className={`w-full text-center font-bold py-3 rounded-xl transition-colors ${k.btnCls}`}
                 >
                   {k.btnLabel}

@@ -24,7 +24,7 @@ export default function IndicarPage() {
   function shareWhatsApp() {
     if (!shareLink) return
     const firstName = user?.name?.split(' ')[0] ?? 'eu'
-    const msg = `🔥 ${firstName} te indica o Tech Churras!\n\nContratar churrasqueiro profissional ficou fácil:\n- Escolhe pelo app\n- Acompanha chegando ao vivo no mapa\n- Carnes premium do açougue parceiro\n\nUsa meu link e ganha 10% OFF no primeiro churrasco:\n${shareLink}`
+    const msg = `🔥 ${firstName} te indica a Tech Churras!\n\nContratar churrasqueiro profissional ficou fácil:\n- Escolhe pelo app\n- Acompanha chegando ao vivo no mapa\n- Carnes premium do açougue parceiro\n\nUsa meu link e ganha 10% OFF no primeiro churrasco:\n${shareLink}`
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
   }
 

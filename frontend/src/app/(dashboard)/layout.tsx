@@ -70,7 +70,15 @@ export default function DashboardLayout({
     const isProtected = PROTECTED_PREFIXES.some(
       p => pathname === p || pathname.startsWith(p + '/')
     )
-    if (!token && isProtected) router.push('/login')
+    if (!token && isProtected) {
+      // Leva o destino (com query string) junto — sem isso o cliente perdia
+      // a escolha de GM/kit que já tinha feito e caía no dashboard genérico
+      // depois de logar, em vez de voltar pro que estava fazendo. Lê
+      // window.location direto (em vez de useSearchParams) pra não forçar
+      // todo page do dashboard a precisar de Suspense boundary.
+      const dest = pathname + window.location.search
+      router.push('/login?redirect=' + encodeURIComponent(dest))
+    }
     else if (token) loadFavorites()
   }, [pathname])
 

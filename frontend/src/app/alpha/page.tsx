@@ -105,7 +105,7 @@ export default function AlphaPage() {
       <section className="max-w-3xl mx-auto px-4 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-16">
           {[
-            { icon: '🔥', title: 'Acesso antecipado', desc: 'Você usa o app antes do lançamento público em 06/07/2026 e molda o produto com seu feedback.' },
+            { icon: '🔥', title: 'Acesso antecipado', desc: 'Você usa o app antes do lançamento público e molda o produto com seu feedback.' },
             { icon: '🥩', title: 'Churrasco profissional', desc: 'Contrate Grill Masters certificados com kit completo de cortes do açougue parceiro, tudo em 4 passos.' },
             { icon: '📍', title: 'GPS em tempo real', desc: 'Acompanhe o churrasqueiro saindo do açougue e chegando até você. ETA atualizado ao vivo.' },
           ].map(item => (
