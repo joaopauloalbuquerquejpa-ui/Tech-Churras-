@@ -22,10 +22,12 @@ function getToken(): string | null {
 export function usePushNotifications() {
   const [permission, setPermission] = useState<NotificationPermission>('default')
   const [subscribed, setSubscribed] = useState(false)
-  const supported = typeof window !== 'undefined' && 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+  const [supported, setSupported] = useState(false)
 
   useEffect(() => {
-    if (!supported) return
+    const isSupported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window
+    setSupported(isSupported)
+    if (!isSupported) return
     setPermission(Notification.permission)
     if (Notification.permission === 'granted') checkSubscription()
   }, [])
