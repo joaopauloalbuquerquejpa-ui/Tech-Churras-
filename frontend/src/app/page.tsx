@@ -575,7 +575,7 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="border-t border-gray-900 pt-6 text-center text-xs text-gray-700">
-          © {new Date().getFullYear()} Tech Churras · CNPJ em registro · Feito com 🔥 no Brasil
+          © {new Date().getFullYear()} Tech Churras · CNPJ 67.830.186/0001-87 · Feito com 🔥 no Brasil
         </div>
       </footer>
     </div>
