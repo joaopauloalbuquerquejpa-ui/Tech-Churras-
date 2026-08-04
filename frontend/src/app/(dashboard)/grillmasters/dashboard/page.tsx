@@ -10,6 +10,7 @@ import { VoiceDictateButton } from '@/components/VoiceDictateButton'
 
 
 function getToken() {
+  if (typeof window === 'undefined') return null
   const raw = localStorage.getItem('auth-storage')
   return raw ? JSON.parse(raw)?.state?.token : null
 }

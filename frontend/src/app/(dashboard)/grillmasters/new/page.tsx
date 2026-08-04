@@ -18,6 +18,7 @@ async function generateBio(token: string, params: { name?: string; city?: string
 
 
 function getToken() {
+  if (typeof window === 'undefined') return null
   const raw = localStorage.getItem('auth-storage')
   return raw ? JSON.parse(raw)?.state?.token : null
 }

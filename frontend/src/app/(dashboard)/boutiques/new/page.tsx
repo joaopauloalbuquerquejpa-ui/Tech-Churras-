@@ -17,6 +17,7 @@ async function generateBoutiqueDesc(token: string, params: { name: string; city?
 }
 
 function getToken() {
+  if (typeof window === 'undefined') return null
   const raw = localStorage.getItem('auth-storage')
   return raw ? JSON.parse(raw)?.state?.token : null
 }
