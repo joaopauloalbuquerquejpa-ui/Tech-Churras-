@@ -314,6 +314,33 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Galeria do fundador — fotos reais dos eventos da Jota BBQ Eventos
+          (a empresa de churrasco do Jota antes da Tech Churras existir).
+          Legenda honesta: é credencial do fundador, não avaliação de
+          cliente da plataforma — a Tech Churras ainda não lançou pedidos reais. */}
+      <section className="max-w-5xl mx-auto px-4 pb-16">
+        <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Antes da Tech Churras</p>
+        <h2 className="font-display text-3xl font-black text-center mb-4">Já eram anos de brasa</h2>
+        <p className="text-center text-gray-500 max-w-xl mx-auto mb-10 text-base">
+          Fotos reais de eventos da Jota BBQ Eventos — a experiência que deu origem à Tech Churras.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+          {[
+            { src: '/churrasco-real-1.jpg', alt: 'Jota Albuquerque servindo um corte nobre a bordo, com o Pão de Açúcar ao fundo, no Rio de Janeiro' },
+            { src: '/churrasco-real-2.jpg', alt: 'Jota Albuquerque finalizando um tomahawk com folha de ouro em evento numa marina' },
+            { src: '/churrasco-real-3.jpg', alt: 'Corte selado no ponto, com a marca Jota BBQ Eventos' },
+            { src: '/churrasco-real-4.jpg', alt: 'Convidado sendo servido numa tábua de madeira da Jota BBQ Eventos' },
+          ].map(img => (
+            <div key={img.src} className="aspect-[4/5] rounded-xl overflow-hidden bg-gray-900">
+              <img src={img.src} alt={img.alt} className="w-full h-full object-cover" loading="lazy" />
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-xs text-gray-600 mt-6">
+          Registros de eventos da Jota BBQ Eventos, empresa do fundador — não são pedidos feitos pela plataforma Tech Churras.
+        </p>
+      </section>
+
       {/* Para quem é? */}
       <section className="max-w-6xl mx-auto px-4 py-20">
         <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Para quem é?</p>
