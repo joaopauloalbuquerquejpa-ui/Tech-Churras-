@@ -324,12 +324,13 @@ export default async function HomePage() {
         <p className="text-center text-gray-500 max-w-xl mx-auto mb-10 text-base">
           Fotos reais de eventos da Jota BBQ Eventos — a experiência que deu origem à Tech Churras.
         </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 md:gap-4">
           {[
             { src: '/churrasco-real-1.jpg', alt: 'Jota Albuquerque servindo um corte nobre a bordo, com o Pão de Açúcar ao fundo, no Rio de Janeiro' },
             { src: '/churrasco-real-2.jpg', alt: 'Jota Albuquerque finalizando um tomahawk com folha de ouro em evento numa marina' },
             { src: '/churrasco-real-3.jpg', alt: 'Corte selado no ponto, com a marca Jota BBQ Eventos' },
             { src: '/churrasco-real-4.jpg', alt: 'Convidado sendo servido numa tábua de madeira da Jota BBQ Eventos' },
+            { src: '/churrasco-real-5.jpg', alt: 'Jota Albuquerque preparando uma costela no assador de cruz sobre fogo aberto em evento' },
           ].map(img => (
             <div key={img.src} className="aspect-[4/5] rounded-xl overflow-hidden bg-gray-900">
               <img src={img.src} alt={img.alt} className="w-full h-full object-cover" loading="lazy" />
