@@ -145,6 +145,10 @@ export default function EbookClient() {
             </p>
           </div>
         </div>
+        <div className="mt-4 rounded-2xl overflow-hidden border border-[#e6d9c3]">
+          <img src="/ebook-jota-neymar.jpg" alt="Jota Albuquerque e equipe Jota BBQ Eventos com Neymar Jr. em evento real" className="w-full object-cover" />
+          <p className="text-xs text-[#6b5d4f] text-center py-2 bg-white">Jota e a equipe da Jota BBQ Eventos servindo Neymar Jr. em evento real</p>
+        </div>
         <div className="text-center mt-8">
           <a href="#comprar" className="inline-block bg-[#c2530e] hover:bg-[#a3450c] text-white font-bold px-8 py-4 rounded-xl transition-colors">
             Quero o método do Jota — R$ 19,90
