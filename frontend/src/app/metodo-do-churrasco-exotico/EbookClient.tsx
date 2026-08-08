@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import { Events } from '@/lib/analytics'
@@ -22,10 +22,19 @@ const FAQ = [
   ['O cupom de R$50 tem pegadinha?', 'Nenhuma. É um cupom real (EBOOK50), enviado no mesmo e-mail do e-book, pra usar no seu primeiro churrasco contratado pela Tech Churras.'],
 ]
 
-export default function EbookClient() {
+// Isola o useSearchParams num componente próprio, dentro de Suspense — sem
+// isso, a página inteira perde SSR e vira "Carregando..." puro pro Google
+// Ads e pra qualquer conexão lenta antes do JS hidratar (achado real na
+// checagem final do criativo, antes de ativar mídia paga).
+function StatusReader({ onStatus }: { onStatus: (status: string | null) => void }) {
   const searchParams = useSearchParams()
   const status = searchParams.get('status')
+  useEffect(() => { onStatus(status) }, [status, onStatus])
+  return null
+}
 
+export default function EbookClient() {
+  const [status, setStatus] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -66,6 +75,7 @@ export default function EbookClient() {
   if (status === 'success') {
     return (
       <div className="min-h-screen bg-[#241c16] text-[#f3e9d8] flex items-center justify-center px-4">
+        <Suspense fallback={null}><StatusReader onStatus={setStatus} /></Suspense>
         <div className="max-w-md text-center">
           <div className="text-4xl mb-4">🔥</div>
           <h1 className="text-2xl font-black mb-3">Pagamento confirmado!</h1>
@@ -77,6 +87,7 @@ export default function EbookClient() {
 
   return (
     <div className="min-h-screen bg-[#faf3e6] text-[#2a2119]">
+      <Suspense fallback={null}><StatusReader onStatus={setStatus} /></Suspense>
       {/* HERO */}
       <section className="relative py-24 px-4 text-center overflow-hidden">
         <div className="absolute inset-0">
