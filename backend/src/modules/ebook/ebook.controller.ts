@@ -12,7 +12,11 @@ export async function ebookCheckoutHandler(req: FastifyRequest, reply: FastifyRe
     if (!name?.trim() || !email?.trim()) {
       return reply.status(400).send({ error: 'Nome e email são obrigatórios' })
     }
-    const result = await createEbookPreference(name.trim(), email.trim())
+    const cleanName = name.trim().slice(0, 100)
+    if (/[<>]/.test(cleanName)) {
+      return reply.status(400).send({ error: 'Nome contém caracteres inválidos' })
+    }
+    const result = await createEbookPreference(cleanName, email.trim())
     return reply.status(201).send(result)
   } catch (err: any) {
     reportIfUnexpected(err)

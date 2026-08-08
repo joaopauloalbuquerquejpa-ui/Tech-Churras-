@@ -4,6 +4,10 @@ const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM = 'Tech Churras <noreply@techchurras.com.br>'
 const BASE_URL = 'https://www.techchurras.com.br'
 
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+}
+
 async function sendEmail(to: string, subject: string, html: string, label: string) {
   if (!RESEND_API_KEY) {
     console.warn(JSON.stringify({ event: 'email_skipped', label, reason: 'RESEND_API_KEY ausente', ts: new Date().toISOString() }))
@@ -185,7 +189,7 @@ export async function emailWelcomeCustomer(to: string, customerName: string) {
 }
 
 export async function emailEbookDelivered(to: string, name: string, downloadUrl: string) {
-  const firstName = name.split(' ')[0]
+  const firstName = esc(name.split(' ')[0])
   const html = baseTemplate(`
     <h2 style="color:#f97316;margin:0 0 8px;font-size:24px">🔥 Seu e-book chegou!</h2>
     <p style="color:#aaa;margin:0 0 20px">Oi ${firstName}! Obrigado por comprar o <strong style="color:#fff">Método do Churrasco Exótico</strong>. Aqui está o seu link de download.</p>
