@@ -32,6 +32,9 @@ credenciais-tech-churras.md
 # Repositório aninhado (submodule não configurado)
 tools/cve-mcp-server/
 
+# Projeto pessoal do Jota, sem relação com a Tech Churras — mora aqui só por conveniência
+tools/trader-esportivo/
+
 # Snapshots/logs do Playwright MCP — podem capturar valores de formulário
 # (senhas de teste digitadas em campos) em texto puro. Nunca commitar.
 .playwright-mcp/
@@ -43,6 +46,7 @@ tools/video_output/
 tools/video_pro/
 tools/MPT.zip
 *.mp4
+!frontend/public/ebook-jota-eventos.mp4
 *.mp3
 
 # Mídia gerada pelas ferramentas de conteúdo — grande demais para git
