@@ -183,3 +183,19 @@ export async function emailWelcomeCustomer(to: string, customerName: string) {
   `)
   await sendEmail(to, '🔥 Bem-vindo à Tech Churras! Seu churrasco perfeito está aqui.', html, 'welcome-customer')
 }
+
+export async function emailEbookDelivered(to: string, name: string, downloadUrl: string) {
+  const firstName = name.split(' ')[0]
+  const html = baseTemplate(`
+    <h2 style="color:#f97316;margin:0 0 8px;font-size:24px">🔥 Seu e-book chegou!</h2>
+    <p style="color:#aaa;margin:0 0 20px">Oi ${firstName}! Obrigado por comprar o <strong style="color:#fff">Método do Churrasco Exótico</strong>. Aqui está o seu link de download.</p>
+    <a href="${downloadUrl}" style="display:block;background:#f97316;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:bold;font-size:16px">
+      Baixar meu e-book
+    </a>
+    <div style="background:#111;border-radius:12px;padding:16px;margin-top:20px">
+      <p style="margin:4px 0 8px;color:#fff">🎁 <strong>Bônus:</strong> use o cupom <strong style="color:#f97316">EBOOK50</strong> e ganhe R$ 50 OFF no seu primeiro churrasco pela Tech Churras.</p>
+    </div>
+    <p style="color:#666;font-size:12px;text-align:center;margin-top:20px">Guarde este e-mail — o link de download não expira.</p>
+  `)
+  await sendEmail(to, '🔥 Seu e-book chegou — O Método do Churrasco Exótico', html, 'ebook-delivered')
+}

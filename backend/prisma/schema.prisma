@@ -513,6 +513,21 @@ model PaymentEvent {
   @@index([createdAt])
 }
 
+model EbookPurchase {
+  id            String    @id @default(uuid())
+  name          String
+  email         String
+  amount        Float
+  paymentId     String?
+  status        String    @default("PENDING")
+  downloadToken String    @unique @default(uuid())
+  createdAt     DateTime  @default(now())
+  paidAt        DateTime?
+
+  @@index([email])
+  @@index([status])
+}
+
 // Fila de retry pra notificacoes que falharam na primeira tentativa (WhatsApp/push).
 // Processada pelo cron /cron/notification-retries — sem Redis/BullMQ, volume atual
 // nao justifica infra de fila dedicada.
