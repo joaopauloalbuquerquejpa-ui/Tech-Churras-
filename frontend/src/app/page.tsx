@@ -256,19 +256,23 @@ export default async function HomePage() {
           Você escolhe a data e chama a família e os amigos.{' '}
           <span className="text-gray-400">A gente cuida do churrasqueiro, das carnes e de cada detalhe do dia — pra você estar na mesa, não preso na grelha o evento inteiro.</span>
         </p>
-        <div className="flex items-center justify-center gap-3 flex-wrap">
+        <div className="flex flex-col items-center gap-4">
           <Link href="/grillmasters"
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-2xl text-lg transition-all hover:shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5">
-            Contratar Grillmaster
+            className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-10 py-5 rounded-2xl text-xl transition-all hover:shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5">
+            Contratar meu churrasco
           </Link>
-          <Link href="/boutiques"
-            className="bg-gray-800 hover:bg-gray-700 text-white font-semibold px-8 py-4 rounded-2xl text-lg transition-colors border border-gray-700 inline-flex items-center gap-2">
-            <MeatIcon size={18} /> Ver açougues parceiros
-          </Link>
-          <Link href="/kit-perfeito"
-            className="text-orange-400 hover:text-orange-300 font-semibold px-4 py-4 text-base transition-colors">
-            Montar kit com IA ✨
-          </Link>
+          <p className="text-gray-500 text-sm">Já vem com açougue parceiro e cortes inclusos — você só escolhe o Grillmaster.</p>
+          <div className="flex items-center justify-center gap-4 flex-wrap mt-1">
+            <Link href="/boutiques"
+              className="text-gray-400 hover:text-white text-sm font-medium transition-colors inline-flex items-center gap-1.5">
+              <MeatIcon size={14} /> Prefiro ver os açougues primeiro
+            </Link>
+            <span className="text-gray-800">·</span>
+            <Link href="/kit-perfeito"
+              className="text-orange-400/80 hover:text-orange-300 text-sm font-medium transition-colors">
+              Montar kit com IA ✨
+            </Link>
+          </div>
         </div>
         <p className="text-gray-600 text-xs mt-8 max-w-lg mx-auto">
           Grillmaster chancelado + açougue parceiro + IA que monta o kit + rastreio ao vivo no dia — sem cobrar seu tempo.
@@ -377,7 +381,7 @@ export default async function HomePage() {
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-center">
             {[
-              { value: '4.9★', label: 'avaliação média', detail: 'Grillmasters chancelados' },
+              { value: '7 dias', label: 'de garantia total', detail: 'Reembolso se algo sair errado' },
               { value: '100%', label: 'açougues validados', detail: 'Qualidade garantida nos cortes' },
               { value: 'R$ 0', label: 'taxa pro cliente', detail: 'Você paga só Grillmaster + carne' },
             ].map(s => (
