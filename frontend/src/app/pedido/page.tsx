@@ -124,6 +124,7 @@ function PedidoForm() {
   const [eventDate, setEventDate] = useState('')
   const [eventTime, setEventTime] = useState('12:00')
   const [eventAddress, setEventAddress] = useState('')
+  const [eventComplement, setEventComplement] = useState('')
   const [eventCep, setEventCep] = useState('')
   const [eventHours, setEventHours] = useState(4)
   const [men, setMen] = useState(5)
@@ -380,7 +381,7 @@ function PedidoForm() {
           grillmasterId: selectedGm,
           boutiqueId: boutiqueId || undefined,
           eventDate: new Date(`${eventDate}T${eventTime}`).toISOString(),
-          eventAddress,
+          eventAddress: eventComplement.trim() ? `${eventAddress}, ${eventComplement.trim()}` : eventAddress,
           eventHours,
           guestCount: totalPeople || 1,
           items: orderItems.length > 0 ? orderItems : undefined,
@@ -492,6 +493,12 @@ function PedidoForm() {
                   placeholder="Rua, número, bairro, cidade"
                   className="w-full bg-gray-800 rounded-xl px-3 py-2.5 text-white text-sm placeholder-gray-600" />
               </div>
+              <div>
+                <label className="text-xs text-gray-400 mb-1 block">Número, complemento e ponto de referência</label>
+                <input type="text" value={eventComplement} onChange={e => setEventComplement(e.target.value)}
+                  placeholder="Nº 123, apto 45, portão azul, perto do mercado..."
+                  className="w-full bg-gray-800 rounded-xl px-3 py-2.5 text-white text-sm placeholder-gray-600" />
+              </div>
             </div>
 
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
@@ -563,7 +570,6 @@ function PedidoForm() {
                               {sel && <span className="text-xs text-green-400 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado</span>}
                             </div>
                             <p className="text-xs text-gray-400 mt-0.5">{kit.description}</p>
-                            <p className="text-xs text-gray-500 mt-1">{kit.minGuests}–{kit.maxGuests} convidados</p>
                           </div>
                           <div className="text-right shrink-0">
                             {kit.discountPrice && kit.discountPrice < kit.price && (
@@ -808,7 +814,7 @@ function PedidoForm() {
               {eventAddress && (
                 <div className="flex justify-between text-gray-400 gap-4">
                   <span className="shrink-0">Endereço</span>
-                  <span className="text-white text-right text-xs">{eventAddress}</span>
+                  <span className="text-white text-right text-xs">{eventComplement.trim() ? `${eventAddress}, ${eventComplement.trim()}` : eventAddress}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
