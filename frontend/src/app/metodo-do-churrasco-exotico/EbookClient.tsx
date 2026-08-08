@@ -2,6 +2,9 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { API_URL } from '@/lib/api'
+import { Events } from '@/lib/analytics'
+
+const EBOOK_PRICE = 19.9
 
 export default function EbookClient() {
   const searchParams = useSearchParams()
@@ -13,10 +16,14 @@ export default function EbookClient() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).gtag) {
-      (window as any).gtag('event', 'page_view', { page_title: 'ebook_metodo_churrasco_exotico' })
-    }
+    Events.viewContent('metodo-do-churrasco-exotico')
   }, [])
+
+  useEffect(() => {
+    if (status === 'success') {
+      Events.ebookPurchase(EBOOK_PRICE)
+    }
+  }, [status])
 
   async function handleCheckout(e: React.FormEvent) {
     e.preventDefault()
@@ -31,6 +38,7 @@ export default function EbookClient() {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Erro ao iniciar pagamento')
+      Events.ebookCheckoutStarted(EBOOK_PRICE)
       window.location.href = data.checkout_url
     } catch (err: any) {
       setError(err.message || 'Não foi possível iniciar o pagamento. Tente novamente.')

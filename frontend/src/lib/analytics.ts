@@ -51,6 +51,23 @@ export const Events = {
     })
   },
 
+  ebookCheckoutStarted: (value: number) => {
+    track('ebook_checkout_started', { value, currency: 'BRL' })
+    metaTrack('InitiateCheckout', { value, currency: 'BRL', content_name: 'metodo_churrasco_exotico' })
+    tiktokTrack('InitiateCheckout', { value, currency: 'BRL' })
+  },
+
+  ebookPurchase: (value: number) => {
+    track('ebook_purchase', { value, currency: 'BRL' })
+    metaTrack('Purchase', { value, currency: 'BRL', content_name: 'metodo_churrasco_exotico' })
+    tiktokTrack('PlaceAnOrder', { value, currency: 'BRL' })
+    window.gtag?.('event', 'conversion', {
+      send_to: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
+      value,
+      currency: 'BRL',
+    })
+  },
+
   clickWhatsApp: (source: string) => {
     track('whatsapp_click', { source })
     metaTrack('Contact', { source })
