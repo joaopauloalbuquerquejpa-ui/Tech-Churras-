@@ -101,7 +101,7 @@ export default function EbookClient() {
         <div className="rounded-2xl overflow-hidden border border-[#e6d9c3] shadow-lg">
           <video src="/ebook-jota-eventos.mp4" className="w-full aspect-[9/16] object-cover bg-black" autoPlay loop muted playsInline controls />
         </div>
-        <p className="text-center text-xs text-[#6b5d4f] mt-3">Jota grelhando ao vivo nos shows de Guilherme &amp; Benuto e MC Ryan SP</p>
+        <p className="text-center text-xs text-[#6b5d4f] mt-3">Jota grelhando ao vivo nos shows de Guilherme &amp; Benuto e Mc Daniel, e churrasco para o MC Ryan SP</p>
       </section>
 
       {/* O QUE TEM DENTRO */}
