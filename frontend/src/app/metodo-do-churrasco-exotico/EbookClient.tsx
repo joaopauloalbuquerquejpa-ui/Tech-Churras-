@@ -95,6 +95,15 @@ export default function EbookClient() {
         </div>
       </section>
 
+      {/* PROVA EM VÍDEO */}
+      <section className="max-w-md mx-auto px-4 py-12">
+        <p className="text-center text-xs font-bold uppercase tracking-wide text-[#c2530e] mb-4">Não é só conversa — é registro real</p>
+        <div className="rounded-2xl overflow-hidden border border-[#e6d9c3] shadow-lg">
+          <video src="/ebook-jota-eventos.mp4" className="w-full aspect-[9/16] object-cover bg-black" autoPlay loop muted playsInline controls />
+        </div>
+        <p className="text-center text-xs text-[#6b5d4f] mt-3">Jota grelhando ao vivo nos shows de Guilherme &amp; Benuto e MC Ryan SP</p>
+      </section>
+
       {/* O QUE TEM DENTRO */}
       <section className="max-w-3xl mx-auto px-4 py-16">
         <h2 className="font-serif text-2xl md:text-3xl font-black text-center mb-10">O que tem dentro</h2>
@@ -145,9 +154,15 @@ export default function EbookClient() {
             </p>
           </div>
         </div>
-        <div className="mt-4 rounded-2xl overflow-hidden border border-[#e6d9c3]">
-          <img src="/ebook-jota-neymar.jpg" alt="Jota Albuquerque e equipe Jota BBQ Eventos com Neymar Jr. em evento real" className="w-full object-cover" />
-          <p className="text-xs text-[#6b5d4f] text-center py-2 bg-white">Jota e a equipe da Jota BBQ Eventos servindo Neymar Jr. em evento real</p>
+        <div className="mt-4 grid sm:grid-cols-2 gap-4">
+          <div className="rounded-2xl overflow-hidden border border-[#e6d9c3]">
+            <img src="/ebook-jota-neymar.jpg" alt="Jota Albuquerque e equipe Jota BBQ Eventos com Neymar Jr. em evento real" className="w-full h-full object-cover" />
+            <p className="text-xs text-[#6b5d4f] text-center py-2 bg-white">Jota e a equipe da Jota BBQ Eventos servindo Neymar Jr.</p>
+          </div>
+          <div className="rounded-2xl overflow-hidden border border-[#e6d9c3]">
+            <img src="/ebook-bahari-fachada.jpg" alt="Fachada do Bahari of Brazil em Zanzibar, Tanzânia" className="w-full h-full object-cover" />
+            <p className="text-xs text-[#6b5d4f] text-center py-2 bg-white">O Bahari of Brazil, em Zanzibar — parceria oficial com o Governo</p>
+          </div>
         </div>
         <div className="text-center mt-8">
           <a href="#comprar" className="inline-block bg-[#c2530e] hover:bg-[#a3450c] text-white font-bold px-8 py-4 rounded-xl transition-colors">
