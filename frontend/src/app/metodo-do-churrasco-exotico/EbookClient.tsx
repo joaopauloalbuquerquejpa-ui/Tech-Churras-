@@ -6,6 +6,22 @@ import { Events } from '@/lib/analytics'
 
 const EBOOK_PRICE = 19.9
 
+const RECEITAS_PREVIEW = [
+  'Picanha com Rub de Café e Cardamomo',
+  'Mishkaki — Espetinho Tanzaniano na Brasa',
+  'Costela no Assador de Cruz com Cardamomo e Gengibre',
+  'Samaki wa Kupaka — Peixe ao Molho de Coco',
+  'Cupim na Brasa com Manteiga de Especiarias',
+]
+
+const FAQ = [
+  ['É PDF ou vídeo?', 'É um e-book em PDF de 24 páginas, com fotos reais de cada receita. Abre em qualquer celular, tablet ou computador — não precisa de aplicativo especial.'],
+  ['Funciona em churrasqueira comum, ou só em fogo de chão?', 'Funciona na sua churrasqueira normal. As técnicas de assador de cruz e fogo aberto são mostradas como opção pra quem quiser ir além, mas a maioria das receitas é pensada pra churrasqueira de quintal, do jeito que você já tem em casa.'],
+  ['Como eu recebo o e-book depois de comprar?', 'Na hora. Assim que o pagamento é aprovado, o link de download cai automaticamente no seu e-mail — não precisa esperar nem pedir nada.'],
+  ['E se eu não gostar?', 'Você tem 7 dias de garantia. Se o método não fizer sentido pra você, é só chamar no WhatsApp que devolvemos seu dinheiro, sem burocracia.'],
+  ['O cupom de R$50 tem pegadinha?', 'Nenhuma. É um cupom real (EBOOK50), enviado no mesmo e-mail do e-book, pra usar no seu primeiro churrasco contratado pela Tech Churras.'],
+]
+
 export default function EbookClient() {
   const searchParams = useSearchParams()
   const status = searchParams.get('status')
@@ -14,6 +30,7 @@ export default function EbookClient() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   useEffect(() => {
     Events.viewContent('metodo-do-churrasco-exotico')
@@ -67,20 +84,21 @@ export default function EbookClient() {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(15,10,8,.6) 0%, rgba(15,10,8,.62) 35%, rgba(15,10,8,.55) 55%, rgba(15,10,8,.95) 100%)' }} />
         </div>
         <div className="relative max-w-2xl mx-auto text-[#f3e9d8]">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#e07a2e] mb-5">Método completo com receitas, especiarias e técnica</p>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#e07a2e] mb-5">O churrasqueiro de Madonna, Neymar Jr. e NBA/NFL</p>
           <h1 className="font-serif text-4xl md:text-5xl font-black mb-5 leading-tight">O Método do<br />Churrasco Exótico</h1>
           <p className="text-lg italic text-[#d9c9ac] mb-8">Como impressionar qualquer pessoa com técnicas de fogo, sabores do Brasil e especiarias de Zanzibar</p>
           <p className="text-xs uppercase tracking-widest text-[#a89473] mb-10">Jota Albuquerque — O Churrasqueiro dos Famosos</p>
           <a href="#comprar" className="inline-block bg-[#c2530e] hover:bg-[#a3450c] text-white font-bold px-8 py-4 rounded-xl transition-colors">
             Quero o e-book — R$ 19,90
           </a>
+          <p className="text-xs text-[#a89473] mt-4">🔒 Compra segura · Garantia de 7 dias</p>
         </div>
       </section>
 
       {/* O QUE TEM DENTRO */}
       <section className="max-w-3xl mx-auto px-4 py-16">
         <h2 className="font-serif text-2xl md:text-3xl font-black text-center mb-10">O que tem dentro</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-10">
           {[
             ['10', 'receitas completas'],
             ['5', 'molhos e acompanhamentos'],
@@ -92,6 +110,26 @@ export default function EbookClient() {
               <p className="text-sm text-[#6b5d4f] mt-1">{label}</p>
             </div>
           ))}
+        </div>
+        <div className="bg-white border border-[#e6d9c3] rounded-2xl p-6">
+          <p className="text-xs font-bold uppercase tracking-wide text-[#c2530e] mb-4">Algumas receitas de dentro do e-book</p>
+          <ul className="space-y-2">
+            {RECEITAS_PREVIEW.map(r => (
+              <li key={r} className="text-sm text-[#2a2119] flex items-start gap-2">
+                <span className="text-[#c2530e] mt-0.5">🔥</span>
+                <span>{r}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* COMPARAÇÃO DE VALOR */}
+      <section className="max-w-3xl mx-auto px-4 py-16">
+        <div className="bg-[#241c16] text-[#f3e9d8] rounded-2xl p-8 text-center">
+          <p className="text-sm text-[#d9c9ac] mb-2">Um jantar fora pra experimentar algo diferente custa R$150 ou mais.</p>
+          <p className="font-serif text-2xl font-black mb-2">Esse método é R$ 19,90 — e fica pra sempre com você.</p>
+          <p className="text-sm text-[#a89473]">10 receitas, 5 molhos e a técnica de um churrasqueiro que cozinhou pra Madonna e Neymar Jr., por menos que o preço de uma pizza.</p>
         </div>
       </section>
 
@@ -106,6 +144,41 @@ export default function EbookClient() {
               Mais de 13 anos de carreira, presença nos festivais Bárbaros e Let&apos;s Grill Festival, clientes como Madonna, Lady Gaga, Neymar Jr. e atletas de NBA/NFL. Cofundador do Bahari of Brazil, hub culinário em parceria oficial com o Governo de Zanzibar, na Tanzânia — onde aprendeu, de perto, as especiarias que estão nesse método. Também é fundador da Tech Churras.
             </p>
           </div>
+        </div>
+        <div className="text-center mt-8">
+          <a href="#comprar" className="inline-block bg-[#c2530e] hover:bg-[#a3450c] text-white font-bold px-8 py-4 rounded-xl transition-colors">
+            Quero o método do Jota — R$ 19,90
+          </a>
+        </div>
+      </section>
+
+      {/* GARANTIA */}
+      <section className="max-w-3xl mx-auto px-4 py-16">
+        <div className="border-2 border-[#c2530e] rounded-2xl p-8 text-center bg-white">
+          <div className="text-4xl mb-3">🛡️</div>
+          <h3 className="font-serif text-xl font-black mb-2">Garantia de 7 dias</h3>
+          <p className="text-sm text-[#6b5d4f] max-w-lg mx-auto">Se você abrir o e-book e sentir que não é pra você, é só chamar no WhatsApp dentro de 7 dias que devolvemos cada centavo. Sem pergunta, sem burocracia.</p>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="max-w-3xl mx-auto px-4 py-16">
+        <h2 className="font-serif text-2xl md:text-3xl font-black text-center mb-10">Perguntas frequentes</h2>
+        <div className="space-y-3">
+          {FAQ.map(([q, a], i) => (
+            <div key={q} className="bg-white border border-[#e6d9c3] rounded-xl overflow-hidden">
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between px-5 py-4 text-left font-bold text-sm"
+              >
+                <span>{q}</span>
+                <span className={`text-[#c2530e] text-lg transition-transform ${openFaq === i ? 'rotate-45' : ''}`}>+</span>
+              </button>
+              {openFaq === i && (
+                <div className="px-5 pb-4 text-sm text-[#6b5d4f] leading-relaxed border-t border-[#e6d9c3] pt-3">{a}</div>
+              )}
+            </div>
+          ))}
         </div>
       </section>
 
@@ -140,6 +213,13 @@ export default function EbookClient() {
               {loading ? 'Preparando pagamento...' : 'Comprar agora — R$ 19,90'}
             </button>
           </form>
+          <div className="flex items-center justify-center gap-3 mt-4 text-[#6b5d4f] text-xs">
+            <span>🔒 Pagamento seguro</span>
+            <span>·</span>
+            <span>🛡️ Garantia 7 dias</span>
+            <span>·</span>
+            <span>⚡ Acesso imediato</span>
+          </div>
           <p className="text-xs text-[#6b5d4f] mt-4">🎁 Bônus: cupom de R$ 50 OFF no primeiro churrasco pela Tech Churras.</p>
         </div>
       </section>
