@@ -102,7 +102,7 @@ export default function PitchAcougue() {
             <div>
               <p className="font-black text-white text-xl leading-tight">Jota Albuquerque</p>
               <p className="text-xs text-gray-400 mt-0.5">Fundador & CEO · 13 anos de Jota BBQ Eventos</p>
-              <p className="text-sm text-orange-400 font-semibold mt-1">Madonna · Lady Gaga · Neymar</p>
+              <p className="text-sm text-orange-400 font-semibold mt-1">Artistas · Atletas · Marcas</p>
               <div className="flex items-center gap-3 mt-2.5">
                 <a
                   href="https://www.instagram.com/jota.grillmaster"
@@ -147,7 +147,7 @@ export default function PitchAcougue() {
 
           <blockquote className="border-l-2 border-orange-500 pl-4">
             <p className="text-gray-300 text-sm italic leading-relaxed">
-              "Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua cidade — e o seu açougue vai estar no meio disso."
+              "Já fiz churrasco para artistas e atletas que todo mundo conhece. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua cidade — e o seu açougue vai estar no meio disso."
             </p>
             <p className="text-xs text-orange-400 mt-2">— Jota Albuquerque, fundador</p>
           </blockquote>

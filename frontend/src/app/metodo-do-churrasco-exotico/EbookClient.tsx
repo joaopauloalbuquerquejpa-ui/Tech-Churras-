@@ -95,10 +95,10 @@ export default function EbookClient() {
           <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(15,10,8,.6) 0%, rgba(15,10,8,.62) 35%, rgba(15,10,8,.55) 55%, rgba(15,10,8,.95) 100%)' }} />
         </div>
         <div className="relative max-w-2xl mx-auto text-[#f3e9d8]">
-          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#e07a2e] mb-5">O churrasqueiro de Madonna, Neymar Jr. e NBA/NFL</p>
+          <p className="text-xs font-bold uppercase tracking-[0.25em] text-[#e07a2e] mb-5">O churrasqueiro de artistas, atletas e marcas de grande porte</p>
           <h1 className="font-serif text-4xl md:text-5xl font-black mb-5 leading-tight">O Método do<br />Churrasco Exótico</h1>
           <p className="text-lg italic text-[#d9c9ac] mb-8">Como impressionar qualquer pessoa com técnicas de fogo, sabores do Brasil e especiarias de Zanzibar</p>
-          <p className="text-xs uppercase tracking-widest text-[#a89473] mb-10">Jota Albuquerque — O Churrasqueiro dos Famosos</p>
+          <p className="text-xs uppercase tracking-widest text-[#a89473] mb-10">Jota Albuquerque — Fundador da Tech Churras</p>
           <a href="#comprar" className="inline-block bg-[#c2530e] hover:bg-[#a3450c] text-white font-bold px-8 py-4 rounded-xl transition-colors">
             Quero o e-book — R$ 19,90
           </a>
@@ -112,7 +112,7 @@ export default function EbookClient() {
         <div className="rounded-2xl overflow-hidden border border-[#e6d9c3] shadow-lg">
           <video src="/ebook-jota-eventos.mp4" className="w-full aspect-[9/16] object-cover bg-black" autoPlay loop muted playsInline controls />
         </div>
-        <p className="text-center text-xs text-[#6b5d4f] mt-3">Jota grelhando ao vivo nos shows de Guilherme &amp; Benuto e Mc Daniel, e churrasco para o MC Ryan SP</p>
+        <p className="text-center text-xs text-[#6b5d4f] mt-3">Jota grelhando ao vivo em shows e eventos de grande porte</p>
       </section>
 
       {/* O QUE TEM DENTRO */}
@@ -149,7 +149,7 @@ export default function EbookClient() {
         <div className="bg-[#241c16] text-[#f3e9d8] rounded-2xl p-8 text-center">
           <p className="text-sm text-[#d9c9ac] mb-2">Um jantar fora pra experimentar algo diferente custa R$150 ou mais.</p>
           <p className="font-serif text-2xl font-black mb-2">Esse método é R$ 19,90 — e fica pra sempre com você.</p>
-          <p className="text-sm text-[#a89473]">10 receitas, 5 molhos e a técnica de um churrasqueiro que cozinhou pra Madonna e Neymar Jr., por menos que o preço de uma pizza.</p>
+          <p className="text-sm text-[#a89473]">10 receitas, 5 molhos e a técnica testada em eventos de alto padrão, por menos que o preço de uma pizza.</p>
         </div>
       </section>
 
@@ -159,16 +159,16 @@ export default function EbookClient() {
           <img src="/ebook-autor-jota.jpg" alt="Jota Albuquerque" className="w-32 h-32 rounded-full object-cover shrink-0 shadow-lg" />
           <div>
             <h3 className="font-black text-lg mb-1">Jota Albuquerque</h3>
-            <p className="text-xs font-bold text-[#c2530e] uppercase tracking-wide mb-3">O Churrasqueiro dos Famosos</p>
+            <p className="text-xs font-bold text-[#c2530e] uppercase tracking-wide mb-3">Fundador da Tech Churras</p>
             <p className="text-sm text-[#6b5d4f] leading-relaxed">
-              Mais de 13 anos de carreira, presença nos festivais Bárbaros e Let&apos;s Grill Festival, clientes como Madonna, Lady Gaga, Neymar Jr. e atletas de NBA/NFL. Cofundador do Bahari of Brazil, hub culinário em parceria oficial com o Governo de Zanzibar, na Tanzânia — onde aprendeu, de perto, as especiarias que estão nesse método. Também é fundador da Tech Churras.
+              Mais de 13 anos de carreira, presença nos festivais Bárbaros e Let&apos;s Grill Festival, atendendo artistas, atletas e marcas de grande porte em eventos privados. Cofundador do Bahari of Brazil, hub culinário em parceria oficial com o Governo de Zanzibar, na Tanzânia — onde aprendeu, de perto, as especiarias que estão nesse método. Também é fundador da Tech Churras.
             </p>
           </div>
         </div>
         <div className="mt-4 grid sm:grid-cols-2 gap-4">
           <div className="rounded-2xl overflow-hidden border border-[#e6d9c3]">
-            <img src="/ebook-jota-neymar.jpg" alt="Jota Albuquerque e equipe Jota BBQ Eventos com Neymar Jr. em evento real" className="w-full h-full object-cover" />
-            <p className="text-xs text-[#6b5d4f] text-center py-2 bg-white">Jota e a equipe da Jota BBQ Eventos servindo Neymar Jr.</p>
+            <img src="/ebook-jota-neymar.jpg" alt="Jota Albuquerque e equipe Jota BBQ Eventos em evento real" className="w-full h-full object-cover" />
+            <p className="text-xs text-[#6b5d4f] text-center py-2 bg-white">Jota e a equipe da Jota BBQ Eventos em ação num evento real</p>
           </div>
           <div className="rounded-2xl overflow-hidden border border-[#e6d9c3]">
             <img src="/ebook-bahari-fachada.jpg" alt="Fachada do Bahari of Brazil em Zanzibar, Tanzânia" className="w-full h-full object-cover" />

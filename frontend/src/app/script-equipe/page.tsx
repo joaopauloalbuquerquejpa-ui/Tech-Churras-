@@ -348,7 +348,7 @@ export default function ScriptEquipe() {
             <Fala>
               Os primeiros dez churrasqueiros que entrarem em SP viram Churrasqueiro Fundador.
               Você tem entrevista pessoal com o Jota — 13 anos de Jota BBQ Eventos,
-              já fez para Madonna, Lady Gaga, Neymar — antes da Chancela, badge permanente
+              já atendeu artistas e atletas de repercussão nacional — antes da Chancela, badge permanente
               no app e prioridade máxima nas buscas por seis meses. Essas vagas estão
               acabando. Você seria um dos primeiros da plataforma em SP.
             </Fala>

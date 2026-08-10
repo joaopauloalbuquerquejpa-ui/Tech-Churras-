@@ -131,7 +131,7 @@ export default function PitchChurrasqueiro() {
             <div>
               <p className="font-black text-white">Chancelamento Jota Albuquerque</p>
               <p className="text-xs text-gray-500">13 anos de Jota BBQ Eventos · SP e RJ</p>
-              <p className="text-xs text-orange-400 mt-0.5">Madonna · Lady Gaga · Neymar</p>
+              <p className="text-xs text-orange-400 mt-0.5">Artistas · Atletas · Marcas</p>
             </div>
           </div>
           <p className="text-gray-300 text-sm leading-relaxed mb-4">

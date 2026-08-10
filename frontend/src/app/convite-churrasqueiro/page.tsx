@@ -135,7 +135,7 @@ function ConviteContent() {
         <div className="flex flex-wrap gap-2 mb-10">
           {[
             { icon: '🔥', label: 'Jota BBQ Eventos — São Paulo e Rio de Janeiro' },
-            { icon: '⭐', label: 'Madonna · Lady Gaga · Neymar' },
+            { icon: '⭐', label: 'Artistas · Atletas · Marcas' },
             { icon: '🏆', label: '13 anos de experiência' },
           ].map(c => (
             <div key={c.label} className="flex items-center gap-1.5 bg-gray-900 border border-gray-800 rounded-full px-3 py-1.5 text-xs text-gray-300">

@@ -113,7 +113,7 @@ function ConviteContent() {
               <div>
                 <p className="text-white font-bold text-sm">Jota Albuquerque</p>
                 <p className="text-gray-500 text-xs">Fundador & CEO, Tech Churras</p>
-                <p className="text-gray-600 text-xs mt-0.5">13 anos · Jota BBQ Eventos · Madonna, Lady Gaga, Neymar</p>
+                <p className="text-gray-600 text-xs mt-0.5">13 anos · Jota BBQ Eventos · Eventos de alto padrão</p>
               </div>
             </div>
           </div>
@@ -123,7 +123,7 @@ function ConviteContent() {
         <div className="flex flex-wrap gap-2 mb-10">
           {[
             { icon: '🔥', label: 'Jota BBQ Eventos — São Paulo e Rio de Janeiro' },
-            { icon: '⭐', label: 'Madonna · Lady Gaga · Neymar' },
+            { icon: '⭐', label: 'Artistas · Atletas · Marcas' },
             { icon: '🏆', label: '13 anos de experiência' },
           ].map(c => (
             <div key={c.label} className="flex items-center gap-1.5 bg-gray-900 border border-gray-800 rounded-full px-3 py-1.5 text-xs text-gray-300">

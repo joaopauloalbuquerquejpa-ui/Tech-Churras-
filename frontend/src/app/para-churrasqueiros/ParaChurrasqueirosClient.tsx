@@ -193,6 +193,9 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                   <span key={t} className="text-xs text-gray-500">{t}</span>
                 ))}
               </div>
+              <p className="text-xs text-gray-600 mt-3">
+                Churrasqueiro autônomo ou buffet/empresa de eventos — cadastro aceita CPF ou CNPJ.
+              </p>
 
               {/* Churrasqueiro Fundador box */}
               <div className="mt-8 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-5">
@@ -357,7 +360,7 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
               {[
                 {
                   icon: '👨‍🏫', titulo: 'Onboarding e entrevista com Jota Albuquerque',
-                  desc: 'Onboarding no padrão de 13 anos de Jota BBQ Eventos — clientes como Madonna, Lady Gaga e Neymar — seguido de entrevista pessoal antes da Chancela. Técnicas de corte, controle de fogo, temperos, apresentação e postura profissional.',
+                  desc: 'Onboarding no padrão de 13 anos de Jota BBQ Eventos — clientes de alto padrão, incluindo artistas e atletas — seguido de entrevista pessoal antes da Chancela. Técnicas de corte, controle de fogo, temperos, apresentação e postura profissional.',
                 },
                 {
                   icon: '📋', titulo: 'Avaliação e aprovação',

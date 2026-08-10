@@ -392,15 +392,15 @@ const timeline: TimelineEntry[] = [
   },
   {
     icon: '◎',
-    title: 'Churrasqueiro dos Famosos',
-    year: 'Celebridades',
-    desc: 'Atendeu Madonna, Lady Gaga e Neymar Jr., além de atletas da NBA e NFL.',
+    title: 'Eventos de Alto Padrão',
+    year: 'Celebridades e marcas',
+    desc: 'Atendeu artistas, atletas e marcas de grande porte em eventos privados.',
   },
   {
     icon: '◆',
     title: 'Corporativo Premium',
     year: 'Grandes marcas',
-    desc: 'Elevou o padrão para Grupo Heineken, RedBull e outras gigantes do mercado global.',
+    desc: 'Elevou o padrão gastronômico em eventos corporativos de marcas globais de grande porte.',
   },
   {
     icon: '◉',
@@ -595,7 +595,7 @@ export default function FounderPage() {
 
             {[
               'Jota Albuquerque começou acendendo brasa em festas de família. Hoje, com 13 anos de Jota BBQ Eventos servindo clientela triple AAA em São Paulo e no Rio de Janeiro, é um dos Grillmasters mais respeitados do Brasil.',
-              'Grillmaster das maiores celebridades — atendeu Madonna, Lady Gaga, Neymar Jr., atletas da NBA e da NFL. Esteve nos maiores festivais de churrasco do Brasil e hoje é sócio executivo do Bahari of Brazil, hub culinário em parceria com o governo de Zanzibar, na Tanzânia.',
+              'Grillmaster de artistas, atletas e marcas de grande porte em eventos privados de alto padrão. Esteve nos maiores festivais de churrasco do Brasil e hoje é sócio executivo do Bahari of Brazil, hub culinário em parceria com o governo de Zanzibar, na Tanzânia.',
               'Mas depois de anos servindo o topo, percebeu o que estava faltando: o churrasco que ele mais amava nunca foi o de palco grande ou clientela exclusiva — era o de quintal, com quem a gente ama por perto, sem produção nenhuma. Construiu a carreira em cima de um evento que, no fundo, deveria ser simples e acessível pra qualquer família. Foi aí que decidiu trocar exclusividade por escala.',
               'A Tech Churras nasceu dessa virada — para que todos possam ter o churrasco perfeito — do quintal da família Albuquerque para os maiores eventos do mundo e agora no quintal da sua casa em poucos cliques.',
             ].map((para, i) => (
@@ -643,7 +643,7 @@ export default function FounderPage() {
           <div className="px-8 py-10">
             <p className="text-4xl text-orange-500 font-black mb-4 leading-none">"</p>
             <p className="text-xl md:text-2xl font-semibold text-white leading-relaxed mb-6">
-              Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
+              Já fiz churrasco para artistas e atletas que todo mundo conhece. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
             </p>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full overflow-hidden border border-orange-500/40">

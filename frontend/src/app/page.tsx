@@ -232,6 +232,7 @@ export default async function HomePage() {
         <div className="flex items-center gap-4">
           <Link href="/grillmasters" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Churrasqueiros</Link>
           <Link href="/boutiques" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">Açougues</Link>
+          <Link href="/churrasco-corporativo" className="text-sm text-gray-400 hover:text-white transition-colors hidden md:block">Empresas</Link>
           <Link href="/kit-perfeito" className="text-sm text-gray-400 hover:text-white transition-colors hidden sm:block">IA ✨</Link>
           <Link href="/churras-club" className="text-sm text-orange-400 hover:text-orange-300 transition-colors hidden sm:inline-flex items-center gap-1 font-semibold"><TrophyIcon size={14} /> Club</Link>
           <Link href="/login" className="text-sm bg-gray-800 hover:bg-gray-700 text-white px-4 py-1.5 rounded-lg transition-colors">Entrar</Link>
@@ -304,7 +305,7 @@ export default async function HomePage() {
               <p className="text-xs text-gray-500 mb-6">Fundador & CEO · 13 anos de Jota BBQ Eventos · SP e RJ</p>
               <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
               <p className="text-gray-300 text-base leading-relaxed mb-6">
-                Já fiz churrasco para Madonna, Lady Gaga e Neymar. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
+                Já fiz churrasco para artistas e atletas que todo mundo conhece. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
               </p>
               <p className="text-xs text-amber-400/90 mb-8 flex items-center gap-1.5">
                 🌍 Hoje construindo o primeiro hub culinário brasileiro em parceria oficial com o Governo de Zanzibar, Tanzânia.
@@ -335,7 +336,7 @@ export default async function HomePage() {
             { src: '/churrasco-real-3.jpg', alt: 'Corte selado no ponto, com a marca Jota BBQ Eventos' },
             { src: '/churrasco-real-4.jpg', alt: 'Convidado sendo servido numa tábua de madeira da Jota BBQ Eventos' },
             { src: '/churrasco-real-5.jpg', alt: 'Jota Albuquerque preparando uma costela no assador de cruz sobre fogo aberto em evento' },
-            { src: '/churrasco-real-6.jpg', alt: 'Jota Albuquerque e equipe Jota BBQ Eventos com Neymar Jr. em evento' },
+            { src: '/churrasco-real-6.jpg', alt: 'Jota Albuquerque e equipe Jota BBQ Eventos em evento real' },
           ].map(img => (
             <div key={img.src} className="aspect-[4/5] rounded-xl overflow-hidden bg-gray-900">
               <img src={img.src} alt={img.alt} className="w-full h-full object-cover" loading="lazy" />
@@ -568,6 +569,7 @@ export default async function HomePage() {
               <Link href="/grillmasters" className="block hover:text-gray-300 transition-colors">Churrasqueiros</Link>
               <Link href="/boutiques" className="block hover:text-gray-300 transition-colors">Açougues</Link>
               <Link href="/kit-perfeito" className="block hover:text-gray-300 transition-colors">Kit Perfeito IA</Link>
+              <Link href="/churrasco-corporativo" className="block hover:text-gray-300 transition-colors">Eventos para Empresas</Link>
               <Link href="/churras-club" className="block hover:text-gray-300 transition-colors">Churras Club</Link>
               <Link href="/founder" className="block hover:text-gray-300 transition-colors">Fundador</Link>
             </div>
