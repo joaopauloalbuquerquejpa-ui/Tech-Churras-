@@ -8,10 +8,12 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
-async function sendEmail(to: string, subject: string, html: string, label: string) {
+// Retorna se o envio de fato aconteceu — chamadores onde o email é o único canal
+// de entrega (ex: link do e-book) precisam saber quando falhar de verdade, não só logar.
+async function sendEmail(to: string, subject: string, html: string, label: string): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.warn(JSON.stringify({ event: 'email_skipped', label, reason: 'RESEND_API_KEY ausente', ts: new Date().toISOString() }))
-    return
+    return false
   }
   try {
     const res = await fetchWithTimeout('https://api.resend.com/emails', {
@@ -21,11 +23,13 @@ async function sendEmail(to: string, subject: string, html: string, label: strin
     })
     if (!res.ok) {
       console.error(JSON.stringify({ event: 'email_error', label, to, status: res.status, ts: new Date().toISOString() }))
-    } else {
-      console.log(JSON.stringify({ event: 'email_sent', label, to, ts: new Date().toISOString() }))
+      return false
     }
+    console.log(JSON.stringify({ event: 'email_sent', label, to, ts: new Date().toISOString() }))
+    return true
   } catch (err: any) {
     console.error(JSON.stringify({ event: 'email_exception', label, to, message: err?.message, ts: new Date().toISOString() }))
+    return false
   }
 }
 
@@ -188,7 +192,7 @@ export async function emailWelcomeCustomer(to: string, customerName: string) {
   await sendEmail(to, '🔥 Bem-vindo à Tech Churras! Seu churrasco perfeito está aqui.', html, 'welcome-customer')
 }
 
-export async function emailEbookDelivered(to: string, name: string, downloadUrl: string) {
+export async function emailEbookDelivered(to: string, name: string, downloadUrl: string): Promise<boolean> {
   const firstName = esc(name.split(' ')[0])
   const html = baseTemplate(`
     <h2 style="color:#f97316;margin:0 0 8px;font-size:24px">🔥 Seu e-book chegou!</h2>
@@ -201,5 +205,5 @@ export async function emailEbookDelivered(to: string, name: string, downloadUrl:
     </div>
     <p style="color:#666;font-size:12px;text-align:center;margin-top:20px">Guarde este e-mail — o link de download não expira.</p>
   `)
-  await sendEmail(to, '🔥 Seu e-book chegou — O Método do Churrasco Exótico', html, 'ebook-delivered')
+  return sendEmail(to, '🔥 Seu e-book chegou — O Método do Churrasco Exótico', html, 'ebook-delivered')
 }

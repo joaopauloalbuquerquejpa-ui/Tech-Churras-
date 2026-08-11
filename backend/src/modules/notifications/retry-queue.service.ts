@@ -21,6 +21,12 @@ async function dispatch(type: string, payload: any): Promise<void> {
       return sendWhatsAppToAdminRaw(payload.message)
     case 'push_user':
       return sendPushToUserRaw(payload.userId, payload.title, payload.body, payload.url)
+    case 'ebook_email': {
+      const { emailEbookDelivered } = await import('../email/email.service')
+      const ok = await emailEbookDelivered(payload.to, payload.name, payload.downloadUrl)
+      if (!ok) throw new Error('Reenvio de email do e-book falhou')
+      return
+    }
     default:
       throw new Error(`Tipo de retry desconhecido: ${type}`)
   }

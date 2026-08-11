@@ -1,7 +1,9 @@
+import * as Sentry from '@sentry/node'
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
 import { prisma } from '../../config/prisma'
 import { emailEbookDelivered } from '../email/email.service'
 import { sendWhatsAppToAdmin } from '../push/push.service'
+import { enqueueNotificationRetry } from '../notifications/retry-queue.service'
 
 const FRONTEND_URL = process.env.FRONTEND_URL ?? 'https://www.techchurras.com.br'
 const BACKEND_URL = process.env.BACKEND_URL ?? 'https://tech-churras-production.up.railway.app'
@@ -92,7 +94,16 @@ export async function handleEbookWebhook(payload: any) {
   if (!purchase) return { received: true }
 
   const downloadUrl = `${BACKEND_URL}/ebook/download/${purchase.downloadToken}`
-  emailEbookDelivered(purchase.email, purchase.name, downloadUrl).catch((e) => console.error('[ebook email]', e?.message))
+  // Email é o ÚNICO canal de entrega do e-book (sem conta de usuário, sem "minhas compras").
+  // Cliente já pagou nesse ponto — falha aqui não pode ser só um console.error que ninguém lê.
+  emailEbookDelivered(purchase.email, purchase.name, downloadUrl).then((ok) => {
+    if (ok) return
+    Sentry.captureMessage('Falha ao entregar e-book por email — cliente pagou e não recebeu', {
+      level: 'error',
+      extra: { purchaseId: purchase.id, email: purchase.email, downloadUrl },
+    })
+    enqueueNotificationRetry('ebook_email', { to: purchase.email, name: purchase.name, downloadUrl }, 'sendEmail retornou false')
+  }).catch((e) => console.error('[ebook email]', e?.message))
   sendWhatsAppToAdmin(
     `📖 *Venda do e-book — Tech Churras!*\n\n👤 ${purchase.name}\n📧 ${purchase.email}\n💰 R$ ${purchase.amount.toFixed(2)}`
   ).catch(() => {})

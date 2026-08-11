@@ -53,16 +53,16 @@ if (!process.env.DATABASE_URL) {
   console.error('FATAL: DATABASE_URL não configurado.')
   process.exit(1)
 }
+// Notificações e IA: não derrubam o boot, mas sem elas os recursos dependentes viram
+// no-op silencioso ou erro isolado naquele endpoint específico, sem afetar pedido/pagamento.
+// Warn alto no startup para o deploy nunca subir "verde" com um desses ausente.
+// RESEND_API_KEY e ANTHROPIC_API_KEY eram FATAL — cada uma já derrubou o site inteiro por
+// causa de um recurso secundário (email transacional, chat IA). Rebaixadas para warn: a
+// plataforma inteira não pode ficar refém de uma chave de terceiro que pode expirar/ter rate
+// limit a qualquer momento.
 if (!process.env.ANTHROPIC_API_KEY) {
-  console.error('FATAL: ANTHROPIC_API_KEY não configurado — chat IA inoperante.')
-  process.exit(1)
+  console.warn('⚠️  AVISO: ANTHROPIC_API_KEY não configurado — chat IA, bio de GM e bot de WhatsApp com IA desativados.')
 }
-// Notificações: não derrubam o boot, mas sem elas WhatsApp/push/email viram no-op silencioso
-// (email.service.ts já trata RESEND_API_KEY ausente com warn + return, sem crashar).
-// Warn alto no startup para o deploy nunca subir "verde" com canal de notificação morto.
-// RESEND_API_KEY era FATAL até 11/07/2026 — derrubou o site inteiro por 4 dias por causa
-// só do email transacional. Rebaixado para warn: a plataforma inteira não pode ficar refém
-// de um único canal de notificação secundário.
 if (!process.env.RESEND_API_KEY) {
   console.warn('⚠️  AVISO: RESEND_API_KEY não configurado — emails transacionais desativados.')
 }

@@ -122,6 +122,15 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   const grillmaster = data.grillmasterId
     ? await prisma.grillmaster.findUnique({ where: { id: data.grillmasterId } })
     : null
+  if (data.grillmasterId && !grillmaster?.approved) {
+    throw new Error('Este churrasqueiro não está disponível.')
+  }
+  if (data.boutiqueId) {
+    const boutique = await prisma.boutique.findUnique({ where: { id: data.boutiqueId }, select: { approved: true } })
+    if (!boutique?.approved) {
+      throw new Error('Este açougue não está disponível.')
+    }
+  }
   const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) : 0
 
   // F1: gmAccompaniments removidos do MVP — preço não tem backing em DB, cliente poderia manipular

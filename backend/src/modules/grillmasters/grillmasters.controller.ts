@@ -14,7 +14,11 @@ import {
 
 export async function createGrillmasterHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const userId = (req.user as any).id
+    const user = req.user as any
+    if (user.role !== 'GRILLMASTER' && user.role !== 'ADMIN') {
+      return reply.status(403).send({ error: 'Apenas contas de churrasqueiro podem criar um perfil de parceiro' })
+    }
+    const userId = user.id
     const data = createGrillmasterSchema.parse(req.body)
     const grillmaster = await createGrillmaster(userId, data)
     return reply.status(201).send(grillmaster)
