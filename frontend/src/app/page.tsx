@@ -343,7 +343,7 @@ export default async function HomePage() {
           ))}
         </div>
         <p className="text-center text-xs text-gray-600 mt-6">
-          Registros de eventos da Jota BBQ Eventos, empresa do fundador — não são pedidos feitos pela plataforma Tech Churras.
+          *Fotos da Jota BBQ Eventos, empresa do fundador com 13 anos e clientes AAA que deu origem à Tech Churras — não são pedidos feitos pela plataforma.
         </p>
       </section>
 
@@ -448,7 +448,14 @@ export default async function HomePage() {
         <section className="max-w-xl mx-auto px-4 pb-20 text-center" suppressHydrationWarning>
           <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Quem usou, aprovou</p>
           <h2 className="font-display text-2xl font-black mb-3">Você pode ser a primeira avaliação</h2>
-          <p className="text-gray-500 text-sm">Estamos começando em São Paulo — seja um dos primeiros a contratar e avaliar seu churrasco.</p>
+          <p className="text-gray-500 text-sm mb-5">Estamos em pré-lançamento em São Paulo. Fundada por Jota Albuquerque, 13 anos de Jota BBQ Eventos atendendo eventos de até 300 pessoas.</p>
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            {['13 anos de experiência', 'CNPJ 67.830.186/0001-87', 'Chancela Jota Albuquerque'].map(selo => (
+              <span key={selo} className="text-xs text-gray-400 border border-gray-800 bg-gray-900 rounded-full px-3 py-1.5">
+                {selo}
+              </span>
+            ))}
+          </div>
         </section>
       )}
 
