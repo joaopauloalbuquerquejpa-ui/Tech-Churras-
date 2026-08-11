@@ -543,7 +543,7 @@ export default async function HomePage() {
       )}
 
 
-      {/* Churras Club teaser */}
+      {/* TODO: Reativar após 20 primeiros eventos — Churras Club teaser
       <section className="border-y border-gray-800 py-12">
         <div className="max-w-2xl mx-auto px-4 text-center">
           <h2 className="font-display text-2xl font-black mb-2 inline-flex items-center gap-2"><TrophyIcon size={22} /> Churras Club</h2>
@@ -556,6 +556,7 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+      */}
 
       {/* Footer */}
       <footer className="border-t border-gray-900 px-4 py-10">
