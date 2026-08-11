@@ -330,20 +330,26 @@ export default async function HomePage() {
         </p>
         <div className="grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4">
           {[
-            { src: '/churrasco-real-1.jpg', alt: 'Jota Albuquerque servindo um corte nobre a bordo, com o Pão de Açúcar ao fundo, no Rio de Janeiro' },
-            { src: '/churrasco-real-2.jpg', alt: 'Jota Albuquerque finalizando um tomahawk com folha de ouro em evento numa marina' },
-            { src: '/churrasco-real-3.jpg', alt: 'Corte selado no ponto, com a marca Jota BBQ Eventos' },
-            { src: '/churrasco-real-4.jpg', alt: 'Convidado sendo servido numa tábua de madeira da Jota BBQ Eventos' },
-            { src: '/churrasco-real-5.jpg', alt: 'Jota Albuquerque preparando uma costela no assador de cruz sobre fogo aberto em evento' },
-            { src: '/churrasco-real-6.jpg', alt: 'Jota Albuquerque e equipe Jota BBQ Eventos em evento real' },
-          ].map(img => (
-            <div key={img.src} className="aspect-[4/5] rounded-xl overflow-hidden bg-gray-900">
-              <img src={img.src} alt={img.alt} className="w-full h-full object-cover" loading="lazy" />
+            { type: 'photo', src: '/churrasco-real-1.jpg', alt: 'Jota Albuquerque servindo um corte nobre a bordo, com o Pão de Açúcar ao fundo, no Rio de Janeiro' },
+            { type: 'photo', src: '/churrasco-real-2.jpg', alt: 'Jota Albuquerque finalizando um tomahawk com folha de ouro em evento numa marina' },
+            { type: 'photo', src: '/churrasco-real-3.jpg', alt: 'Corte selado no ponto, com a marca Jota BBQ Eventos' },
+            { type: 'video', src: '/churrasco-real-palco.mp4', poster: '/churrasco-real-video-poster.jpg', alt: 'Jota Albuquerque grelhando ao vivo no palco de um show, com a multidão ao fundo' },
+            { type: 'photo', src: '/churrasco-real-5.jpg', alt: 'Jota Albuquerque preparando uma costela no assador de cruz sobre fogo aberto em evento' },
+            { type: 'photo', src: '/churrasco-real-6.jpg', alt: 'Jota Albuquerque e equipe Jota BBQ Eventos em evento real' },
+          ].map(item => (
+            <div key={item.src} className="aspect-[4/5] rounded-xl overflow-hidden bg-gray-900">
+              {item.type === 'video' ? (
+                <video controls preload="none" poster={item.poster} className="w-full h-full object-cover" aria-label={item.alt}>
+                  <source src={item.src} type="video/mp4" />
+                </video>
+              ) : (
+                <img src={item.src} alt={item.alt} className="w-full h-full object-cover" loading="lazy" />
+              )}
             </div>
           ))}
         </div>
         <p className="text-center text-xs text-gray-600 mt-6">
-          *Fotos da Jota BBQ Eventos, empresa do fundador com 13 anos e clientes AAA que deu origem à Tech Churras — não são pedidos feitos pela plataforma.
+          *Fotos e vídeo da Jota BBQ Eventos, empresa do fundador com 13 anos e clientes AAA que deu origem à Tech Churras — não são pedidos feitos pela plataforma.
         </p>
       </section>
 

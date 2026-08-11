@@ -47,6 +47,7 @@ tools/video_pro/
 tools/MPT.zip
 *.mp4
 !frontend/public/ebook-jota-eventos.mp4
+!frontend/public/churrasco-real-palco.mp4
 *.mp3
 
 # Mídia gerada pelas ferramentas de conteúdo — grande demais para git
