@@ -434,11 +434,13 @@ model Lead {
   followUpAt  DateTime?
   followUpSent Boolean  @default(false)
   notes       String?
+  hidden      Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   @@index([status])
   @@index([followUpAt])
+  @@index([hidden])
 }
 
 model WhatsappConversation {

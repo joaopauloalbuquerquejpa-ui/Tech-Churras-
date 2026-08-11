@@ -1,8 +1,25 @@
 ﻿'use client'
 import { API_URL } from '@/lib/api'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { LockIcon, ChartIcon, PinIcon, FlameIcon, MeatIcon, CheckIcon, CameraIcon } from '@/components/icons/Icons'
+import { LockIcon, PinIcon, CheckIcon, CameraIcon } from '@/components/icons/Icons'
+import { OrdersTab } from './_tabs/OrdersTab'
+import { LeadsTab } from './_tabs/LeadsTab'
+import { ResumoTab } from './_tabs/ResumoTab'
+import { MetricasTab } from './_tabs/MetricasTab'
+
+// Isola useSearchParams num componente próprio, dentro de Suspense — sem
+// isso a rota inteira perde SSR (mesmo problema já corrigido antes na
+// página do ebook). Só repassa a aba lida na URL pro pai via callback.
+function TabFromUrl({ onTab }: { onTab: (tab: Tab) => void }) {
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const t = searchParams.get('tab') as Tab | null
+    if (t) onTab(t)
+  }, [searchParams])
+  return null
+}
 
 
 function getToken() {
@@ -97,14 +114,6 @@ interface GmApproveState {
   pricePerHour: number
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  PENDING: 'bg-yellow-500',
-  CONFIRMED: 'bg-blue-500',
-  IN_PROGRESS: 'bg-orange-500',
-  COMPLETED: 'bg-green-500',
-  CANCELLED: 'bg-red-500',
-}
-
 const STATUS_LABEL: Record<string, string> = {
   PENDING: 'Pendente',
   CONFIRMED: 'Confirmado',
@@ -158,34 +167,6 @@ interface ScheduleDay {
 
 type Tab = 'stats' | 'orders' | 'pending' | 'financeiro' | 'contracts' | 'equipe' | 'leads' | 'metricas'
 
-interface AdvancedMetrics {
-  funnel: { total: number; confirmed: number; completed: number; confirmRate: number; completeRate: number }
-  revenueByDay: Record<string, number>
-  ordersByHour: { hour: number; count: number }[]
-  topGms: { id: string; name: string; rating: number; totalOrders: number; acceptedOrders: number; acceptRate: number }[]
-}
-
-interface DemandForecast {
-  byDayOfWeek: { day: string; count: number; revenue: number }[]
-  byHour: { hour: number; count: number }[]
-  trendVsLastMonth: number
-  next14Days: { date: string; dayName: string; expectedOrders: number; confidence: string }[]
-  narrative: string
-  totalOrders90d: number
-}
-
-interface Lead {
-  id: string
-  phone: string
-  name: string | null
-  boutique: string | null
-  neighborhood: string | null
-  status: string
-  source: string
-  followUpSent: boolean
-  createdAt: string
-}
-
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
@@ -198,14 +179,9 @@ export default function AdminPage() {
   const [viewContract, setViewContract] = useState<AdminContract | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('stats')
-  const [leads, setLeads] = useState<Lead[]>([])
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null)
   const [zapiStatus, setZapiStatus] = useState<{ status: string; connected?: boolean; phone?: string | null } | null>(null)
-  const [advancedMetrics, setAdvancedMetrics] = useState<AdvancedMetrics | null>(null)
-  const [demandForecast, setDemandForecast] = useState<DemandForecast | null>(null)
-  const [loadingMetrics, setLoadingMetrics] = useState(false)
 
   // ── TEAM JOTA ──────────────────────────────────────────────
   const [teamJota, setTeamJota] = useState<TeamJota | null>(null)
@@ -222,7 +198,7 @@ export default function AdminPage() {
     else setRefreshing(true)
     const h = { Authorization: 'Bearer ' + getToken() }
     try {
-      const [s, o, pg, awaitCert, pb, c, allGms, lds] = await Promise.all([
+      const [s, o, pg, awaitCert, pb, c, allGms] = await Promise.all([
         fetch(API_URL + '/admin/stats', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/orders', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
@@ -230,7 +206,6 @@ export default function AdminPage() {
         fetch(API_URL + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/grillmasters', { headers: h }).then(r => r.ok ? r.json() : []),
-        fetch(API_URL + '/admin/leads', { headers: h }).then(r => r.ok ? r.json() : []),
       ])
       setStats(s)
       setOrders(Array.isArray(o) ? o : (o.data ?? o.orders ?? []))
@@ -242,7 +217,6 @@ export default function AdminPage() {
       setAwaitingCertification(Array.isArray(awaitCert) ? awaitCert : [])
       setPendingBoutiques(Array.isArray(pb) ? pb : [])
       setContracts(Array.isArray(c) ? c : [])
-      setLeads(Array.isArray(lds) ? lds : [])
       setLastUpdated(new Date())
 
       // Z-API health (não bloqueia o resto)
@@ -337,15 +311,6 @@ export default function AdminPage() {
     return () => clearInterval(interval)
   }, [])
 
-  async function updateStatus(id: string, status: string) {
-    await fetch(API_URL + '/orders/' + id + '/status', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
-      body: JSON.stringify({ status }),
-    })
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o))
-  }
-
   async function approveGrillmaster(id: string) {
     const state = gmApproveState[id] || { pricePerHour: 0 }
     const res = await fetch(API_URL + '/admin/grillmasters/' + id + '/approve', {
@@ -418,6 +383,9 @@ export default function AdminPage() {
 
   return (
     <div>
+      <Suspense fallback={null}>
+        <TabFromUrl onTab={setTab} />
+      </Suspense>
       <div className="flex items-center justify-between mb-6">
         <h1 className="font-display text-2xl font-bold">Painel Admin</h1>
         <div className="flex items-center gap-3">
@@ -443,255 +411,9 @@ export default function AdminPage() {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6 flex-wrap">
-        {([
-          { key: 'stats', label: 'Resumo' },
-          { key: 'orders', label: 'Pedidos (' + orders.length + ')' },
-          { key: 'pending', label: pendingCount > 0 ? 'Pendentes (' + pendingCount + ')' : 'Pendentes' },
-          { key: 'financeiro', label: 'Financeiro' },
-          { key: 'contracts', label: 'Contratos (' + contracts.length + ')' },
-          { key: 'equipe', label: 'Minha Equipe' },
-          { key: 'leads', label: leads.length > 0 ? 'Leads (' + leads.length + ')' : 'Leads' },
-          { key: 'metricas', label: 'Métricas IA' },
-        ] as { key: Tab; label: string }[]).map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={"px-4 py-2 rounded-lg font-medium text-sm " + (tab === t.key ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {tab === 'stats' && stats && <ResumoTab stats={stats} zapiStatus={zapiStatus} />}
 
-      {tab === 'stats' && stats && (
-        <div className="space-y-4">
-          {/* Today highlights */}
-          <div className="bg-gradient-to-r from-orange-900/20 to-gray-900 border border-orange-500/20 rounded-2xl p-5">
-            <p className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-4">Hoje</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Pedidos hoje</p>
-                <p className="text-3xl font-black text-white">{stats.ordersToday}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Receita hoje</p>
-                <p className="text-2xl font-black text-green-400">R$ {(stats.revenueToday ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Novos usuários</p>
-                <p className="text-3xl font-black text-white">{stats.usersToday}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500 mb-1">Pedidos ativos</p>
-                <p className="text-3xl font-black text-orange-400">{stats.activeOrders}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* All-time stats */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="bg-gray-900 rounded-xl p-5">
-              <p className="text-gray-400 text-sm">Total Pedidos</p>
-              <p className="text-3xl font-bold text-orange-400">{stats.totalOrders}</p>
-              <p className="text-xs text-gray-600 mt-1">R$ {(stats.revenueWeek ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} últimos 7 dias</p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-5">
-              <p className="text-gray-400 text-sm">Usuários</p>
-              <p className="text-3xl font-bold text-orange-400">{stats.totalUsers}</p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-5">
-              <p className="text-gray-400 text-sm">Churrasqueiros</p>
-              <p className="text-3xl font-bold text-orange-400">{stats.totalGrillmasters}</p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-5">
-              <p className="text-gray-400 text-sm">Açougues</p>
-              <p className="text-3xl font-bold text-orange-400">{stats.totalBoutiques}</p>
-            </div>
-            <div className="bg-gray-900 rounded-xl p-5">
-              <p className="text-gray-400 text-sm">Receita Total</p>
-              <p className="text-3xl font-bold text-green-400">R$ {(stats.totalRevenue ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-            </div>
-            <Link
-              href="/admin/repasses"
-              className="bg-gray-900 rounded-xl p-5 border border-orange-500/20 hover:border-orange-500/50 hover:bg-gray-800 transition-all group"
-            >
-              <p className="text-gray-400 text-sm group-hover:text-orange-400 transition-colors">Repasses Semanais</p>
-              <p className="text-lg font-bold text-orange-400 mt-1">Gerenciar →</p>
-              <p className="text-xs text-gray-600 mt-1">Pagamentos para parceiros</p>
-            </Link>
-            <Link
-              href="/admin/onboarding-acougue"
-              className="bg-gray-900 rounded-xl p-5 border border-green-500/20 hover:border-green-500/50 hover:bg-gray-800 transition-all group"
-            >
-              <p className="text-gray-400 text-sm group-hover:text-green-400 transition-colors">Onboarding Açougue</p>
-              <p className="text-lg font-bold text-green-400 mt-1">Roteiro →</p>
-              <p className="text-xs text-gray-600 mt-1">Script de visita presencial</p>
-            </Link>
-          </div>
-
-          {/* Z-API Status */}
-          {zapiStatus && (
-            <div className={[
-              'rounded-xl p-4 border flex items-center justify-between gap-4',
-              zapiStatus.status === 'not_configured' ? 'bg-gray-900 border-gray-700' :
-              zapiStatus.status === 'ok' && zapiStatus.connected ? 'bg-green-900/20 border-green-500/30' :
-              'bg-red-900/20 border-red-500/30',
-            ].join(' ')}>
-              <div className="flex items-center gap-3">
-                <span className={[
-                  'inline-block w-2.5 h-2.5 rounded-full shrink-0',
-                  zapiStatus.status === 'not_configured' ? 'bg-gray-600' :
-                  zapiStatus.status === 'ok' && zapiStatus.connected ? 'bg-green-400 animate-pulse' :
-                  'bg-red-400',
-                ].join(' ')} />
-                <div>
-                  <p className="text-sm font-semibold text-white">WhatsApp (Z-API)</p>
-                  <p className="text-xs text-gray-500">
-                    {zapiStatus.status === 'not_configured' ? 'Não configurado — ZAPI_INSTANCE/ZAPI_TOKEN ausentes' :
-                     zapiStatus.status === 'ok' && zapiStatus.connected ? `Conectado${zapiStatus.phone ? ' · ' + zapiStatus.phone : ''}` :
-                     zapiStatus.status === 'ok' && !zapiStatus.connected ? 'Instância offline — reconecte no painel Z-API' :
-                     'Erro ao verificar: ' + (zapiStatus as any).message}
-                  </p>
-                </div>
-              </div>
-              {zapiStatus.status === 'ok' && !zapiStatus.connected && (
-                <a
-                  href="https://app.z-api.io"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-lg font-medium transition-colors shrink-0"
-                >
-                  Reconectar
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === 'orders' && (
-        <div className="space-y-3">
-          {orders.length === 0 && <p className="text-gray-400">Nenhum pedido.</p>}
-          {orders.map(order => {
-            const isOpen = expandedOrderId === order.id
-            return (
-              <div key={order.id} className="bg-gray-900 rounded-xl overflow-hidden">
-                {/* Linha resumo — clicável */}
-                <button
-                  onClick={() => setExpandedOrderId(isOpen ? null : order.id)}
-                  className="w-full text-left px-4 py-3 flex items-center justify-between gap-3 hover:bg-gray-800/50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium text-sm">{order.customer?.name || 'Cliente'}</p>
-                      <span className={"text-xs text-white px-2 py-0.5 rounded-full " + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
-                        {STATUS_LABEL[order.status] || order.status}
-                      </span>
-                      {order.paymentStatus === 'PAID' && (
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Pago</span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {new Date(order.eventDate).toLocaleDateString('pt-BR')} · {order.guestCount} pessoas · R$ {(order.totalPrice ?? 0).toFixed(2)}
-                    </p>
-                  </div>
-                  <span className="text-gray-500 text-sm">{isOpen ? '▲' : '▼'}</span>
-                </button>
-
-                {/* Detalhe expandido */}
-                {isOpen && (
-                  <div className="border-t border-gray-800 px-4 pb-4 pt-3 space-y-4">
-                    {/* Cliente */}
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Cliente</p>
-                      <p className="text-sm text-white">{order.customer?.name}</p>
-                      <p className="text-xs text-gray-400">{order.customer?.email}</p>
-                      {order.customer?.phone && <p className="text-xs text-gray-400">📞 {order.customer.phone}</p>}
-                    </div>
-
-                    {/* Evento */}
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Evento</p>
-                      <p className="text-sm text-white inline-flex items-center gap-1.5"><PinIcon size={13} /> {order.eventAddress}</p>
-                      <div className="flex flex-wrap gap-3 mt-1 text-xs text-gray-400">
-                        <span>📅 {new Date(order.eventDate).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                        <span>⏱ {order.eventHours}h</span>
-                        <span>👥 {order.guestCount} convidados</span>
-                      </div>
-                      {order.notes && <p className="text-xs text-yellow-300 mt-1">📝 {order.notes}</p>}
-                    </div>
-
-                    {/* Parceiros */}
-                    {(order.grillmaster || order.boutique) && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Parceiros</p>
-                        {order.grillmaster?.user && (
-                          <p className="text-xs text-gray-300 inline-flex items-center gap-1.5"><FlameIcon size={11} /> Churrasqueiro: {order.grillmaster.user.name}{order.grillmaster.user.phone ? ` · ${order.grillmaster.user.phone}` : ''}</p>
-                        )}
-                        {order.boutique && (
-                          <p className="text-xs text-gray-300 inline-flex items-center gap-1.5"><MeatIcon size={11} /> Açougue: {order.boutique.name}</p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Itens */}
-                    {order.items && order.items.length > 0 && (
-                      <div>
-                        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Itens do pedido</p>
-                        <div className="space-y-1">
-                          {order.items.map(item => (
-                            <div key={item.id} className="flex justify-between text-xs text-gray-300">
-                              <span>{item.quantity}x {item.product?.name ?? 'Item'}{item.product?.unit ? ` (${item.product.unit})` : ''}</span>
-                              <span className="text-gray-400">R$ {(item.unitPrice * item.quantity).toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Financeiro */}
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Financeiro</p>
-                      <div className="flex flex-wrap gap-4 text-xs text-gray-300">
-                        <span>Total: <span className="text-orange-400 font-bold">R$ {(order.totalPrice ?? 0).toFixed(2)}</span></span>
-                        {order.couponCode && <span>Cupom: <span className="text-green-400">{order.couponCode}</span> (-R$ {(order.discountAmount ?? 0).toFixed(2)})</span>}
-                        <span>Pagamento: <span className={order.paymentStatus === 'PAID' ? 'text-green-400' : 'text-yellow-400'}>{order.paymentStatus ?? 'pendente'}</span></span>
-                        {order.paidAt && <span>Pago em: {new Date(order.paidAt).toLocaleDateString('pt-BR')}</span>}
-                      </div>
-                    </div>
-
-                    {order.cancellationReason && (
-                      <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-                        <p className="text-xs text-red-400">Cancelamento: {order.cancellationReason}</p>
-                      </div>
-                    )}
-
-                    {/* Ações */}
-                    <div className="flex items-center justify-between pt-1">
-                      <p className="text-xs text-gray-600">ID: {order.id.slice(0, 8)}...</p>
-                      <div className="flex items-center gap-2">
-                        <label className="text-xs text-gray-400">Status:</label>
-                        <select
-                          onChange={e => updateStatus(order.id, e.target.value)}
-                          defaultValue={order.status}
-                          className="bg-gray-800 text-white text-xs rounded px-2 py-1.5 border border-gray-700"
-                        >
-                          <option value="PENDING">Pendente</option>
-                          <option value="CONFIRMED">Confirmado</option>
-                          <option value="IN_PROGRESS">Em andamento</option>
-                          <option value="COMPLETED">Concluído</option>
-                          <option value="CANCELLED">Cancelado</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
+      {tab === 'orders' && <OrdersTab />}
 
       {tab === 'pending' && (
         <div className="space-y-6">
@@ -1326,225 +1048,10 @@ export default function AdminPage() {
           )}
         </div>
       )}
-      {tab === 'leads' && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="font-bold text-lg">Leads WhatsApp</h2>
-              <p className="text-xs text-gray-500 mt-0.5">Captados pelo bot de captação de açougues</p>
-            </div>
-            <button
-              onClick={async () => {
-                const h = { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' }
-                if (!confirm('Rodar migração trialEndsAt para boutiques aprovadas sem trial?')) return
-                const r = await fetch(API_URL + '/admin/migrate/trial-ends-at', { method: 'POST', headers: h })
-                const d = await r.json()
-                alert(`Migração OK: ${d.updated} boutiques atualizadas`)
-              }}
-              className="text-xs text-gray-500 hover:text-gray-300 border border-gray-700 px-3 py-1.5 rounded-lg"
-            >
-              Migrar trialEndsAt
-            </button>
-          </div>
-
-          {leads.length === 0 ? (
-            <p className="text-gray-500 text-sm">Nenhum lead captado ainda. O bot vai popular aqui automaticamente.</p>
-          ) : (
-            <div className="space-y-2">
-              {leads.map(lead => {
-                const statusColors: Record<string, string> = {
-                  new:       'bg-gray-700 text-gray-300',
-                  qualified: 'bg-orange-500/20 text-orange-400',
-                  contacted: 'bg-blue-500/20 text-blue-400',
-                  converted: 'bg-green-500/20 text-green-400',
-                  dead:      'bg-red-500/20 text-red-400',
-                }
-                const statusLabels: Record<string, string> = {
-                  new: 'Novo', qualified: 'Qualificado', contacted: 'Contatado', converted: 'Convertido', dead: 'Frio',
-                }
-                return (
-                  <div key={lead.id} className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 flex items-start justify-between gap-4">
-                    <div className="space-y-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium text-sm">{lead.name || 'Sem nome'}</span>
-                        {lead.boutique && <span className="text-orange-400 text-xs">{lead.boutique}</span>}
-                        {lead.neighborhood && <span className="text-gray-500 text-xs">{lead.neighborhood}</span>}
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${statusColors[lead.status] || 'bg-gray-700 text-gray-300'}`}>
-                          {statusLabels[lead.status] || lead.status}
-                        </span>
-                        {lead.followUpSent && <span className="text-xs text-blue-400">follow-up enviado</span>}
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        {lead.phone} · {new Date(lead.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </p>
-                    </div>
-                    <div className="flex gap-2 shrink-0 flex-wrap justify-end">
-                      <a
-                        href={`https://wa.me/55${lead.phone.replace(/\D/g, '')}`}
-                        target="_blank" rel="noreferrer"
-                        className="text-xs text-green-400 hover:text-green-300 border border-green-900 px-2 py-1 rounded"
-                      >
-                        WhatsApp
-                      </a>
-                      {(['qualified','contacted','converted','dead'] as const).filter(s => s !== lead.status).map(s => (
-                        <button key={s}
-                          onClick={async () => {
-                            const r = await fetch(API_URL + '/admin/leads/' + lead.id + '/status', {
-                              method: 'PATCH',
-                              headers: { Authorization: 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ status: s }),
-                            })
-                            if (r.ok) {
-                              const updated = await r.json()
-                              setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status: updated.status } : l))
-                            }
-                          }}
-                          className="text-xs text-gray-400 hover:text-white border border-gray-700 px-2 py-1 rounded"
-                        >
-                          {statusLabels[s]}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
+      {tab === 'leads' && <LeadsTab />}
 
       {/* ───── TAB: Métricas IA ───── */}
-      {tab === 'metricas' && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="font-bold text-lg">Métricas Avançadas + Previsão IA</h2>
-            <button
-              onClick={async () => {
-                setLoadingMetrics(true)
-                const h = { Authorization: 'Bearer ' + getToken() }
-                const [adv, fc] = await Promise.all([
-                  fetch(API_URL + '/admin/metrics/advanced', { headers: h }).then(r => r.json()).catch(() => null),
-                  fetch(API_URL + '/admin/demand-forecast', { headers: h }).then(r => r.json()).catch(() => null),
-                ])
-                setAdvancedMetrics(adv)
-                setDemandForecast(fc)
-                setLoadingMetrics(false)
-              }}
-              disabled={loadingMetrics}
-              className="text-sm bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
-            >
-              {loadingMetrics ? 'Carregando...' : advancedMetrics ? 'Atualizar' : 'Carregar dados'}
-            </button>
-          </div>
-
-          {!advancedMetrics && !loadingMetrics && (
-            <div className="text-center py-12 text-gray-500">Clique em "Carregar dados" para ver as métricas.</div>
-          )}
-
-          {loadingMetrics && (
-            <div className="text-center py-12 text-gray-400">Analisando dados com IA... (pode levar alguns segundos)</div>
-          )}
-
-          {advancedMetrics && (
-            <>
-              {/* Funil de conversão */}
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-                <p className="text-sm font-semibold text-gray-400 mb-4">Funil de conversão — todos os tempos</p>
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-3xl font-black text-white">{advancedMetrics.funnel.total}</p>
-                    <p className="text-xs text-gray-500 mt-1">Pedidos criados</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-black text-blue-400">{advancedMetrics.funnel.confirmed}</p>
-                    <p className="text-xs text-gray-500 mt-1">Confirmados ({advancedMetrics.funnel.confirmRate}%)</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-black text-green-400">{advancedMetrics.funnel.completed}</p>
-                    <p className="text-xs text-gray-500 mt-1">Concluídos ({advancedMetrics.funnel.completeRate}%)</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Top GMs */}
-              {advancedMetrics.topGms.length > 0 && (
-                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-                  <p className="text-sm font-semibold text-gray-400 mb-4">Top churrasqueiros — por pedidos</p>
-                  <div className="space-y-3">
-                    {advancedMetrics.topGms.map((gm, i) => (
-                      <div key={gm.id} className="flex items-center gap-3">
-                        <span className="text-gray-600 text-sm w-4">{i + 1}</span>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-semibold text-white">{gm.name}</p>
-                            <span className="text-xs text-gray-500">{gm.acceptRate}% aceite</span>
-                          </div>
-                          <div className="flex gap-1 mt-1">
-                            <div className="h-1.5 rounded-full bg-orange-500" style={{ width: gm.acceptedOrders * 16 + 'px', maxWidth: '100%' }} />
-                            <div className="h-1.5 rounded-full bg-gray-700" style={{ width: (gm.totalOrders - gm.acceptedOrders) * 16 + 'px', maxWidth: '100%' }} />
-                          </div>
-                        </div>
-                        <span className="text-xs text-yellow-400">★ {gm.rating}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* Previsão de demanda */}
-          {demandForecast && (
-            <>
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-400">Previsão de demanda — próximos 14 dias</p>
-                  <span className={`text-xs px-2 py-1 rounded-full font-bold ${demandForecast.trendVsLastMonth >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                    {demandForecast.trendVsLastMonth >= 0 ? '+' : ''}{demandForecast.trendVsLastMonth}% vs mês anterior
-                  </span>
-                </div>
-
-                {demandForecast.narrative && (
-                  <div className="text-sm text-gray-300 whitespace-pre-line leading-relaxed border-l-2 border-orange-500/40 pl-3">
-                    {demandForecast.narrative}
-                  </div>
-                )}
-
-                <div className="grid grid-cols-7 gap-1">
-                  {demandForecast.next14Days.map(d => (
-                    <div key={d.date} className={`rounded-lg p-2 text-center ${d.expectedOrders >= 2 ? 'bg-orange-500/20 border border-orange-500/30' : 'bg-gray-800'}`}>
-                      <p className="text-[10px] text-gray-500">{d.dayName.slice(0, 3)}</p>
-                      <p className="text-xs font-bold text-white mt-0.5">{d.expectedOrders.toFixed(1)}</p>
-                      <p className={`text-[9px] mt-0.5 ${d.confidence === 'alta' ? 'text-green-400' : d.confidence === 'média' ? 'text-yellow-400' : 'text-gray-600'}`}>
-                        {d.confidence}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pedidos por dia da semana */}
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
-                <p className="text-sm font-semibold text-gray-400 mb-4">Pedidos por dia da semana (90 dias)</p>
-                <div className="space-y-2">
-                  {demandForecast.byDayOfWeek.map(d => {
-                    const max = Math.max(...demandForecast.byDayOfWeek.map(x => x.count), 1)
-                    return (
-                      <div key={d.day} className="flex items-center gap-3">
-                        <span className="text-xs text-gray-500 w-14 shrink-0">{d.day.slice(0, 3)}</span>
-                        <div className="flex-1 bg-gray-800 rounded-full h-2">
-                          <div className="h-2 rounded-full bg-orange-500" style={{ width: (d.count / max * 100) + '%' }} />
-                        </div>
-                        <span className="text-xs text-gray-400 w-6 text-right">{d.count}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+      {tab === 'metricas' && <MetricasTab />}
     </div>
   )
 }

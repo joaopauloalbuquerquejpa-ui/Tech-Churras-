@@ -262,3 +262,54 @@ export function GiftIcon({ className, size = 20 }: IconProps) {
     </svg>
   )
 }
+
+export function ChevronDownIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M5.5 9l6.5 6.5L18.5 9" />
+    </svg>
+  )
+}
+
+export function ChevronRightIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M9 5.5l6.5 6.5L9 18.5" />
+    </svg>
+  )
+}
+
+export function CloseIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M6 6l12 12M18 6L6 18" />
+    </svg>
+  )
+}
+
+export function ArchiveIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <rect x="3.5" y="4.5" width="17" height="4" rx="1" />
+      <path d="M5 8.5v9a1.5 1.5 0 001.5 1.5h11a1.5 1.5 0 001.5-1.5v-9" />
+      <path d="M10 13h4" />
+    </svg>
+  )
+}
+
+export function MenuIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M4 7h16M4 12h16M4 17h16" />
+    </svg>
+  )
+}
+
+export function EditIcon({ className, size = 20 }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} className={className} stroke="currentColor" {...base}>
+      <path d="M4 20l.9-3.6L15.5 6a1.7 1.7 0 012.5 0l.9.9a1.7 1.7 0 010 2.5L8.3 19.4z" />
+      <path d="M13.5 8l2.5 2.5" />
+    </svg>
+  )
+}

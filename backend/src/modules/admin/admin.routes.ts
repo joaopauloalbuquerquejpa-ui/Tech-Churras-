@@ -155,15 +155,26 @@ export async function adminRoutes(app: FastifyInstance) {
   })
 
   // ── Leads captados via WhatsApp bot
-  app.get('/admin/leads', async (_req, reply) => {
-    const leads = await prisma.lead.findMany({ orderBy: { createdAt: 'desc' }, take: 200 })
+  app.get('/admin/leads', async (req, reply) => {
+    const { includeHidden } = req.query as { includeHidden?: string }
+    const leads = await prisma.lead.findMany({
+      where: includeHidden === 'true' ? {} : { hidden: false },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    })
     return reply.send(leads)
   })
 
   app.patch('/admin/leads/:id/status', async (req, reply) => {
     const { id } = req.params as { id: string }
-    const { status } = z.object({ status: z.string() }).parse(req.body)
-    const updated = await prisma.lead.update({ where: { id }, data: { status } })
+    const { status, hidden } = z.object({
+      status: z.string().optional(),
+      hidden: z.boolean().optional(),
+    }).parse(req.body)
+    const updated = await prisma.lead.update({
+      where: { id },
+      data: { ...(status !== undefined && { status }), ...(hidden !== undefined && { hidden }) },
+    })
     return reply.send(updated)
   })
 

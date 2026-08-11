@@ -270,9 +270,23 @@ export async function getBoutiqueReferralStats(boutiqueId: string) {
   return { boutiqueId, referred, converted }
 }
 
-export async function listAllOrders(skip = 0, take = 200) {
+// Estorno que falhou/ficou preso, ou disputa/chargeback — hoje o único alerta pra
+// esses dois estados é WhatsApp via Z-API (instável em produção). Isso dá uma
+// segunda via: mesmo com Z-API fora do ar, dá pra achar isso entrando no painel.
+function needsAttentionWhere() {
+  return {
+    OR: [
+      { refundStatus: { in: ['PENDING', 'FAILED'] } },
+      { paymentStatus: { startsWith: 'DISPUTE_' } },
+    ],
+  }
+}
+
+export async function listAllOrders(skip = 0, take = 200, status?: string, needsAttention?: boolean) {
+  const where = needsAttention ? needsAttentionWhere() : status ? { status: status as any } : undefined
   const [data, total] = await Promise.all([
     prisma.order.findMany({
+      where,
       include: {
         customer: { select: { name: true, email: true, phone: true } },
         grillmaster: { include: { user: { select: { name: true, phone: true } } } },
@@ -283,9 +297,13 @@ export async function listAllOrders(skip = 0, take = 200) {
       skip,
       take,
     }),
-    prisma.order.count(),
+    prisma.order.count({ where }),
   ])
   return { data, total, skip, take }
+}
+
+export async function countOrdersNeedingAttention() {
+  return prisma.order.count({ where: needsAttentionWhere() })
 }
 
 export async function markOrderPaid(orderId: string) {
@@ -435,7 +453,7 @@ export async function sendDailySummary(): Promise<void> {
   const weekStart = new Date()
   weekStart.setDate(weekStart.getDate() - 7)
 
-  const [ordersYesterday, revenueYesterday, newUsers, activeOrders, pendingGMs, qualifiedLeads, revenueWeek] = await Promise.all([
+  const [ordersYesterday, revenueYesterday, newUsers, activeOrders, pendingGMs, qualifiedLeads, revenueWeek, attentionCount] = await Promise.all([
     prisma.order.count({ where: { createdAt: { gte: yesterday, lt: todayStart } } }),
     prisma.order.aggregate({ where: { createdAt: { gte: yesterday, lt: todayStart }, status: 'COMPLETED' }, _sum: { totalPrice: true } }),
     prisma.user.count({ where: { createdAt: { gte: yesterday, lt: todayStart } } }),
@@ -443,6 +461,7 @@ export async function sendDailySummary(): Promise<void> {
     prisma.grillmaster.count({ where: { approved: false } }),
     prisma.lead.count({ where: { status: 'qualified', createdAt: { gte: yesterday, lt: todayStart } } }),
     prisma.order.aggregate({ where: { createdAt: { gte: weekStart }, status: 'COMPLETED' }, _sum: { totalPrice: true } }),
+    countOrdersNeedingAttention(),
   ])
 
   const revenue = revenueYesterday._sum.totalPrice ?? 0
@@ -457,8 +476,9 @@ export async function sendDailySummary(): Promise<void> {
     `👤 Novos usuários: *${newUsers}*\n` +
     `🔴 Pedidos ativos agora: *${activeOrders}*\n` +
     `⏳ GMs aguardando aprovação: *${pendingGMs}*\n` +
-    `🥩 Leads açougue ontem: *${qualifiedLeads}*\n\n` +
-    `👉 techchurras.com.br/admin`
+    `🥩 Leads açougue ontem: *${qualifiedLeads}*\n` +
+    (attentionCount > 0 ? `\n⚠️ *${attentionCount} pedido(s) com estorno pendente/falho ou disputa* — checar /admin\n` : '') +
+    `\n👉 techchurras.com.br/admin`
 
   await sendWhatsAppToAdmin(message)
   console.log('[DailySummary] Resumo enviado')

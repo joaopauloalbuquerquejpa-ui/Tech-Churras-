@@ -125,12 +125,15 @@ export async function rejectBoutiqueHandler(req: FastifyRequest, reply: FastifyR
   }
 }
 
+const orderStatusSchema = z.enum(['PENDING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional()
+
 export async function listAllOrdersHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const { skip, take } = req.query as { skip?: string; take?: string }
-    return reply.send(await listAllOrders(Number(skip ?? 0), Math.min(Number(take ?? 200), 500)))
+    const { skip, take, status, needsAttention } = req.query as { skip?: string; take?: string; status?: string; needsAttention?: string }
+    const parsedStatus = orderStatusSchema.parse(status)
+    return reply.send(await listAllOrders(Number(skip ?? 0), Math.min(Number(take ?? 200), 500), parsedStatus, needsAttention === 'true'))
   } catch (err: any) {
-    return reply.status(500).send({ error: err.message })
+    return reply.status(400).send({ error: err.message })
   }
 }
 
