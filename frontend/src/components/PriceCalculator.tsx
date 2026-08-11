@@ -1,6 +1,5 @@
 'use client'
 import { useState } from 'react'
-import Link from 'next/link'
 
 export default function PriceCalculator() {
   const [guests, setGuests] = useState(20)
@@ -49,11 +48,13 @@ export default function PriceCalculator() {
           </div>
         </div>
         <div className="text-center">
-          <Link href="/pedido"
+          <a
+            href={`https://wa.me/5511970593650?text=${encodeURIComponent('Quero montar meu churrasco com a Tech Churras')}`}
+            target="_blank" rel="noopener noreferrer"
             className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-xl text-sm transition-colors">
-            Montar kit real agora →
-          </Link>
-          <p className="text-xs text-gray-600 mt-2">Estimativa baseada em preços médios. Valor exato no checkout.</p>
+            Quero montar meu churrasco no WhatsApp →
+          </a>
+          <p className="text-xs text-gray-600 mt-2">Estimativa baseada em preços médios. Valor exato combinado com você.</p>
         </div>
       </div>
     </section>

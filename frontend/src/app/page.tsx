@@ -97,7 +97,7 @@ const PERSONAS = [
     badgeColor: 'text-yellow-400',
     titulo: 'Mais pedidos. Mais renda.',
     items: [
-      'Receba pedidos e gerencie agenda pelo app',
+      'Receba pedidos e gerencie agenda pelo app (em breve)',
       'Chancela Jota Albuquerque inclusa',
       'Treinamento de chancelamento presencial',
       '2 meses sem mensalidade para os primeiros',
@@ -139,7 +139,7 @@ const HOW_IT_WORKS = [
   {
     step: '3', icon: FlameIcon,
     title: 'Curta. Acompanhe ao vivo.',
-    desc: 'No dia do evento, o Grillmaster aparece no mapa em tempo real. Você e seus convidados acompanham tudo pelo app. Só relaxar e curtir.',
+    desc: 'No dia do evento, o Grillmaster aparece no mapa em tempo real (em breve). Você e seus convidados acompanham tudo pela Tech Churras. Só relaxar e curtir.',
   },
 ]
 
@@ -158,7 +158,7 @@ export default async function HomePage() {
       {
         "@type": "Question",
         "name": "Como contratar um churrasqueiro profissional em São Paulo?",
-        "acceptedAnswer": { "@type": "Answer", "text": "Pelo app da Tech Churras: escolha o Grillmaster, selecione a data e o número de convidados, deixe a IA montar o kit de carnes e acompanhe o churrasqueiro ao vivo no mapa. Tudo em menos de 5 minutos." }
+        "acceptedAnswer": { "@type": "Answer", "text": "Pela plataforma Tech Churras (site + WhatsApp, app em breve): escolha o Grillmaster, selecione a data e o número de convidados, deixe a IA montar o kit de carnes e acompanhe o andamento do seu pedido. Tudo em menos de 5 minutos." }
       },
       {
         "@type": "Question",
@@ -276,7 +276,7 @@ export default async function HomePage() {
           </div>
         </div>
         <p className="text-gray-600 text-xs mt-8 max-w-lg mx-auto">
-          Grillmaster chancelado + açougue parceiro + IA que monta o kit + rastreio ao vivo no dia — sem cobrar seu tempo.
+          Grillmaster chancelado + açougue parceiro + IA que monta o kit + rastreio ao vivo no dia (em breve) — sem cobrar seu tempo.
         </p>
       </section>
 
