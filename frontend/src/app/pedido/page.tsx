@@ -662,11 +662,14 @@ function PedidoForm() {
                   recommendedGms.map((rg, idx) => {
                     const sel = selectedGm === rg.id
                     const cost = rg.pricePerHour * eventHours
+                    const full = grillmasters.find(g => g.id === rg.id)
+                    const blocked = full ? gmBlocked(full) : false
                     return (
                       <div key={rg.id}
-                        onClick={() => setSelectedGm(rg.id)}
-                        className={'cursor-pointer rounded-2xl p-4 border-2 transition-all ' +
-                          (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60')}>
+                        onClick={() => { if (blocked) return; setSelectedGm(rg.id) }}
+                        className={'rounded-2xl p-4 border-2 transition-all ' +
+                          (blocked ? 'opacity-50 cursor-not-allowed border-gray-800 bg-gray-900'
+                            : 'cursor-pointer ' + (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60'))}>
                         <div className="flex items-start gap-3">
                           <div className="relative shrink-0">
                             <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-lg font-black text-orange-400">
@@ -679,7 +682,7 @@ function PedidoForm() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
                               <p className="font-bold text-white truncate">{rg.name}</p>
-                              {sel && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>}
+                              {sel && !blocked && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>}
                             </div>
                             <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
                               {rg.rating > 0 && <span className="flex items-center gap-0.5"><span className="text-yellow-400">★</span>{rg.rating.toFixed(1)}</span>}
@@ -687,10 +690,14 @@ function PedidoForm() {
                               {rg.distanceKm != null && <span>{rg.distanceKm}km</span>}
                             </div>
                             {rg.reason && <p className="text-xs text-orange-300/80 mt-1 italic">{rg.reason}</p>}
-                            <div className="flex items-center justify-between mt-2">
-                              <span className="text-xs text-gray-500">R$ {rg.pricePerHour}/hora</span>
-                              <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
-                            </div>
+                            {blocked ? (
+                              <p className="text-xs text-red-400 mt-2">Atende sozinho até {AUXILIAR_GUEST_THRESHOLD} convidados — não disponível pra {totalPeople} pessoas</p>
+                            ) : (
+                              <div className="flex items-center justify-between mt-2">
+                                <span className="text-xs text-gray-500">R$ {rg.pricePerHour}/hora</span>
+                                <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
