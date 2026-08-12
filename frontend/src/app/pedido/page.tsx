@@ -4,12 +4,12 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
 import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
-import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER } from '@/lib/pricing'
+import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded } from '@/lib/pricing'
 import { useCartStore } from '@/store/cart'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
-interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; user: { name: string } }
+interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; bringsAuxiliar?: boolean; unlimitedAvailability?: boolean; user: { name: string } }
 interface KitItem { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }
 interface Kit { id: string; name: string; description: string; price: number; discountPrice?: number | null; minGuests: number; maxGuests: number; items: string }
 interface RecommendedGm {
@@ -146,7 +146,10 @@ function PedidoForm() {
   const totalKg = ((men * 350 + women * 300 + kids * 200) / 1000).toFixed(1)
   const productsCost = products.reduce((s, p) => s + (qty[p.id] || 0) * p.price, 0)
   const gm = grillmasters.find(g => g.id === selectedGm)
-  const gmCost = gm ? gm.pricePerHour * eventHours : 0
+  const auxiliaresNeeded = calcAuxiliaresNeeded(totalPeople)
+  const gmBlocked = (g: Grillmaster) => auxiliaresNeeded > 0 && !g.bringsAuxiliar && !g.unlimitedAvailability
+  const auxiliarCost = gm && !gm.unlimitedAvailability ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * eventHours : 0
+  const gmCost = gm ? gm.pricePerHour * eventHours + auxiliarCost : 0
   const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * totalPeople).toFixed(2)
     : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * totalPeople).toFixed(2)
     : 0
@@ -336,6 +339,7 @@ function PedidoForm() {
   function next() {
     if (step === 1 && (!eventDate || !eventAddress.trim())) { alert('Preencha a data e o endereço do evento'); return }
     if (step === 3 && !selectedGm) { alert('Selecione um churrasqueiro'); return }
+    if (step === 3 && gm && gmBlocked(gm)) { alert(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar, ou reduza o número de convidados.`); return }
     setStep(s => s + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -702,10 +706,11 @@ function PedidoForm() {
             <div className="space-y-3">
               {grillmasters.filter(g => !recommendedGms.some(r => r.id === g.id)).map(g => {
                 const sel = selectedGm === g.id
+                const blocked = gmBlocked(g)
                 return (
-                  <div key={g.id} onClick={() => { setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
-                    className={'bg-gray-900 rounded-2xl p-4 cursor-pointer border-2 transition-all ' +
-                      (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40')}>
+                  <div key={g.id} onClick={() => { if (blocked) return; setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
+                    className={'bg-gray-900 rounded-2xl p-4 border-2 transition-all ' +
+                      (blocked ? 'opacity-50 cursor-not-allowed border-gray-800' : 'cursor-pointer ' + (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40'))}>
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-gray-800 border-2 border-orange-500/30 flex items-center justify-center font-bold text-orange-400 shrink-0">
                         {g.user.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
@@ -715,6 +720,9 @@ function PedidoForm() {
                           <p className="font-bold text-white text-sm">{g.user.name}</p>
                           {g.isChancelado && (
                             <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full">Chancelado</span>
+                          )}
+                          {!blocked && g.bringsAuxiliar && auxiliaresNeeded > 0 && (
+                            <span className="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full">+ auxiliar</span>
                           )}
                         </div>
                         <p className="text-xs text-gray-400">{g.city}, {g.state}</p>
@@ -729,8 +737,11 @@ function PedidoForm() {
                         <p className="text-gray-600 text-xs">/hora</p>
                       </div>
                     </div>
-                    {sel && (
-                      <p className="text-xs text-green-400 mt-2 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours).toFixed(2)}</p>
+                    {blocked && (
+                      <p className="text-xs text-red-400 mt-2">Atende sozinho até {AUXILIAR_GUEST_THRESHOLD} convidados — não disponível pra {totalPeople} pessoas</p>
+                    )}
+                    {sel && !blocked && (
+                      <p className="text-xs text-green-400 mt-2 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours).toFixed(2)}{auxiliarCost > 0 ? ` + R$ ${auxiliarCost.toFixed(2)} auxiliar` : ''}</p>
                     )}
                   </div>
                 )
@@ -819,7 +830,8 @@ function PedidoForm() {
               )}
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
               {productsCost > 0 && <div className="flex justify-between text-gray-400"><span>Cortes</span><span className="text-orange-400">R$ {productsCost.toFixed(2)}</span></div>}
-              {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h)</span><span className="text-orange-400">R$ {gmCost.toFixed(2)}</span></div>}
+              {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h)</span><span className="text-orange-400">R$ {(gmCost - auxiliarCost).toFixed(2)}</span></div>}
+              {auxiliarCost > 0 && <div className="flex justify-between text-gray-400"><span>Auxiliar ({auxiliaresNeeded}x, {eventHours}h)</span><span className="text-orange-400">R$ {auxiliarCost.toFixed(2)}</span></div>}
               {sideDishFee > 0 && (
                 <div className="flex justify-between text-gray-400">
                   <span>Acompanhamentos ({sideDishChoice === 'ACOUGUE' ? 'açougue' : 'churrasqueiro'})</span>

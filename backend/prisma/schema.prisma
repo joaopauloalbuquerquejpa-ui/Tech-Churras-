@@ -98,6 +98,7 @@ model Grillmaster {
   accompaniments     Json?    @default("[]")
   offersSideDishPrep Boolean  @default(false)
   unlimitedAvailability Boolean @default(false)
+  bringsAuxiliar Boolean @default(false)
   serviceRegions     String[] @default([])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

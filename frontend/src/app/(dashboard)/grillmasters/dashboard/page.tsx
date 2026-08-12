@@ -89,6 +89,7 @@ interface GrillmasterProfile {
   videoUrl?: string
   churrascoStyle?: string
   bringsEquipment: boolean
+  bringsAuxiliar: boolean
   minGuests?: number
   maxGuests?: number
   trainingModules: number[]
@@ -274,7 +275,7 @@ export default function GrillmasterDashboardPage() {
         setProfileForm({
           bio: p.bio ?? '', pricePerHour: p.pricePerHour, city: p.city, state: p.state,
           specialties: p.specialties ?? '', churrascoStyle: p.churrascoStyle ?? '',
-          bringsEquipment: p.bringsEquipment, minGuests: p.minGuests, maxGuests: p.maxGuests,
+          bringsEquipment: p.bringsEquipment, bringsAuxiliar: p.bringsAuxiliar, minGuests: p.minGuests, maxGuests: p.maxGuests,
           instagram: p.instagram ?? '', videoUrl: p.videoUrl ?? '',
           photoUrl: p.photoUrl ?? '', galleryUrls: p.galleryUrls ?? [],
           experience: p.experience, defaultBoutiqueId: p.defaultBoutiqueId ?? null,
@@ -1501,6 +1502,18 @@ export default function GrillmasterDashboardPage() {
               <button onClick={() => setProfileForm(f => ({ ...f, bringsEquipment: !f.bringsEquipment }))}
                 className={`relative w-12 h-6 rounded-full transition-colors ${profileForm.bringsEquipment ? 'bg-orange-500' : 'bg-gray-700'}`}>
                 <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${profileForm.bringsEquipment ? 'translate-x-6' : 'translate-x-0.5'}`} />
+              </button>
+            </div>
+
+            {/* Auxiliar para eventos grandes */}
+            <div className="flex items-center justify-between py-2">
+              <div>
+                <p className="text-sm text-white font-medium">Tenho auxiliar para eventos acima de 30 convidados</p>
+                <p className="text-xs text-gray-500">Sem isso, seu perfil fica limitado a eventos de até 30 pessoas. Auxiliar: R$ 80,00/h, somado ao pedido.</p>
+              </div>
+              <button onClick={() => setProfileForm(f => ({ ...f, bringsAuxiliar: !f.bringsAuxiliar }))}
+                className={`relative w-12 h-6 rounded-full transition-colors ${profileForm.bringsAuxiliar ? 'bg-orange-500' : 'bg-gray-700'}`}>
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${profileForm.bringsAuxiliar ? 'translate-x-6' : 'translate-x-0.5'}`} />
               </button>
             </div>
 

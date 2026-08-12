@@ -79,6 +79,7 @@ export default function NewGrillmasterPage() {
     instagram: '',
     churrascoStyle: '',
     bringsEquipment: false,
+    bringsAuxiliar: false,
     minGuests: '',
     maxGuests: '',
   })
@@ -400,6 +401,18 @@ export default function NewGrillmasterPage() {
               <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.bringsEquipment ? 'translate-x-7' : 'translate-x-1'}`} />
             </div>
             <span className="text-sm text-gray-300">Levo meu proprio equipamento</span>
+          </label>
+          <label className="flex items-center gap-3 cursor-pointer mt-3">
+            <div
+              onClick={() => setForm({ ...form, bringsAuxiliar: !form.bringsAuxiliar })}
+              className={`w-12 h-6 rounded-full transition-colors ${form.bringsAuxiliar ? 'bg-orange-500' : 'bg-gray-700'} relative`}
+            >
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${form.bringsAuxiliar ? 'translate-x-7' : 'translate-x-1'}`} />
+            </div>
+            <span className="text-sm text-gray-300">
+              Tenho auxiliar para eventos acima de 30 convidados
+              <span className="block text-xs text-gray-500">Sem isso, seu perfil fica limitado a eventos de até 30 pessoas</span>
+            </span>
           </label>
         </div>
 

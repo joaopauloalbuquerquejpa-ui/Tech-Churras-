@@ -6,3 +6,10 @@
 export const SERVICE_FEE_RATE = 0.06
 export const SIDE_DISH_RATE_ACOUGUE = 18.50
 export const SIDE_DISH_RATE_GRILLMASTER = 25.00
+export const AUXILIAR_GUEST_THRESHOLD = 30
+export const AUXILIAR_HOURLY_RATE = 80.00
+
+export function calcAuxiliaresNeeded(guestCount: number): number {
+  if (guestCount <= AUXILIAR_GUEST_THRESHOLD) return 0
+  return Math.ceil((guestCount - AUXILIAR_GUEST_THRESHOLD) / AUXILIAR_GUEST_THRESHOLD)
+}

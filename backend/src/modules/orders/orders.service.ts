@@ -28,6 +28,17 @@ export const SERVICE_FEE_RATE = 0.06
 export const SIDE_DISH_RATE_ACOUGUE = 18.50
 export const SIDE_DISH_RATE_GRILLMASTER = 25.00
 
+// Regra de qualidade: 1 Grillmaster sozinho não sustenta padrão acima de 30
+// convidados. Só GM com bringsAuxiliar pode atender acima disso — 1 auxiliar
+// a cada 30 convidados extras, R$80/h cada (mesma comissão da mão de obra).
+export const AUXILIAR_GUEST_THRESHOLD = 30
+export const AUXILIAR_HOURLY_RATE = 80.00
+
+export function calcAuxiliaresNeeded(guestCount: number): number {
+  if (guestCount <= AUXILIAR_GUEST_THRESHOLD) return 0
+  return Math.ceil((guestCount - AUXILIAR_GUEST_THRESHOLD) / AUXILIAR_GUEST_THRESHOLD)
+}
+
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),
   boutiqueId: z.string().optional(),
@@ -131,7 +142,18 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       throw new Error('Este açougue não está disponível.')
     }
   }
-  const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) : 0
+
+  // GM que representa uma equipe (unlimitedAvailability, ex: Team Jota) já
+  // tem capacidade própria pra evento grande — a regra de auxiliar é só pra
+  // Grillmaster solo.
+  const auxiliaresNeeded = calcAuxiliaresNeeded(data.guestCount)
+  if (grillmaster && auxiliaresNeeded > 0 && !grillmaster.unlimitedAvailability && !grillmaster.bringsAuxiliar) {
+    throw new Error(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar cadastrado, ou reduza o número de convidados.`)
+  }
+  const auxiliarCost = grillmaster && !grillmaster.unlimitedAvailability
+    ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * (data.eventHours ?? 4)
+    : 0
+  const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) + auxiliarCost : 0
 
   // F1: gmAccompaniments removidos do MVP — preço não tem backing em DB, cliente poderia manipular
   const accompLaborTotal = 0
