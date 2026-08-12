@@ -2,6 +2,7 @@ import { prisma } from '../../config/prisma'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { fetchWithTimeout } from '../../utils/http'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
+import { calcAuxiliaresNeeded } from '../../utils/pricing'
 import type { Order } from '@prisma/client'
 
 // Janela de espera de cada onda antes de escalar pra próxima.
@@ -72,10 +73,15 @@ async function getEligibleGrillmasters(order: Order, opts: { excludeIds: string[
   })
 
   // unlimitedAvailability (equipe, não pessoa única) pula o check de agenda —
-  // mesma regra já usada na criação do pedido.
+  // mesma regra já usada na criação do pedido. Capacidade por convidados
+  // também precisa ser respeitada aqui: sem isso, um pedido sem GM
+  // pré-escolhido (ou que escalou pra onda ampla) pode ser oferecido a
+  // um Grillmaster solo sem auxiliar pra um evento grande demais.
+  const auxiliaresNeeded = calcAuxiliaresNeeded(order.guestCount)
   let candidates = all.filter(g => {
     if (blockedIds.has(g.id) && !g.unlimitedAvailability) return false
     if (busyIds.has(g.id) && !g.unlimitedAvailability) return false
+    if (auxiliaresNeeded > 0 && !g.unlimitedAvailability && !g.bringsAuxiliar) return false
     return true
   })
 

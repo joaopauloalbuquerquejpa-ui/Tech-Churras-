@@ -10,6 +10,7 @@ import { refundPayment } from '../payments/payments.service'
 import { fetchWithTimeout } from '../../utils/http'
 import { withSerializableRetry } from '../../utils/db-retry'
 import { startDispatch } from '../grillmasters/dispatch.service'
+import { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded } from '../../utils/pricing'
 
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   PENDING:     ['CONFIRMED', 'CANCELLED'],
@@ -28,16 +29,11 @@ export const SERVICE_FEE_RATE = 0.06
 export const SIDE_DISH_RATE_ACOUGUE = 18.50
 export const SIDE_DISH_RATE_GRILLMASTER = 25.00
 
-// Regra de qualidade: 1 Grillmaster sozinho não sustenta padrão acima de 30
-// convidados. Só GM com bringsAuxiliar pode atender acima disso — 1 auxiliar
-// a cada 30 convidados extras, R$80/h cada (mesma comissão da mão de obra).
-export const AUXILIAR_GUEST_THRESHOLD = 30
-export const AUXILIAR_HOURLY_RATE = 80.00
-
-export function calcAuxiliaresNeeded(guestCount: number): number {
-  if (guestCount <= AUXILIAR_GUEST_THRESHOLD) return 0
-  return Math.ceil((guestCount - AUXILIAR_GUEST_THRESHOLD) / AUXILIAR_GUEST_THRESHOLD)
-}
+// AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE e calcAuxiliaresNeeded
+// agora vivem em utils/pricing.ts (reexportados abaixo pra não quebrar
+// quem já importa daqui) — evita import circular com dispatch.service.ts,
+// que também precisa dessa regra pro despacho automático.
+export { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded }
 
 export const createOrderSchema = z.object({
   grillmasterId: z.string().optional(),

@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
+import { calcAuxiliaresNeeded } from '../../utils/pricing'
 import Anthropic from '@anthropic-ai/sdk'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
@@ -174,6 +175,16 @@ export async function recommendGrillmasters(params: {
   let candidates = city
     ? all.filter(g => g.city?.toLowerCase().includes(city.toLowerCase()))
     : all
+
+  // Não recomenda (nem gasta chamada de IA gerando motivo pra) GM que o
+  // pedido vai bloquear de qualquer jeito por capacidade — mesma regra do
+  // createOrder e do despacho automático.
+  if (guests != null) {
+    const auxiliaresNeeded = calcAuxiliaresNeeded(guests)
+    if (auxiliaresNeeded > 0) {
+      candidates = candidates.filter(g => g.unlimitedAvailability || g.bringsAuxiliar)
+    }
+  }
 
   // Se tiver data, remove GMs com evento já agendado naquele dia
   if (eventDate) {
