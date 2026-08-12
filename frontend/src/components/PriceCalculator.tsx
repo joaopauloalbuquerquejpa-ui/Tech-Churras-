@@ -1,14 +1,20 @@
 'use client'
 import { useState } from 'react'
 
-export default function PriceCalculator() {
+// Gramatura padrão da Tech Churras (mesma usada no wizard e na IA): 350g de
+// proteína por pessoa, considerando adulto médio.
+const GRAMATURA_KG_POR_PESSOA = 0.35
+// Um Grill Master sozinho não sustenta qualidade acima de 30 convidados —
+// a partir daí a conta já assume Grill Masters extras.
+const CONVIDADOS_POR_GRILLMASTER = 30
+
+export default function PriceCalculator({ avgGmPricePerHour, avgMeatPricePerKg }: { avgGmPricePerHour: number; avgMeatPricePerKg: number }) {
   const [guests, setGuests] = useState(20)
   const [hours, setHours] = useState(4)
 
-  // R$100/h reflete a diaria real do Team Jota (unico GM ativo hoje);
-  // R$35/pessoa reflete o preco medio dos kits Acessiveis do Boutique FireBox
-  const gmCost = hours * 100
-  const meatCost = guests * 35
+  const grillmastersNeeded = Math.ceil(guests / CONVIDADOS_POR_GRILLMASTER)
+  const gmCost = hours * avgGmPricePerHour * grillmastersNeeded
+  const meatCost = guests * GRAMATURA_KG_POR_PESSOA * avgMeatPricePerKg
   const total = gmCost + meatCost
 
   return (
@@ -44,7 +50,9 @@ export default function PriceCalculator() {
             <p className="text-3xl font-black text-orange-400">
               {total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0 })}
             </p>
-            <p className="text-xs text-gray-500 mt-1">Grillmaster + carnes</p>
+            <p className="text-xs text-gray-500 mt-1">
+              {grillmastersNeeded > 1 ? `${grillmastersNeeded} Grillmasters + carnes` : 'Grillmaster + carnes'}
+            </p>
           </div>
         </div>
         <div className="text-center">

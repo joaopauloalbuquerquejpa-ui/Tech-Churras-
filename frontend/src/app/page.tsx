@@ -75,6 +75,46 @@ async function getTestimonials(): Promise<Testimonial[]> {
   } catch { return [] }
 }
 
+// Preço médio real de mão de obra (GMs aprovados) e de carne (produtos CARNE/kg
+// dos açougues aprovados) — a calculadora da home usa isso em vez de constante
+// fixa. Cai num fallback conservador se a API falhar ou não tiver dado ainda.
+async function getPricingAverages(): Promise<{ avgGmPricePerHour: number; avgMeatPricePerKg: number }> {
+  const FALLBACK = { avgGmPricePerHour: 100, avgMeatPricePerKg: 90 }
+  try {
+    const [gmRes, boutiquesRes] = await Promise.all([
+      fetch(`${API_URL}/grillmasters?available=true&limit=50`, { next: { revalidate: 1800 } }),
+      fetch(`${API_URL}/boutiques?limit=50`, { next: { revalidate: 1800 } }),
+    ])
+
+    const gmData = gmRes.ok ? await gmRes.json() : null
+    const gms: { pricePerHour: number }[] = Array.isArray(gmData) ? gmData : (gmData?.grillmasters ?? [])
+    const avgGmPricePerHour = gms.length > 0
+      ? gms.reduce((sum, g) => sum + g.pricePerHour, 0) / gms.length
+      : FALLBACK.avgGmPricePerHour
+
+    const boutiquesData = boutiquesRes.ok ? await boutiquesRes.json() : []
+    const boutiques: { id: string }[] = Array.isArray(boutiquesData) ? boutiquesData : (boutiquesData.boutiques ?? [])
+    const details = await Promise.all(
+      boutiques.slice(0, 10).map(b =>
+        fetch(`${API_URL}/boutiques/${b.id}`, { next: { revalidate: 1800 } }).then(r => r.ok ? r.json() : null).catch(() => null)
+      )
+    )
+    const kgPrices: number[] = []
+    for (const d of details) {
+      for (const p of d?.products ?? []) {
+        if (p.category === 'CARNE' && p.unit === 'kg' && p.available) kgPrices.push(p.price)
+      }
+    }
+    const avgMeatPricePerKg = kgPrices.length > 0
+      ? kgPrices.reduce((a, b) => a + b, 0) / kgPrices.length
+      : FALLBACK.avgMeatPricePerKg
+
+    return { avgGmPricePerHour, avgMeatPricePerKg }
+  } catch {
+    return FALLBACK
+  }
+}
+
 const PERSONAS = [
   {
     icon: CelebrationIcon,
@@ -143,10 +183,11 @@ const HOW_IT_WORKS = [
 ]
 
 export default async function HomePage() {
-  const [grillmasters, boutiques, rawTestimonials] = await Promise.all([
+  const [grillmasters, boutiques, rawTestimonials, pricingAverages] = await Promise.all([
     getFeaturedGrillmasters(),
     getFeaturedBoutiques(),
     getTestimonials(),
+    getPricingAverages(),
   ])
   const testimonials = rawTestimonials.length > 0 ? rawTestimonials : STATIC_TESTIMONIALS
 
@@ -279,7 +320,7 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <PriceCalculator />
+      <PriceCalculator avgGmPricePerHour={pricingAverages.avgGmPricePerHour} avgMeatPricePerKg={pricingAverages.avgMeatPricePerKg} />
 
       {/* Garantia — eliminação de risco logo abaixo do CTA principal */}
       <section className="max-w-6xl mx-auto px-4 pb-8">
