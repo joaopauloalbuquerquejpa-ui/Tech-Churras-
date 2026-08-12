@@ -242,8 +242,11 @@ export default function ParaChurrasqueirosClient({ grillmasterCount }: { grillma
                   <div className="w-3 h-3 rounded-full bg-yellow-500/60" />
                   <div className="w-3 h-3 rounded-full bg-green-500/60" />
                   <span className="ml-2 text-xs text-gray-600">Painel do Churrasqueiro</span>
-                  <span className="ml-auto text-[10px] text-gray-600 uppercase tracking-wide">Exemplo ilustrativo</span>
+                  <span className="ml-auto text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                    Simulação
+                  </span>
                 </div>
+                <p className="text-xs text-gray-500 mb-4 -mt-2">Exemplo de como fica seu painel — números ilustrativos, não são dados reais de outro churrasqueiro.</p>
                 {/* Stats row */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {[
