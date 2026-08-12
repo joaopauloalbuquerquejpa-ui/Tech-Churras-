@@ -7,7 +7,7 @@ import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
 import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded } from '@/lib/pricing'
 import { useCartStore } from '@/store/cart'
 
-interface Boutique { id: string; name: string; city: string; state: string; open: boolean }
+interface Boutique { id: string; name: string; city: string; state: string; open: boolean; offersSideDishPrep?: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
 interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; bringsAuxiliar?: boolean; unlimitedAvailability?: boolean; user: { name: string } }
 interface KitItem { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }
@@ -636,6 +636,36 @@ function PedidoForm() {
                 )}
               </div>
             )}
+
+            {/* Acompanhamentos do açougue — não depende de qual Grillmaster
+                for escolhido, então fica aqui junto do resto da oferta do
+                açougue, não lá no passo do Grillmaster. Só aparece se o
+                próprio açougue optou por oferecer isso no perfil dele. */}
+            {boutique?.offersSideDishPrep && (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
+                <div>
+                  <h3 className="font-bold text-sm">Quer acompanhamentos prontos?</h3>
+                  <p className="text-xs text-gray-500">Arroz, farofa, vinagrete, maionese, salada, chimichurri — opcional, pelo açougue</p>
+                </div>
+                <div className="space-y-2">
+                  <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
+                    className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
+                      (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-white">{boutique?.name ?? 'Açougue'} prepara pronto</p>
+                      <p className="text-xs text-gray-500">Pronto pra retirar no evento</p>
+                      <p className="text-xs text-gray-600 mt-0.5">{sideDishBreakdown(totalPeople)}</p>
+                    </div>
+                    <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
+                  </button>
+                  <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : c)}
+                    className={'w-full text-left rounded-xl p-3 border-2 transition-all ' +
+                      (sideDishChoice !== 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                    <p className="text-sm font-medium text-white">Não, decido depois / eu levo por conta</p>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -755,41 +785,35 @@ function PedidoForm() {
               })}
             </div>
 
-            {gm && (
+            {/* Opção do açougue já foi decidida no passo 2 (se ele oferece).
+                Aqui só entra a alternativa do Grillmaster, quando ele
+                oferece — não repete o que já foi perguntado antes. */}
+            {gm && gm.offersSideDishPrep && (
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-3">
                 <div>
-                  <h3 className="font-bold text-sm">Quem prepara os acompanhamentos?</h3>
+                  <h3 className="font-bold text-sm">
+                    {sideDishChoice === 'ACOUGUE' ? 'Prefere que o Grillmaster prepare no local?' : 'Quer acompanhamentos com o Grillmaster?'}
+                  </h3>
                   <p className="text-xs text-gray-500">Arroz, farofa, vinagrete, maionese, salada, chimichurri — opcional</p>
                 </div>
                 <div className="space-y-2">
-                  <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
+                  <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : 'GRILLMASTER')}
                     className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
-                      (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                      (sideDishChoice === 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-white">{boutique?.name ?? 'Açougue'} prepara pronto</p>
-                      <p className="text-xs text-gray-500">Pronto pra retirar no evento</p>
+                      <p className="text-sm font-medium text-white">{gm.user.name} prepara no local</p>
+                      <p className="text-xs text-gray-500">Fresco, feito na hora do evento</p>
                       <p className="text-xs text-gray-600 mt-0.5">{sideDishBreakdown(totalPeople)}</p>
                     </div>
-                    <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
+                    <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_GRILLMASTER.toFixed(2)}/pessoa</span>
                   </button>
 
-                  {gm.offersSideDishPrep && (
-                    <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : 'GRILLMASTER')}
-                      className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
-                        (sideDishChoice === 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-white">{gm.user.name} prepara no local</p>
-                        <p className="text-xs text-gray-500">Fresco, feito na hora do evento</p>
-                        <p className="text-xs text-gray-600 mt-0.5">{sideDishBreakdown(totalPeople)}</p>
-                      </div>
-                      <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_GRILLMASTER.toFixed(2)}/pessoa</span>
-                    </button>
-                  )}
-
-                  <button onClick={() => setSideDishChoice('')}
+                  <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : c)}
                     className={'w-full text-left rounded-xl p-3 border-2 transition-all ' +
-                      (sideDishChoice === '' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
-                    <p className="text-sm font-medium text-white">Não, eu levo por conta</p>
+                      (sideDishChoice !== 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                    <p className="text-sm font-medium text-white">
+                      {sideDishChoice === 'ACOUGUE' ? 'Não, mantém com o açougue' : 'Não, eu levo por conta'}
+                    </p>
                   </button>
                 </div>
               </div>

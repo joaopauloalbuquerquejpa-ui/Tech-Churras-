@@ -132,11 +132,11 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   if (data.grillmasterId && !grillmaster?.approved) {
     throw new Error('Este churrasqueiro não está disponível.')
   }
-  if (data.boutiqueId) {
-    const boutique = await prisma.boutique.findUnique({ where: { id: data.boutiqueId }, select: { approved: true } })
-    if (!boutique?.approved) {
-      throw new Error('Este açougue não está disponível.')
-    }
+  const boutique = data.boutiqueId
+    ? await prisma.boutique.findUnique({ where: { id: data.boutiqueId }, select: { approved: true, offersSideDishPrep: true } })
+    : null
+  if (data.boutiqueId && !boutique?.approved) {
+    throw new Error('Este açougue não está disponível.')
   }
 
   // GM que representa uma equipe (unlimitedAvailability, ex: Team Jota) já
@@ -159,7 +159,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   // (mesmo padrão de "nunca confiar no cliente" já usado pros preços de produto acima).
   let sideDishPreparedBy: 'ACOUGUE' | 'GRILLMASTER' | undefined
   let sideDishFee = 0
-  if (data.sideDishPreparedBy === 'ACOUGUE') {
+  if (data.sideDishPreparedBy === 'ACOUGUE' && boutique?.offersSideDishPrep) {
     sideDishPreparedBy = 'ACOUGUE'
     sideDishFee = +(SIDE_DISH_RATE_ACOUGUE * data.guestCount).toFixed(2)
   } else if (data.sideDishPreparedBy === 'GRILLMASTER' && grillmaster?.offersSideDishPrep) {

@@ -25,6 +25,7 @@ export const createBoutiqueSchema = z.object({
   instagram: z.string().optional(),
   openingHours: z.string().optional(),
   deliveryOrPickup: z.string().optional(),
+  offersSideDishPrep: z.boolean().optional(),
   pixKey: z.string().optional(),
   cpfCnpj: z.string().optional(),
 })
@@ -43,6 +44,7 @@ export const updateBoutiqueSchema = z.object({
   instagram: z.string().optional(),
   openingHours: z.string().optional(),
   deliveryOrPickup: z.string().optional(),
+  offersSideDishPrep: z.boolean().optional(),
   pixKey: z.string().optional(),
   cpfCnpj: z.string().optional(),
 })
@@ -131,7 +133,7 @@ export async function listBoutiques(params: {
       id: true, name: true, description: true, city: true, state: true, address: true,
       phone: true, latitude: true, longitude: true, rating: true, approved: true, open: true,
       logoUrl: true, facadeUrl: true, galleryUrls: true, instagram: true, openingHours: true,
-      deliveryOrPickup: true, createdAt: true,
+      deliveryOrPickup: true, offersSideDishPrep: true, createdAt: true,
       user: { select: { name: true, email: true } },
       // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
     },
@@ -176,7 +178,7 @@ export async function getBoutiqueById(id: string) {
       id: true, name: true, description: true, city: true, state: true, address: true,
       phone: true, latitude: true, longitude: true, rating: true, approved: true, open: true,
       logoUrl: true, facadeUrl: true, galleryUrls: true, instagram: true, openingHours: true,
-      deliveryOrPickup: true, createdAt: true,
+      deliveryOrPickup: true, offersSideDishPrep: true, createdAt: true,
       user: { select: { name: true, email: true } },
       products: { where: { available: true } },
       // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público

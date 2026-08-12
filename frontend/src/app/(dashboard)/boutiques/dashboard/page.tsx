@@ -65,6 +65,7 @@ interface Boutique {
   id: string; name: string; city: string; state: string; approved: boolean
   open: boolean; products: Product[]; trialEndsAt?: string | null
   pixKey?: string | null; cpfCnpj?: string | null
+  offersSideDishPrep?: boolean
 }
 
 interface OrderItem { name: string; quantity: number; unit: string }
@@ -250,6 +251,16 @@ export default function BoutiqueDashboardPage() {
       body: JSON.stringify({ open: !boutique.open }),
     })
     if (res.ok) setBoutique(prev => prev ? { ...prev, open: !prev.open } : null)
+  }
+
+  async function toggleOffersSideDishPrep() {
+    if (!boutique) return
+    const res = await fetch(API_URL + '/boutiques', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+      body: JSON.stringify({ offersSideDishPrep: !boutique.offersSideDishPrep }),
+    })
+    if (res.ok) setBoutique(prev => prev ? { ...prev, offersSideDishPrep: !prev.offersSideDishPrep } : null)
   }
 
   async function handleSavePix() {
@@ -1385,6 +1396,18 @@ export default function BoutiqueDashboardPage() {
       {/* ══════════════════════════════════════════════════════ PRODUTOS */}
       {activeTab === 'produtos' && (
         <div className="space-y-6">
+          {/* Acompanhamentos — serviço do açougue, aparece no pedido do cliente */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="font-bold text-white text-sm">Preparar acompanhamentos prontos</h2>
+              <p className="text-xs text-gray-500 mt-0.5">Arroz, farofa, vinagrete, maionese, salada, chimichurri — cobrado à parte do cliente. Se você não oferecer, o Grillmaster pode oferecer no lugar (quando ele preparar).</p>
+            </div>
+            <button onClick={toggleOffersSideDishPrep}
+              className={`relative w-12 h-6 rounded-full shrink-0 transition-colors ${boutique.offersSideDishPrep ? 'bg-orange-500' : 'bg-gray-700'}`}>
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${boutique.offersSideDishPrep ? 'translate-x-6' : 'translate-x-0.5'}`} />
+            </button>
+          </div>
+
           {/* Pacotes de Churrasco */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
