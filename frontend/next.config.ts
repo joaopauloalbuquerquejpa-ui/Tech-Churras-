@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'azujdhdwcmdgfselxiim.supabase.co', pathname: '/**' },
       { protocol: 'https', hostname: 'image.pollinations.ai', pathname: '/**' },
+      // Alguns registros antigos gravaram photoUrl como URL absoluta pro
+      // próprio domínio (ex: Team Jota) em vez de caminho relativo — sem
+      // isso o next/image trata como "externo" e quebra em runtime.
+      { protocol: 'https', hostname: 'www.techchurras.com.br', pathname: '/**' },
+      { protocol: 'https', hostname: 'techchurras.com.br', pathname: '/**' },
     ],
   },
   async redirects() {
