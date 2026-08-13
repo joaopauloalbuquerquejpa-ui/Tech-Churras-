@@ -98,31 +98,24 @@ export async function listGrillmasters(params: {
   if (sortBy === 'price_asc') orderBy = [{ pricePerHour: 'asc' }]
   else if (sortBy === 'price_desc') orderBy = [{ pricePerHour: 'desc' }]
 
-  const skip = (page - 1) * limit
-  const [grillmasters, total] = await Promise.all([
-    prisma.grillmaster.findMany({
-      where,
-      select: {
-        id: true, bio: true, experience: true, pricePerHour: true, available: true,
-        city: true, state: true, rating: true, specialties: true, photoUrl: true,
-        galleryUrls: true, instagram: true, churrascoStyle: true, bringsEquipment: true,
-        bringsAuxiliar: true, unlimitedAvailability: true,
-        minGuests: true, maxGuests: true, latitude: true, longitude: true,
-        isChancelado: true, certificationCode: true, certifiedAt: true, videoUrl: true,
-        totalOrders: true, offersSideDishPrep: true, serviceRegions: true, createdAt: true,
-        user: { select: { name: true, email: true } },
-        // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
-      },
-      orderBy,
-      skip,
-      take: limit,
-    }),
-    prisma.grillmaster.count({ where }),
-  ])
+  const select = {
+    id: true, bio: true, experience: true, pricePerHour: true, available: true,
+    city: true, state: true, rating: true, specialties: true, photoUrl: true,
+    galleryUrls: true, instagram: true, churrascoStyle: true, bringsEquipment: true,
+    bringsAuxiliar: true, unlimitedAvailability: true,
+    minGuests: true, maxGuests: true, latitude: true, longitude: true,
+    isChancelado: true, certificationCode: true, certifiedAt: true, videoUrl: true,
+    totalOrders: true, offersSideDishPrep: true, serviceRegions: true, createdAt: true,
+    user: { select: { name: true, email: true } },
+    // pixKey e cpfCnpj deliberadamente fora — nunca em endpoint público
+  } as const
 
-  // Se coordenadas fornecidas, calcula distância e filtra por raio
+  // Com lat/lng, o raio decide quem entra — não dá pra paginar no banco
+  // (orderBy rating/preço) antes de filtrar por distância, senão o mais
+  // perto pode nunca aparecer por não estar na primeira página do banco.
   if (lat != null && lng != null) {
-    const withDist = grillmasters
+    const all = await prisma.grillmaster.findMany({ where, select })
+    const withDist = all
       .map(g => ({
         ...g,
         distanceKm: g.latitude && g.longitude
@@ -135,8 +128,20 @@ export async function listGrillmasters(params: {
         if (b.distanceKm == null) return -1
         return a.distanceKm - b.distanceKm
       })
-    return { grillmasters: withDist, total: withDist.length, page, limit, totalPages: Math.ceil(withDist.length / limit) }
+    const skip = (page - 1) * limit
+    return {
+      grillmasters: withDist.slice(skip, skip + limit),
+      total: withDist.length,
+      page, limit,
+      totalPages: Math.ceil(withDist.length / limit),
+    }
   }
+
+  const skip = (page - 1) * limit
+  const [grillmasters, total] = await Promise.all([
+    prisma.grillmaster.findMany({ where, select, orderBy, skip, take: limit }),
+    prisma.grillmaster.count({ where }),
+  ])
 
   return { grillmasters, total, page, limit, totalPages: Math.ceil(total / limit) }
 }

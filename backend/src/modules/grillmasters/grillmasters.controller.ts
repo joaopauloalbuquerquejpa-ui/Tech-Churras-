@@ -40,6 +40,9 @@ export async function listGrillmastersHandler(req: FastifyRequest, reply: Fastif
       available: q.available !== 'false',
       page: q.page ? Number(q.page) : 1,
       limit: q.limit ? Number(q.limit) : 9,
+      lat: q.lat ? Number(q.lat) : undefined,
+      lng: q.lng ? Number(q.lng) : undefined,
+      radiusKm: q.radiusKm ? Number(q.radiusKm) : undefined,
     })
     return reply.send(result)
   } catch (err: any) {

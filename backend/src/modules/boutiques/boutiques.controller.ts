@@ -50,6 +50,9 @@ export async function listBoutiquesHandler(req: FastifyRequest, reply: FastifyRe
       city: q.city || undefined,
       minRating: q.minRating ? Number(q.minRating) : undefined,
       sortBy: q.sortBy || undefined,
+      lat: q.lat ? Number(q.lat) : undefined,
+      lng: q.lng ? Number(q.lng) : undefined,
+      radiusKm: q.radiusKm ? Number(q.radiusKm) : undefined,
     })
     return reply.send(boutiques)
   } catch (err: any) {
