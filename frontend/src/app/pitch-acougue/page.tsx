@@ -74,17 +74,17 @@ export default function PitchAcougue() {
         {/* Quick numbers */}
         <div className="grid grid-cols-3 gap-3 mb-2">
           {[
-            { valor: 'R$ 0', label: 'pra entrar' },
+            { valor: 'R$ 369/mês', label: 'mensalidade' },
             { valor: '10%', label: 'de comissão' },
             { valor: 'PIX', label: 'toda sexta' },
           ].map(n => (
             <div key={n.label} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
-              <p className="text-lg font-black text-orange-400">{n.valor}</p>
+              <p className="text-base sm:text-lg font-black text-orange-400 whitespace-nowrap">{n.valor}</p>
               <p className="text-[10px] text-gray-500 mt-0.5">{n.label}</p>
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-600 text-center">* Mensalidade R$ 369/mês pra todo açougue parceiro · 1º mês grátis como Açougue Embaixador</p>
+        <p className="text-xs text-gray-600 text-center">* R$ 0 de taxa de adesão · 1º mês de mensalidade grátis como Açougue Embaixador</p>
       </section>
 
       {/* ── QUEM ESTÁ POR TRÁS ── */}

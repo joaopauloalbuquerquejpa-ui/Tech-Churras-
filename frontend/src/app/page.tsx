@@ -294,6 +294,9 @@ export default async function HomePage() {
             Sem virar seu trabalho.
           </span>
         </h1>
+        <p className="text-white text-lg sm:text-xl font-semibold max-w-2xl mx-auto mb-3">
+          A plataforma que junta churrasqueiro profissional + açougue parceiro num pedido só.
+        </p>
         <p className="text-gray-300 text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
           Você escolhe a data e chama a família e os amigos.{' '}
           <span className="text-gray-400">A gente cuida do churrasqueiro, das carnes e de cada detalhe do dia — pra você estar na mesa, não preso na grelha o evento inteiro.</span>

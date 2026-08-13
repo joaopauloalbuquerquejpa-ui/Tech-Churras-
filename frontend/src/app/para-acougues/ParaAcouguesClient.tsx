@@ -220,8 +220,17 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 </a>
               </div>
 
+              {/* Preço explícito — pra ninguém chegar até aqui sem saber quanto custa */}
+              <div className="mt-6 inline-flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-full px-4 py-2 text-sm">
+                <span className="font-black text-white">R$ 369/mês</span>
+                <span className="text-gray-600">+</span>
+                <span className="font-black text-white">10% de comissão</span>
+                <span className="text-gray-600">·</span>
+                <span className="text-orange-400 font-semibold">1º mês grátis</span>
+              </div>
+
               {/* Trust row */}
-              <div className="flex flex-wrap gap-4 mt-6">
+              <div className="flex flex-wrap gap-4 mt-4">
                 {[
                   '✅ Sem taxa de adesão',
                   '✅ Sem contratos complexos',
