@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { API_URL } from '@/lib/api'
 
 const BAIRROS_SP = [
@@ -137,7 +138,7 @@ export default async function BairroPage({ params }: { params: Promise<{ bairro:
                 <Link key={gm.id} href={`/grillmasters/${gm.id}`}
                   className="bg-gray-900 border border-gray-800 hover:border-orange-500/40 rounded-2xl p-4 flex gap-4 items-center transition-colors">
                   {gm.photoUrl ? (
-                    <img src={gm.photoUrl} alt={gm.user.name} className="w-14 h-14 rounded-full object-cover shrink-0 border border-gray-700" />
+                    <Image src={gm.photoUrl} alt={gm.user.name} width={56} height={56} className="w-14 h-14 rounded-full object-cover shrink-0 border border-gray-700" />
                   ) : (
                     <div className="w-14 h-14 rounded-full bg-orange-900/30 flex items-center justify-center text-2xl shrink-0">👨‍🍳</div>
                   )}

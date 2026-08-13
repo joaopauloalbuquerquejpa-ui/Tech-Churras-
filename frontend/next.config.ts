@@ -22,6 +22,18 @@ const CSP = [
 ].join('; ')
 
 const nextConfig: NextConfig = {
+  images: {
+    // next/image otimiza buscando a imagem pelo SERVIDOR (diferente do CSP,
+    // que só controla o que o navegador pode carregar) — um wildcard
+    // *.supabase.co viraria proxy aberto pra qualquer projeto Supabase de
+    // qualquer pessoa, não só o nosso. Por isso aqui é o subdomínio exato
+    // do nosso projeto (mesmo valor de SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL),
+    // não o wildcard que o CSP usa pro navegador.
+    remotePatterns: [
+      { protocol: 'https', hostname: 'azujdhdwcmdgfselxiim.supabase.co', pathname: '/**' },
+      { protocol: 'https', hostname: 'image.pollinations.ai', pathname: '/**' },
+    ],
+  },
   async redirects() {
     return [
       { source: '/entrar', destination: '/login', permanent: true },

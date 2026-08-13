@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { FlameIcon, MeatIcon, ChefIcon, CelebrationIcon, CheckIcon, TrophyIcon } from '@/components/icons/Icons'
 import PriceCalculator from '@/components/PriceCalculator'
 import GarantiaSelo from '@/components/GarantiaSelo'
@@ -336,7 +337,7 @@ export default async function HomePage() {
         <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2">
             <div className="relative h-72 md:h-auto bg-gray-800">
-              <img src="/jota.jpg" alt="Jota Albuquerque" className="w-full h-full object-cover object-top" />
+              <Image src="/jota.jpg" alt="Jota Albuquerque" fill sizes="(max-width: 768px) 100vw, 480px" className="object-cover object-top" />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900/30" />
             </div>
             <div className="p-8 md:p-10 flex flex-col justify-center">
@@ -378,13 +379,13 @@ export default async function HomePage() {
             { type: 'photo', src: '/churrasco-real-5.jpg', alt: 'Jota Albuquerque preparando uma costela no assador de cruz sobre fogo aberto em evento' },
             { type: 'photo', src: '/churrasco-real-6.jpg', alt: 'Jota Albuquerque e equipe Jota BBQ Eventos em evento real' },
           ].map(item => (
-            <div key={item.src} className="aspect-[4/5] rounded-xl overflow-hidden bg-gray-900">
+            <div key={item.src} className="relative aspect-[4/5] rounded-xl overflow-hidden bg-gray-900">
               {item.type === 'video' ? (
                 <video controls preload="none" poster={item.poster} className="w-full h-full object-cover" aria-label={item.alt}>
                   <source src={item.src} type="video/mp4" />
                 </video>
               ) : (
-                <img src={item.src} alt={item.alt} className="w-full h-full object-cover" loading="lazy" />
+                <Image src={item.src} alt={item.alt} fill sizes="(max-width: 768px) 45vw, 15vw" className="object-cover" loading="lazy" />
               )}
             </div>
           ))}
@@ -524,7 +525,7 @@ export default async function HomePage() {
                 className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-orange-500/40 hover:shadow-xl hover:shadow-orange-500/10 transition-all group">
                 <div className="h-44 bg-gray-800 relative overflow-hidden">
                   {gm.photoUrl
-                    ? <img src={gm.photoUrl} alt={gm.user.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ? <Image src={gm.photoUrl} alt={gm.user.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     : <div className="w-full h-full flex items-center justify-center text-orange-500/40"><FlameIcon size={56} /></div>
                   }
                   {gm.certifiedAt && (
@@ -567,7 +568,7 @@ export default async function HomePage() {
                 className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-red-500/30 hover:shadow-xl hover:shadow-red-500/10 transition-all group">
                 <div className="h-44 bg-gray-800 relative overflow-hidden">
                   {b.photoUrl
-                    ? <img src={b.photoUrl} alt={b.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    ? <Image src={b.photoUrl} alt={b.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     : <div className="w-full h-full flex items-center justify-center text-red-500/40"><MeatIcon size={56} /></div>
                   }
                   <div className="absolute top-3 right-3 bg-green-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1"><CheckIcon size={10} /> VALIDADO</div>

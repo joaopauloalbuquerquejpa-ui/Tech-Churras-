@@ -1,5 +1,6 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { API_URL } from '@/lib/api'
 import CityMap from '@/components/CityMapClient'
 
@@ -221,7 +222,7 @@ export default async function ChurrasqueirosPage({ params }: { params: Promise<{
                 {/* Photo */}
                 <div className="h-40 bg-gray-800 relative overflow-hidden">
                   {gm.photoUrl ? (
-                    <img src={gm.photoUrl} alt={gm.user.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <Image src={gm.photoUrl} alt={gm.user.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-5xl">🔥</div>
                   )}

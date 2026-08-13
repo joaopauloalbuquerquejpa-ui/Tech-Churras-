@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, useSpring, useMotionValue, useTransform, animate } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Events } from '@/lib/analytics'
 
 const MENSALIDADE = 369
@@ -384,8 +385,8 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
           <div className="bg-gradient-to-br from-amber-500/10 to-gray-900 border border-amber-500/20 rounded-2xl overflow-hidden">
             <div className="grid sm:grid-cols-[320px_1fr]">
               <div className="relative h-56 sm:h-auto bg-gray-800">
-                <img src="/bahari-restaurante.jpg" alt="Bahari of Brazil — Zanzibar"
-                  className="w-full h-full object-cover" />
+                <Image src="/bahari-restaurante.jpg" alt="Bahari of Brazil — Zanzibar" fill sizes="(max-width: 640px) 100vw, 320px"
+                  className="object-cover" />
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-gray-900/20" />
                 <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-xs text-amber-300 px-2.5 py-1 rounded-full font-semibold">
                   🌍 Zanzibar, Tanzânia
