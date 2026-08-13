@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useFavoritesStore } from '@/store/favorites'
+import { requestLocation, getCachedLocation, clearCachedLocation, type UserLocation } from '@/lib/geolocation'
 
 interface Grillmaster {
   id: string
@@ -21,6 +22,7 @@ interface Grillmaster {
   specialties: string
   photoUrl: string | null
   churrascoStyle: string | null
+  distanceKm?: number | null
   user: {
     name: string
     email: string
@@ -62,8 +64,45 @@ export default function GrillmastersPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [locationError, setLocationError] = useState('')
 
-  useEffect(() => { fetchGrillmasters() }, [page, availableOnly, sortBy])
+  useEffect(() => {
+    const cached = getCachedLocation()
+    if (cached) setUserLocation(cached)
+  }, [])
+
+  useEffect(() => { fetchGrillmasters() }, [page, availableOnly, sortBy, userLocation])
+
+  async function useMyLocation() {
+    setLocationStatus('loading')
+    setLocationError('')
+    try {
+      const loc = await requestLocation()
+      setCityFilter('')
+      setPage(1)
+      setUserLocation(loc)
+      setLocationStatus('idle')
+    } catch (e: any) {
+      setLocationStatus('error')
+      setLocationError(e?.message || 'Não foi possível obter sua localização.')
+    }
+  }
+
+  function clearLocation() {
+    clearCachedLocation()
+    setUserLocation(null)
+    setLocationStatus('idle')
+    setLocationError('')
+  }
+
+  function clearAllFilters() {
+    setSearch(''); setCityFilter(''); setSpecialty(''); setMinPrice(''); setMaxPrice('')
+    setMinRating(''); setAvailableOnly(false); setSortBy('rating_desc'); setPage(1)
+    clearLocation()
+    setTimeout(fetchGrillmasters, 0)
+  }
 
   async function fetchGrillmasters() {
     setLoading(true)
@@ -73,7 +112,12 @@ export default function GrillmastersPage() {
       const t = raw ? JSON.parse(raw)?.state?.token : null
       const params = new URLSearchParams({ page: String(page), limit: '9', sortBy })
       if (availableOnly) params.set('available', 'true')
-      if (cityFilter.trim()) params.set('city', cityFilter.trim())
+      if (userLocation) {
+        params.set('lat', String(userLocation.lat))
+        params.set('lng', String(userLocation.lng))
+      } else if (cityFilter.trim()) {
+        params.set('city', cityFilter.trim())
+      }
       if (minPrice) params.set('minPrice', minPrice)
       if (maxPrice) params.set('maxPrice', maxPrice)
       if (minRating) params.set('minRating', minRating)
@@ -154,9 +198,29 @@ export default function GrillmastersPage() {
               type="text"
               placeholder="Sao Paulo..."
               value={cityFilter}
+              disabled={!!userLocation}
               onChange={e => setCityFilter(e.target.value)}
-              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 disabled:opacity-40 disabled:cursor-not-allowed"
             />
+          </div>
+          <div className="min-w-44">
+            <label className="block text-xs text-gray-400 mb-1">Localização</label>
+            {userLocation ? (
+              <button
+                onClick={clearLocation}
+                className="w-full flex items-center justify-center gap-1.5 bg-orange-500/15 border border-orange-500/40 text-orange-400 rounded-lg px-3 py-2 text-sm font-medium hover:bg-orange-500/25 transition-colors"
+              >
+                📍 Perto de você <span className="text-gray-500">✕</span>
+              </button>
+            ) : (
+              <button
+                onClick={useMyLocation}
+                disabled={locationStatus === 'loading'}
+                className="w-full bg-gray-800 hover:bg-gray-700 disabled:opacity-60 text-gray-200 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+              >
+                {locationStatus === 'loading' ? 'Buscando...' : '📍 Usar minha localização'}
+              </button>
+            )}
           </div>
           <div className="min-w-36">
             <label className="block text-xs text-gray-400 mb-1">Especialidade</label>
@@ -206,11 +270,14 @@ export default function GrillmastersPage() {
             </select>
           </div>
           <div className="min-w-40">
-            <label className="block text-xs text-gray-400 mb-1">Ordenar por</label>
+            <label className="block text-xs text-gray-400 mb-1">
+              {userLocation ? 'Ordenado por distância' : 'Ordenar por'}
+            </label>
             <select
               value={sortBy}
+              disabled={!!userLocation}
               onChange={e => { setSortBy(e.target.value); setPage(1) }}
-              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+              className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <option value="rating_desc">Melhor avaliacao</option>
               <option value="price_asc">Menor preco</option>
@@ -234,11 +301,7 @@ export default function GrillmastersPage() {
               Aplicar
             </button>
             <button
-              onClick={() => {
-                setSearch(''); setCityFilter(''); setSpecialty(''); setMinPrice(''); setMaxPrice('')
-                setMinRating(''); setAvailableOnly(false); setSortBy('rating_desc'); setPage(1)
-                setTimeout(fetchGrillmasters, 0)
-              }}
+              onClick={clearAllFilters}
               className="border border-gray-600 hover:border-gray-500 text-gray-400 hover:text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             >
               Limpar
@@ -246,6 +309,12 @@ export default function GrillmastersPage() {
           </div>
         </div>
       </div>
+
+      {locationError && (
+        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-3 mb-4 text-yellow-400 text-xs">
+          {locationError}
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-900/30 border border-red-500/30 rounded-xl p-4 mb-4 text-red-400 text-sm">
@@ -281,11 +350,7 @@ export default function GrillmastersPage() {
         <div className="text-center py-16 bg-gray-900 rounded-xl text-gray-400">
           <p className="text-lg mb-4">Nenhum churrasqueiro encontrado.</p>
           <button
-            onClick={() => {
-              setSearch(''); setCityFilter(''); setSpecialty(''); setMinPrice(''); setMaxPrice('')
-              setMinRating(''); setAvailableOnly(false); setSortBy('rating_desc'); setPage(1)
-              setTimeout(fetchGrillmasters, 0)
-            }}
+            onClick={clearAllFilters}
             className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg text-sm"
           >
             Limpar filtros
@@ -349,7 +414,11 @@ export default function GrillmastersPage() {
                   </p>
 
                   <div className="flex flex-wrap gap-1.5 mb-3 text-xs">
-                    <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full">{g.city}, {g.state}</span>
+                    {g.distanceKm != null ? (
+                      <span className="bg-orange-500/15 text-orange-400 px-2 py-1 rounded-full font-medium">📍 {g.distanceKm.toFixed(1)} km de você</span>
+                    ) : (
+                      <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full">{g.city}, {g.state}</span>
+                    )}
                     <span className="bg-gray-800 text-gray-300 px-2 py-1 rounded-full">{g.experience} {g.experience === 1 ? 'ano' : 'anos'} exp.</span>
                   </div>
 

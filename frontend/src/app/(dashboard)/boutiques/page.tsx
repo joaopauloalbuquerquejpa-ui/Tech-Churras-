@@ -3,6 +3,7 @@ import { API_URL } from '@/lib/api'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useFavoritesStore } from '@/store/favorites'
+import { requestLocation, getCachedLocation, clearCachedLocation, type UserLocation } from '@/lib/geolocation'
 
 interface Boutique {
   id: string
@@ -18,6 +19,7 @@ interface Boutique {
   instagram: string | null
   openingHours: string | null
   deliveryOrPickup: string | null
+  distanceKm?: number | null
 }
 
 function HeartButton({ targetType, targetId }: { targetType: string; targetId: string }) {
@@ -48,8 +50,37 @@ export default function BoutiquesPage() {
   const [cityFilter, setCityFilter] = useState('')
   const [minRating, setMinRating] = useState('')
   const [sortBy, setSortBy] = useState('rating_desc')
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
+  const [locationStatus, setLocationStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [locationError, setLocationError] = useState('')
 
-  useEffect(() => { fetchBoutiques() }, [])
+  useEffect(() => {
+    const cached = getCachedLocation()
+    if (cached) setUserLocation(cached)
+  }, [])
+
+  useEffect(() => { fetchBoutiques() }, [userLocation])
+
+  async function useMyLocation() {
+    setLocationStatus('loading')
+    setLocationError('')
+    try {
+      const loc = await requestLocation()
+      setCityFilter('')
+      setUserLocation(loc)
+      setLocationStatus('idle')
+    } catch (e: any) {
+      setLocationStatus('error')
+      setLocationError(e?.message || 'Não foi possível obter sua localização.')
+    }
+  }
+
+  function clearLocation() {
+    clearCachedLocation()
+    setUserLocation(null)
+    setLocationStatus('idle')
+    setLocationError('')
+  }
 
   async function fetchBoutiques() {
     setLoading(true)
@@ -57,7 +88,12 @@ export default function BoutiquesPage() {
       const raw = localStorage.getItem('auth-storage')
       const t = raw ? JSON.parse(raw)?.state?.token : null
       const params = new URLSearchParams({ sortBy })
-      if (cityFilter.trim()) params.set('city', cityFilter.trim())
+      if (userLocation) {
+        params.set('lat', String(userLocation.lat))
+        params.set('lng', String(userLocation.lng))
+      } else if (cityFilter.trim()) {
+        params.set('city', cityFilter.trim())
+      }
       if (minRating) params.set('minRating', minRating)
       const res = await fetch(`${API_URL}/boutiques?${params}`, {
         headers: { Authorization: 'Bearer ' + t },
@@ -75,6 +111,7 @@ export default function BoutiquesPage() {
 
   function clearFilters() {
     setCityFilter(''); setMinRating(''); setSortBy('rating_desc'); setSearch('')
+    clearLocation()
     setTimeout(fetchBoutiques, 0)
   }
 
@@ -112,9 +149,29 @@ export default function BoutiquesPage() {
             type="text"
             placeholder="Sao Paulo..."
             value={cityFilter}
+            disabled={!!userLocation}
             onChange={e => setCityFilter(e.target.value)}
-            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500"
+            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 disabled:opacity-40 disabled:cursor-not-allowed"
           />
+        </div>
+        <div className="min-w-44">
+          <label className="block text-xs text-gray-400 mb-1">Localização</label>
+          {userLocation ? (
+            <button
+              onClick={clearLocation}
+              className="w-full flex items-center justify-center gap-1.5 bg-orange-500/15 border border-orange-500/40 text-orange-400 rounded-lg px-3 py-2 text-sm font-medium hover:bg-orange-500/25 transition-colors"
+            >
+              📍 Perto de você <span className="text-gray-500">✕</span>
+            </button>
+          ) : (
+            <button
+              onClick={useMyLocation}
+              disabled={locationStatus === 'loading'}
+              className="w-full bg-gray-800 hover:bg-gray-700 disabled:opacity-60 text-gray-200 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+            >
+              {locationStatus === 'loading' ? 'Buscando...' : '📍 Usar minha localização'}
+            </button>
+          )}
         </div>
         <div className="min-w-36">
           <label className="block text-xs text-gray-400 mb-1">Avaliacao minima</label>
@@ -130,11 +187,14 @@ export default function BoutiquesPage() {
           </select>
         </div>
         <div className="min-w-40">
-          <label className="block text-xs text-gray-400 mb-1">Ordenar por</label>
+          <label className="block text-xs text-gray-400 mb-1">
+            {userLocation ? 'Ordenado por distância' : 'Ordenar por'}
+          </label>
           <select
             value={sortBy}
+            disabled={!!userLocation}
             onChange={e => setSortBy(e.target.value)}
-            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
+            className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <option value="rating_desc">Melhor avaliacao</option>
           </select>
@@ -154,6 +214,12 @@ export default function BoutiquesPage() {
           </button>
         </div>
       </div>
+
+      {locationError && (
+        <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-xl p-3 mb-4 text-yellow-400 text-xs">
+          {locationError}
+        </div>
+      )}
 
       {loading && <p className="text-gray-400">Carregando...</p>}
 
@@ -210,7 +276,11 @@ export default function BoutiquesPage() {
                 {boutique.rating > 0 && (
                   <span className="text-xs text-yellow-400">{'★'.repeat(Math.round(boutique.rating))} {boutique.rating.toFixed(1)}</span>
                 )}
-                <span className="text-xs text-gray-500">{boutique.city}, {boutique.state}</span>
+                {boutique.distanceKm != null ? (
+                  <span className="text-xs text-orange-400 font-medium">📍 {boutique.distanceKm.toFixed(1)} km de você</span>
+                ) : (
+                  <span className="text-xs text-gray-500">{boutique.city}, {boutique.state}</span>
+                )}
               </div>
               {boutique.description && (
                 <p className="text-sm text-gray-400 line-clamp-2 mb-3">{boutique.description}</p>
