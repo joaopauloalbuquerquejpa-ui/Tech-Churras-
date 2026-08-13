@@ -3,41 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Events } from '@/lib/analytics'
 
-const LAUNCH_DATE = new Date('2026-07-06T10:00:00-03:00')
-
-function useCountdown() {
-  const [t, setT] = useState({ d: 0, h: 0, m: 0, s: 0 })
-  useEffect(() => {
-    function tick() {
-      const diff = Math.max(0, LAUNCH_DATE.getTime() - Date.now())
-      setT({
-        d: Math.floor(diff / 86400000),
-        h: Math.floor((diff % 86400000) / 3600000),
-        m: Math.floor((diff % 3600000) / 60000),
-        s: Math.floor((diff % 60000) / 1000),
-      })
-    }
-    tick()
-    const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [])
-  return t
-}
-
-function Num({ n, label }: { n: number; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center text-3xl sm:text-4xl font-black text-white tabular-nums"
-        style={{ background: 'linear-gradient(135deg,#1c0800,#2d1200)', border: '1px solid rgba(194,54,22,0.35)' }}>
-        {String(n).padStart(2, '0')}
-      </div>
-      <p className="text-[10px] text-gray-600 uppercase tracking-widest">{label}</p>
-    </div>
-  )
-}
-
 export default function LancamentoAcouguePage() {
-  const c = useCountdown()
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
@@ -61,7 +27,7 @@ export default function LancamentoAcouguePage() {
       {/* ── URGENCY BAR ── */}
       <div className="w-full bg-orange-500 text-center py-2 px-4">
         <p className="text-xs sm:text-sm font-bold text-black">
-          🔥 Lançamento oficial em breve em São Paulo — 60 dias grátis para os primeiros açougues
+          🔥 Açougue Embaixador em São Paulo — 1º mês grátis para os primeiros açougues
         </p>
       </div>
 
@@ -80,18 +46,7 @@ export default function LancamentoAcouguePage() {
 
         <div className="inline-flex items-center gap-2 text-xs font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 mb-7">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse inline-block" />
-          Contagem regressiva para o lançamento
-        </div>
-
-        {/* COUNTDOWN */}
-        <div className="flex items-center justify-center gap-2 sm:gap-4 mb-10">
-          <Num n={c.d} label="dias" />
-          <span className="text-orange-500 text-2xl font-black pb-5">:</span>
-          <Num n={c.h} label="horas" />
-          <span className="text-orange-500 text-2xl font-black pb-5">:</span>
-          <Num n={c.m} label="min" />
-          <span className="text-orange-500 text-2xl font-black pb-5">:</span>
-          <Num n={c.s} label="seg" />
+          Açougue Embaixador — 1º mês grátis pra quem entrar agora
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] mb-5">
@@ -111,9 +66,9 @@ export default function LancamentoAcouguePage() {
         {/* METRICS ROW */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           {[
-            { v: '60 dias', l: 'grátis', sub: 'sem cartão' },
+            { v: '1 mês', l: 'grátis', sub: 'sem cartão' },
             { v: '20 min', l: 'para operar', sub: 'do cadastro ao QR no balcão' },
-            { v: '7%', l: 'comissão', sub: 'só quando você vender' },
+            { v: '10%', l: 'comissão', sub: 'só quando você vender' },
             { v: 'R$ 0', l: 'de setup', sub: 'zero custo inicial' },
           ].map(m => (
             <div key={m.l} className="bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-center min-w-[110px]">
@@ -127,7 +82,7 @@ export default function LancamentoAcouguePage() {
         {/* CTA FORM */}
         <form onSubmit={submit} className="bg-gray-900 border border-orange-500/30 rounded-3xl p-7 max-w-md mx-auto">
           <p className="text-xl font-black text-white mb-1">Quero ser açougue fundador</p>
-          <p className="text-xs text-gray-500 mb-5">Garanta os 60 dias grátis e suporte prioritário no lançamento</p>
+          <p className="text-xs text-gray-500 mb-5">Garanta o 1º mês grátis e suporte prioritário como Açougue Embaixador</p>
           <div className="space-y-3 mb-4">
             <input type="text" required placeholder="Nome do açougue"
               value={name} onChange={e => setName(e.target.value)}
@@ -285,14 +240,14 @@ export default function LancamentoAcouguePage() {
         <div className="max-w-3xl mx-auto px-5 text-center">
           <div className="rounded-3xl border border-orange-500/30 p-10"
             style={{ background: 'linear-gradient(135deg, rgba(194,54,22,0.08), #060606)' }}>
-            <p className="text-7xl font-black text-orange-400 leading-none mb-1">60</p>
-            <p className="text-2xl font-bold text-white mb-1">dias 100% gratuitos</p>
-            <p className="text-gray-500 text-sm mb-6">Depois do lançamento</p>
+            <p className="text-7xl font-black text-orange-400 leading-none mb-1">1</p>
+            <p className="text-2xl font-bold text-white mb-1">mês 100% gratuito</p>
+            <p className="text-gray-500 text-sm mb-6">Programa Açougue Embaixador</p>
             <div className="grid sm:grid-cols-3 gap-4 mb-8 text-left">
               {[
                 { icon: '✅', t: 'Painel completo', d: 'Produtos, kits, pedidos, QR, relatórios — tudo disponível desde o dia 1.' },
                 { icon: '✅', t: 'Suporte prioritário', d: 'Açougues fundadores entram no grupo VIP com suporte direto da equipe.' },
-                { icon: '✅', t: 'Sem cobrança', d: 'Zero custo por 60 dias. Sem cartão de crédito no cadastro.' },
+                { icon: '✅', t: 'Sem cobrança', d: 'Zero custo no 1º mês. Sem cartão de crédito no cadastro.' },
               ].map(f => (
                 <div key={f.t} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                   <p className="text-base mb-1">{f.icon}</p>
@@ -302,7 +257,7 @@ export default function LancamentoAcouguePage() {
               ))}
             </div>
             <p className="text-gray-400 text-sm mb-6">
-              Após o período gratuito: <strong className="text-white">R$ 369/mês</strong> + <strong className="text-white">7% de comissão</strong> só quando você vender.
+              Após o período gratuito: <strong className="text-white">R$ 369/mês</strong> + <strong className="text-white">10% de comissão</strong> só quando você vender.
               Cancele quando quiser, sem multa.
             </p>
             <Link href="/register?role=BOUTIQUE&utm_source=lancamento_freemium"
@@ -311,7 +266,7 @@ export default function LancamentoAcouguePage() {
               style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 40px rgba(194,54,22,0.4)' }}>
               Cadastrar meu açougue agora →
             </Link>
-            <p className="text-xs text-gray-600 mt-3">São Paulo Capital · Lançamento em breve · Expansão nacional em seguida</p>
+            <p className="text-xs text-gray-600 mt-3">São Paulo Capital · Expansão nacional em seguida</p>
           </div>
         </div>
       </section>
@@ -324,10 +279,10 @@ export default function LancamentoAcouguePage() {
             {[
               { q: 'Preciso de tablet, computador ou impressora especial?', a: 'Não. O painel funciona no celular. O QR você imprime em qualquer impressora comum — ou a gente envia plastificado.' },
               { q: 'E se eu ficar sem estoque de um corte?', a: 'Você desativa o produto em segundos pelo celular. Ele some do QR automaticamente para os próximos clientes.' },
-              { q: 'O pagamento cai na minha conta ou fica na plataforma?', a: 'Cai direto no seu Pix, toda semana. A Tech Churras desconta apenas a comissão de 7% automaticamente.' },
+              { q: 'O pagamento cai na minha conta ou fica na plataforma?', a: 'Cai direto no seu Pix, toda semana. A Tech Churras desconta apenas a comissão de 10% automaticamente.' },
               { q: 'Preciso ter churrasqueiros cadastrados no meu açougue?', a: 'Não. A plataforma já conecta seu açougue com churrasqueiros certificados disponíveis na sua região.' },
               { q: 'Posso recusar um pedido se não tiver estoque?', a: 'Sim. Você aceita ou recusa cada pedido no seu painel, exatamente como os restaurantes no iFood.' },
-              { q: 'E se eu não quiser continuar após os 60 dias?', a: 'Você cancela dentro da plataforma com 1 clique. Sem multa, sem burocracia.' },
+              { q: 'E se eu não quiser continuar após o 1º mês?', a: 'Você cancela dentro da plataforma com 1 clique. Sem multa, sem burocracia.' },
             ].map(({ q, a }) => (
               <div key={q} className="bg-gray-900 border border-gray-800 rounded-2xl px-6 py-5">
                 <p className="font-bold text-white text-sm mb-1.5">{q}</p>
@@ -340,7 +295,7 @@ export default function LancamentoAcouguePage() {
 
       {/* ── FINAL CTA ── */}
       <section className="border-t border-gray-900 bg-gray-950 py-16 text-center px-5">
-        <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Lançamento · São Paulo · Em breve</p>
+        <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Açougue Embaixador · São Paulo</p>
         <h2 className="text-3xl sm:text-4xl font-black text-white mb-5 leading-tight max-w-2xl mx-auto">
           Seu açougue merece mais do que vender corte por corte.
         </h2>
@@ -353,7 +308,7 @@ export default function LancamentoAcouguePage() {
           style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 60px rgba(194,54,22,0.4)' }}>
           🔥 Quero ser açougue fundador →
         </Link>
-        <p className="text-xs text-gray-600 mt-4">60 dias grátis · Sem cartão · Cancele quando quiser</p>
+        <p className="text-xs text-gray-600 mt-4">1º mês grátis · Sem cartão · Cancele quando quiser</p>
       </section>
 
       {/* ── FOOTER ── */}

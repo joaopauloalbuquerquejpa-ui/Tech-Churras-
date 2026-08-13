@@ -695,9 +695,11 @@ function PedidoForm() {
                     const full = grillmasters.find(g => g.id === rg.id)
                     const blocked = full ? gmBlocked(full) : false
                     return (
-                      <div key={rg.id}
+                      <button key={rg.id} type="button"
                         onClick={() => { if (blocked) return; setSelectedGm(rg.id) }}
-                        className={'rounded-2xl p-4 border-2 transition-all ' +
+                        disabled={blocked}
+                        aria-pressed={sel}
+                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all ' +
                           (blocked ? 'opacity-50 cursor-not-allowed border-gray-800 bg-gray-900'
                             : 'cursor-pointer ' + (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60'))}>
                         <div className="flex items-start gap-3">
@@ -730,7 +732,7 @@ function PedidoForm() {
                             )}
                           </div>
                         </div>
-                      </div>
+                      </button>
                     )
                   })
                 )}
@@ -745,8 +747,11 @@ function PedidoForm() {
                 const sel = selectedGm === g.id
                 const blocked = gmBlocked(g)
                 return (
-                  <div key={g.id} onClick={() => { if (blocked) return; setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
-                    className={'bg-gray-900 rounded-2xl p-4 border-2 transition-all ' +
+                  <button key={g.id} type="button"
+                    onClick={() => { if (blocked) return; setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
+                    disabled={blocked}
+                    aria-pressed={sel}
+                    className={'w-full text-left bg-gray-900 rounded-2xl p-4 border-2 transition-all ' +
                       (blocked ? 'opacity-50 cursor-not-allowed border-gray-800' : 'cursor-pointer ' + (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40'))}>
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-gray-800 border-2 border-orange-500/30 flex items-center justify-center font-bold text-orange-400 shrink-0">
@@ -780,7 +785,7 @@ function PedidoForm() {
                     {sel && !blocked && (
                       <p className="text-xs text-green-400 mt-2 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours).toFixed(2)}{auxiliarCost > 0 ? ` + R$ ${auxiliarCost.toFixed(2)} auxiliar` : ''}</p>
                     )}
-                  </div>
+                  </button>
                 )
               })}
             </div>
