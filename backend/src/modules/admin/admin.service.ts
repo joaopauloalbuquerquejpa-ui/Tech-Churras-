@@ -66,7 +66,7 @@ export async function listGrillmasters(skip = 0, take = 100) {
 
 export async function listPendingGrillmasters() {
   const list = await prisma.grillmaster.findMany({
-    where: { approved: false },
+    where: { approved: false, rejected: false },
     include: { user: { select: { name: true, email: true, phone: true, phoneVerified: true } } },
     orderBy: { createdAt: 'desc' },
   })
@@ -86,6 +86,7 @@ export async function approveGrillmaster(
     data: {
       approved: true,
       available: true,
+      rejected: false,
       ...(extras?.pricePerHour !== undefined ? { pricePerHour: extras.pricePerHour } : {}),
     },
   })
@@ -117,7 +118,7 @@ export async function rejectGrillmaster(grillmasterId: string) {
   })
   const updated = await prisma.grillmaster.update({
     where: { id: grillmasterId },
-    data: { approved: false, available: false },
+    data: { approved: false, available: false, rejected: true },
   })
   console.log(JSON.stringify({ audit: 'GRILLMASTER_REJECTED', grillmasterId, name: gm?.user?.name, ts: new Date().toISOString() }))
   if (gm?.user) {
@@ -177,7 +178,7 @@ export async function certifyGrillmaster(grillmasterId: string) {
 
 export async function listPendingBoutiques() {
   const list = await prisma.boutique.findMany({
-    where: { approved: false },
+    where: { approved: false, rejected: false },
     include: { user: { select: { name: true, email: true, phone: true, phoneVerified: true } } },
     orderBy: { createdAt: 'desc' },
   })
@@ -214,7 +215,7 @@ export async function approveBoutique(boutiqueId: string) {
 
   const updated = await prisma.boutique.update({
     where: { id: boutiqueId },
-    data: { approved: true, referralCode, trialEndsAt, isFounder: true, monthlyFee },
+    data: { approved: true, rejected: false, referralCode, trialEndsAt, isFounder: true, monthlyFee },
   })
   console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, ts: new Date().toISOString() }))
   if (boutique.user) {
@@ -244,7 +245,7 @@ export async function rejectBoutique(boutiqueId: string) {
     where: { id: boutiqueId },
     include: { user: { select: { id: true, name: true } } },
   })
-  const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: false } })
+  const updated = await prisma.boutique.update({ where: { id: boutiqueId }, data: { approved: false, rejected: true } })
   console.log(JSON.stringify({ audit: 'BOUTIQUE_REJECTED', boutiqueId, name: boutique?.name, ts: new Date().toISOString() }))
   if (boutique?.user) {
     sendPushToUser(

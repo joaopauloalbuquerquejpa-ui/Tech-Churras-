@@ -70,6 +70,7 @@ model Grillmaster {
   experience   Int      @default(0)
   pricePerHour Float    @default(0)
   available    Boolean  @default(true)
+  rejected     Boolean  @default(false)
   city         String
   state        String
   rating       Float    @default(0)
@@ -138,6 +139,7 @@ model Boutique {
   longitude      Float?
   rating         Float    @default(0)
   approved       Boolean  @default(false)
+  rejected       Boolean  @default(false)
   open           Boolean  @default(true)
   monthlyFee     Float    @default(369.00)
   commissionRate Float    @default(0.10)
