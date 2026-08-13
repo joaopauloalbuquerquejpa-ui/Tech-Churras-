@@ -1,7 +1,7 @@
 // Tech Churras Service Worker
 
-const CACHE = 'tc-v1'
-const PRECACHE = ['/', '/dashboard', '/offline.html']
+const CACHE = 'tc-v2'
+const PRECACHE = ['/', '/offline.html']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

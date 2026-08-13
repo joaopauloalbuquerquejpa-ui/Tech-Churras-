@@ -132,6 +132,9 @@ export function OrdersTab() {
                   <p className="text-xs text-gray-500 mt-0.5">
                     {new Date(order.eventDate).toLocaleDateString('pt-BR')} · {order.guestCount} pessoas · R$ {(order.totalPrice ?? 0).toFixed(2)}
                   </p>
+                  <p className="text-[11px] text-gray-600 mt-0.5">
+                    Pedido feito em {new Date(order.createdAt).toLocaleDateString('pt-BR')}
+                  </p>
                 </div>
                 <ChevronDownIcon size={16} className={`text-gray-500 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -199,7 +202,9 @@ export function OrdersTab() {
                   )}
 
                   <div className="flex items-center justify-between pt-1">
-                    <p className="text-xs text-gray-600">ID: {order.id.slice(0, 8)}...</p>
+                    <p className="text-xs text-gray-600">
+                      ID: {order.id.slice(0, 8)}... · Pedido feito em {new Date(order.createdAt).toLocaleDateString('pt-BR')} às {new Date(order.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                    </p>
                     <div className="flex items-center gap-2">
                       <label className="text-xs text-gray-400">Status:</label>
                       <select
