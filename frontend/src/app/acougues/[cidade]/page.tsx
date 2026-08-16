@@ -45,8 +45,8 @@ export async function generateMetadata({ params }: { params: Promise<{ cidade: s
   return {
     robots: boutiques.length === 0 ? { index: false, follow: true } : undefined,
     title: isSP
-      ? 'Açougues em São Paulo — Carnes Premium para Churrasco | Tech Churras'
-      : `Açougues em ${city} — Tech Churras`,
+      ? 'Açougues em São Paulo — Carnes Premium para Churrasco'
+      : `Açougues em ${city}`,
     description: isSP
       ? 'Os melhores açougues parceiros em São Paulo. Picanha, fraldinha, costela e cortes premium selecionados para churrasco. Entrega organizada para o seu evento com churrasqueiro profissional.'
       : `Os melhores açougues parceiros em ${city}. Carnes premium selecionadas, entrega no evento e integração com churrasqueiros profissionais via Tech Churras.`,

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Alpha Test — Tech Churras',
+  title: 'Alpha Test',
   description: 'Seja dos primeiros a testar o app de churrasqueiros profissionais de São Paulo. Instale grátis no Android.',
   openGraph: {
     title: 'Testa o app da Tech Churras antes de todo mundo 🔥',

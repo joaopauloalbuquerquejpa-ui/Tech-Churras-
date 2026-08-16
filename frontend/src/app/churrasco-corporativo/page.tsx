@@ -5,7 +5,7 @@ import CorporateLeadForm from './CorporateLeadForm'
 import { AnimatedCTA, RevealSection } from './CorporateAnimated'
 
 export const metadata: Metadata = {
-  title: 'Churrasco Corporativo em São Paulo | Eventos de Empresa o Ano Todo | Tech Churras',
+  title: 'Churrasco Corporativo em São Paulo | Eventos de Empresa o Ano Todo',
   description:
     'Churrasco completo pra qualquer evento da sua empresa — confraternização, team building, lançamento, evento de cliente. Churrasqueiro profissional, carnes de açougue premium, preço fechado por pessoa e garantia de execução.',
   keywords: [

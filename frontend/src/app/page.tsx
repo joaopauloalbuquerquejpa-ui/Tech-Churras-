@@ -8,7 +8,7 @@ import HomeMobileMenu from '@/components/HomeMobileMenu'
 import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
-  title: 'Contratar Churrasqueiro Profissional em São Paulo | Tech Churras',
+  title: 'Contratar Churrasqueiro Profissional em São Paulo',
   description: 'Contrate Grillmasters profissionais certificados para aniversários, eventos corporativos e confraternizações em São Paulo. Kit de churrasco com IA, açougue premium parceiro e rastreamento ao vivo. Jota Grillmaster — fundador.',
   keywords: [
     'contratar churrasqueiro São Paulo',
@@ -41,7 +41,7 @@ interface Grillmaster {
 }
 interface Boutique {
   id: string; name: string; city: string; state: string
-  description?: string; photoUrl?: string; isValidated?: boolean
+  description?: string; logoUrl?: string; facadeUrl?: string; isValidated?: boolean
 }
 interface Testimonial {
   id: string; rating: number; comment: string
@@ -232,19 +232,6 @@ export default async function HomePage() {
   return (
     <>
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "Tech Churras",
-      "alternateName": "Tech Churras — marketplace de churrasco em São Paulo",
-      "disambiguatingDescription": "Empresa registrada (CNPJ 67.830.186/0001-87) que opera um marketplace de churrasco sob demanda em São Paulo. Não deve ser confundida com o termo informal 'tech churras' usado para encontros de networking da comunidade de tecnologia brasileira.",
-      "url": "https://www.techchurras.com.br",
-      "logo": "https://www.techchurras.com.br/icon-512.png",
-      "description": "Marketplace de churrasco a domicílio: churrasqueiro profissional + carnes de açougue parceiro, em um pedido único online. São Paulo, Brasil.",
-      "founder": { "@type": "Person", "name": "Jota Albuquerque", "jobTitle": "BBQ Master" },
-      "taxID": "67.830.186/0001-87",
-      "areaServed": { "@type": "City", "name": "São Paulo" },
-    }) }} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
       "@context": "https://schema.org",
       "@type": "Service",
@@ -570,8 +557,8 @@ export default async function HomePage() {
               <Link key={b.id} href={`/boutiques/${b.id}`}
                 className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden hover:border-red-500/30 hover:shadow-xl hover:shadow-red-500/10 transition-all group">
                 <div className="h-44 bg-gray-800 relative overflow-hidden">
-                  {b.photoUrl
-                    ? <Image src={b.photoUrl} alt={b.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
+                  {(b.facadeUrl ?? b.logoUrl)
+                    ? <Image src={(b.facadeUrl ?? b.logoUrl)!} alt={b.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-300" />
                     : <div className="w-full h-full flex items-center justify-center text-red-500/40"><MeatIcon size={56} /></div>
                   }
                   <div className="absolute top-3 right-3 bg-green-500 text-black text-[10px] font-black px-2 py-0.5 rounded-full inline-flex items-center gap-1"><CheckIcon size={10} /> VALIDADO</div>
@@ -649,22 +636,13 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
+        {/* Só cidades com oferta real cadastrada — link pra cidade vazia
+            desperdiça equity de link da home e é experiência ruim pra quem clica.
+            Expandir essa lista conforme a rede crescer pra outras cidades. */}
         <div className="border-t border-gray-900 pt-8 pb-4 max-w-5xl mx-auto">
-          <p className="text-xs text-gray-700 mb-3 font-semibold uppercase tracking-wide">Churrasqueiros por cidade</p>
           <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-600">
-            {['sao-paulo','rio-de-janeiro','belo-horizonte','brasilia','curitiba','porto-alegre','salvador','fortaleza','recife','manaus','goiania','campinas','natal','joao-pessoa','teresina'].map(c => (
-              <Link key={c} href={`/churrasqueiros/${c}`} className="hover:text-gray-400 transition-colors">
-                {c.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-              </Link>
-            ))}
-          </div>
-          <p className="text-xs text-gray-700 mt-4 mb-3 font-semibold uppercase tracking-wide">Açougues por cidade</p>
-          <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-gray-600">
-            {['sao-paulo','rio-de-janeiro','belo-horizonte','brasilia','curitiba','porto-alegre','salvador','fortaleza','recife','campinas'].map(c => (
-              <Link key={c} href={`/acougues/${c}`} className="hover:text-gray-400 transition-colors">
-                {c.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-              </Link>
-            ))}
+            <Link href="/churrasqueiros/sao-paulo" className="hover:text-gray-400 transition-colors">Churrasqueiros em São Paulo</Link>
+            <Link href="/acougues/sao-paulo" className="hover:text-gray-400 transition-colors">Açougues em São Paulo</Link>
           </div>
         </div>
         <div className="border-t border-gray-900 pt-6 text-center text-xs text-gray-700">

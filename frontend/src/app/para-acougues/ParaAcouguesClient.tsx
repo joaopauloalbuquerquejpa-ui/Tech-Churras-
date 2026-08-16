@@ -52,6 +52,8 @@ function Slider({ label, value, min, max, step, onChange, format }: {
         <input
           type="range" min={min} max={max} step={step} value={value}
           onChange={e => onChange(Number(e.target.value))}
+          aria-label={label}
+          aria-valuetext={format(value)}
           className="w-full h-2 rounded-full appearance-none cursor-pointer"
           style={{
             background: `linear-gradient(to right, #c23616 ${pct}%, #374151 ${pct}%)`,

@@ -29,7 +29,12 @@ export async function generateMetadata({ params }: { params: Promise<{ bairro: s
   const { bairro } = await params
   const nome = bairroLabel(bairro)
   return {
-    title: `Churrasqueiro em ${nome}, São Paulo — Tech Churras`,
+    // A listagem não filtra por bairro de verdade (busca é por cidade inteira),
+    // então todas as 53 páginas mostram o mesmo resultado — conteúdo duplicado
+    // clássico. Fica noindex até existir filtragem real por bairro; a página
+    // continua no ar normalmente pra quem chega por link interno.
+    robots: { index: false, follow: true },
+    title: `Churrasqueiro em ${nome}, São Paulo`,
     description: `Contrate churrasqueiros profissionais certificados em ${nome}, SP. Carne selecionada entregue no evento, rastreamento ao vivo e pagamento seguro pelo app.`,
     keywords: [
       `churrasqueiro ${nome}`, `churrasqueiro ${nome} SP`, `churrasco ${nome}`,

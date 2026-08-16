@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const rating: number = b?.rating ?? 0
     const logo: string | null = b?.logoUrl ?? b?.facadeUrl ?? null
 
-    const title = `${name} — Açougue em ${city} | Tech Churras`
+    const title = `${name} — Açougue em ${city}`
     const desc = `⭐ ${rating.toFixed(1)} | Açougue premium em ${city}, ${state}. Cortes selecionados para churrasco. Peça pelo app Tech Churras.`
     const img = logo ?? '/jota.jpg'
 
@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch {
     return {
-      title: 'Açougue | Tech Churras',
+      title: 'Açougue',
       description: 'Açougues premium com cortes selecionados para seu churrasco.',
     }
   }

@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const price: number = gm?.pricePerHour ?? 0
     const photo: string | null = gm?.photoUrl ?? null
 
-    const title = `${name} — Churrasqueiro em ${city} | Tech Churras`
+    const title = `${name} — Churrasqueiro em ${city}`
     const desc = `⭐ ${rating.toFixed(1)} | R$ ${price.toFixed(0)}/h | Churrasqueiro profissional em ${city}, ${state}. Contrate pelo app Tech Churras.`
     const img = photo ?? '/jota.jpg'
 
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     }
   } catch {
     return {
-      title: 'Churrasqueiro | Tech Churras',
+      title: 'Churrasqueiro',
       description: 'Contrate churrasqueiros profissionais certificados. Churrasco de qualidade para o seu evento.',
     }
   }

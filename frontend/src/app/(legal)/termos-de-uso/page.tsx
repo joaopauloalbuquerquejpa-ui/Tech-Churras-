@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Termos de Uso — Tech Churras',
+  title: 'Termos de Uso',
   description: 'Termos de Uso da plataforma Tech Churras. Leia sobre as regras de utilização, política de cancelamento, comissões e responsabilidades.',
   alternates: { canonical: '/termos-de-uso' },
 }

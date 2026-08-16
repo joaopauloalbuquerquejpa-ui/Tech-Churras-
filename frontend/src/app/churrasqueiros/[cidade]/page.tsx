@@ -50,8 +50,8 @@ export async function generateMetadata({ params }: { params: Promise<{ cidade: s
   return {
     robots,
     title: isSP
-      ? 'Churrasqueiros em São Paulo — Contrate Profissionais Certificados | Tech Churras'
-      : `Churrasqueiros em ${city} — Tech Churras`,
+      ? 'Churrasqueiros em São Paulo — Contrate Profissionais Certificados'
+      : `Churrasqueiros em ${city}`,
     description: isSP
       ? 'Churrasqueiros profissionais certificados em São Paulo. Contrate pelo app, acompanhe ao vivo no mapa e receba churrasco de qualidade no seu evento. 93% do valor vai direto ao churrasqueiro.'
       : `Encontre churrasqueiros profissionais em ${city}. Contrate via app, acompanhe ao vivo e receba churrasco de qualidade no seu evento.`,

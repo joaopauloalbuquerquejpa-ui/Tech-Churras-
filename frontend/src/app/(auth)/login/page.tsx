@@ -207,10 +207,11 @@ export default function LoginPage() {
           {preToken ? (
             <form onSubmit={handleVerifyTotp} className="space-y-4">
               <div>
-                <label className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
+                <label htmlFor="login-totp" className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
                   Código TOTP
                 </label>
                 <input
+                  id="login-totp"
                   type="text"
                   inputMode="numeric"
                   autoFocus
@@ -244,10 +245,11 @@ export default function LoginPage() {
           ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
+              <label htmlFor="login-email" className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -258,10 +260,11 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
+              <label htmlFor="login-password" className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-1.5 block">
                 Senha
               </label>
               <input
+                id="login-password"
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}

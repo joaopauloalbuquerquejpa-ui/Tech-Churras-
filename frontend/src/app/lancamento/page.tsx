@@ -4,7 +4,7 @@ import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
   title: 'Tech Churras chegou na sua cidade!',
-  description: 'Contrate churrasqueiros profissionais certificados pelo app. Acompanhe ao vivo, pague com segurança. Somos a plataforma líder em churrasqueiros para eventos no Brasil.',
+  description: 'Contrate churrasqueiros profissionais certificados pelo app. Acompanhe ao vivo, pague com segurança.',
   openGraph: {
     title: 'Tech Churras chegou na sua cidade!',
     description: 'Churrasqueiros profissionais + carnes premium. Contrate pelo app, acompanhe ao vivo.',
@@ -210,7 +210,7 @@ export default async function LancamentoPage() {
         <div className="max-w-3xl mx-auto px-4 text-center">
           <h2 className="text-3xl font-black mb-4">Quer ser churrasqueiro parceiro?</h2>
           <p className="text-orange-100 text-lg mb-8 max-w-xl mx-auto">
-            Receba pedidos pelo app, ganhe mais e faça parte da maior plataforma de churrasqueiros do Brasil.
+            Receba pedidos pelo app, ganhe mais e faça parte da plataforma de churrasqueiros que está nascendo em São Paulo.
             <strong className="block mt-1">93% de cada pedido vai direto para você.</strong>
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

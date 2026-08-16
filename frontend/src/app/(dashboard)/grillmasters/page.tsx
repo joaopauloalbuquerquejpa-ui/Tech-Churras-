@@ -175,9 +175,10 @@ export default function GrillmastersPage() {
       <div className="bg-gray-900 rounded-xl p-4 mb-6 space-y-3">
         <div className="flex flex-wrap gap-3 items-end">
           <div className="flex-1 min-w-48">
-            <label className="block text-xs text-gray-400 mb-1">Buscar por nome</label>
+            <label htmlFor="gm-search" className="block text-xs text-gray-400 mb-1">Buscar por nome</label>
             <div className="flex gap-2">
               <input
+                id="gm-search"
                 type="text"
                 placeholder="Nome..."
                 value={search}
@@ -193,8 +194,9 @@ export default function GrillmastersPage() {
             </div>
           </div>
           <div className="min-w-36">
-            <label className="block text-xs text-gray-400 mb-1">Cidade</label>
+            <label htmlFor="gm-city" className="block text-xs text-gray-400 mb-1">Cidade</label>
             <input
+              id="gm-city"
               type="text"
               placeholder="Sao Paulo..."
               value={cityFilter}
@@ -223,8 +225,9 @@ export default function GrillmastersPage() {
             )}
           </div>
           <div className="min-w-36">
-            <label className="block text-xs text-gray-400 mb-1">Especialidade</label>
+            <label htmlFor="gm-specialty" className="block text-xs text-gray-400 mb-1">Especialidade</label>
             <input
+              id="gm-specialty"
               type="text"
               placeholder="Carne, peixe..."
               value={specialty}
@@ -235,8 +238,9 @@ export default function GrillmastersPage() {
         </div>
         <div className="flex flex-wrap gap-3 items-end">
           <div className="min-w-28">
-            <label className="block text-xs text-gray-400 mb-1">Preco min (R$/h)</label>
+            <label htmlFor="gm-min-price" className="block text-xs text-gray-400 mb-1">Preco min (R$/h)</label>
             <input
+              id="gm-min-price"
               type="number"
               placeholder="0"
               value={minPrice}
@@ -246,8 +250,9 @@ export default function GrillmastersPage() {
             />
           </div>
           <div className="min-w-28">
-            <label className="block text-xs text-gray-400 mb-1">Preco max (R$/h)</label>
+            <label htmlFor="gm-max-price" className="block text-xs text-gray-400 mb-1">Preco max (R$/h)</label>
             <input
+              id="gm-max-price"
               type="number"
               placeholder="Sem limite"
               value={maxPrice}
@@ -257,8 +262,9 @@ export default function GrillmastersPage() {
             />
           </div>
           <div className="min-w-36">
-            <label className="block text-xs text-gray-400 mb-1">Avaliacao minima</label>
+            <label htmlFor="gm-min-rating" className="block text-xs text-gray-400 mb-1">Avaliacao minima</label>
             <select
+              id="gm-min-rating"
               value={minRating}
               onChange={e => setMinRating(e.target.value)}
               className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
@@ -270,10 +276,11 @@ export default function GrillmastersPage() {
             </select>
           </div>
           <div className="min-w-40">
-            <label className="block text-xs text-gray-400 mb-1">
+            <label htmlFor="gm-sort" className="block text-xs text-gray-400 mb-1">
               {userLocation ? 'Ordenado por distância' : 'Ordenar por'}
             </label>
             <select
+              id="gm-sort"
               value={sortBy}
               disabled={!!userLocation}
               onChange={e => { setSortBy(e.target.value); setPage(1) }}

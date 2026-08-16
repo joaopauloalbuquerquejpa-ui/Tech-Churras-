@@ -105,6 +105,8 @@ export default function RootLayout({
                 "@type": "Organization",
                 "@id": "https://www.techchurras.com.br/#organization",
                 "name": "Tech Churras",
+                "alternateName": "Tech Churras — marketplace de churrasco em São Paulo",
+                "disambiguatingDescription": "Empresa registrada (CNPJ 67.830.186/0001-87) que opera um marketplace de churrasco sob demanda em São Paulo. Não deve ser confundida com o termo informal 'tech churras' usado para encontros de networking da comunidade de tecnologia brasileira.",
                 "url": "https://www.techchurras.com.br",
                 "logo": {
                   "@type": "ImageObject",
@@ -113,6 +115,7 @@ export default function RootLayout({
                   "height": 512
                 },
                 "telephone": "+5511970593650",
+                "taxID": "67.830.186/0001-87",
                 "sameAs": [
                   "https://www.instagram.com/tech.churras/"
                 ],

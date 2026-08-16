@@ -3,7 +3,7 @@ import ParaAcouguesClient from './ParaAcouguesClient'
 import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
-  title: 'Parceria para Açougues em São Paulo — Tech Churras',
+  title: 'Parceria para Açougues em São Paulo',
   description: 'Transforme seu açougue em um canal digital recorrente em São Paulo. QR code no balcão, pedidos no app, repasse semanal via PIX. Mensalidade R$ 369/mês + 10% de comissão.',
   keywords: ['açougue parceiro São Paulo', 'vender carne online SP', 'parceria açougue SP', 'Tech Churras açougue', 'açougue digital São Paulo', 'açougue QR code', 'açougue app delivery churrasco'],
   alternates: { canonical: '/para-acougues' },

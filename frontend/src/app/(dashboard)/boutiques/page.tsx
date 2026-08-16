@@ -134,8 +134,9 @@ export default function BoutiquesPage() {
 
       <div className="bg-gray-900 rounded-xl p-4 mb-6 flex flex-wrap gap-3 items-end">
         <div className="flex-1 min-w-40">
-          <label className="block text-xs text-gray-400 mb-1">Buscar por nome</label>
+          <label htmlFor="bt-search" className="block text-xs text-gray-400 mb-1">Buscar por nome</label>
           <input
+            id="bt-search"
             type="text"
             placeholder="Nome do acougue..."
             value={search}
@@ -144,8 +145,9 @@ export default function BoutiquesPage() {
           />
         </div>
         <div className="min-w-36">
-          <label className="block text-xs text-gray-400 mb-1">Cidade</label>
+          <label htmlFor="bt-city" className="block text-xs text-gray-400 mb-1">Cidade</label>
           <input
+            id="bt-city"
             type="text"
             placeholder="Sao Paulo..."
             value={cityFilter}
@@ -174,8 +176,9 @@ export default function BoutiquesPage() {
           )}
         </div>
         <div className="min-w-36">
-          <label className="block text-xs text-gray-400 mb-1">Avaliacao minima</label>
+          <label htmlFor="bt-min-rating" className="block text-xs text-gray-400 mb-1">Avaliacao minima</label>
           <select
+            id="bt-min-rating"
             value={minRating}
             onChange={e => setMinRating(e.target.value)}
             className="w-full bg-gray-800 rounded-lg px-3 py-2 text-sm text-white"
@@ -187,10 +190,11 @@ export default function BoutiquesPage() {
           </select>
         </div>
         <div className="min-w-40">
-          <label className="block text-xs text-gray-400 mb-1">
+          <label htmlFor="bt-sort" className="block text-xs text-gray-400 mb-1">
             {userLocation ? 'Ordenado por distância' : 'Ordenar por'}
           </label>
           <select
+            id="bt-sort"
             value={sortBy}
             disabled={!!userLocation}
             onChange={e => setSortBy(e.target.value)}
@@ -262,7 +266,7 @@ export default function BoutiquesPage() {
             {/* Logo overlapping */}
             <div className="px-4 -mt-6 mb-2 flex items-end gap-3">
               {boutique.logoUrl ? (
-                <img src={boutique.logoUrl} alt="logo" className="w-12 h-12 rounded-xl object-cover border-2 border-gray-900 shrink-0" />
+                <img src={boutique.logoUrl} alt={`Logo do ${boutique.name}`} className="w-12 h-12 rounded-xl object-cover border-2 border-gray-900 shrink-0" />
               ) : (
                 <div className="w-12 h-12 rounded-xl bg-red-900/40 border-2 border-gray-900 flex items-center justify-center shrink-0">
                   <span className="text-red-400 font-bold text-lg">{boutique.name[0]}</span>

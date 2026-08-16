@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Politica de Privacidade — Tech Churras',
+  title: 'Política de Privacidade',
 }
 
 function H2({ children }: { children: React.ReactNode }) {

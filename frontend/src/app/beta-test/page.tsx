@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Roteiro de Teste — Tech Churras Beta',
+  title: 'Roteiro de Teste (Beta)',
   robots: 'noindex,nofollow',
 }
 

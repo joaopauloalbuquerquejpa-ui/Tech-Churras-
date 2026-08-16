@@ -475,31 +475,31 @@ function PedidoForm() {
               <h2 className="font-bold text-base">Quando e onde?</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Data *</label>
-                  <input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)}
+                  <label htmlFor="ev-date" className="text-xs text-gray-400 mb-1 block">Data *</label>
+                  <input id="ev-date" type="date" value={eventDate} onChange={e => setEventDate(e.target.value)}
                     className="w-full bg-gray-800 rounded-xl px-3 py-2.5 text-white text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Horário</label>
-                  <input type="time" value={eventTime} onChange={e => setEventTime(e.target.value)}
+                  <label htmlFor="ev-time" className="text-xs text-gray-400 mb-1 block">Horário</label>
+                  <input id="ev-time" type="time" value={eventTime} onChange={e => setEventTime(e.target.value)}
                     className="w-full bg-gray-800 rounded-xl px-3 py-2.5 text-white text-sm" />
                 </div>
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">CEP (auto-preenche)</label>
-                <input type="text" placeholder="00000000" value={eventCep} maxLength={8}
+                <label htmlFor="ev-cep" className="text-xs text-gray-400 mb-1 block">CEP (auto-preenche)</label>
+                <input id="ev-cep" type="text" placeholder="00000000" value={eventCep} maxLength={8}
                   onChange={e => { const v = e.target.value.replace(/\D/g, ''); setEventCep(v); if (v.length === 8) fetchCep(v) }}
                   className="w-full bg-gray-800 rounded-xl px-3 py-2.5 text-white text-sm placeholder-gray-600" />
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Endereço *</label>
-                <input type="text" value={eventAddress} onChange={e => setEventAddress(e.target.value)}
+                <label htmlFor="ev-address" className="text-xs text-gray-400 mb-1 block">Endereço *</label>
+                <input id="ev-address" type="text" value={eventAddress} onChange={e => setEventAddress(e.target.value)}
                   placeholder="Rua, número, bairro, cidade"
                   className="w-full bg-gray-800 rounded-xl px-3 py-2.5 text-white text-sm placeholder-gray-600" />
               </div>
               <div>
-                <label className="text-xs text-gray-400 mb-1 block">Número, complemento e ponto de referência</label>
-                <input type="text" value={eventComplement} onChange={e => setEventComplement(e.target.value)}
+                <label htmlFor="ev-complement" className="text-xs text-gray-400 mb-1 block">Número, complemento e ponto de referência</label>
+                <input id="ev-complement" type="text" value={eventComplement} onChange={e => setEventComplement(e.target.value)}
                   placeholder="Nº 123, apto 45, portão azul, perto do mercado..."
                   className="w-full bg-gray-800 rounded-xl px-3 py-2.5 text-white text-sm placeholder-gray-600" />
               </div>
@@ -515,10 +515,10 @@ function PedidoForm() {
                 <div key={label} className="flex items-center justify-between">
                   <span className="text-sm text-gray-300">{label}</span>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => set(Math.max(0, value - 1))}
+                    <button onClick={() => set(Math.max(0, value - 1))} aria-label={`Diminuir ${label}`}
                       className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 font-bold text-lg flex items-center justify-center">−</button>
-                    <span className="w-8 text-center font-bold">{value}</span>
-                    <button onClick={() => set(value + 1)}
+                    <span className="w-8 text-center font-bold" aria-live="polite">{value}</span>
+                    <button onClick={() => set(value + 1)} aria-label={`Aumentar ${label}`}
                       className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 font-bold text-lg flex items-center justify-center">+</button>
                   </div>
                 </div>
@@ -836,14 +836,14 @@ function PedidoForm() {
 
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">Seu nome *</label>
-                <input type="text" value={guestName} onChange={e => setGuestName(e.target.value)}
+                <label htmlFor="guest-name" className="text-sm text-gray-400 mb-1 block">Seu nome *</label>
+                <input id="guest-name" type="text" value={guestName} onChange={e => setGuestName(e.target.value)}
                   placeholder="Nome completo"
                   className="w-full bg-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600" />
               </div>
               <div>
-                <label className="text-sm text-gray-400 mb-1 block">WhatsApp com DDD *</label>
-                <input type="tel" value={guestPhone} onChange={e => setGuestPhone(e.target.value)}
+                <label htmlFor="guest-phone" className="text-sm text-gray-400 mb-1 block">WhatsApp com DDD *</label>
+                <input id="guest-phone" type="tel" value={guestPhone} onChange={e => setGuestPhone(e.target.value)}
                   placeholder="11 99999-9999"
                   className="w-full bg-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600" />
               </div>

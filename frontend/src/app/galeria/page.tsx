@@ -4,6 +4,7 @@ import GaleriaClient from './GaleriaClient'
 export const metadata: Metadata = {
   title: 'Galeria de Churrascos',
   description: 'Veja churrascos incriveis realizados por nossos churrasqueiros profissionais. Inspire-se e agende o seu.',
+  alternates: { canonical: '/galeria' },
   openGraph: {
     title: 'Galeria de Churrascos — Tech Churras',
     description: 'Churrascos incriveis realizados pelos melhores churrasqueiros do Brasil.',
