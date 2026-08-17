@@ -72,6 +72,21 @@ async function getEligibleGrillmasters(order: Order, opts: { excludeIds: string[
     include: { user: { select: { id: true, name: true, phone: true } } },
   })
 
+  // Teto de preço no despacho — ninguém pode ser chamado pra trabalhar abaixo
+  // do próprio preço cadastrado. Cobre os dois casos: pedido sem GM escolhido
+  // (estimatedHourlyRate, mediana cobrada na criação) E pedido QUE TINHA um GM
+  // escolhido mas escalou pra onda ampla porque ele não respondeu a tempo —
+  // nesse segundo caso o cliente foi cobrado pelo preço do GM original, então
+  // o teto vem do pricePerHour dele, não fica sem teto nenhum.
+  let original: { churrascoStyle: string | null; specialties: string | null; pricePerHour: number } | null = null
+  if (order.grillmasterId) {
+    original = await prisma.grillmaster.findUnique({
+      where: { id: order.grillmasterId },
+      select: { churrascoStyle: true, specialties: true, pricePerHour: true },
+    })
+  }
+  const priceCeiling = order.estimatedHourlyRate ?? original?.pricePerHour ?? null
+
   // unlimitedAvailability (equipe, não pessoa única) pula o check de agenda —
   // mesma regra já usada na criação do pedido. Capacidade por convidados
   // também precisa ser respeitada aqui: sem isso, um pedido sem GM
@@ -82,10 +97,7 @@ async function getEligibleGrillmasters(order: Order, opts: { excludeIds: string[
     if (blockedIds.has(g.id) && !g.unlimitedAvailability) return false
     if (busyIds.has(g.id) && !g.unlimitedAvailability) return false
     if (auxiliaresNeeded > 0 && !g.unlimitedAvailability && !g.bringsAuxiliar) return false
-    // Pedido sem GM escolhido pelo cliente foi cobrado pela mediana de mercado
-    // (orders.service.ts) — ninguém pode ser despachado pra trabalhar abaixo
-    // do próprio preço cadastrado.
-    if (order.estimatedHourlyRate != null && g.pricePerHour > order.estimatedHourlyRate) return false
+    if (priceCeiling != null && g.pricePerHour > priceCeiling) return false
     return true
   })
 
@@ -104,9 +116,8 @@ async function getEligibleGrillmasters(order: Order, opts: { excludeIds: string[
     if (byRegion.length > 0) candidates = byRegion
   }
 
-  if (opts.styleFilter && order.grillmasterId) {
-    const original = await prisma.grillmaster.findUnique({ where: { id: order.grillmasterId } })
-    const style = (original?.churrascoStyle || original?.specialties || '').toLowerCase().trim()
+  if (opts.styleFilter && original) {
+    const style = (original.churrascoStyle || original.specialties || '').toLowerCase().trim()
     if (style) {
       const filtered = candidates.filter(g => {
         const gStyle = `${g.churrascoStyle ?? ''} ${g.specialties ?? ''}`.toLowerCase()
