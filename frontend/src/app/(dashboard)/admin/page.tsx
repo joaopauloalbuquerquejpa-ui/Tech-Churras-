@@ -144,6 +144,10 @@ interface AdminContract {
 }
 
 const TEAM_JOTA_CERT = 'TC-FUNDADOR-001'
+const OWN_PROFILE_CERTS = [
+  { cert: 'TC-FUNDADOR-001', label: 'Team Jota' },
+  { cert: 'TC-CEO-000001', label: 'Jota Albuquerque (CEO)' },
+]
 
 interface TeamJota {
   id: string
@@ -194,7 +198,9 @@ export default function AdminPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [zapiStatus, setZapiStatus] = useState<{ status: string; connected?: boolean; phone?: string | null } | null>(null)
 
-  // ── TEAM JOTA ──────────────────────────────────────────────
+  // ── MINHA EQUIPE (perfis do próprio fundador — hoje Team Jota + Jota pessoal) ──
+  const [ownProfiles, setOwnProfiles] = useState<TeamJota[]>([])
+  const [selectedOwnCert, setSelectedOwnCert] = useState<string>(TEAM_JOTA_CERT)
   const [teamJota, setTeamJota] = useState<TeamJota | null>(null)
   const [tjSchedule, setTjSchedule] = useState<ScheduleDay[]>([])
   const [tjForm, setTjForm] = useState<Partial<TeamJota>>({})
@@ -203,6 +209,22 @@ export default function AdminPage() {
     const d = new Date(); return { year: d.getFullYear(), month: d.getMonth() }
   })
   const [tjTogglingDay, setTjTogglingDay] = useState<string | null>(null)
+
+  function selectOwnProfile(profile: TeamJota) {
+    setTeamJota(profile)
+    setSelectedOwnCert(profile.certificationCode)
+    setTjForm({
+      bio: profile.bio, experience: profile.experience, pricePerHour: profile.pricePerHour,
+      specialties: profile.specialties, churrascoStyle: profile.churrascoStyle,
+      bringsEquipment: profile.bringsEquipment, minGuests: profile.minGuests, maxGuests: profile.maxGuests,
+      instagram: profile.instagram, available: profile.available,
+    })
+    const h = { Authorization: 'Bearer ' + getToken() }
+    fetch(API_URL + '/admin/grillmasters/' + profile.id + '/schedule', { headers: h })
+      .then(r => r.ok ? r.json() : [])
+      .then(sc => setTjSchedule(Array.isArray(sc) ? sc : []))
+      .catch(() => {})
+  }
 
   async function fetchAll(silent = false) {
     if (!silent) setLoading(true)
@@ -238,22 +260,14 @@ export default function AdminPage() {
         .then(z => { if (z) setZapiStatus(z) })
         .catch(() => {})
 
-      // Team Jota
+      // Perfis do próprio fundador (Team Jota + Jota pessoal, e outros que vierem a existir)
       const gmList = Array.isArray(allGms) ? allGms : (allGms?.data ?? [])
       setAllGrillmasters(gmList)
-      const tj = gmList.find((g: any) => g.certificationCode === TEAM_JOTA_CERT)
-      if (tj) {
-        setTeamJota(tj)
-        setTjForm({
-          bio: tj.bio, experience: tj.experience, pricePerHour: tj.pricePerHour,
-          specialties: tj.specialties, churrascoStyle: tj.churrascoStyle,
-          bringsEquipment: tj.bringsEquipment, minGuests: tj.minGuests, maxGuests: tj.maxGuests,
-          instagram: tj.instagram, available: tj.available,
-        })
-        fetch(API_URL + '/admin/grillmasters/' + tj.id + '/schedule', { headers: h })
-          .then(r => r.ok ? r.json() : [])
-          .then(sc => setTjSchedule(Array.isArray(sc) ? sc : []))
-          .catch(() => {})
+      const own = gmList.filter((g: any) => OWN_PROFILE_CERTS.some(p => p.cert === g.certificationCode))
+      setOwnProfiles(own)
+      if (own.length > 0) {
+        const current = own.find((p: TeamJota) => p.certificationCode === selectedOwnCert) ?? own[0]
+        selectOwnProfile(current)
       }
     } finally {
       setLoading(false)
@@ -746,8 +760,21 @@ export default function AdminPage() {
 
       {tab === 'equipe' && (
         <div className="space-y-6">
+          {ownProfiles.length > 1 && (
+            <div className="flex gap-2">
+              {ownProfiles.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => selectOwnProfile(p)}
+                  className={'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (teamJota?.id === p.id ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
+                >
+                  {OWN_PROFILE_CERTS.find(c => c.cert === p.certificationCode)?.label ?? p.user?.name}
+                </button>
+              ))}
+            </div>
+          )}
           {!teamJota ? (
-            <p className="text-gray-400">Team Jota não encontrado (certificationCode TC-FUNDADOR-001).</p>
+            <p className="text-gray-400">Nenhum perfil próprio encontrado (Team Jota / Jota CEO).</p>
           ) : (
             <>
               {/* Header */}
@@ -756,7 +783,7 @@ export default function AdminPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h2 className="font-bold text-white text-lg">{teamJota.user?.name}</h2>
-                    <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">TC-FUNDADOR-001</span>
+                    <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded-full">{teamJota.certificationCode}</span>
                     <span className="text-xs text-yellow-400">⭐ {teamJota.rating.toFixed(1)}</span>
                   </div>
                   <p className="text-xs text-gray-400">{teamJota.user?.email}</p>
