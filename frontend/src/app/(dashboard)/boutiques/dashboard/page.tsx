@@ -733,7 +733,7 @@ export default function BoutiqueDashboardPage() {
       >
         Cadastrar meu açougue agora
       </Link>
-      <p className="text-center text-xs text-gray-600 mt-3">Gratuito · Sem mensalidade · Comissão só nas vendas</p>
+      <p className="text-center text-xs text-gray-600 mt-3">R$ 369/mês + 10% de comissão · 1º mês grátis como Açougue Embaixador</p>
     </div>
   )
 
