@@ -84,6 +84,10 @@ interface PendingGrillmaster {
   galleryUrls?: string[]
   instagram?: string
   churrascoStyle?: string
+  specialties?: string
+  serviceRegions?: string[]
+  approved?: boolean
+  rejected?: boolean
   pixKey?: string
   cpfCnpj?: string
   pixOwnership?: 'match' | 'mismatch' | 'not_verifiable'
@@ -101,6 +105,8 @@ interface PendingBoutique {
   instagram?: string
   openingHours?: string
   deliveryOrPickup?: string
+  approved?: boolean
+  rejected?: boolean
   pixKey?: string
   cpfCnpj?: string
   pixOwnership?: 'match' | 'mismatch' | 'not_verifiable'
@@ -134,6 +140,7 @@ interface AdminContract {
   acceptedAt: string | null
   generatedAt: string
   contractText: string
+  hidden?: boolean
 }
 
 const TEAM_JOTA_CERT = 'TC-FUNDADOR-001'
@@ -174,8 +181,12 @@ export default function AdminPage() {
   const [awaitingCertification, setAwaitingCertification] = useState<PendingGrillmaster[]>([])
   const [certifyingId, setCertifyingId] = useState<string | null>(null)
   const [pendingBoutiques, setPendingBoutiques] = useState<PendingBoutique[]>([])
+  const [allGrillmasters, setAllGrillmasters] = useState<PendingGrillmaster[]>([])
+  const [allBoutiques, setAllBoutiques] = useState<PendingBoutique[]>([])
+  const [showAllPartners, setShowAllPartners] = useState(false)
   const [gmApproveState, setGmApproveState] = useState<Record<string, GmApproveState>>({})
   const [contracts, setContracts] = useState<AdminContract[]>([])
+  const [showHiddenContracts, setShowHiddenContracts] = useState(false)
   const [viewContract, setViewContract] = useState<AdminContract | null>(null)
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState<Tab>('stats')
@@ -198,7 +209,7 @@ export default function AdminPage() {
     else setRefreshing(true)
     const h = { Authorization: 'Bearer ' + getToken() }
     try {
-      const [s, o, pg, awaitCert, pb, c, allGms] = await Promise.all([
+      const [s, o, pg, awaitCert, pb, c, allGms, allBts] = await Promise.all([
         fetch(API_URL + '/admin/stats', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/orders', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
@@ -206,6 +217,7 @@ export default function AdminPage() {
         fetch(API_URL + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/grillmasters', { headers: h }).then(r => r.ok ? r.json() : []),
+        fetch(API_URL + '/admin/boutiques', { headers: h }).then(r => r.ok ? r.json() : []),
       ])
       setStats(s)
       setOrders(Array.isArray(o) ? o : (o.data ?? o.orders ?? []))
@@ -217,6 +229,7 @@ export default function AdminPage() {
       setAwaitingCertification(Array.isArray(awaitCert) ? awaitCert : [])
       setPendingBoutiques(Array.isArray(pb) ? pb : [])
       setContracts(Array.isArray(c) ? c : [])
+      setAllBoutiques(Array.isArray(allBts) ? allBts : (allBts?.data ?? []))
       setLastUpdated(new Date())
 
       // Z-API health (não bloqueia o resto)
@@ -227,6 +240,7 @@ export default function AdminPage() {
 
       // Team Jota
       const gmList = Array.isArray(allGms) ? allGms : (allGms?.data ?? [])
+      setAllGrillmasters(gmList)
       const tj = gmList.find((g: any) => g.certificationCode === TEAM_JOTA_CERT)
       if (tj) {
         setTeamJota(tj)
@@ -311,6 +325,38 @@ export default function AdminPage() {
     return () => clearInterval(interval)
   }, [])
 
+  async function fetchContracts(includeHidden: boolean) {
+    const h = { Authorization: 'Bearer ' + getToken() }
+    const res = await fetch(API_URL + '/contracts/all?includeHidden=' + includeHidden, { headers: h })
+    if (res.ok) {
+      const c = await res.json()
+      setContracts(Array.isArray(c) ? c : [])
+    }
+  }
+
+  useEffect(() => { fetchContracts(showHiddenContracts) }, [showHiddenContracts])
+
+  async function archiveContract(id: string, hidden: boolean) {
+    const res = await fetch(API_URL + '/contracts/' + id + '/archive', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + getToken() },
+      body: JSON.stringify({ hidden }),
+    })
+    if (res.ok) {
+      if (hidden && !showHiddenContracts) setContracts(prev => prev.filter(c => c.id !== id))
+      else setContracts(prev => prev.map(c => c.id === id ? { ...c, hidden } : c))
+    }
+  }
+
+  async function deleteContract(id: string, name: string) {
+    if (!confirm(`Apagar de vez o contrato de ${name}? Essa ação não pode ser desfeita.`)) return
+    const res = await fetch(API_URL + '/contracts/' + id, {
+      method: 'DELETE',
+      headers: { Authorization: 'Bearer ' + getToken() },
+    })
+    if (res.ok || res.status === 204) setContracts(prev => prev.filter(c => c.id !== id))
+  }
+
   async function approveGrillmaster(id: string) {
     const state = gmApproveState[id] || { pricePerHour: 0 }
     const res = await fetch(API_URL + '/admin/grillmasters/' + id + '/approve', {
@@ -342,7 +388,10 @@ export default function AdminPage() {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
-    if (res.ok) setPendingGrillmasters(prev => prev.filter(g => g.id !== id))
+    if (res.ok) {
+      setPendingGrillmasters(prev => prev.filter(g => g.id !== id))
+      fetchAll(true)
+    }
   }
 
   async function markUniformSent(grillmasterId: string) {
@@ -362,7 +411,10 @@ export default function AdminPage() {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
-    if (res.ok) setPendingBoutiques(prev => prev.filter(b => b.id !== id))
+    if (res.ok) {
+      setPendingBoutiques(prev => prev.filter(b => b.id !== id))
+      fetchAll(true)
+    }
   }
 
   async function rejectBoutique(id: string) {
@@ -370,7 +422,10 @@ export default function AdminPage() {
       method: 'PATCH',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
-    if (res.ok) setPendingBoutiques(prev => prev.filter(b => b.id !== id))
+    if (res.ok) {
+      setPendingBoutiques(prev => prev.filter(b => b.id !== id))
+      fetchAll(true)
+    }
   }
 
   function setGmField(id: string, field: keyof GmApproveState, value: number) {
@@ -415,18 +470,35 @@ export default function AdminPage() {
 
       {tab === 'orders' && <OrdersTab />}
 
-      {tab === 'pending' && (
+      {tab === 'pending' && (() => {
+        const displayedGrillmasters = showAllPartners ? allGrillmasters : pendingGrillmasters
+        const displayedBoutiques = showAllPartners ? allBoutiques : pendingBoutiques
+        return (
         <div className="space-y-6">
-          {/* Churrasqueiros pendentes */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowAllPartners(false)}
+              className={'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (!showAllPartners ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
+            >
+              Pendentes
+            </button>
+            <button
+              onClick={() => setShowAllPartners(true)}
+              className={'px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ' + (showAllPartners ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700')}
+            >
+              Todos — inclui aprovados e reprovados
+            </button>
+          </div>
+          {/* Churrasqueiros */}
           <div>
             <h2 className="text-lg font-semibold mb-3">
-              Churrasqueiros ({pendingGrillmasters.length})
+              Churrasqueiros ({displayedGrillmasters.length})
             </h2>
-            {pendingGrillmasters.length === 0 && (
-              <p className="text-gray-400 text-sm">Nenhum churrasqueiro aguardando aprovação.</p>
+            {displayedGrillmasters.length === 0 && (
+              <p className="text-gray-400 text-sm">{showAllPartners ? 'Nenhum churrasqueiro cadastrado.' : 'Nenhum churrasqueiro aguardando aprovação.'}</p>
             )}
             <div className="space-y-3">
-              {pendingGrillmasters.map(g => {
+              {displayedGrillmasters.map(g => {
                 const gmState = gmApproveState[g.id] || { pricePerHour: g.pricePerHour }
                 return (
                   <div key={g.id} className="bg-gray-900 rounded-xl p-4">
@@ -434,6 +506,11 @@ export default function AdminPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-semibold">{g.user.name}</p>
+                          {showAllPartners && (
+                            g.rejected ? <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-red-500/20 text-red-400">Reprovado</span>
+                            : g.approved ? <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-green-500/20 text-green-400">Aprovado</span>
+                            : <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-yellow-500/20 text-yellow-400">Pendente</span>
+                          )}
                         </div>
                         <p className="text-xs text-gray-400 mb-0.5">{g.user.email}</p>
                         {g.user.phone && <p className="text-xs text-gray-400 mb-1">📞 {g.user.phone}</p>}
@@ -455,6 +532,16 @@ export default function AdminPage() {
                           {g.churrascoStyle && <span className="text-orange-400">{g.churrascoStyle}</span>}
                           {g.instagram && <span className="text-pink-400">@{g.instagram}</span>}
                         </div>
+                        {g.specialties && (
+                          <p className="text-xs text-gray-400 mt-1">🥩 <span className="text-gray-300">{g.specialties}</span></p>
+                        )}
+                        {g.serviceRegions && g.serviceRegions.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {g.serviceRegions.map(r => (
+                              <span key={r} className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-800 text-gray-400">📍 {r}</span>
+                            ))}
+                          </div>
+                        )}
                         {/* Photo mini-grid */}
                         {(g.photoUrl || (g.galleryUrls && g.galleryUrls.length > 0)) && (
                           <div className="flex gap-1.5 mt-2">
@@ -472,18 +559,22 @@ export default function AdminPage() {
                         )}
                       </div>
                       <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={() => approveGrillmaster(g.id)}
-                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
-                        >
-                          Aprovar
-                        </button>
-                        <button
-                          onClick={() => rejectGrillmaster(g.id)}
-                          className="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
-                        >
-                          Reprovar
-                        </button>
+                        {!g.approved && (
+                          <button
+                            onClick={() => approveGrillmaster(g.id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
+                          >
+                            Aprovar
+                          </button>
+                        )}
+                        {!g.rejected && (
+                          <button
+                            onClick={() => rejectGrillmaster(g.id)}
+                            className="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
+                          >
+                            Reprovar
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -558,20 +649,27 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {/* Açougues pendentes */}
+          {/* Açougues */}
           <div>
             <h2 className="text-lg font-semibold mb-3">
-              Açougues ({pendingBoutiques.length})
+              Açougues ({displayedBoutiques.length})
             </h2>
-            {pendingBoutiques.length === 0 && (
-              <p className="text-gray-400 text-sm">Nenhum açougue aguardando aprovação.</p>
+            {displayedBoutiques.length === 0 && (
+              <p className="text-gray-400 text-sm">{showAllPartners ? 'Nenhum açougue cadastrado.' : 'Nenhum açougue aguardando aprovação.'}</p>
             )}
             <div className="space-y-3">
-              {pendingBoutiques.map(b => (
+              {displayedBoutiques.map(b => (
                 <div key={b.id} className="bg-gray-900 rounded-xl p-4">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-lg">{b.name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-lg">{b.name}</p>
+                        {showAllPartners && (
+                          b.rejected ? <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-red-500/20 text-red-400">Reprovado</span>
+                          : b.approved ? <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-green-500/20 text-green-400">Aprovado</span>
+                          : <span className="text-[10px] px-1.5 py-0.5 rounded-full font-semibold bg-yellow-500/20 text-yellow-400">Pendente</span>
+                        )}
+                      </div>
                       <p className="text-xs text-gray-400">{b.user.name} &middot; {b.user.email}</p>
                       {(b.user.phone || b.phone) && (
                         <p className="text-xs text-gray-400">📞 {b.phone || b.user.phone}</p>
@@ -589,18 +687,22 @@ export default function AdminPage() {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <button
-                        onClick={() => approveBoutique(b.id)}
-                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
-                      >
-                        Aprovar
-                      </button>
-                      <button
-                        onClick={() => rejectBoutique(b.id)}
-                        className="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
-                      >
-                        Reprovar
-                      </button>
+                      {!b.approved && (
+                        <button
+                          onClick={() => approveBoutique(b.id)}
+                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
+                        >
+                          Aprovar
+                        </button>
+                      )}
+                      {!b.rejected && (
+                        <button
+                          onClick={() => rejectBoutique(b.id)}
+                          className="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded-lg text-sm font-medium"
+                        >
+                          Reprovar
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -639,7 +741,8 @@ export default function AdminPage() {
             </div>
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {tab === 'equipe' && (
         <div className="space-y-6">
@@ -994,39 +1097,83 @@ export default function AdminPage() {
         )
       })()}
 
-      {tab === 'contracts' && (
+      {tab === 'contracts' && (() => {
+        const grillmasterContracts = contracts.filter(c => c.partnerType !== 'BOUTIQUE')
+        const boutiqueContracts = contracts.filter(c => c.partnerType === 'BOUTIQUE')
+
+        const contractCard = (c: AdminContract) => (
+          <div key={c.id} className={`bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4 ${c.hidden ? 'opacity-50' : ''}`}>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-medium text-sm">{c.partnerName}</span>
+                <span className={`text-xs px-2 py-0.5 rounded-full ${c.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                  {c.status === 'ACCEPTED' ? 'Aceito' : 'Pendente'}
+                </span>
+                {c.hidden && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-400">Arquivado</span>
+                )}
+              </div>
+              <p className="text-xs text-gray-500">{c.partnerEmail} · {c.partnerDocument}</p>
+              <p className="text-xs text-gray-600">
+                Vigência: {c.durationMonths} meses · Gerado: {new Date(c.generatedAt).toLocaleDateString('pt-BR')}
+                {c.acceptedAt && ` · Aceito: ${new Date(c.acceptedAt).toLocaleDateString('pt-BR')}`}
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                onClick={() => setViewContract(c)}
+                className="text-xs text-orange-400 hover:text-orange-300 border border-orange-900 px-3 py-1.5 rounded-lg"
+              >
+                Ver
+              </button>
+              <button
+                onClick={() => archiveContract(c.id, !c.hidden)}
+                className="text-xs text-gray-400 hover:text-white border border-gray-700 px-3 py-1.5 rounded-lg"
+              >
+                {c.hidden ? 'Restaurar' : 'Arquivar'}
+              </button>
+              <button
+                onClick={() => deleteContract(c.id, c.partnerName)}
+                className="text-xs text-red-400 hover:text-red-300 border border-red-900 px-3 py-1.5 rounded-lg"
+              >
+                Apagar
+              </button>
+            </div>
+          </div>
+        )
+
+        return (
         <div>
+          <label className="flex items-center gap-2 mb-4 cursor-pointer w-fit">
+            <input
+              type="checkbox"
+              checked={showHiddenContracts}
+              onChange={e => setShowHiddenContracts(e.target.checked)}
+              className="accent-orange-500 w-4 h-4"
+            />
+            <span className="text-sm text-gray-300">Mostrar arquivados</span>
+          </label>
 
           {contracts.length === 0 ? (
             <p className="text-gray-500 text-sm">Nenhum contrato gerado até o momento.</p>
           ) : (
-            <div className="space-y-3">
-              {contracts.map(c => (
-                <div key={c.id} className="bg-gray-900 border border-gray-800 rounded-xl p-4 flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium text-sm">{c.partnerName}</span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${c.partnerType === 'BOUTIQUE' ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
-                        {c.partnerType === 'BOUTIQUE' ? 'Açougue' : 'Churrasqueiro'}
-                      </span>
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${c.status === 'ACCEPTED' ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
-                        {c.status === 'ACCEPTED' ? 'Aceito' : 'Pendente'}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-500">{c.partnerEmail} · {c.partnerDocument}</p>
-                    <p className="text-xs text-gray-600">
-                      Vigência: {c.durationMonths} meses · Gerado: {new Date(c.generatedAt).toLocaleDateString('pt-BR')}
-                      {c.acceptedAt && ` · Aceito: ${new Date(c.acceptedAt).toLocaleDateString('pt-BR')}`}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setViewContract(c)}
-                    className="shrink-0 text-xs text-orange-400 hover:text-orange-300 border border-orange-900 px-3 py-1.5 rounded-lg"
-                  >
-                    Ver
-                  </button>
-                </div>
-              ))}
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-lg font-semibold mb-3">Churrasqueiros ({grillmasterContracts.length})</h2>
+                {grillmasterContracts.length === 0 ? (
+                  <p className="text-gray-500 text-sm">Nenhum contrato de churrasqueiro.</p>
+                ) : (
+                  <div className="space-y-3">{grillmasterContracts.map(contractCard)}</div>
+                )}
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold mb-3">Açougues ({boutiqueContracts.length})</h2>
+                {boutiqueContracts.length === 0 ? (
+                  <p className="text-gray-500 text-sm">Nenhum contrato de açougue.</p>
+                ) : (
+                  <div className="space-y-3">{boutiqueContracts.map(contractCard)}</div>
+                )}
+              </div>
             </div>
           )}
 
@@ -1047,7 +1194,8 @@ export default function AdminPage() {
             </div>
           )}
         </div>
-      )}
+        )
+      })()}
       {tab === 'leads' && <LeadsTab />}
 
       {/* ───── TAB: Métricas IA ───── */}
