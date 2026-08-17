@@ -10,6 +10,7 @@ import {
   listAwaitingCertificationHandler,
   certifyGrillmasterHandler,
   listPendingBoutiquesHandler,
+  listAllBoutiquesHandler,
   approveBoutiqueHandler,
   rejectBoutiqueHandler,
   listAllOrdersHandler,
@@ -125,6 +126,7 @@ export async function adminRoutes(app: FastifyInstance) {
   })
 
   app.get('/admin/boutiques/pending', listPendingBoutiquesHandler)
+  app.get('/admin/boutiques', listAllBoutiquesHandler)
   app.patch('/admin/boutiques/:boutiqueId/approve', approveBoutiqueHandler)
   app.patch('/admin/boutiques/:boutiqueId/reject', rejectBoutiqueHandler)
   app.get('/admin/boutiques/:boutiqueId/referrals', async (req, reply) => {

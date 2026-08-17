@@ -6,6 +6,8 @@ import {
   getMyContracts,
   getAllContracts,
   getContractById,
+  archiveContract,
+  deleteContract,
 } from './contracts.service'
 
 export async function generateContractHandler(req: FastifyRequest, reply: FastifyReply) {
@@ -46,8 +48,34 @@ export async function getAllContractsHandler(req: FastifyRequest, reply: Fastify
   try {
     const user = (req as any).user
     if (user.role !== 'ADMIN') return reply.status(403).send({ error: 'Acesso negado' })
-    const contracts = await getAllContracts()
+    const { includeHidden } = req.query as { includeHidden?: string }
+    const contracts = await getAllContracts(includeHidden === 'true')
     return reply.send(contracts)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function archiveContractHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const user = (req as any).user
+    if (user.role !== 'ADMIN') return reply.status(403).send({ error: 'Acesso negado' })
+    const { id } = req.params as { id: string }
+    const { hidden } = req.body as { hidden: boolean }
+    const contract = await archiveContract(id, hidden)
+    return reply.send(contract)
+  } catch (err: any) {
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function deleteContractHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const user = (req as any).user
+    if (user.role !== 'ADMIN') return reply.status(403).send({ error: 'Acesso negado' })
+    const { id } = req.params as { id: string }
+    await deleteContract(id)
+    return reply.status(204).send()
   } catch (err: any) {
     return reply.status(400).send({ error: err.message })
   }

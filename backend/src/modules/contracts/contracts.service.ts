@@ -475,10 +475,19 @@ export async function getMyContracts(userId: string) {
   })
 }
 
-export async function getAllContracts() {
+export async function getAllContracts(includeHidden = false) {
   return prisma.contract.findMany({
+    where: includeHidden ? undefined : { hidden: false },
     orderBy: { createdAt: 'desc' },
   })
+}
+
+export async function archiveContract(contractId: string, hidden: boolean) {
+  return prisma.contract.update({ where: { id: contractId }, data: { hidden } })
+}
+
+export async function deleteContract(contractId: string) {
+  await prisma.contract.delete({ where: { id: contractId } })
 }
 
 export async function getContractById(contractId: string, userId: string) {

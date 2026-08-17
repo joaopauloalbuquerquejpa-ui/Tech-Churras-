@@ -15,6 +15,7 @@ import {
   listAwaitingCertification,
   certifyGrillmaster,
   listPendingBoutiques,
+  listAllBoutiques,
   approveBoutique,
   rejectBoutique,
   listAllOrders,
@@ -100,6 +101,15 @@ export async function certifyGrillmasterHandler(req: FastifyRequest, reply: Fast
 export async function listPendingBoutiquesHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
     return reply.send(await listPendingBoutiques())
+  } catch (err: any) {
+    return reply.status(500).send({ error: err.message })
+  }
+}
+
+export async function listAllBoutiquesHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const { skip, take } = req.query as { skip?: string; take?: string }
+    return reply.send(await listAllBoutiques(Number(skip ?? 0), Math.min(Number(take ?? 200), 500)))
   } catch (err: any) {
     return reply.status(500).send({ error: err.message })
   }

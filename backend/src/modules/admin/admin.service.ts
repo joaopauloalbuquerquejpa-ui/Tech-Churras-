@@ -185,6 +185,21 @@ export async function listPendingBoutiques() {
   return list.map(b => ({ ...b, pixOwnership: checkPixOwnership(b.pixKey, b.cpfCnpj) }))
 }
 
+// Diretório completo pra admin revisar qualquer açougue a qualquer momento —
+// não só os pendentes, que somem da tela assim que aprovados.
+export async function listAllBoutiques(skip = 0, take = 200) {
+  const [data, total] = await Promise.all([
+    prisma.boutique.findMany({
+      include: { user: { select: { name: true, email: true, phone: true, phoneVerified: true } } },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take,
+    }),
+    prisma.boutique.count(),
+  ])
+  return { data: data.map(b => ({ ...b, pixOwnership: checkPixOwnership(b.pixKey, b.cpfCnpj) })), total, skip, take }
+}
+
 function generateReferralCode(name: string): string {
   const prefix = name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 4) || 'ACOU'
   const suffix = String(Math.floor(1000 + Math.random() * 9000))
