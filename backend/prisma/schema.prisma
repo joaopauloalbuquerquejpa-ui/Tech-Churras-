@@ -260,6 +260,12 @@ model Order {
   grillmasterAcceptedAt DateTime?
   dispatchWave          Int       @default(0)
   dispatchDeadline      DateTime?
+  // Preenchido só quando o cliente NÃO escolhe um Grillmaster (deixa a Tech
+  // Churras notificar todos da região) — é o valor/hora médio usado pra
+  // cobrar o cliente antes de saber quem vai aceitar. Também vira teto de
+  // preço no despacho: só GM com pricePerHour <= isso pode aceitar, senão
+  // ele trabalharia abaixo do próprio preço cadastrado.
+  estimatedHourlyRate   Float?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 

@@ -146,10 +146,30 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   if (grillmaster && auxiliaresNeeded > 0 && !grillmaster.unlimitedAvailability && !grillmaster.bringsAuxiliar) {
     throw new Error(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar cadastrado, ou reduza o número de convidados.`)
   }
-  const auxiliarCost = grillmaster && !grillmaster.unlimitedAvailability
+  // Cliente pode deixar sem Grillmaster escolhido (Tech Churras notifica todos
+  // da região) — nesse caso cobra pela mediana de preço/hora do mercado (não
+  // média: um único perfil-âncora premium distorceria a média pra cima) e
+  // grava esse valor no pedido. getEligibleGrillmasters usa isso como teto
+  // de preço no despacho, pra nenhum Grillmaster ser escalado a trabalhar
+  // abaixo do próprio preço cadastrado.
+  let estimatedHourlyRate: number | null = null
+  if (!grillmaster) {
+    const pool = await prisma.grillmaster.findMany({
+      where: { approved: true, available: true },
+      select: { pricePerHour: true },
+    })
+    const prices = pool.map(g => g.pricePerHour).sort((a, b) => a - b)
+    estimatedHourlyRate = prices.length === 0 ? 100
+      : prices.length % 2 === 0 ? (prices[prices.length / 2 - 1] + prices[prices.length / 2]) / 2
+      : prices[(prices.length - 1) / 2]
+  }
+
+  const auxiliarCost = auxiliaresNeeded > 0 && (grillmaster ? !grillmaster.unlimitedAvailability : true)
     ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * (data.eventHours ?? 4)
     : 0
-  const grillmasterCost = grillmaster ? grillmaster.pricePerHour * (data.eventHours ?? 4) + auxiliarCost : 0
+  const grillmasterCost = grillmaster
+    ? grillmaster.pricePerHour * (data.eventHours ?? 4) + auxiliarCost
+    : estimatedHourlyRate! * (data.eventHours ?? 4) + auxiliarCost
 
   // F1: gmAccompaniments removidos do MVP — preço não tem backing em DB, cliente poderia manipular
   const accompLaborTotal = 0
@@ -227,6 +247,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         ...orderData,
         totalPrice,
         laborPrice: grillmasterCost,
+        estimatedHourlyRate,
         serviceFee,
         // Nunca deixar NULL: filtros Prisma com { not: ... } excluem NULL e já
         // quebraram a confirmação de pagamento do webhook

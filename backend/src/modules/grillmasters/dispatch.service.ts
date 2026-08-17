@@ -82,6 +82,10 @@ async function getEligibleGrillmasters(order: Order, opts: { excludeIds: string[
     if (blockedIds.has(g.id) && !g.unlimitedAvailability) return false
     if (busyIds.has(g.id) && !g.unlimitedAvailability) return false
     if (auxiliaresNeeded > 0 && !g.unlimitedAvailability && !g.bringsAuxiliar) return false
+    // Pedido sem GM escolhido pelo cliente foi cobrado pela mediana de mercado
+    // (orders.service.ts) — ninguém pode ser despachado pra trabalhar abaixo
+    // do próprio preço cadastrado.
+    if (order.estimatedHourlyRate != null && g.pricePerHour > order.estimatedHourlyRate) return false
     return true
   })
 
