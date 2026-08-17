@@ -79,6 +79,12 @@ async function getTestimonials(): Promise<Testimonial[]> {
 // Preço médio real de mão de obra (GMs aprovados) e de carne (produtos CARNE/kg
 // dos açougues aprovados) — a calculadora da home usa isso em vez de constante
 // fixa. Cai num fallback conservador se a API falhar ou não tiver dado ainda.
+function median(nums: number[]): number {
+  const sorted = [...nums].sort((a, b) => a - b)
+  const mid = Math.floor(sorted.length / 2)
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
+}
+
 async function getPricingAverages(): Promise<{ avgGmPricePerHour: number; avgMeatPricePerKg: number }> {
   const FALLBACK = { avgGmPricePerHour: 100, avgMeatPricePerKg: 90 }
   try {
@@ -89,8 +95,10 @@ async function getPricingAverages(): Promise<{ avgGmPricePerHour: number; avgMea
 
     const gmData = gmRes.ok ? await gmRes.json() : null
     const gms: { pricePerHour: number }[] = Array.isArray(gmData) ? gmData : (gmData?.grillmasters ?? [])
+    // Mediana, não média — um único perfil-âncora de preço premium (ex: R$2.000/h)
+    // distorce a média inteira pra cima; a mediana continua representativa.
     const avgGmPricePerHour = gms.length > 0
-      ? gms.reduce((sum, g) => sum + g.pricePerHour, 0) / gms.length
+      ? median(gms.map(g => g.pricePerHour))
       : FALLBACK.avgGmPricePerHour
 
     const boutiquesData = boutiquesRes.ok ? await boutiquesRes.json() : []

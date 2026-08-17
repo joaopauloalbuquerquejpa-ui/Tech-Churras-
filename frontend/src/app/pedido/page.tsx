@@ -136,6 +136,7 @@ function PedidoForm() {
 
   // Step 3 — churrasqueiro
   const [selectedGm, setSelectedGm] = useState('')
+  const [gmChoiceMode, setGmChoiceMode] = useState<'manual' | 'auto'>('manual')
   const [sideDishChoice, setSideDishChoice] = useState<'' | 'ACOUGUE' | 'GRILLMASTER'>('')
 
   // Step 4 — guest
@@ -148,8 +149,23 @@ function PedidoForm() {
   const gm = grillmasters.find(g => g.id === selectedGm)
   const auxiliaresNeeded = calcAuxiliaresNeeded(totalPeople)
   const gmBlocked = (g: Grillmaster) => auxiliaresNeeded > 0 && !g.bringsAuxiliar && !g.unlimitedAvailability
-  const auxiliarCost = gm && !gm.unlimitedAvailability ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * eventHours : 0
-  const gmCost = gm ? gm.pricePerHour * eventHours + auxiliarCost : 0
+  // "Deixa a Tech Churras decidir" cobra pela mediana de mercado (não média —
+  // um único perfil-âncora de preço premium distorceria pra cima), mesmo
+  // cálculo que o backend usa pra cobrar de verdade — sem isso o resumo
+  // mostraria um total menor do que o cliente realmente paga.
+  const estimatedHourlyRate = (() => {
+    if (grillmasters.length === 0) return 100
+    const sorted = [...grillmasters.map(g => g.pricePerHour)].sort((a, b) => a - b)
+    const mid = Math.floor(sorted.length / 2)
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
+  })()
+  const showingAuto = gmChoiceMode === 'auto'
+  const auxiliarCost = auxiliaresNeeded > 0 && (gm ? !gm.unlimitedAvailability : showingAuto)
+    ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * eventHours
+    : 0
+  const gmCost = gm
+    ? gm.pricePerHour * eventHours + auxiliarCost
+    : showingAuto ? estimatedHourlyRate * eventHours + auxiliarCost : 0
   const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * totalPeople).toFixed(2)
     : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * totalPeople).toFixed(2)
     : 0
@@ -338,7 +354,7 @@ function PedidoForm() {
 
   function next() {
     if (step === 1 && (!eventDate || !eventAddress.trim())) { alert('Preencha a data e o endereço do evento'); return }
-    if (step === 3 && !selectedGm) { alert('Selecione um churrasqueiro'); return }
+    if (step === 3 && gmChoiceMode === 'manual' && !selectedGm) { alert('Selecione um churrasqueiro'); return }
     if (step === 3 && gm && gmBlocked(gm)) { alert(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar, ou reduza o número de convidados.`); return }
     setStep(s => s + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -382,7 +398,7 @@ function PedidoForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          grillmasterId: selectedGm,
+          grillmasterId: gmChoiceMode === 'manual' ? selectedGm : undefined,
           boutiqueId: boutiqueId || undefined,
           eventDate: new Date(`${eventDate}T${eventTime}`).toISOString(),
           eventAddress: eventComplement.trim() ? `${eventAddress}, ${eventComplement.trim()}` : eventAddress,
@@ -676,12 +692,37 @@ function PedidoForm() {
               <h2 className="font-bold text-base">Escolha o Churrasqueiro</h2>
               <p className="text-xs text-gray-500">Profissionais certificados pela Chancela Jota Albuquerque</p>
             </div>
-            {grillmasters.length === 0 && (
+
+            {/* Escolher um específico vs. deixar a Tech Churras notificar todos
+                os disponíveis na região — backend já sabe achar e despachar
+                (dispatch.service.ts), só faltava essa escolha existir na tela. */}
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setGmChoiceMode('manual')}
+                className={'text-left rounded-xl p-3 border-2 transition-all ' +
+                  (gmChoiceMode === 'manual' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                <p className="text-sm font-semibold text-white">Escolher eu mesmo</p>
+                <p className="text-xs text-gray-500 mt-0.5">Veja avaliações e especialidades</p>
+              </button>
+              <button type="button" onClick={() => { setGmChoiceMode('auto'); setSelectedGm('') }}
+                className={'text-left rounded-xl p-3 border-2 transition-all ' +
+                  (gmChoiceMode === 'auto' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                <p className="text-sm font-semibold text-white">Deixa com a Tech Churras</p>
+                <p className="text-xs text-gray-500 mt-0.5">Notificamos os disponíveis na região</p>
+              </button>
+            </div>
+
+            {gmChoiceMode === 'auto' && (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-sm text-gray-300">
+                Vamos notificar todos os churrasqueiros chancelados disponíveis na sua região e data — o primeiro que aceitar fica com o seu evento. Você recebe a confirmação assim que alguém aceitar.
+              </div>
+            )}
+
+            {gmChoiceMode === 'manual' && grillmasters.length === 0 && (
               <p className="text-gray-500 text-center py-10">Nenhum churrasqueiro disponível no momento.</p>
             )}
 
             {/* Recomendados pela IA */}
-            {(loadingRecommended || recommendedGms.length > 0) && (
+            {gmChoiceMode === 'manual' && (loadingRecommended || recommendedGms.length > 0) && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-1">
                   ✨ Recomendados para você
@@ -738,10 +779,11 @@ function PedidoForm() {
                 )}
               </div>
             )}
-            {recommendedGms.length > 0 && grillmasters.length > 0 && (
+            {gmChoiceMode === 'manual' && recommendedGms.length > 0 && grillmasters.length > 0 && (
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Todos os churrasqueiros</p>
             )}
 
+            {gmChoiceMode === 'manual' && (
             <div className="space-y-3">
               {grillmasters.filter(g => !recommendedGms.some(r => r.id === g.id)).map(g => {
                 const sel = selectedGm === g.id
@@ -789,6 +831,7 @@ function PedidoForm() {
                 )
               })}
             </div>
+            )}
 
             {/* Opção do açougue já foi decidida no passo 2 (se ele oferece).
                 Aqui só entra a alternativa do Grillmaster, quando ele
@@ -854,6 +897,12 @@ function PedidoForm() {
               <p className="font-bold text-white">Resumo do pedido</p>
               {boutique && <div className="flex justify-between text-gray-400"><span>Açougue</span><span className="text-white">{boutique.name}</span></div>}
               {gm && <div className="flex justify-between text-gray-400"><span>Churrasqueiro</span><span className="text-white">{gm.user.name}</span></div>}
+              {!gm && showingAuto && (
+                <div className="flex justify-between text-gray-400 gap-4">
+                  <span className="shrink-0">Churrasqueiro</span>
+                  <span className="text-white text-right text-xs">A definir — notificamos os disponíveis na região</span>
+                </div>
+              )}
               <div className="flex justify-between text-gray-400">
                 <span>Evento</span>
                 <span className="text-white">{eventDate ? new Date(eventDate + 'T12:00').toLocaleDateString('pt-BR') : '—'} às {eventTime}</span>
@@ -866,7 +915,7 @@ function PedidoForm() {
               )}
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
               {productsCost > 0 && <div className="flex justify-between text-gray-400"><span>Cortes</span><span className="text-orange-400">R$ {productsCost.toFixed(2)}</span></div>}
-              {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h)</span><span className="text-orange-400">R$ {(gmCost - auxiliarCost).toFixed(2)}</span></div>}
+              {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h){showingAuto && !gm ? ' — estimado' : ''}</span><span className="text-orange-400">R$ {(gmCost - auxiliarCost).toFixed(2)}</span></div>}
               {auxiliarCost > 0 && <div className="flex justify-between text-gray-400"><span>Auxiliar ({auxiliaresNeeded}x, {eventHours}h)</span><span className="text-orange-400">R$ {auxiliarCost.toFixed(2)}</span></div>}
               {sideDishFee > 0 && (
                 <div className="flex justify-between text-gray-400">
