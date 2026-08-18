@@ -186,7 +186,12 @@ function PedidoForm() {
     Promise.all([
       fetch(`${API_URL}/boutiques/${boutiqueId}`).then(r => r.ok ? r.json() : null),
       fetch(`${API_URL}/boutiques/${boutiqueId}/products`).then(r => r.json()),
-      fetch(`${API_URL}/grillmasters`).then(r => r.json()),
+      // limit alto de propósito: o backend usa TODOS os GMs aprovados+disponíveis
+      // pra calcular a mediana de preço real cobrada (orders.service.ts) — sem
+      // isso, o resumo do passo 4 mostrava a mediana só dos 9 primeiros (default
+      // da paginação pública), divergindo silenciosamente do valor real cobrado
+      // assim que o catálogo passar de 9 churrasqueiros.
+      fetch(`${API_URL}/grillmasters?limit=200&available=true`).then(r => r.json()),
       fetch(`${API_URL}/boutiques/${boutiqueId}/kits`).then(r => r.ok ? r.json() : []),
     ]).then(([b, prods, gms, k]) => {
       setBoutique(b)
@@ -713,7 +718,7 @@ function PedidoForm() {
 
             {gmChoiceMode === 'auto' && (
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-sm text-gray-300">
-                Vamos notificar todos os churrasqueiros chancelados disponíveis na sua região e data — o primeiro que aceitar fica com o seu evento. Você recebe a confirmação assim que alguém aceitar.
+                Vamos notificar todos os churrasqueiros aprovados e disponíveis na sua região e data — o primeiro que aceitar fica com o seu evento. Você recebe a confirmação assim que alguém aceitar.
               </div>
             )}
 

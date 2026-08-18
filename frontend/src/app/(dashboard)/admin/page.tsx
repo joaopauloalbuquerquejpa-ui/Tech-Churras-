@@ -232,13 +232,16 @@ export default function AdminPage() {
     else setRefreshing(true)
     const h = { Authorization: 'Bearer ' + getToken() }
     try {
-      const [s, o, pg, awaitCert, pb, c, allGms, allBts] = await Promise.all([
+      // Contratos NÃO entra nesse Promise.all — tem fetch próprio
+      // (fetchContracts) que respeita o toggle "mostrar arquivados". Se
+      // entrasse aqui também, o polling de 30s abaixo sobrescrevia a lista
+      // sem includeHidden e o toggle parecia se desligar sozinho.
+      const [s, o, pg, awaitCert, pb, allGms, allBts] = await Promise.all([
         fetch(API_URL + '/admin/stats', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/orders', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/grillmasters/pending', { headers: h }).then(r => r.json()),
         fetch(API_URL + '/admin/grillmasters/awaiting-certification', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/boutiques/pending', { headers: h }).then(r => r.json()),
-        fetch(API_URL + '/contracts/all', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/grillmasters', { headers: h }).then(r => r.ok ? r.json() : []),
         fetch(API_URL + '/admin/boutiques', { headers: h }).then(r => r.ok ? r.json() : []),
       ])
@@ -251,7 +254,6 @@ export default function AdminPage() {
       setGmApproveState(prev => ({ ...init, ...prev }))
       setAwaitingCertification(Array.isArray(awaitCert) ? awaitCert : [])
       setPendingBoutiques(Array.isArray(pb) ? pb : [])
-      setContracts(Array.isArray(c) ? c : [])
       setAllBoutiques(Array.isArray(allBts) ? allBts : (allBts?.data ?? []))
       setLastUpdated(new Date())
 
@@ -369,7 +371,12 @@ export default function AdminPage() {
       method: 'DELETE',
       headers: { Authorization: 'Bearer ' + getToken() },
     })
-    if (res.ok || res.status === 204) setContracts(prev => prev.filter(c => c.id !== id))
+    if (res.ok || res.status === 204) {
+      setContracts(prev => prev.filter(c => c.id !== id))
+    } else {
+      const body = await res.json().catch(() => null)
+      alert(body?.error || 'Não foi possível apagar esse contrato.')
+    }
   }
 
   async function approveGrillmaster(id: string) {
