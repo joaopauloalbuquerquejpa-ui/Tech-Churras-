@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { LockIcon, PinIcon, CheckIcon, CameraIcon } from '@/components/icons/Icons'
 import { OrdersTab } from './_tabs/OrdersTab'
+import { UsersTab } from './_tabs/UsersTab'
 import { LeadsTab } from './_tabs/LeadsTab'
 import { ResumoTab } from './_tabs/ResumoTab'
 import { MetricasTab } from './_tabs/MetricasTab'
@@ -176,7 +177,7 @@ interface ScheduleDay {
   available: boolean
 }
 
-type Tab = 'stats' | 'orders' | 'pending' | 'financeiro' | 'contracts' | 'equipe' | 'leads' | 'metricas'
+type Tab = 'stats' | 'orders' | 'pending' | 'users' | 'financeiro' | 'contracts' | 'equipe' | 'leads' | 'metricas'
 
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null)
@@ -483,6 +484,8 @@ export default function AdminPage() {
       {tab === 'stats' && stats && <ResumoTab stats={stats} zapiStatus={zapiStatus} />}
 
       {tab === 'orders' && <OrdersTab />}
+
+      {tab === 'users' && <UsersTab />}
 
       {tab === 'pending' && (() => {
         const displayedGrillmasters = showAllPartners ? allGrillmasters : pendingGrillmasters

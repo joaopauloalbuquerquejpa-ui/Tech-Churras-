@@ -3,13 +3,14 @@ import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import {
   ChartIcon, ClipboardIcon, AlertIcon, CashIcon, CardIcon, ChefIcon,
-  TargetIcon, RocketIcon, GiftIcon, StarIcon, StoreIcon, LockIcon,
+  TargetIcon, RocketIcon, GiftIcon, StarIcon, StoreIcon, LockIcon, PersonIcon,
 } from '@/components/icons/Icons'
 
 const OPERACAO = [
   { tab: 'stats', label: 'Resumo', icon: ChartIcon },
   { tab: 'orders', label: 'Pedidos', icon: ClipboardIcon },
   { tab: 'pending', label: 'Pendentes', icon: AlertIcon },
+  { tab: 'users', label: 'Usuários', icon: PersonIcon },
   { tab: 'financeiro', label: 'Financeiro', icon: CashIcon },
   { tab: 'contracts', label: 'Contratos', icon: CardIcon },
   { tab: 'equipe', label: 'Minha Equipe', icon: ChefIcon },
