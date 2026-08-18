@@ -61,11 +61,17 @@ async function main() {
         latitude: -23.5614,
         longitude: -46.6558,
         available: true,
+        manualBookingOnly: true,
       },
     })
     console.log('✅ Perfil de churrasqueiro pessoal criado — R$2.000/h, CEO & Fundador')
   } else {
-    console.log('✅ Perfil de churrasqueiro pessoal já existe')
+    if (!gm.manualBookingOnly) {
+      gm = await prisma.grillmaster.update({ where: { id: gm.id }, data: { manualBookingOnly: true } })
+      console.log('✅ Perfil já existia — marcado como manualBookingOnly (fora do despacho automático)')
+    } else {
+      console.log('✅ Perfil de churrasqueiro pessoal já existe')
+    }
   }
 
   console.log('\nID do Grillmaster:', gm.id)

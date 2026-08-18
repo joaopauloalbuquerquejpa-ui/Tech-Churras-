@@ -132,6 +132,9 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   if (data.grillmasterId && !grillmaster?.approved) {
     throw new Error('Este churrasqueiro não está disponível.')
   }
+  if (data.grillmasterId && grillmaster && !grillmaster.available) {
+    throw new Error('Este churrasqueiro está indisponível no momento.')
+  }
   const boutique = data.boutiqueId
     ? await prisma.boutique.findUnique({ where: { id: data.boutiqueId }, select: { approved: true, offersSideDishPrep: true } })
     : null
@@ -154,8 +157,11 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   // abaixo do próprio preço cadastrado.
   let estimatedHourlyRate: number | null = null
   if (!grillmaster) {
+    // manualBookingOnly (perfil premium/exclusivo, ex: CEO a R$2.000/h) fica
+    // fora — só reservável escolhendo de propósito, não deve nem distorcer a
+    // mediana nem ser candidato ao despacho automático.
     const pool = await prisma.grillmaster.findMany({
-      where: { approved: true, available: true },
+      where: { approved: true, available: true, manualBookingOnly: false },
       select: { pricePerHour: true },
     })
     const prices = pool.map(g => g.pricePerHour).sort((a, b) => a - b)

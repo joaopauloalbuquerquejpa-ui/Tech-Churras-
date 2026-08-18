@@ -67,8 +67,11 @@ async function getEligibleGrillmasters(order: Order, opts: { excludeIds: string[
     }).then(rows => new Set(rows.map(r => r.grillmasterId))),
   ])
 
+  // manualBookingOnly nunca é candidato de despacho automático/escalado — só
+  // entra num pedido se o cliente escolheu ele de propósito (esse caminho não
+  // passa por aqui, cria o dispatch direto em startDispatch).
   const all = await prisma.grillmaster.findMany({
-    where: { approved: true, available: true, id: { notIn: opts.excludeIds } },
+    where: { approved: true, available: true, manualBookingOnly: false, id: { notIn: opts.excludeIds } },
     include: { user: { select: { id: true, name: true, phone: true } } },
   })
 
@@ -181,13 +184,18 @@ export async function acceptDispatch(userId: string, orderId: string) {
   if (!dispatch) throw new Error('Você não foi convidado para este pedido, ou ele já foi resolvido')
 
   const claim = await prisma.order.updateMany({
-    where: { id: orderId, grillmasterAcceptedAt: null },
+    // status excluído: sem isso, um pedido cancelado pelo cliente entre o
+    // despacho e o aceite (ex: já reembolsado) ainda podia ser "confirmado"
+    // por um GM que só viu a notificação depois — pedido volta a parecer
+    // ativo no painel do GM mesmo já cancelado/estornado.
+    where: { id: orderId, grillmasterAcceptedAt: null, status: { not: 'CANCELLED' } },
     data: { grillmasterId: gm.id, grillmasterAcceptedAt: new Date(), dispatchDeadline: null },
   })
 
   if (claim.count === 0) {
     await prisma.orderDispatch.update({ where: { id: dispatch.id }, data: { response: 'EXPIRED', respondedAt: new Date() } })
-    throw new Error('Esse pedido já foi confirmado por outro churrasqueiro')
+    const stillOpen = await prisma.order.findUnique({ where: { id: orderId }, select: { status: true } })
+    throw new Error(stillOpen?.status === 'CANCELLED' ? 'Esse pedido foi cancelado pelo cliente.' : 'Esse pedido já foi confirmado por outro churrasqueiro')
   }
 
   await prisma.$transaction([

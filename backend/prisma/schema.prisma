@@ -101,6 +101,11 @@ model Grillmaster {
   unlimitedAvailability Boolean @default(false)
   bringsAuxiliar Boolean @default(false)
   serviceRegions     String[] @default([])
+  // Perfil premium/exclusivo (ex: CEO a R$2.000/h) — só reservável escolhendo
+  // ele de propósito. Fora do pool de "deixa com a Tech Churras" (auto-despacho)
+  // pra não ser notificado em pedidos aleatórios nem distorcer a mediana de
+  // preço usada pra cobrar quem topa esse modo.
+  manualBookingOnly  Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

@@ -487,7 +487,17 @@ export async function archiveContract(contractId: string, hidden: boolean) {
 }
 
 export async function deleteContract(contractId: string) {
+  const contract = await prisma.contract.findUnique({ where: { id: contractId } })
+  if (!contract) return
+  // Contrato ACCEPTED tem acceptIp/acceptUserAgent/timestamp como registro do
+  // aceite eletrônico (art. 107 CC) — apagar de vez destrói a única prova
+  // disso. Arquivar (hidden) já resolve "tirar da lista"; apagar de verdade
+  // fica só pra minuta nunca aceita (lixo de teste de verdade).
+  if (contract.status === 'ACCEPTED') {
+    throw new Error('Contrato já aceito não pode ser apagado — use arquivar em vez de apagar.')
+  }
   await prisma.contract.delete({ where: { id: contractId } })
+  console.log(JSON.stringify({ audit: 'CONTRACT_DELETED', contractId, partnerName: contract.partnerName, partnerType: contract.partnerType, status: contract.status, ts: new Date().toISOString() }))
 }
 
 export async function getContractById(contractId: string, userId: string) {
