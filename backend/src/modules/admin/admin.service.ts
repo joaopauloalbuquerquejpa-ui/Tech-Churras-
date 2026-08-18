@@ -34,15 +34,23 @@ export async function updateGrillmasterProfile(grillmasterId: string, data: Reco
   return prisma.grillmaster.update({ where: { id: grillmasterId }, data: safe })
 }
 
-export async function listUsers(skip = 0, take = 100) {
+export async function listUsers(skip = 0, take = 100, search?: string) {
+  const where = search
+    ? { OR: [{ name: { contains: search, mode: 'insensitive' as const } }, { email: { contains: search, mode: 'insensitive' as const } }] }
+    : undefined
   const [data, total] = await Promise.all([
     prisma.user.findMany({
-      select: { id: true, name: true, email: true, role: true, createdAt: true },
+      where,
+      select: {
+        id: true, name: true, email: true, phone: true, phoneVerified: true,
+        role: true, points: true, createdAt: true,
+        _count: { select: { orders: true } },
+      },
       orderBy: { createdAt: 'desc' },
       skip,
       take,
     }),
-    prisma.user.count(),
+    prisma.user.count({ where }),
   ])
   return { data, total, skip, take }
 }

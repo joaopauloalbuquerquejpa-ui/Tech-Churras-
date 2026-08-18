@@ -25,8 +25,8 @@ import {
 
 export async function listUsersHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const { skip, take } = req.query as { skip?: string; take?: string }
-    return reply.send(await listUsers(Number(skip ?? 0), Math.min(Number(take ?? 100), 500)))
+    const { skip, take, search } = req.query as { skip?: string; take?: string; search?: string }
+    return reply.send(await listUsers(Number(skip ?? 0), Math.min(Number(take ?? 100), 500), search || undefined))
   } catch (err: any) {
     return reply.status(500).send({ error: err.message })
   }
