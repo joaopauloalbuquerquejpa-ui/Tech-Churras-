@@ -11,6 +11,7 @@ import { fetchWithTimeout } from '../../utils/http'
 import { withSerializableRetry } from '../../utils/db-retry'
 import { startDispatch } from '../grillmasters/dispatch.service'
 import { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded } from '../../utils/pricing'
+import { maskPhone } from '../../utils/maskPii'
 
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   PENDING:     ['CONFIRMED', 'CANCELLED'],
@@ -371,7 +372,7 @@ async function sendWhatsAppMessage(phone: string, message: string, label: string
       { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: cleanPhone, message }) }
     )
     if (!res.ok) console.log(`[WhatsApp] ${label} erro:`, res.status)
-    else console.log(`[WhatsApp] ${label} enviado para`, cleanPhone)
+    else console.log(`[WhatsApp] ${label} enviado para`, maskPhone(cleanPhone))
   } catch (err) {
     console.log(`[WhatsApp] ${label} falha:`, err)
   }

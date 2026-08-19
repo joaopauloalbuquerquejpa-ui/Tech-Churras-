@@ -1,4 +1,5 @@
 import { fetchWithTimeout } from '../../utils/http'
+import { maskEmail } from '../../utils/maskPii'
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY
 const FROM = 'Tech Churras <noreply@techchurras.com.br>'
@@ -22,13 +23,13 @@ async function sendEmail(to: string, subject: string, html: string, label: strin
       body: JSON.stringify({ from: FROM, to: [to], subject, html }),
     })
     if (!res.ok) {
-      console.error(JSON.stringify({ event: 'email_error', label, to, status: res.status, ts: new Date().toISOString() }))
+      console.error(JSON.stringify({ event: 'email_error', label, to: maskEmail(to), status: res.status, ts: new Date().toISOString() }))
       return false
     }
-    console.log(JSON.stringify({ event: 'email_sent', label, to, ts: new Date().toISOString() }))
+    console.log(JSON.stringify({ event: 'email_sent', label, to: maskEmail(to), ts: new Date().toISOString() }))
     return true
   } catch (err: any) {
-    console.error(JSON.stringify({ event: 'email_exception', label, to, message: err?.message, ts: new Date().toISOString() }))
+    console.error(JSON.stringify({ event: 'email_exception', label, to: maskEmail(to), message: err?.message, ts: new Date().toISOString() }))
     return false
   }
 }

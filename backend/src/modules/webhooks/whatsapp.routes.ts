@@ -4,6 +4,7 @@ import { promises as dns } from 'dns'
 import net from 'net'
 import { prisma } from '../../config/prisma'
 import { fetchWithTimeout } from '../../utils/http'
+import { safeCompare } from '../../utils/safeCompare'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -122,15 +123,30 @@ async function saveConv(
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
+// Telefone não tem formato canônico no banco (usuário digita como quiser no
+// cadastro) — normaliza pra só dígitos, sem DDI 55, e sem o 9º dígito (que é
+// opcional/ambíguo em número de celular brasileiro: XXXXXXXX vs 9XXXXXXXX).
+function normalizePhone(raw: string): string {
+  const digits = raw.replace(/\D/g, '').replace(/^55/, '')
+  return digits.length === 9 ? digits : digits.replace(/^(\d{2})9(\d{8})$/, '$1$2')
+}
+
 async function findCustomerByPhone(phone: string) {
-  const clean = phone.replace(/\D/g, '').replace(/^55/, '')
-  return prisma.user.findFirst({
+  const target = normalizePhone(phone)
+  if (target.length < 8) return null
+  // `contains` sozinho já causou vazamento real: número normalizado podia
+  // ser substring do número (com formatação diferente) de OUTRO cliente,
+  // entregando pedido/valor de terceiro pra quem mandou "oi" no WhatsApp.
+  // Usa contains só pra filtrar candidatos do banco (Prisma não normaliza em
+  // WHERE), depois confirma em memória com igualdade exata normalizada —
+  // nunca retorna por match parcial.
+  const candidates = await prisma.user.findMany({
     where: {
-      phone: { contains: clean },
+      phone: { contains: target.slice(-8) },
       role: { in: ['CUSTOMER', 'GRILLMASTER'] },
     },
     select: {
-      id: true, name: true, role: true,
+      id: true, name: true, role: true, phone: true,
       orders: {
         where: { status: { not: 'CANCELLED' } },
         orderBy: { createdAt: 'desc' },
@@ -143,6 +159,8 @@ async function findCustomerByPhone(phone: string) {
       },
     },
   })
+  const matches = candidates.filter(c => c.phone && normalizePhone(c.phone) === target)
+  return matches.length === 1 ? matches[0] : null
 }
 
 const statusPtBR: Record<string, string> = {
@@ -286,7 +304,7 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
     // F4: token movido para header Authorization (evita exposição em logs de URL)
     const authHeader = request.headers['authorization'] as string | undefined
     const token = authHeader?.replace(/^Bearer\s+/i, '')
-    if (!process.env.WEBHOOK_SECRET || token !== process.env.WEBHOOK_SECRET) {
+    if (!safeCompare(token, process.env.WEBHOOK_SECRET)) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
 
@@ -411,7 +429,7 @@ export async function whatsappWebhookRoutes(app: FastifyInstance) {
   app.get('/webhooks/leads', async (request, reply) => {
     const authHeader = request.headers['authorization'] as string | undefined
     const token = authHeader?.replace(/^Bearer\s+/i, '')
-    if (!process.env.WEBHOOK_SECRET || token !== process.env.WEBHOOK_SECRET) return reply.status(401).send({ error: 'Unauthorized' })
+    if (!safeCompare(token, process.env.WEBHOOK_SECRET)) return reply.status(401).send({ error: 'Unauthorized' })
     const leads = await prisma.lead.findMany({ orderBy: { createdAt: 'desc' }, take: 100 })
     return reply.send(leads)
   })

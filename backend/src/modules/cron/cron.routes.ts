@@ -6,6 +6,8 @@ import { sendDailySummary } from '../admin/admin.service'
 import { fetchWithTimeout } from '../../utils/http'
 import { processNotificationRetries } from '../notifications/retry-queue.service'
 import { processDispatchEscalations } from '../grillmasters/dispatch.service'
+import { safeCompare } from '../../utils/safeCompare'
+import { maskPhone } from '../../utils/maskPii'
 
 // Dead-man's-switch: avisa se o cron-job.org parar de chamar essa rota (já aconteceu antes, sem alerta).
 // HEALTHCHECKS_PING_URL vem de https://healthchecks.io — sem a env var configurada, é só um no-op.
@@ -35,7 +37,7 @@ async function sendWhatsAppReminder(phone: string, customerName: string, orderId
       }
     )
     if (!res.ok) console.log('[Reminder WhatsApp] Erro:', res.status, await res.text())
-    else console.log('[Reminder WhatsApp] Enviado para', cleanPhone)
+    else console.log('[Reminder WhatsApp] Enviado para', maskPhone(cleanPhone))
   } catch (err) {
     console.log('[Reminder WhatsApp] Falha:', err)
   }
@@ -43,7 +45,7 @@ async function sendWhatsAppReminder(phone: string, customerName: string, orderId
 
 export async function cronRoutes(app: FastifyInstance) {
   app.get('/cron/event-reminders', async (req, reply) => {
-    if (!process.env.CRON_SECRET || req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+    if (!safeCompare(req.headers['x-cron-secret'] as string | undefined, process.env.CRON_SECRET)) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
 
@@ -147,7 +149,7 @@ export async function cronRoutes(app: FastifyInstance) {
 
   // ── Resumo diário às 9h para o fundador (Feature 1)
   app.get('/cron/daily-summary', async (req, reply) => {
-    if (!process.env.CRON_SECRET || req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+    if (!safeCompare(req.headers['x-cron-secret'] as string | undefined, process.env.CRON_SECRET)) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
     await sendDailySummary()
@@ -156,7 +158,7 @@ export async function cronRoutes(app: FastifyInstance) {
 
   // ── Reprocessa WhatsApp/push que falharam na primeira tentativa (backoff 1min-1h)
   app.get('/cron/notification-retries', async (req, reply) => {
-    if (!process.env.CRON_SECRET || req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+    if (!safeCompare(req.headers['x-cron-secret'] as string | undefined, process.env.CRON_SECRET)) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
     try {
@@ -173,7 +175,7 @@ export async function cronRoutes(app: FastifyInstance) {
   // não precisa granularidade de minuto, mas precisa ser bem mais frequente que
   // os cron de hora em hora já existentes.
   app.get('/cron/dispatch-escalation', async (req, reply) => {
-    if (!process.env.CRON_SECRET || req.headers['x-cron-secret'] !== process.env.CRON_SECRET) {
+    if (!safeCompare(req.headers['x-cron-secret'] as string | undefined, process.env.CRON_SECRET)) {
       return reply.status(401).send({ error: 'Unauthorized' })
     }
     try {

@@ -1,10 +1,33 @@
 ﻿import * as Sentry from '@sentry/node'
 
+// Redige segredo de URL antes de qualquer breadcrumb/evento sair pro Sentry.
+// A API do Z-API (WhatsApp) exige o token da instância no PATH da URL, não
+// num header — é o contrato deles, não uma escolha nossa (~9 call sites).
+// Sem isso, qualquer erro que aconteça no mesmo request de uma chamada ao
+// Z-API (ex: falha do Prisma no webhook de pagamento) anexa a URL completa
+// com o token em texto puro ao evento — vazamento de credencial pra quem
+// tiver acesso ao projeto Sentry.
+function redactSecretUrl(url: string | undefined): string | undefined {
+  if (!url) return url
+  return url.replace(/\/token\/[^/]+/i, '/token/[REDACTED]')
+}
+
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   environment: process.env.NODE_ENV ?? 'production',
   tracesSampleRate: 0.2,
   enabled: !!process.env.SENTRY_DSN,
+  beforeBreadcrumb(breadcrumb) {
+    if (breadcrumb.data?.url) breadcrumb.data.url = redactSecretUrl(breadcrumb.data.url)
+    return breadcrumb
+  },
+  beforeSend(event) {
+    if (event.request?.url) event.request.url = redactSecretUrl(event.request.url)
+    for (const span of event.spans ?? []) {
+      if (span.description) span.description = redactSecretUrl(span.description)
+    }
+    return event
+  },
 })
 
 import Fastify from 'fastify'
