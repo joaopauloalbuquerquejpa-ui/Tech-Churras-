@@ -63,7 +63,7 @@ interface Product {
 
 interface Boutique {
   id: string; name: string; city: string; state: string; approved: boolean
-  open: boolean; products: Product[]; trialEndsAt?: string | null
+  open: boolean; products: Product[]
   pixKey?: string | null; cpfCnpj?: string | null
   offersSideDishPrep?: boolean
 }
@@ -74,6 +74,7 @@ interface Stats {
   revenueByDay: { date: string; revenue: number }[]
   recentOrders: { id: string; customerName: string; customerPhone?: string | null; grillmasterName?: string | null; totalPrice: number; status: string; eventDate: string; guestCount?: number; items?: OrderItem[] }[]
   referralCode: string | null; referralCount: number
+  trialActive?: boolean; trialOrdersCompleted?: number; trialOrdersThreshold?: number
 }
 
 interface DemandItem {
@@ -733,7 +734,7 @@ export default function BoutiqueDashboardPage() {
       >
         Cadastrar meu açougue agora
       </Link>
-      <p className="text-center text-xs text-gray-600 mt-3">R$ 369/mês + 10% de comissão · 1º mês grátis como Açougue Embaixador</p>
+      <p className="text-center text-xs text-gray-600 mt-3">R$ 369/mês + 10% de comissão · Grátis até o 3º pedido como Açougue Embaixador</p>
     </div>
   )
 
@@ -770,22 +771,24 @@ export default function BoutiqueDashboardPage() {
 
       <PhoneVerificationBanner verified={phoneVerified} onVerified={() => setPhoneVerified(true)} />
 
-      {boutique.trialEndsAt && (() => {
-        const daysLeft = Math.max(0, Math.ceil((new Date(boutique.trialEndsAt).getTime() - Date.now()) / 86400000))
-        if (daysLeft === 0) return (
+      {stats && stats.trialOrdersThreshold != null && (() => {
+        const done = stats.trialOrdersCompleted ?? 0
+        const threshold = stats.trialOrdersThreshold
+        const remaining = Math.max(0, threshold - done)
+        if (!stats.trialActive) return (
           <div className="bg-red-500/15 border border-red-500/40 rounded-xl px-5 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse shrink-0" />
-              <p className="text-red-300 font-semibold text-sm">Seu período gratuito encerrou. Assine para continuar recebendo pedidos.</p>
+              <p className="text-red-300 font-semibold text-sm">Seu período gratuito encerrou depois do {threshold}º pedido. Assine para continuar recebendo pedidos.</p>
             </div>
             <a href="mailto:techchurras@gmail.com?subject=Assinar Tech Churras" className="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-lg whitespace-nowrap transition-colors">Assinar agora</a>
           </div>
         )
-        if (daysLeft <= 7) return (
+        if (remaining <= 1) return (
           <div className="bg-yellow-500/15 border border-yellow-500/40 rounded-xl px-5 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shrink-0" />
-              <p className="text-yellow-300 font-semibold text-sm">Seu período gratuito encerra em <span className="font-black">{daysLeft} {daysLeft === 1 ? 'dia' : 'dias'}</span>. Continue sem parar!</p>
+              <p className="text-yellow-300 font-semibold text-sm">Falta <span className="font-black">{remaining === 0 ? 'completar este' : '1'} pedido</span> pro seu período gratuito acabar. Continue sem parar!</p>
             </div>
             <a href="mailto:techchurras@gmail.com?subject=Assinar Tech Churras" className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs px-4 py-2 rounded-lg whitespace-nowrap transition-colors">Assinar agora</a>
           </div>
@@ -793,7 +796,7 @@ export default function BoutiqueDashboardPage() {
         return (
           <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-5 py-3 flex items-center gap-3">
             <GiftIcon size={18} className="text-green-400" />
-            <p className="text-green-300 text-sm"><span className="font-bold">{daysLeft} dias gratuitos</span> restantes — aproveite sem custo!</p>
+            <p className="text-green-300 text-sm"><span className="font-bold">Grátis até o {threshold}º pedido</span> — você já completou {done}, faltam {remaining}.</p>
           </div>
         )
       })()}

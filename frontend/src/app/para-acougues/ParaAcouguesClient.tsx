@@ -228,7 +228,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 <span className="text-gray-600">+</span>
                 <span className="font-black text-white">10% de comissão</span>
                 <span className="text-gray-600">·</span>
-                <span className="text-orange-400 font-semibold">1º mês grátis</span>
+                <span className="text-orange-400 font-semibold">Grátis até o 3º pedido</span>
               </div>
 
               {/* Trust row */}
@@ -375,7 +375,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 {[
                   { valor: 'Gov. Zanzibar', label: 'Parceiro institucional', icon: '🏛️' },
                   { valor: 'CNPJ ativo', label: 'Empresa registrada', icon: '📋' },
-                  { valor: '1 mês grátis', label: 'Todo Açougue Embaixador', icon: '🏅' },
+                  { valor: 'Grátis 3 pedidos', label: 'Todo Açougue Embaixador', icon: '🏅' },
                   { valor: '~R$ 15 bi', label: 'Mercado de churrasco/ano (estim.)', icon: '📈' },
                 ].map(s => (
                   <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">

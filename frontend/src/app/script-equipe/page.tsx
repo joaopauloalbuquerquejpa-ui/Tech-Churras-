@@ -178,7 +178,7 @@ export default function ScriptEquipe() {
                 <p>→ Rolar até "4 fontes de renda" — explicar cada uma, do dia 1 até o próprio churrasqueiro</p>
                 <p>→ Mostrar a tabela de faturamento escalado (2 a 40 eventos/semana)</p>
                 <p>→ Rolar até "Como funciona" e explicar os 3 passos</p>
-                <p>→ Mostrar o Programa Açougue Embaixador — 1 mês grátis pra todo novo parceiro</p>
+                <p>→ Mostrar o Programa Açougue Embaixador — grátis até o 3º pedido pra todo novo parceiro</p>
               </div>
             </div>
             <Dica>
@@ -420,7 +420,7 @@ export default function ScriptEquipe() {
               <p className="font-bold text-white mb-3">✅ O que você pode prometer</p>
               <div className="space-y-1.5 text-sm text-gray-400">
                 <p>• Zero custo de entrada</p>
-                <p>• 1 mês grátis para todo novo Açougue Embaixador (sem exclusividade, vale pra qualquer um)</p>
+                <p>• Grátis até o 3º pedido para todo novo Açougue Embaixador (sem exclusividade, vale pra qualquer um)</p>
                 <p>• Treinamento presencial com Jota para Churrasqueiro Fundador</p>
                 <p>• 7% de comissão do churrasqueiro / 10% do açougue, só quando o evento é realizado</p>
                 <p>• Repasse semanal via PIX toda sexta</p>

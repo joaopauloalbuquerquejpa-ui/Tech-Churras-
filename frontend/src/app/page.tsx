@@ -165,7 +165,7 @@ const PERSONAS = [
       'Você não entrega nada. Só separa o kit. O Grillmaster retira e faz o evento',
       'Receba comissão por evento + aumento do ticket médio do seu açougue',
       'Kit completo: QR Code de acrílico para o balcão + cardápio + uniforme',
-      'Pix semanal + 1 mês grátis para Açougues Embaixadores fundadores',
+      'Pix semanal + grátis até o 3º pedido para Açougues Embaixadores fundadores',
     ],
     href: '/para-acougues',
     cta: 'Quero ser Açougue Embaixador',

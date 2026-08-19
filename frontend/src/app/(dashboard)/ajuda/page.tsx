@@ -73,7 +73,7 @@ const FAQ: Record<string, { q: string; a: string }[]> = {
   Geral: [
     {
       q: 'Qual a comissão da plataforma?',
-      a: 'A Tech Churras cobra 7% de comissão sobre a mão de obra do Grillmaster e 10% sobre as carnes vendidas pelo açougue. Esses valores são automaticamente deduzidos no repasse semanal. Não há mensalidade para Grillmasters — apenas comissão por pedido realizado. Açougues parceiros pagam R$369/mês (1º mês grátis), além da comissão.',
+      a: 'A Tech Churras cobra 7% de comissão sobre a mão de obra do Grillmaster e 10% sobre as carnes vendidas pelo açougue. Esses valores são automaticamente deduzidos no repasse semanal. Não há mensalidade para Grillmasters — apenas comissão por pedido realizado. Açougues parceiros pagam R$369/mês (grátis até o 3º pedido), além da comissão.',
     },
     {
       q: 'Como entro em contato com o suporte?',

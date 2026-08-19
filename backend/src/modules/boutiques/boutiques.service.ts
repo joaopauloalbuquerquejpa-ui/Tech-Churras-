@@ -3,6 +3,7 @@ import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { randomBytes } from 'crypto'
+import { TRIAL_ORDERS_THRESHOLD } from '../../utils/pricing'
 
 function generateReferralCode(name: string): string {
   const prefix = name.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X')
@@ -234,7 +235,7 @@ export async function getBoutiqueDashboardStats(userId: string) {
   const now = new Date()
   const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
 
-  const [completedOrders, pendingOrdersCount, recentOrders, referralCount] = await Promise.all([
+  const [completedOrders, pendingOrdersCount, recentOrders, referralCount, completedOrdersLifetime] = await Promise.all([
     prisma.order.findMany({
       where: { boutiqueId: boutique.id, status: 'COMPLETED', paymentStatus: 'PAID', createdAt: { gte: thirtyDaysAgo } },
       select: { totalPrice: true, createdAt: true },
@@ -253,6 +254,9 @@ export async function getBoutiqueDashboardStats(userId: string) {
       take: 10,
     }),
     prisma.user.count({ where: { referredByBoutiqueId: boutique.id } }),
+    // Trial "Açougue Embaixador" é por pedido completo, não por prazo —
+    // lifetime, não os últimos 30 dias.
+    prisma.order.count({ where: { boutiqueId: boutique.id, status: 'COMPLETED' } }),
   ])
 
   const totalRevenue30days = completedOrders.reduce((s, o) => s + o.totalPrice, 0)
@@ -289,6 +293,9 @@ export async function getBoutiqueDashboardStats(userId: string) {
     })),
     referralCode: boutique.referralCode,
     referralCount,
+    trialOrdersCompleted: completedOrdersLifetime,
+    trialOrdersThreshold: TRIAL_ORDERS_THRESHOLD,
+    trialActive: completedOrdersLifetime < TRIAL_ORDERS_THRESHOLD,
   }
 }
 

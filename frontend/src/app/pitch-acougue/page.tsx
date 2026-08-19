@@ -24,7 +24,7 @@ export default function PitchAcougue() {
       <section className="px-5 pt-2 pb-10">
         <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1 text-xs text-red-400 font-semibold mb-5">
           <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-1 mês grátis pra todo novo Açougue Embaixador
+Grátis até o 3º pedido pra todo novo Açougue Embaixador
         </div>
 
         <h1 className="text-3xl font-black leading-tight mb-4">
@@ -309,7 +309,7 @@ export default function PitchAcougue() {
           </div>
           <div className="space-y-2.5 mb-5">
             {[
-              '1 mês grátis — sem mensalidade',
+              'Grátis até o 3º pedido — sem mensalidade',
               'Badge "Açougue Embaixador" no app',
               'Destaque nas buscas no primeiro mês',
               'Acesso direto ao Jota Albuquerque via WhatsApp',

@@ -27,7 +27,7 @@ export default function LancamentoAcouguePage() {
       {/* ── URGENCY BAR ── */}
       <div className="w-full bg-orange-500 text-center py-2 px-4">
         <p className="text-xs sm:text-sm font-bold text-black">
-          🔥 Açougue Embaixador em São Paulo — 1º mês grátis para os primeiros açougues
+          🔥 Açougue Embaixador em São Paulo — grátis até o 3º pedido para os primeiros açougues
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export default function LancamentoAcouguePage() {
 
         <div className="inline-flex items-center gap-2 text-xs font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 mb-7">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse inline-block" />
-          Açougue Embaixador — 1º mês grátis pra quem entrar agora
+          Açougue Embaixador — grátis até o 3º pedido pra quem entrar agora
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] mb-5">
@@ -66,7 +66,7 @@ export default function LancamentoAcouguePage() {
         {/* METRICS ROW */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           {[
-            { v: '1 mês', l: 'grátis', sub: 'sem cartão' },
+            { v: '3 pedidos', l: 'grátis', sub: 'sem cartão' },
             { v: '20 min', l: 'para operar', sub: 'do cadastro ao QR no balcão' },
             { v: '10%', l: 'comissão', sub: 'só quando você vender' },
             { v: 'R$ 0', l: 'de setup', sub: 'zero custo inicial' },
@@ -82,7 +82,7 @@ export default function LancamentoAcouguePage() {
         {/* CTA FORM */}
         <form onSubmit={submit} className="bg-gray-900 border border-orange-500/30 rounded-3xl p-7 max-w-md mx-auto">
           <p className="text-xl font-black text-white mb-1">Quero ser açougue fundador</p>
-          <p className="text-xs text-gray-500 mb-5">Garanta o 1º mês grátis e suporte prioritário como Açougue Embaixador</p>
+          <p className="text-xs text-gray-500 mb-5">Garanta grátis até o 3º pedido e suporte prioritário como Açougue Embaixador</p>
           <div className="space-y-3 mb-4">
             <input type="text" required placeholder="Nome do açougue"
               value={name} onChange={e => setName(e.target.value)}
@@ -308,7 +308,7 @@ export default function LancamentoAcouguePage() {
           style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 60px rgba(194,54,22,0.4)' }}>
           🔥 Quero ser açougue fundador →
         </Link>
-        <p className="text-xs text-gray-600 mt-4">1º mês grátis · Sem cartão · Cancele quando quiser</p>
+        <p className="text-xs text-gray-600 mt-4">Grátis até o 3º pedido · Sem cartão · Cancele quando quiser</p>
       </section>
 
       {/* ── FOOTER ── */}

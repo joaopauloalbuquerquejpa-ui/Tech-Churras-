@@ -229,16 +229,20 @@ export async function approveBoutique(boutiqueId: string) {
   }
 
   // Modelo Açougue Embaixador: todo novo açougue aprovado paga R$369/mês
-  // (mensalidade única, sem plano padrão de R$497) e ganha 1 mês grátis —
-  // sem limite de vagas, sem exclusividade regional. `isFounder` no schema
-  // virou sinônimo de "já é Embaixador" (nome do campo mantido por ora pra
-  // não mexer em migration/índice à toa; o rótulo pro usuário já é outro).
-  const trialEndsAt = (() => { const d = new Date(); d.setDate(d.getDate() + 30); return d })()
+  // (mensalidade única, sem plano padrão de R$497) — sem limite de vagas,
+  // sem exclusividade regional. `isFounder` no schema virou sinônimo de "já
+  // é Embaixador" (nome do campo mantido por ora pra não mexer em
+  // migration/índice à toa; o rótulo pro usuário já é outro).
+  // Trial não é mais por prazo (30 dias corriam mesmo sem nenhum pedido
+  // completo, cobrando de quem não viu a plataforma funcionar ainda) — vira
+  // "grátis até completar TRIAL_ORDERS_THRESHOLD pedidos" (utils/pricing.ts),
+  // calculado ao vivo em getBoutiqueDashboardStats. trialEndsAt não é mais
+  // setado aqui; campo mantido no schema só por histórico.
   const monthlyFee = 369
 
   const updated = await prisma.boutique.update({
     where: { id: boutiqueId },
-    data: { approved: true, rejected: false, referralCode, trialEndsAt, isFounder: true, monthlyFee },
+    data: { approved: true, rejected: false, referralCode, isFounder: true, monthlyFee },
   })
   console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, ts: new Date().toISOString() }))
   if (boutique.user) {
