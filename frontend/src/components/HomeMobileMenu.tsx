@@ -6,6 +6,7 @@ const LINKS = [
   { href: '/grillmasters', label: 'Churrasqueiros' },
   { href: '/boutiques', label: 'Açougues' },
   { href: '/kit-perfeito', label: 'Kit Perfeito IA ✨' },
+  { href: '/churrasco-corporativo', label: 'Eventos para Empresas' },
   { href: '/churras-club', label: '🏆 Churras Club' },
   { href: '/lancamento', label: 'Cidade Piloto' },
   { href: '/ajuda', label: 'Ajuda' },
