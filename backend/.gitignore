@@ -3,3 +3,8 @@ node_modules
 .env
 
 /generated/prisma
+
+# Build output — Railway runs `npm run build` fresh on every deploy
+# (no railway.json/Procfile reading a committed dist/), so tracking it
+# in git is pure noise on every commit.
+/dist
