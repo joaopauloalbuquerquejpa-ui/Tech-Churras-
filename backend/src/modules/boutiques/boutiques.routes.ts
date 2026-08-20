@@ -16,6 +16,7 @@ import {
   deleteProductHandler,
   toggleProductHandler,
   getBoutiqueDashboardStatsHandler,
+  getBoutiqueMonthlyReportHandler,
   getBoutiqueDemandForecastHandler,
   getBoutiqueReferralStatsHandler,
   confirmBoutiqueOrderReadyHandler,
@@ -25,6 +26,7 @@ import {
 
 export async function boutiqueRoutes(app: FastifyInstance) {
   app.get('/boutiques/dashboard/stats', { preHandler: [authenticate] }, getBoutiqueDashboardStatsHandler)
+  app.get('/boutiques/dashboard/monthly-report', { preHandler: [authenticate] }, getBoutiqueMonthlyReportHandler)
   app.get('/boutiques/dashboard/demand-forecast', { preHandler: [authenticate] }, getBoutiqueDemandForecastHandler)
   app.get('/boutiques/dashboard/referrals', { preHandler: [authenticate] }, getBoutiqueReferralStatsHandler)
   app.get('/boutiques', listBoutiquesHandler)

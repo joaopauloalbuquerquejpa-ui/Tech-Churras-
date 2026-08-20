@@ -81,6 +81,19 @@ interface DemandItem {
   category: string; totalQuantityNeeded: number; unit: string; eventsCount: number; nextEventDate: string
 }
 
+interface MonthlyReport {
+  month: string
+  monthLabel: string
+  isCurrentMonth: boolean
+  growthPct: number | null
+  availableSince: string
+  ordersCompleted: number
+  grossRevenue: number
+  netRevenue: number
+  avgOrderValue: number
+  topProducts: { name: string; unit: string; quantity: number; revenue: number }[]
+}
+
 interface ReferralStats {
   referralCode: string; referralLink: string
   totalReferrals: number; pendingBonus: number; paidBonus: number
@@ -150,6 +163,9 @@ export default function BoutiqueDashboardPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [demand, setDemand] = useState<DemandItem[]>([])
   const [referralStats, setReferralStats] = useState<ReferralStats | null>(null)
+  const [monthlyReport, setMonthlyReport] = useState<MonthlyReport | null>(null)
+  const [monthlyReportLoading, setMonthlyReportLoading] = useState(false)
+  const [reportMonth, setReportMonth] = useState<string | null>(null)
   const [contract, setContract] = useState<{ id: string; status: string; durationMonths: number; acceptedAt: string | null; generatedAt: string } | null>(null)
   const [showContractText, setShowContractText] = useState(false)
   const [contractText, setContractText] = useState('')
@@ -212,6 +228,29 @@ export default function BoutiqueDashboardPage() {
   useEffect(() => {
     if (activeTab === 'conteudo' && !postsLoaded) fetchSocialPosts()
   }, [activeTab, postsLoaded])
+
+  useEffect(() => {
+    if (activeTab !== 'overview') return
+    fetchMonthlyReport(reportMonth ?? undefined)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, reportMonth])
+
+  async function fetchMonthlyReport(month?: string) {
+    setMonthlyReportLoading(true)
+    try {
+      const url = month ? `${API_URL}/boutiques/dashboard/monthly-report?month=${month}` : `${API_URL}/boutiques/dashboard/monthly-report`
+      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + getToken() } })
+      if (res.ok) setMonthlyReport(await res.json())
+    } catch { /* silencioso — relatório é informativo, não bloqueia o dashboard */ }
+    finally { setMonthlyReportLoading(false) }
+  }
+
+  function shiftReportMonth(delta: number) {
+    const base = monthlyReport?.month ?? new Date().toISOString().slice(0, 7)
+    const [y, m] = base.split('-').map(Number)
+    const d = new Date(y, m - 1 + delta, 1)
+    setReportMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+  }
 
   async function fetchAll() {
     try {
@@ -973,6 +1012,71 @@ export default function BoutiqueDashboardPage() {
               </ResponsiveContainer>
             </div>
           )}
+
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm font-semibold text-white">Relatório mensal</p>
+                <p className="text-xs text-gray-500 mt-0.5">Grátis pra todo Açougue Embaixador — sem custo extra</p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  onClick={() => shiftReportMonth(-1)}
+                  disabled={monthlyReportLoading || !!(monthlyReport && monthlyReport.availableSince && new Date(monthlyReport.availableSince) >= new Date(monthlyReport.month + '-01'))}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-300 text-sm"
+                  aria-label="Mês anterior"
+                >‹</button>
+                <span className="text-xs text-gray-400 capitalize min-w-[110px] text-center">{monthlyReport?.monthLabel ?? '...'}</span>
+                <button
+                  onClick={() => shiftReportMonth(1)}
+                  disabled={monthlyReportLoading || !!monthlyReport?.isCurrentMonth}
+                  className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed text-gray-300 text-sm"
+                  aria-label="Próximo mês"
+                >›</button>
+              </div>
+            </div>
+
+            {monthlyReportLoading && !monthlyReport ? (
+              <p className="text-gray-600 text-sm py-4 text-center">Carregando...</p>
+            ) : monthlyReport && monthlyReport.ordersCompleted === 0 ? (
+              <p className="text-gray-600 text-sm py-4 text-center">Nenhum pedido concluído {monthlyReport.isCurrentMonth ? 'ainda neste mês' : 'nesse mês'}.</p>
+            ) : monthlyReport ? (
+              <>
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-gray-800 rounded-xl p-3">
+                    <p className="text-lg font-black text-green-400">R$ {monthlyReport.netRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[10px] text-gray-500">receita líquida (90%)</p>
+                    {monthlyReport.growthPct != null && (
+                      <p className={'text-[10px] font-semibold mt-0.5 ' + (monthlyReport.growthPct >= 0 ? 'text-green-400' : 'text-red-400')}>
+                        {monthlyReport.growthPct >= 0 ? '↑' : '↓'} {Math.abs(monthlyReport.growthPct)}% vs mês anterior
+                      </p>
+                    )}
+                  </div>
+                  <div className="bg-gray-800 rounded-xl p-3">
+                    <p className="text-lg font-black text-white">{monthlyReport.ordersCompleted}</p>
+                    <p className="text-[10px] text-gray-500">pedidos concluídos</p>
+                  </div>
+                  <div className="bg-gray-800 rounded-xl p-3">
+                    <p className="text-lg font-black text-white">R$ {monthlyReport.avgOrderValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
+                    <p className="text-[10px] text-gray-500">ticket médio</p>
+                  </div>
+                </div>
+                {monthlyReport.topProducts.length > 0 && (
+                  <div>
+                    <p className="text-xs text-gray-500 mb-2">Mais vendidos no mês</p>
+                    <div className="space-y-1.5">
+                      {monthlyReport.topProducts.map((p, i) => (
+                        <div key={p.name} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-300 truncate">{i + 1}. {p.name} <span className="text-gray-600">({p.quantity}{p.unit})</span></span>
+                          <span className="text-orange-400 font-medium shrink-0 ml-2">R$ {p.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : null}
+          </div>
 
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">

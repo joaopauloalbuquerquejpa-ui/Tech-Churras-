@@ -14,6 +14,7 @@ import {
   deleteKit,
   createKitSchema,
   getBoutiqueDashboardStats,
+  getBoutiqueMonthlyReport,
   getBoutiqueDemandForecast,
   getReferralStats,
   confirmBoutiqueOrderReady,
@@ -209,6 +210,18 @@ export async function getBoutiqueDashboardStatsHandler(req: FastifyRequest, repl
     const userId = (req.user as any).id
     const stats = await getBoutiqueDashboardStats(userId)
     return reply.send(stats)
+  } catch (err: any) {
+    reportIfUnexpected(err)
+    return reply.status(400).send({ error: err.message })
+  }
+}
+
+export async function getBoutiqueMonthlyReportHandler(req: FastifyRequest, reply: FastifyReply) {
+  try {
+    const userId = (req.user as any).id
+    const { month } = req.query as { month?: string }
+    const report = await getBoutiqueMonthlyReport(userId, month)
+    return reply.send(report)
   } catch (err: any) {
     reportIfUnexpected(err)
     return reply.status(400).send({ error: err.message })

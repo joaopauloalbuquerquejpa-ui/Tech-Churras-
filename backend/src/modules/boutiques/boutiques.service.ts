@@ -299,6 +299,85 @@ export async function getBoutiqueDashboardStats(userId: string) {
   }
 }
 
+// Relatório mensal grátis pro açougue — não é nenhum "plano pago", só
+// transparência do que a Tech Churras já sabe sobre a operação dele: receita
+// líquida (90% dos produtos, mesma fórmula de generatePayouts.ts), pedidos
+// concluídos, ticket médio, top produtos e crescimento vs mês anterior.
+// Calcula direto de Order/OrderItem em vez de ler a tabela Payout porque o
+// cron de repasse roda semanalmente — nos últimos dias do mês o Payout ainda
+// pode não existir pra pedidos recém-concluídos, o que subcontaria o mês.
+const BOUTIQUE_NET_SHARE = 0.90 // açougue fica com 90% (10% comissão da plataforma)
+
+async function boutiqueRevenueForRange(boutiqueId: string, start: Date, end: Date) {
+  const orders = await prisma.order.findMany({
+    where: { boutiqueId, status: 'COMPLETED', paymentStatus: 'PAID', createdAt: { gte: start, lt: end } },
+    select: {
+      totalPrice: true, serviceFee: true, discountAmount: true,
+      items: { select: { quantity: true, unitPrice: true, product: { select: { name: true, unit: true } } } },
+    },
+  })
+
+  let grossRevenue = 0
+  const productTotals = new Map<string, { name: string; unit: string; quantity: number; revenue: number }>()
+  for (const o of orders) {
+    // Mesmo rateio de desconto usado em generatePayouts — cupom/indicação não
+    // deve ser pago pro açougue como se o cliente tivesse pago o valor cheio.
+    const subtotal = o.totalPrice - (o.serviceFee ?? 0) + (o.discountAmount ?? 0)
+    const discountRatio = subtotal > 0 && o.discountAmount ? Math.min(o.discountAmount / subtotal, 1) : 0
+    for (const item of o.items) {
+      const itemRevenue = item.unitPrice * item.quantity * (1 - discountRatio)
+      grossRevenue += itemRevenue
+      const key = item.product?.name ?? 'Produto'
+      const cur = productTotals.get(key) ?? { name: key, unit: item.product?.unit ?? 'kg', quantity: 0, revenue: 0 }
+      cur.quantity += item.quantity
+      cur.revenue += itemRevenue
+      productTotals.set(key, cur)
+    }
+  }
+
+  return {
+    ordersCompleted: orders.length,
+    grossRevenue: +grossRevenue.toFixed(2),
+    netRevenue: +(grossRevenue * BOUTIQUE_NET_SHARE).toFixed(2),
+    avgOrderValue: orders.length > 0 ? +(orders.reduce((s, o) => s + o.totalPrice, 0) / orders.length).toFixed(2) : 0,
+    topProducts: [...productTotals.values()]
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5)
+      .map(p => ({ name: p.name, unit: p.unit, quantity: +p.quantity.toFixed(1), revenue: +p.revenue.toFixed(2) })),
+  }
+}
+
+export async function getBoutiqueMonthlyReport(userId: string, monthParam?: string) {
+  const boutique = await prisma.boutique.findUnique({ where: { userId } })
+  if (!boutique) throw new Error('Acougue nao encontrado')
+
+  const now = new Date()
+  const isValidMonth = monthParam != null && /^\d{4}-\d{2}$/.test(monthParam)
+  const [y, m] = isValidMonth ? monthParam!.split('-').map(Number) : [now.getFullYear(), now.getMonth() + 1]
+
+  const monthStart = new Date(y, m - 1, 1)
+  const monthEnd = new Date(y, m, 1)
+  const prevMonthStart = new Date(y, m - 2, 1)
+
+  const [current, previous] = await Promise.all([
+    boutiqueRevenueForRange(boutique.id, monthStart, monthEnd),
+    boutiqueRevenueForRange(boutique.id, prevMonthStart, monthStart),
+  ])
+
+  const growthPct = previous.netRevenue > 0
+    ? Math.round(((current.netRevenue - previous.netRevenue) / previous.netRevenue) * 100)
+    : null
+
+  return {
+    month: `${y}-${String(m).padStart(2, '0')}`,
+    monthLabel: monthStart.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+    isCurrentMonth: y === now.getFullYear() && m === now.getMonth() + 1,
+    growthPct,
+    availableSince: boutique.createdAt,
+    ...current,
+  }
+}
+
 export async function getBoutiqueDemandForecast(userId: string) {
   const boutique = await prisma.boutique.findUnique({ where: { userId } })
   if (!boutique) throw new Error('Acougue nao encontrado')
