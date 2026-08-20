@@ -4,7 +4,7 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
 import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
-import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded } from '@/lib/pricing'
+import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier } from '@/lib/pricing'
 import { useCartStore } from '@/store/cart'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean; offersSideDishPrep?: boolean }
@@ -163,9 +163,13 @@ function PedidoForm() {
   const auxiliarCost = auxiliaresNeeded > 0 && (gm ? !gm.unlimitedAvailability : showingAuto)
     ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * eventHours
     : 0
-  const gmCost = gm
-    ? gm.pricePerHour * eventHours + auxiliarCost
-    : showingAuto ? estimatedHourlyRate * eventHours + auxiliarCost : 0
+  // Sobretaxa de fim de semana / desconto por antecedência — mesma regra do
+  // backend (que cobra de verdade), só sobre a mão de obra do Grillmaster.
+  const laborModifier = eventDate ? calcLaborPriceModifier(new Date(`${eventDate}T${eventTime || '12:00'}`)) : { rate: 0, label: null }
+  const baseHourlyRate = gm ? gm.pricePerHour : estimatedHourlyRate
+  const gmCost = (gm || showingAuto)
+    ? baseHourlyRate * eventHours * (1 + laborModifier.rate) + auxiliarCost
+    : 0
   const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * totalPeople).toFixed(2)
     : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * totalPeople).toFixed(2)
     : 0
@@ -737,7 +741,7 @@ function PedidoForm() {
                 ) : (
                   recommendedGms.map((rg, idx) => {
                     const sel = selectedGm === rg.id
-                    const cost = rg.pricePerHour * eventHours
+                    const cost = rg.pricePerHour * eventHours * (1 + laborModifier.rate)
                     const full = grillmasters.find(g => g.id === rg.id)
                     const blocked = full ? gmBlocked(full) : false
                     return (
@@ -830,7 +834,7 @@ function PedidoForm() {
                       <p className="text-xs text-red-400 mt-2">Atende sozinho até {AUXILIAR_GUEST_THRESHOLD} convidados — não disponível pra {totalPeople} pessoas</p>
                     )}
                     {sel && !blocked && (
-                      <p className="text-xs text-green-400 mt-2 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours).toFixed(2)}{auxiliarCost > 0 ? ` + R$ ${auxiliarCost.toFixed(2)} auxiliar` : ''}</p>
+                      <p className="text-xs text-green-400 mt-2 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours * (1 + laborModifier.rate)).toFixed(2)}{auxiliarCost > 0 ? ` + R$ ${auxiliarCost.toFixed(2)} auxiliar` : ''}</p>
                     )}
                   </button>
                 )
@@ -921,6 +925,14 @@ function PedidoForm() {
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
               {productsCost > 0 && <div className="flex justify-between text-gray-400"><span>Cortes</span><span className="text-orange-400">R$ {productsCost.toFixed(2)}</span></div>}
               {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h){showingAuto && !gm ? ' — estimado' : ''}</span><span className="text-orange-400">R$ {(gmCost - auxiliarCost).toFixed(2)}</span></div>}
+              {gmCost > 0 && laborModifier.label && (
+                <div className="flex justify-between text-gray-500 text-xs -mt-2">
+                  <span>{laborModifier.label}</span>
+                  <span className={laborModifier.rate > 0 ? 'text-red-400' : 'text-green-400'}>
+                    {laborModifier.rate > 0 ? '+' : ''}{(laborModifier.rate * 100).toFixed(0)}%
+                  </span>
+                </div>
+              )}
               {auxiliarCost > 0 && <div className="flex justify-between text-gray-400"><span>Auxiliar ({auxiliaresNeeded}x, {eventHours}h)</span><span className="text-orange-400">R$ {auxiliarCost.toFixed(2)}</span></div>}
               {sideDishFee > 0 && (
                 <div className="flex justify-between text-gray-400">

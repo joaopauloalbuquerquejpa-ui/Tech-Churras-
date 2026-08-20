@@ -10,7 +10,7 @@ import { refundPayment } from '../payments/payments.service'
 import { fetchWithTimeout } from '../../utils/http'
 import { withSerializableRetry } from '../../utils/db-retry'
 import { startDispatch } from '../grillmasters/dispatch.service'
-import { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded } from '../../utils/pricing'
+import { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier } from '../../utils/pricing'
 import { maskPhone } from '../../utils/maskPii'
 
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
@@ -174,9 +174,11 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   const auxiliarCost = auxiliaresNeeded > 0 && (grillmaster ? !grillmaster.unlimitedAvailability : true)
     ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * (data.eventHours ?? 4)
     : 0
-  const grillmasterCost = grillmaster
-    ? grillmaster.pricePerHour * (data.eventHours ?? 4) + auxiliarCost
-    : estimatedHourlyRate! * (data.eventHours ?? 4) + auxiliarCost
+  // Sobretaxa de fim de semana / desconto por antecedência — só sobre a
+  // mão de obra do Grillmaster (a taxa-base), não sobre o auxiliar nem carne.
+  const { rate: laborModifierRate } = calcLaborPriceModifier(orderData.eventDate)
+  const baseHourlyRate = grillmaster ? grillmaster.pricePerHour : estimatedHourlyRate!
+  const grillmasterCost = baseHourlyRate * (data.eventHours ?? 4) * (1 + laborModifierRate) + auxiliarCost
 
   // F1: gmAccompaniments removidos do MVP — preço não tem backing em DB, cliente poderia manipular
   const accompLaborTotal = 0
