@@ -100,6 +100,11 @@ export default function PaymentPage() {
               <p className="text-xs text-gray-500 mt-0.5">{order.guestCount} convidados</p>
             </div>
           </div>
+          {(order.totalPrice ?? 0) >= 60 && (
+            <p className="text-xs text-blue-300 bg-blue-500/10 border border-blue-500/20 rounded-lg px-3 py-2 mt-3 text-center">
+              💳 Parcele em até 12x de R$ {((order.totalPrice ?? 0) / 12).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} no cartão de crédito
+            </p>
+          )}
         </div>
       )}
 
@@ -136,9 +141,12 @@ export default function PaymentPage() {
               Você será redirecionado para o Mercado Pago para concluir o pagamento com segurança.
               Aceitamos cartão de crédito, débito, Pix e boleto.
             </p>
-            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
-              {['Cartão de Crédito', 'Cartão de Débito', 'Pix', 'Boleto'].map(m => (
-                <span key={m} className="bg-gray-800 border border-gray-700 px-2.5 py-1 rounded-lg">
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="bg-orange-500/10 border border-orange-500/30 text-orange-300 px-2.5 py-1 rounded-lg font-medium">
+                Cartão de Crédito · parcelado
+              </span>
+              {['Cartão de Débito', 'Pix', 'Boleto'].map(m => (
+                <span key={m} className="bg-gray-800 border border-gray-700 text-gray-500 px-2.5 py-1 rounded-lg">
                   {m}
                 </span>
               ))}
