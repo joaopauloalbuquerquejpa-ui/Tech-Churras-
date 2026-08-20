@@ -269,6 +269,33 @@ export async function processDispatchEscalations() {
   return { processed: due.length }
 }
 
+// Explica pro GM por que ele recebeu essa solicitação — a onda sozinha
+// ("Onda 2") não diz nada pra quem não conhece as regras internas de
+// despacho. Reusa o mesmo geocode (cacheado 24h em utils/geo.ts) já
+// calculado quando o despacho foi criado, então isso não bate a API de
+// geocodificação de novo na prática.
+async function buildMatchReason(
+  gm: { id: string; latitude: number | null; longitude: number | null },
+  dispatch: { wave: number },
+  order: Order,
+): Promise<string> {
+  if (order.grillmasterId === gm.id && dispatch.wave === 1) {
+    return 'Você foi escolhido diretamente para este pedido.'
+  }
+
+  const parts: string[] = []
+  const coords = await geocodeAddress(order.eventAddress).catch(() => null)
+  if (coords && gm.latitude != null && gm.longitude != null) {
+    const km = haversineKm(coords.lat, coords.lng, gm.latitude, gm.longitude)
+    parts.push(`~${km.toFixed(0)}km do evento`)
+  }
+  if (dispatch.wave === 1) parts.push('primeira onda, disponível na região e data')
+  else if (dispatch.wave === 2) parts.push('expansão por estilo/especialidade compatível')
+  else parts.push('expansão ampla da região, sem filtro de estilo')
+
+  return `Notificado: ${parts.join(' · ')}`
+}
+
 export async function listPendingDispatchesForGrillmaster(userId: string) {
   const gm = await prisma.grillmaster.findUnique({ where: { userId } })
   if (!gm) return []
@@ -284,7 +311,12 @@ export async function listPendingDispatchesForGrillmaster(userId: string) {
     },
     orderBy: { notifiedAt: 'desc' },
   })
-  return dispatches
-    .filter(d => !d.order.grillmasterAcceptedAt)
-    .map(d => ({ dispatchId: d.id, wave: d.wave, notifiedAt: d.notifiedAt, order: d.order }))
+  const active = dispatches.filter(d => !d.order.grillmasterAcceptedAt)
+  return Promise.all(active.map(async d => ({
+    dispatchId: d.id,
+    wave: d.wave,
+    notifiedAt: d.notifiedAt,
+    order: d.order,
+    matchReason: await buildMatchReason(gm, d, d.order),
+  })))
 }

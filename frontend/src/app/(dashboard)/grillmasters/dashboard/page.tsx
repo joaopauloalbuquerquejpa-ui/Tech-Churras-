@@ -108,6 +108,7 @@ interface PendingDispatch {
   dispatchId: string
   wave: number
   notifiedAt: string
+  matchReason?: string
   order: {
     id: string
     eventDate: string
@@ -801,8 +802,9 @@ export default function GrillmasterDashboardPage() {
                   </div>
                 </div>
                 {d.order.boutique && (
-                  <p className="text-xs text-gray-500 mb-4">🥩 Açougue: {d.order.boutique.name} ({d.order.boutique.city})</p>
+                  <p className="text-xs text-gray-500 mb-1">🥩 Açougue: {d.order.boutique.name} ({d.order.boutique.city})</p>
                 )}
+                <p className="text-xs text-orange-300/80 mb-4">{d.matchReason ?? `Onda ${d.wave} de despacho`}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => respondDispatch(d.order.id, 'accept')}
