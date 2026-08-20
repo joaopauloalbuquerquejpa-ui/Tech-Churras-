@@ -267,21 +267,17 @@ export default function AssistentePage() {
       const data = await r.json()
       const rawReply: string = data.reply || ''
 
-      const markerIdx = rawReply.lastIndexOf('GERAR_PLANO:')
-      let displayText = rawReply
+      // planParams já vem validado pelo schema estrito da tool no backend —
+      // não é mais um marcador de texto pra extrair/parsear aqui.
       let plan: AiPlan | undefined
-
-      if (markerIdx !== -1) {
-        displayText = rawReply.slice(0, markerIdx).trim()
+      if (data.planParams) {
         try {
-          const jsonStr = rawReply.slice(markerIdx + 'GERAR_PLANO:'.length).trim()
-          plan = await generatePlan(JSON.parse(jsonStr)) ?? undefined
+          plan = await generatePlan(data.planParams) ?? undefined
         } catch { /* ignore */ }
       }
 
-      const assistantContent = displayText || rawReply.replace(/GERAR_PLANO:[\s\S]*$/, '').trim()
-      setApiHistory(prev => [...prev, { role: 'assistant', content: assistantContent }])
-      setMessages(prev => [...prev, { role: 'ai', text: displayText || undefined, plan }])
+      setApiHistory(prev => [...prev, { role: 'assistant', content: rawReply }])
+      setMessages(prev => [...prev, { role: 'ai', text: rawReply || undefined, plan }])
     } catch {
       setMessages(prev => [...prev, { role: 'ai', text: 'Tive um probleminha aqui, pode repetir? 🙏' }])
     } finally {

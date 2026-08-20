@@ -122,6 +122,31 @@ function buildMeatPriceSignal(products: { name: string; price: number; unit: str
   return `\n\nSINAL DE PREÇO: a carne vermelha desse açougue está ~${pctAbove}% acima da média de referência (R$${RED_MEAT_REFERENCE_PRICE_PER_KG}/kg). Sem abandonar o estilo escolhido, aumente a proporção de frango no kit (proteína mais barata e igualmente saborosa) pra manter o orçamento saudável — só se o açougue tiver opção de frango no catálogo.`
 }
 
+// Tool estrita (JSON schema validado pela própria API, não por regex) que o
+// /ai/chat usa pra sinalizar "hora de montar o plano completo" — substitui o
+// hack antigo de marcador de texto (rawReply + "GERAR_PLANO:{...}" na última
+// linha, extraído via lastIndexOf + JSON.parse no frontend, sem nenhuma
+// garantia de formato). Com strict:true a API já valida o schema antes de
+// devolver o tool_use — não tem "falha silenciosa de parse" possível.
+const GENERATE_PLAN_TOOL: Anthropic.Tool = {
+  name: 'generate_plan',
+  description: 'Gera o plano completo do churrasco (kit de itens, custo estimado, cronograma) — chame quando já tiver pelo menos o total de convidados e contexto suficiente do evento.',
+  strict: true,
+  input_schema: {
+    type: 'object',
+    properties: {
+      style: { type: 'string', enum: ['menu_tech_churras', 'parrillada_tech_churras', 'especialidade_jota'] },
+      homens: { type: 'integer', minimum: 0 },
+      mulheres: { type: 'integer', minimum: 0 },
+      criancas: { type: 'integer', minimum: 0 },
+      hours: { type: 'integer', minimum: 1, maximum: 24 },
+      occasion: { type: 'string' },
+    },
+    required: ['style', 'homens', 'mulheres', 'criancas', 'hours', 'occasion'],
+    additionalProperties: false,
+  },
+}
+
 // Normaliza category e priority para os enums esperados pelo frontend
 function normalizeItem(item: Record<string, unknown>): Record<string, unknown> {
   const catMap: Record<string, string> = {
@@ -636,26 +661,36 @@ ESTILOS DISPONÍVEIS NA PLATAFORMA:
 - especialidade_jota: premium — wagyu, tomahawk, T-bone — experiência criada pelo Jota
 
 GERAR PLANO COMPLETO:
-Quando o usuário tiver fornecido o número de convidados (pode ser aproximado) e você tiver contexto suficiente do evento, coloque ao final da sua mensagem, na última linha, sem nenhum texto depois:
-GERAR_PLANO:{"style":"menu_tech_churras","homens":5,"mulheres":3,"criancas":0,"hours":4,"occasion":""}
+Quando o usuário tiver fornecido o número de convidados (pode ser aproximado) e você tiver contexto suficiente do evento, chame a tool generate_plan com os dados do evento.
 
-Regras do GERAR_PLANO:
+Regras:
 - Sempre inclua todos os campos (use 0 para crianças se não mencionadas)
 - style: escolha o mais adequado para o evento
 - hours: estime 4 se não mencionado
 - occasion: tipo do evento em 1-2 palavras (aniversário, confraternização, casual, etc.)
-- Gere apenas quando tiver pelo menos o total de convidados
-- Antes do marcador, avise o usuário que vai montar o plano agora`
+- Chame a tool apenas quando tiver pelo menos o total de convidados
+- Antes de chamar a tool, avise o usuário em texto que vai montar o plano agora`
 
     const resp = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 600,
       system: CHAT_SYSTEM,
+      tools: [GENERATE_PLAN_TOOL],
       messages: messages.slice(-20),
     })
 
-    const reply_text = resp.content[0].type === 'text' ? resp.content[0].text.trim() : ''
-    return reply.send({ reply: reply_text })
+    const reply_text = resp.content
+      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
+      .map(b => b.text)
+      .join('\n')
+      .trim()
+
+    // strict:true já validou o schema — o input aqui é sempre {style,homens,
+    // mulheres,criancas,hours,occasion} bem formado, sem precisar de try/catch
+    // de JSON.parse como no marcador de texto antigo.
+    const planTool = resp.content.find((b): b is Anthropic.ToolUseBlock => b.type === 'tool_use' && b.name === 'generate_plan')
+
+    return reply.send({ reply: reply_text, planParams: planTool?.input ?? null })
   })
 
   // ── POST /ai/suggest-from-catalog ────────────────────────────────────
