@@ -98,6 +98,30 @@ const MAGIC_MIME_EXT: Record<string, string> = { 'image/jpeg': 'jpg', 'image/png
 // e apps de gravação de voz do celular tipicamente produzem.
 const ALLOWED_AUDIO_MIME = ['audio/webm', 'audio/ogg', 'audio/mpeg', 'audio/mp4', 'audio/wav', 'audio/x-m4a', 'audio/m4a', 'audio/3gpp']
 
+// Preço de referência da carne vermelha (R$/kg) usado como "termômetro" nos
+// prompts de kit — não amarrado a nenhum evento sazonal específico (Copa,
+// feriado etc.), porque o preço da carne sobe por vários motivos ao longo do
+// ano (exportação, clima, câmbio) e a regra precisa valer o tempo todo.
+const RED_MEAT_REFERENCE_PRICE_PER_KG = 65
+
+function isFrango(name: string): boolean {
+  return /frango|galinha|\bcoxa\b|sobrecoxa|asa de frango/i.test(name)
+}
+
+// Se a carne vermelha do catálogo desse açougue está bem acima da referência
+// E ele também vende frango, devolve uma instrução extra pro prompt puxar
+// mais frango no kit (proteína mais barata, mantém o orçamento saudável sem
+// abandonar o estilo escolhido). Vazio se não houver sinal — não força nada.
+function buildMeatPriceSignal(products: { name: string; price: number; unit: string }[]): string {
+  const redMeat = products.filter(p => p.unit === 'kg' && !isFrango(p.name))
+  const hasFrango = products.some(p => isFrango(p.name))
+  if (redMeat.length === 0 || !hasFrango) return ''
+  const avg = redMeat.reduce((s, p) => s + p.price, 0) / redMeat.length
+  if (avg <= RED_MEAT_REFERENCE_PRICE_PER_KG * 1.15) return ''
+  const pctAbove = Math.round((avg / RED_MEAT_REFERENCE_PRICE_PER_KG - 1) * 100)
+  return `\n\nSINAL DE PREÇO: a carne vermelha desse açougue está ~${pctAbove}% acima da média de referência (R$${RED_MEAT_REFERENCE_PRICE_PER_KG}/kg). Sem abandonar o estilo escolhido, aumente a proporção de frango no kit (proteína mais barata e igualmente saborosa) pra manter o orçamento saudável — só se o açougue tiver opção de frango no catálogo.`
+}
+
 // Normaliza category e priority para os enums esperados pelo frontend
 function normalizeItem(item: Record<string, unknown>): Record<string, unknown> {
   const catMap: Record<string, string> = {
@@ -406,7 +430,7 @@ ${catalogAcomp}
 OUTROS:
 ${catalogOther}
 
-REGRAS: Use SOMENTE IDs exatos acima | proteína: 350g/homem, 300g/mulher, 200g/criança (acompanhamentos fora da conta) | inclua carvão se disponível | 3-4h GM até 15 pessoas, 5-6h acima | summary caloroso${firstName ? ' para ' + firstName : ''} mencionando o evento e o churrasqueiro escolhido
+REGRAS: Use SOMENTE IDs exatos acima | proteína: 350g/homem, 300g/mulher, 200g/criança (acompanhamentos fora da conta) | inclua carvão se disponível | 3-4h GM até 15 pessoas, 5-6h acima | summary caloroso${firstName ? ' para ' + firstName : ''} mencionando o evento e o churrasqueiro escolhido${buildMeatPriceSignal(carneProducts)}
 {"items":[{"productId":"id","productName":"nome","quantity":2.5,"unit":"kg","unitPrice":89.90,"totalPrice":224.75}],"grillmasterHours":4,"summary":"frase calorosa personalizada","totalProducts":650.00,"totalGrillmaster":350.00,"totalKit":1000.00}`
 
     const message = await client.messages.create({
@@ -657,6 +681,7 @@ Regras do GERAR_PLANO:
       .join('\n')
 
     const totalKg = ((Number(homens)*350 + Number(mulheres)*300 + Number(criancas)*200)/1000).toFixed(1)
+    const carneProducts = products.filter(p => p.category === 'CARNE')
     const prompt = `Você é a assistente da Tech Churras, parceira do Jota Grillmaster. Monte o kit ideal de forma calorosa e personalizada.
 ${firstName ? `Cliente: ${firstName}${occasion ? ` | Ocasião: ${occasion}` : ''}` : occasion ? `Ocasião: ${occasion}` : ''}
 
@@ -671,7 +696,7 @@ REGRAS:
 - Carvão: 1 saco por 5 pessoas se disponível
 - Priorize cortes que combinam com as especialidades do churrasqueiro
 - Máximo 8 itens; reason em até 5 palavras
-- summary: frase calorosa${firstName ? ` dirigida ao ${firstName}` : ''}, comente algo específico do evento (ocasião, nº de pessoas). Se escolheu corte nobre, mencione que o Jota aprova. 1-2 frases, tom amigo.
+- summary: frase calorosa${firstName ? ` dirigida ao ${firstName}` : ''}, comente algo específico do evento (ocasião, nº de pessoas). Se escolheu corte nobre, mencione que o Jota aprova. 1-2 frases, tom amigo.${buildMeatPriceSignal(carneProducts)}
 - Responda SOMENTE JSON válido sem markdown:
 {"items":[{"productId":"id_exato","quantity":2.5,"unit":"kg","reason":"curta razao"}],"summary":"frase calorosa personalizada","totalKg":${totalKg}}`
 
