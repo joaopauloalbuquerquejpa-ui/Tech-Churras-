@@ -9,7 +9,7 @@ import { useCartStore } from '@/store/cart'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean; offersSideDishPrep?: boolean }
 interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
-interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; bringsAuxiliar?: boolean; unlimitedAvailability?: boolean; user: { name: string } }
+interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; bringsAuxiliar?: boolean; unlimitedAvailability?: boolean; photoUrl?: string | null; user: { name: string } }
 interface KitItem { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }
 interface Kit { id: string; name: string; description: string; price: number; discountPrice?: number | null; minGuests: number; maxGuests: number; items: string }
 interface RecommendedGm {
@@ -119,6 +119,7 @@ function PedidoForm() {
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [formError, setFormError] = useState('')
 
   // Step 1 — evento
   const [eventDate, setEventDate] = useState('')
@@ -362,24 +363,26 @@ function PedidoForm() {
   }, [totalPeople])
 
   function next() {
-    if (step === 1 && (!eventDate || !eventAddress.trim())) { alert('Preencha a data e o endereço do evento'); return }
-    if (step === 3 && gmChoiceMode === 'manual' && !selectedGm) { alert('Selecione um churrasqueiro'); return }
-    if (step === 3 && gm && gmBlocked(gm)) { alert(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar, ou reduza o número de convidados.`); return }
+    if (step === 1 && (!eventDate || !eventAddress.trim())) { setFormError('Preencha a data e o endereço do evento'); return }
+    if (step === 3 && gmChoiceMode === 'manual' && !selectedGm) { setFormError('Selecione um churrasqueiro'); return }
+    if (step === 3 && gm && gmBlocked(gm)) { setFormError(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar, ou reduza o número de convidados.`); return }
+    setFormError('')
     setStep(s => s + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleConfirm() {
-    if (!guestName.trim() || guestName.trim().length < 2) { alert('Digite seu nome completo'); return }
+    if (!guestName.trim() || guestName.trim().length < 2) { setFormError('Digite seu nome completo'); return }
     const phone = guestPhone.replace(/\D/g, '')
-    if (phone.length < 10) { alert('Digite um WhatsApp válido com DDD'); return }
+    if (phone.length < 10) { setFormError('Digite um WhatsApp válido com DDD'); return }
     // Trava de segurança: já aconteceu de kit com dado corrompido resultar em
     // pedido pago sem NENHUM item de carne indo pro açougue, em silêncio. Se
     // tem catálogo disponível mas nada foi selecionado, não deixa prosseguir.
     if (products.length > 0 && Object.values(qty).every(q => !q)) {
-      alert('Você ainda não selecionou nenhum corte de carne. Escolha um kit ou selecione manualmente antes de continuar.')
+      setFormError('Você ainda não selecionou nenhum corte de carne. Escolha um kit ou selecione manualmente antes de continuar.')
       return
     }
+    setFormError('')
     setSubmitting(true)
     try {
       // 1. Reaproveita sessão logada se existir; senão cria conta guest
@@ -422,7 +425,7 @@ function PedidoForm() {
       cart.clearCart()
       router.push(`/orders/${order.id}/payment`)
     } catch (err: any) {
-      alert('Erro: ' + err.message)
+      setFormError('Erro: ' + err.message)
     } finally {
       setSubmitting(false)
     }
@@ -492,6 +495,19 @@ function PedidoForm() {
         <div className="mt-6">
           <StepBar step={step} />
         </div>
+
+        {/* Total visível desde o passo 2 — antes disso a taxa de serviço só
+            aparecia no resumo final (passo 4), fazendo o cliente descobrir o
+            custo na hora de pagar. Mostrar cedo evita essa surpresa. */}
+        {step >= 2 && total > 0 && (
+          <div className="flex items-center justify-between bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 mb-4 text-sm">
+            <span className="text-gray-400">Total até agora</span>
+            <span className="font-bold text-orange-400">
+              R$ {total.toFixed(2)}
+              <span className="text-gray-600 font-normal text-xs ml-1">(já com taxa de serviço de 6%)</span>
+            </span>
+          </div>
+        )}
 
         {/* ── STEP 1: EVENTO ── */}
         {step === 1 && (
@@ -754,9 +770,13 @@ function PedidoForm() {
                             : 'cursor-pointer ' + (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60'))}>
                         <div className="flex items-start gap-3">
                           <div className="relative shrink-0">
-                            <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-lg font-black text-orange-400">
-                              {rg.name?.[0]?.toUpperCase() ?? '?'}
-                            </div>
+                            {rg.photoUrl ? (
+                              <img src={rg.photoUrl} alt={rg.name} className="w-12 h-12 rounded-full object-cover border border-orange-500/40" />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-lg font-black text-orange-400">
+                                {rg.name?.[0]?.toUpperCase() ?? '?'}
+                              </div>
+                            )}
                             <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-orange-500 text-white text-[10px] font-black flex items-center justify-center">
                               {idx + 1}
                             </span>
@@ -805,9 +825,13 @@ function PedidoForm() {
                     className={'w-full text-left bg-gray-900 rounded-2xl p-4 border-2 transition-all ' +
                       (blocked ? 'opacity-50 cursor-not-allowed border-gray-800' : 'cursor-pointer ' + (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40'))}>
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gray-800 border-2 border-orange-500/30 flex items-center justify-center font-bold text-orange-400 shrink-0">
-                        {g.user.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
-                      </div>
+                      {g.photoUrl ? (
+                        <img src={g.photoUrl} alt={g.user.name} className="w-12 h-12 rounded-full object-cover border-2 border-orange-500/30 shrink-0" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-full bg-gray-800 border-2 border-orange-500/30 flex items-center justify-center font-bold text-orange-400 shrink-0">
+                          {g.user.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                        </div>
+                      )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-bold text-white text-sm">{g.user.name}</p>
@@ -942,7 +966,7 @@ function PedidoForm() {
               )}
               {serviceFee > 0 && <div className="flex justify-between text-gray-400"><span>Taxa de serviço</span><span className="text-orange-400">R$ {serviceFee.toFixed(2)}</span></div>}
               <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
-                <span className="font-bold text-white">Total estimado</span>
+                <span className="font-bold text-white">Total</span>
                 <span className="text-2xl font-black text-orange-400">R$ {total.toFixed(2)}</span>
               </div>
             </div>
@@ -950,15 +974,21 @@ function PedidoForm() {
             <GarantiaSelo compact />
 
             <p className="text-xs text-gray-600 text-center">
-              Ao confirmar, criamos seu perfil automaticamente. O preço final é confirmado pelo churrasqueiro antes do pagamento.
+              Ao confirmar, criamos seu perfil automaticamente. Este é o valor que você paga — o churrasqueiro só confirma disponibilidade, o preço não muda.
             </p>
+          </div>
+        )}
+
+        {formError && (
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-3 py-2 mt-6">
+            <p className="text-xs text-red-300">{formError}</p>
           </div>
         )}
 
         {/* ── NAVEGAÇÃO ── */}
         <div className="flex justify-between mt-8 pt-6 border-t border-gray-800">
           {step > 1 ? (
-            <button onClick={() => { setStep(s => s - 1); window.scrollTo({ top: 0 }) }}
+            <button onClick={() => { setFormError(''); setStep(s => s - 1); window.scrollTo({ top: 0 }) }}
               className="px-5 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 font-medium transition-colors">
               ← Voltar
             </button>

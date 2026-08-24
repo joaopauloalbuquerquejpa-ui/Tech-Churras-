@@ -260,9 +260,9 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                     </p>
                     <div className="space-y-1.5">
                       {[
-                        '1 mês sem mensalidade',
+                        'Grátis até o 3º pedido — sem mensalidade nesse período',
                         'Badge "Açougue Embaixador" na plataforma',
-                        'Destaque nas buscas no primeiro mês',
+                        'Destaque nas buscas durante o período grátis',
                         'Acesso direto ao Jota Albuquerque via WhatsApp',
                       ].map(b => (
                         <div key={b} className="flex items-start gap-2 text-xs text-gray-300">

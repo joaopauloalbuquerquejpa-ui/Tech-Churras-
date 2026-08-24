@@ -429,7 +429,7 @@ export default async function HomePage() {
             {[
               { value: '7 dias', label: 'de garantia total', detail: 'Reembolso se algo sair errado' },
               { value: '100%', label: 'açougues validados', detail: 'Qualidade garantida nos cortes' },
-              { value: 'R$ 0', label: 'taxa pro cliente', detail: 'Você paga só Grillmaster + carne' },
+              { value: '6%', label: 'taxa de serviço', detail: 'Já inclusa no preço mostrado, sem surpresa no final' },
             ].map(s => (
               <div key={s.label}>
                 <p className="text-3xl md:text-4xl font-black text-orange-400 mb-1">{s.value}</p>

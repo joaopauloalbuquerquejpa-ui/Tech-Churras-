@@ -191,15 +191,16 @@ export default function ScriptEquipe() {
           <div className="mb-6">
             <Step n="4" label="A oferta — Açougue Embaixador" />
             <Fala>
-              Todo novo açougue que entrar agora vira Açougue Embaixador — primeiro mês sem
-              mensalidade e destaque nas buscas, pra vocês verem com os próprios olhos que a
+              Todo novo açougue que entrar agora vira Açougue Embaixador — grátis até completar
+              3 pedidos, sem mensalidade nesse período, pra vocês verem com os próprios olhos que a
               Tech Churras funciona antes de pagar qualquer coisa. Quanto antes começar, antes
               os primeiros pedidos chegam.
             </Fala>
             <Dica>
-              O mês grátis existe pra tirar o risco financeiro da decisão — o açougue testa
-              antes de pagar qualquer coisa. Reforce isso: "você só começa a pagar depois de
-              ver os primeiros pedidos chegando".
+              É grátis até completar 3 pedidos — não é por prazo, é por resultado. Isso tira o
+              risco financeiro da decisão: o açougue só começa a pagar depois de já ter vendido
+              de verdade pela plataforma. Reforce isso: "você só começa a pagar depois que a
+              Tech Churras já te trouxe 3 pedidos reais".
             </Dica>
           </div>
 
