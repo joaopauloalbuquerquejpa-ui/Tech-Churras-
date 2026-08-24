@@ -150,6 +150,14 @@ function PedidoForm() {
   const gm = grillmasters.find(g => g.id === selectedGm)
   const auxiliaresNeeded = calcAuxiliaresNeeded(totalPeople)
   const gmBlocked = (g: Grillmaster) => auxiliaresNeeded > 0 && !g.bringsAuxiliar && !g.unlimitedAvailability
+  // Filtra em vez de mostrar desabilitado — cliente só vê churrasqueiro que ele
+  // pode escolher de verdade pra esse número de convidados, sem investir 3
+  // passos e só então descobrir que a opção não estava disponível.
+  const availableGrillmasters = grillmasters.filter(g => !gmBlocked(g))
+  const availableRecommendedGms = recommendedGms.filter(rg => {
+    const full = grillmasters.find(g => g.id === rg.id)
+    return !full || !gmBlocked(full)
+  })
   // "Deixa a Tech Churras decidir" cobra pela mediana de mercado (não média —
   // um único perfil-âncora de preço premium distorceria pra cima), mesmo
   // cálculo que o backend usa pra cobrar de verdade — sem isso o resumo
@@ -699,9 +707,8 @@ function PedidoForm() {
                     </div>
                     <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
                   </button>
-                  <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : c)}
-                    className={'w-full text-left rounded-xl p-3 border-2 transition-all ' +
-                      (sideDishChoice !== 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                  <button onClick={() => setSideDishChoice('')}
+                    className="w-full text-left rounded-xl p-3 border-2 transition-all border-gray-800 hover:border-orange-500/40">
                     <p className="text-sm font-medium text-white">Não, decido depois / eu levo por conta</p>
                   </button>
                 </div>
@@ -745,9 +752,15 @@ function PedidoForm() {
             {gmChoiceMode === 'manual' && grillmasters.length === 0 && (
               <p className="text-gray-500 text-center py-10">Nenhum churrasqueiro disponível no momento.</p>
             )}
+            {gmChoiceMode === 'manual' && grillmasters.length > 0 && availableGrillmasters.length === 0 && (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-sm text-gray-300 text-center">
+                Nenhum churrasqueiro atende sozinho {totalPeople} convidados (acima de {AUXILIAR_GUEST_THRESHOLD}, precisa de auxiliar).
+                Deixa com a Tech Churras pra notificar quem tem auxiliar na região, ou reduza o número de convidados.
+              </div>
+            )}
 
             {/* Recomendados pela IA */}
-            {gmChoiceMode === 'manual' && (loadingRecommended || recommendedGms.length > 0) && (
+            {gmChoiceMode === 'manual' && (loadingRecommended || availableRecommendedGms.length > 0) && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-1">
                   ✨ Recomendados para você
@@ -755,19 +768,15 @@ function PedidoForm() {
                 {loadingRecommended ? (
                   <div className="text-center py-4 text-gray-500 text-sm">Analisando disponibilidade...</div>
                 ) : (
-                  recommendedGms.map((rg, idx) => {
+                  availableRecommendedGms.map((rg, idx) => {
                     const sel = selectedGm === rg.id
                     const cost = rg.pricePerHour * eventHours * (1 + laborModifier.rate)
-                    const full = grillmasters.find(g => g.id === rg.id)
-                    const blocked = full ? gmBlocked(full) : false
                     return (
                       <button key={rg.id} type="button"
-                        onClick={() => { if (blocked) return; setSelectedGm(rg.id) }}
-                        disabled={blocked}
+                        onClick={() => setSelectedGm(rg.id)}
                         aria-pressed={sel}
-                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all ' +
-                          (blocked ? 'opacity-50 cursor-not-allowed border-gray-800 bg-gray-900'
-                            : 'cursor-pointer ' + (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60'))}>
+                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all cursor-pointer ' +
+                          (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60')}>
                         <div className="flex items-start gap-3">
                           <div className="relative shrink-0">
                             {rg.photoUrl ? (
@@ -784,7 +793,7 @@ function PedidoForm() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
                               <p className="font-bold text-white truncate">{rg.name}</p>
-                              {sel && !blocked && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>}
+                              {sel && <span className="text-xs bg-orange-500 text-white px-2 py-0.5 rounded-full shrink-0">✓</span>}
                             </div>
                             <div className="flex items-center gap-3 mt-0.5 text-xs text-gray-400">
                               {rg.rating > 0 && <span className="flex items-center gap-0.5"><span className="text-yellow-400">★</span>{rg.rating.toFixed(1)}</span>}
@@ -792,14 +801,10 @@ function PedidoForm() {
                               {rg.distanceKm != null && <span>{rg.distanceKm}km</span>}
                             </div>
                             {rg.reason && <p className="text-xs text-orange-300/80 mt-1 italic">{rg.reason}</p>}
-                            {blocked ? (
-                              <p className="text-xs text-red-400 mt-2">Atende sozinho até {AUXILIAR_GUEST_THRESHOLD} convidados — não disponível pra {totalPeople} pessoas</p>
-                            ) : (
-                              <div className="flex items-center justify-between mt-2">
-                                <span className="text-xs text-gray-500">R$ {rg.pricePerHour}/hora</span>
-                                <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
-                              </div>
-                            )}
+                            <div className="flex items-center justify-between mt-2">
+                              <span className="text-xs text-gray-500">R$ {rg.pricePerHour}/hora</span>
+                              <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>
+                            </div>
                           </div>
                         </div>
                       </button>
@@ -808,22 +813,20 @@ function PedidoForm() {
                 )}
               </div>
             )}
-            {gmChoiceMode === 'manual' && recommendedGms.length > 0 && grillmasters.length > 0 && (
+            {gmChoiceMode === 'manual' && availableRecommendedGms.length > 0 && availableGrillmasters.length > 0 && (
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Todos os churrasqueiros</p>
             )}
 
             {gmChoiceMode === 'manual' && (
             <div className="space-y-3">
-              {grillmasters.filter(g => !recommendedGms.some(r => r.id === g.id)).map(g => {
+              {availableGrillmasters.filter(g => !availableRecommendedGms.some(r => r.id === g.id)).map(g => {
                 const sel = selectedGm === g.id
-                const blocked = gmBlocked(g)
                 return (
                   <button key={g.id} type="button"
-                    onClick={() => { if (blocked) return; setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
-                    disabled={blocked}
+                    onClick={() => { setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
                     aria-pressed={sel}
-                    className={'w-full text-left bg-gray-900 rounded-2xl p-4 border-2 transition-all ' +
-                      (blocked ? 'opacity-50 cursor-not-allowed border-gray-800' : 'cursor-pointer ' + (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40'))}>
+                    className={'w-full text-left bg-gray-900 rounded-2xl p-4 border-2 transition-all cursor-pointer ' +
+                      (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40')}>
                     <div className="flex items-center gap-3">
                       {g.photoUrl ? (
                         <img src={g.photoUrl} alt={g.user.name} className="w-12 h-12 rounded-full object-cover border-2 border-orange-500/30 shrink-0" />
@@ -838,7 +841,7 @@ function PedidoForm() {
                           {g.isChancelado && (
                             <span className="text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-1.5 py-0.5 rounded-full">Chancelado</span>
                           )}
-                          {!blocked && g.bringsAuxiliar && auxiliaresNeeded > 0 && (
+                          {g.bringsAuxiliar && auxiliaresNeeded > 0 && (
                             <span className="text-xs bg-blue-500/20 text-blue-400 border border-blue-500/30 px-1.5 py-0.5 rounded-full">+ auxiliar</span>
                           )}
                         </div>
@@ -854,10 +857,7 @@ function PedidoForm() {
                         <p className="text-gray-600 text-xs">/hora</p>
                       </div>
                     </div>
-                    {blocked && (
-                      <p className="text-xs text-red-400 mt-2">Atende sozinho até {AUXILIAR_GUEST_THRESHOLD} convidados — não disponível pra {totalPeople} pessoas</p>
-                    )}
-                    {sel && !blocked && (
+                    {sel && (
                       <p className="text-xs text-green-400 mt-2 font-medium inline-flex items-center gap-1"><CheckIcon size={11} /> Selecionado · {eventHours}h = R$ {(g.pricePerHour * eventHours * (1 + laborModifier.rate)).toFixed(2)}{auxiliarCost > 0 ? ` + R$ ${auxiliarCost.toFixed(2)} auxiliar` : ''}</p>
                     )}
                   </button>
@@ -890,8 +890,7 @@ function PedidoForm() {
                   </button>
 
                   <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : c)}
-                    className={'w-full text-left rounded-xl p-3 border-2 transition-all ' +
-                      (sideDishChoice !== 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
+                    className="w-full text-left rounded-xl p-3 border-2 transition-all border-gray-800 hover:border-orange-500/40">
                     <p className="text-sm font-medium text-white">
                       {sideDishChoice === 'ACOUGUE' ? 'Não, mantém com o açougue' : 'Não, eu levo por conta'}
                     </p>
@@ -986,16 +985,21 @@ function PedidoForm() {
         )}
 
         {/* ── NAVEGAÇÃO ── */}
-        <div className="flex justify-between mt-8 pt-6 border-t border-gray-800">
+        {/* sticky: em telas longas (passo 2-3, lista de produtos/churrasqueiros)
+            os botões ficavam fora da vista, obrigando rolar até o fim pra avançar. */}
+        <div className="sticky bottom-0 -mx-4 px-4 py-3 mt-8 bg-[#1c1714]/95 backdrop-blur border-t border-gray-800 flex items-center justify-between gap-3">
           {step > 1 ? (
             <button onClick={() => { setFormError(''); setStep(s => s - 1); window.scrollTo({ top: 0 }) }}
-              className="px-5 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 font-medium transition-colors">
+              className="px-5 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 font-medium transition-colors shrink-0">
               ← Voltar
             </button>
           ) : <div />}
+          {step >= 2 && step < 4 && total > 0 && (
+            <span className="text-sm text-gray-400 ml-auto mr-1 hidden sm:inline">Total: <span className="text-orange-400 font-bold">R$ {total.toFixed(2)}</span></span>
+          )}
           {step < 4 ? (
             <button onClick={next}
-              className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all hover:shadow-lg hover:shadow-orange-500/20">
+              className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all hover:shadow-lg hover:shadow-orange-500/20 shrink-0">
               Próximo →
             </button>
           ) : (
