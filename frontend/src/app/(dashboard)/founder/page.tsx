@@ -15,8 +15,6 @@ import dynamic from 'next/dynamic'
 
 const EmberParticles = dynamic(() => import('./EmberParticles'), { ssr: false })
 
-const VIDEO_BRASA = 'https://videos.pexels.com/video-files/3195394/3195394-uhd_2560_1440_25fps.mp4'
-
 // ── Typewriter ──────────────────────────────────────────────────────────────
 
 function Typewriter({ text, startDelay = 0.3 }: { text: string; startDelay?: number }) {
@@ -880,16 +878,11 @@ export default function FounderPage() {
         className="-mx-6 relative overflow-hidden"
         style={{ minHeight: 440 }}
       >
-        <motion.video
+        <motion.img
+          src="/jota-acao-evento.jpg"
+          alt="Jota Albuquerque preparando um corte ao vivo, com fumaça e o skyline ao fundo"
           style={{ y: ctaVideoY, position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="none"
-        >
-          <source src={VIDEO_BRASA} type="video/mp4" />
-        </motion.video>
+        />
 
         <div
           className="absolute inset-0"

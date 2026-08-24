@@ -356,6 +356,12 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
             </div>
 
             <div className="space-y-4">
+              {/* Equipe em SP — contra-argumenta "é só um cara sozinho lá fora" */}
+              <div className="rounded-2xl overflow-hidden border border-gray-800">
+                <img src="/equipe-tech-churras.jpg" alt="Equipe Tech Churras em evento em São Paulo" className="w-full h-48 object-cover" />
+                <p className="text-xs text-gray-500 bg-gray-900 px-4 py-2.5">Equipe com anos de eventos reais em São Paulo — o Jota toca a estratégia de Zanzibar, mas quem atende seu açougue está aqui.</p>
+              </div>
+
               {/* Card Bahari */}
               <div className="bg-gray-900 border border-amber-500/20 rounded-2xl p-5">
                 <div className="flex items-center gap-3 mb-3">

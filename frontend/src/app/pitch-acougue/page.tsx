@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { MeatIcon, CameraIcon, ChefIcon, CashIcon, PhoneIcon, ClipboardIcon, TrophyIcon, ChartIcon, CheckIcon, ChatIcon } from '@/components/icons/Icons'
 
 export const metadata: Metadata = {
   title: 'Parceria Tech Churras — Proposta para Açougues',
@@ -44,7 +45,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-2 w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl text-sm mb-6 transition-colors"
         >
-          💬 Já quero saber mais — falar com o Jota
+          <ChatIcon size={18} /> Já quero saber mais — falar com o Jota
         </a>
 
         {/* Argumento central: cliente premium garantido (Kantar 2025: canal açougue -6%, perdendo lares de alta renda) */}
@@ -84,7 +85,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-600 text-center">* R$ 0 de taxa de adesão · 1º mês de mensalidade grátis como Açougue Embaixador</p>
+        <p className="text-xs text-gray-600 text-center">* R$ 0 de taxa de adesão · grátis até o 3º pedido como Açougue Embaixador</p>
       </section>
 
       {/* ── QUEM ESTÁ POR TRÁS ── */}
@@ -127,7 +128,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
 
           {/* Fotos reais — prova visual, sem IA */}
           <div className="grid grid-cols-2 gap-2 mb-4">
-            <img src="/churrasco-real-1.jpg" alt="Jota Albuquerque preparando um corte nobre" className="w-full h-32 object-cover rounded-xl" />
+            <img src="/jota-acao-evento.jpg" alt="Jota Albuquerque preparando um corte ao vivo, com fumaça e skyline ao fundo" className="w-full h-32 object-cover rounded-xl" />
             <img src="/churrasco-real-2.jpg" alt="Corte com folha de ouro preparado pelo Jota" className="w-full h-32 object-cover rounded-xl" />
           </div>
           <p className="text-[10px] text-gray-600 mb-4">Fotos reais de eventos — nada gerado por IA.</p>
@@ -161,30 +162,30 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
         <div className="space-y-5">
           {[
             {
-              n: '1', icon: '🥩',
+              n: '1', icon: MeatIcon,
               titulo: 'Venda de carne recorrente',
               desc: 'Cada evento fechado no app é pedido garantido de carne — ticket a partir de R$ 350, podendo passar de R$ 1.000, direto no seu açougue, toda semana.',
             },
             {
-              n: '2', icon: '📸',
+              n: '2', icon: CameraIcon,
               titulo: 'Marketing de graça, todo mês',
               desc: 'Manda uma foto real do balcão ou de um corte e a IA devolve pronto o post com legenda pro seu Instagram. Sem agência, sem custo extra.',
             },
             {
-              n: '3', icon: '🥗',
+              n: '3', icon: CashIcon,
               titulo: 'Acompanhamentos: receita que não existia',
               desc: 'Farofa, vinagrete, arroz, molhos — venda também os acompanhamentos de cada evento e aumente o ticket médio sem custo de aquisição de cliente.',
             },
             {
-              n: '4', icon: '👨‍🍳',
+              n: '4', icon: ChefIcon,
               titulo: 'O passo seguinte: seu próprio churrasqueiro',
               desc: 'Com o volume de pedidos crescendo semana a semana, seu açougue pode ter um churrasqueiro chancelado pelo próprio Jota Albuquerque. Carne e mão de obra saindo do mesmo lugar — 100% do faturamento do evento fica com vocês, tudo validado pela Tech Churras.',
               destaque: true,
             },
           ].map(s => (
             <div key={s.n} className={'flex gap-4 items-start rounded-2xl p-4 ' + (s.destaque ? 'bg-amber-500/10 border border-amber-500/30' : '')}>
-              <div className={'w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ' + (s.destaque ? 'bg-amber-500/20 border border-amber-500/30' : 'bg-orange-500/10 border border-orange-500/20')}>
-                {s.icon}
+              <div className={'w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ' + (s.destaque ? 'bg-amber-500/20 border border-amber-500/30 text-amber-400' : 'bg-orange-500/10 border border-orange-500/20 text-orange-400')}>
+                <s.icon size={22} />
               </div>
               <div>
                 <p className={'font-bold text-sm ' + (s.destaque ? 'text-amber-300' : 'text-white')}>{s.n}. {s.titulo}</p>
@@ -251,24 +252,24 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
         <div className="space-y-4">
           {[
             {
-              n: '1', icon: '📱',
+              n: '1', icon: PhoneIcon,
               titulo: 'QR code no seu balcão',
               desc: 'Você recebe um QR code exclusivo. O cliente escaneia, cria conta e já fica vinculado ao seu açougue.',
             },
             {
-              n: '2', icon: '📦',
+              n: '2', icon: ClipboardIcon,
               titulo: 'Pedido chega no seu app',
               desc: 'Quando alguém contratar um churrasqueiro pelo app, o pedido de carne vai direto pro seu dashboard. Você separa os cortes.',
             },
             {
-              n: '3', icon: '💸',
+              n: '3', icon: CashIcon,
               titulo: 'Churrasqueiro retira. Você recebe.',
               desc: 'O churrasqueiro chancelado passa no seu balcão, retira a carne e os acompanhamentos. O repasse cai via PIX toda sexta.',
             },
           ].map(s => (
             <div key={s.n} className="flex gap-4 items-start">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-xl shrink-0">
-                {s.icon}
+              <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-400 shrink-0">
+                <s.icon size={20} />
               </div>
               <div>
                 <p className="font-bold text-white text-sm">{s.titulo}</p>
@@ -285,12 +286,12 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
 
         <div className="space-y-3 mb-6">
           {[
-            { icon: '💰', texto: 'R$ 40 de bônus por cada cliente novo que você indicar via QR code' },
-            { icon: '🏅', texto: 'Badge "Açougue Parceiro" verificado no app — diferencial frente a concorrentes' },
-            { icon: '📊', texto: 'Dashboard com pedidos, faturamento e previsão de demanda em tempo real' },
+            { icon: CashIcon, texto: 'R$ 40 de bônus por cada cliente novo que você indicar via QR code' },
+            { icon: TrophyIcon, texto: 'Badge "Açougue Parceiro" verificado no app — diferencial frente a concorrentes' },
+            { icon: ChartIcon, texto: 'Dashboard com pedidos, faturamento e previsão de demanda em tempo real' },
           ].map(item => (
             <div key={item.texto} className="flex gap-3 items-start">
-              <span className="text-lg shrink-0">{item.icon}</span>
+              <item.icon size={18} className="text-orange-400 shrink-0 mt-0.5" />
               <p className="text-gray-300 text-sm leading-relaxed">{item.texto}</p>
             </div>
           ))}
@@ -301,7 +302,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
       <section className="px-5 py-8 border-t border-gray-900">
         <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-3xl">🏅</span>
+            <TrophyIcon size={30} className="text-amber-400" />
             <div>
               <p className="font-black text-white">Programa Açougue Embaixador</p>
               <p className="text-xs text-amber-400">Pra todo novo parceiro — pra você ver com seus próprios olhos que funciona</p>
@@ -311,7 +312,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
             {[
               'Grátis até o 3º pedido — sem mensalidade',
               'Badge "Açougue Embaixador" no app',
-              'Destaque nas buscas no primeiro mês',
+              'Destaque nas buscas durante o período grátis',
               'Acesso direto ao Jota Albuquerque via WhatsApp',
             ].map(b => (
               <div key={b} className="flex items-start gap-2 text-sm text-gray-300">
@@ -331,16 +332,16 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
         <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-4">Sem risco para você</p>
         <div className="grid grid-cols-2 gap-3">
           {[
-            { icon: '✅', texto: 'Sem taxa de entrada' },
-            { icon: '✅', texto: 'Sem contrato de fidelidade' },
-            { icon: '✅', texto: 'Sem mudança na operação' },
-            { icon: '✅', texto: 'Sem logística de entrega' },
-            { icon: '✅', texto: 'Repasse semanal via PIX' },
-            { icon: '✅', texto: 'Cancela quando quiser' },
-          ].map(item => (
-            <div key={item.texto} className="flex items-center gap-2 text-sm text-gray-300">
-              <span>{item.icon}</span>
-              <span>{item.texto}</span>
+            'Sem taxa de entrada',
+            'Sem contrato de fidelidade',
+            'Sem mudança na operação',
+            'Sem logística de entrega',
+            'Repasse semanal via PIX',
+            'Cancela quando quiser',
+          ].map(texto => (
+            <div key={texto} className="flex items-center gap-2 text-sm text-gray-300">
+              <CheckIcon size={16} className="text-green-400 shrink-0" />
+              <span>{texto}</span>
             </div>
           ))}
         </div>
@@ -354,7 +355,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-3 w-full bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-black py-4 rounded-2xl text-base transition-colors"
         >
-          <span className="text-xl">💬</span>
+          <ChatIcon size={20} />
           Falar com o Jota no WhatsApp
         </a>
         <p className="text-center text-xs text-gray-600 mt-2">

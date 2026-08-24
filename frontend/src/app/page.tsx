@@ -297,22 +297,11 @@ export default async function HomePage() {
           <span className="text-gray-400">A gente cuida do churrasqueiro, das carnes e de cada detalhe do dia — pra você estar na mesa, não preso na grelha o evento inteiro.</span>
         </p>
         <div className="flex flex-col items-center gap-4">
-          <Link href="/grillmasters"
+          <Link href="/pedido"
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-10 py-5 rounded-2xl text-xl transition-all hover:shadow-lg hover:shadow-orange-500/30 hover:-translate-y-0.5">
             Contratar meu churrasco
           </Link>
           <p className="text-gray-500 text-sm">Já vem com açougue parceiro e cortes inclusos — você só escolhe o Grillmaster.</p>
-          <div className="flex items-center justify-center gap-4 flex-wrap mt-1">
-            <Link href="/boutiques"
-              className="text-gray-400 hover:text-white text-sm font-medium transition-colors inline-flex items-center gap-1.5">
-              <MeatIcon size={14} /> Prefiro ver os açougues primeiro
-            </Link>
-            <span className="text-gray-800">·</span>
-            <Link href="/kit-perfeito"
-              className="text-orange-400/80 hover:text-orange-300 text-sm font-medium transition-colors">
-              Montar kit com IA ✨
-            </Link>
-          </div>
         </div>
         <p className="text-gray-600 text-xs mt-8 max-w-lg mx-auto">
           Grillmaster chancelado + açougue parceiro + IA que monta o kit + rastreio ao vivo no dia (em breve) — sem cobrar seu tempo.
@@ -320,6 +309,13 @@ export default async function HomePage() {
       </section>
 
       <PriceCalculator avgGmPricePerHour={pricingAverages.avgGmPricePerHour} avgMeatPricePerKg={pricingAverages.avgMeatPricePerKg} />
+
+      <div className="text-center pb-4">
+        <Link href="/kit-perfeito"
+          className="text-orange-400/80 hover:text-orange-300 text-sm font-medium transition-colors">
+          Não sabe quanto pedir? Monte o kit com IA ✨
+        </Link>
+      </div>
 
       {/* Garantia — eliminação de risco logo abaixo do CTA principal */}
       <section className="max-w-6xl mx-auto px-4 pb-8">
