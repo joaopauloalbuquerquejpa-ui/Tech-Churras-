@@ -83,6 +83,21 @@ export async function createBoutique(userId: string, data: CreateBoutiqueInput) 
     data: { userId, ...data, latitude, longitude, referralCode },
     include: { user: { select: { name: true, email: true } } },
   })
+
+  // Pré-carrega 5 cortes comuns como rascunho (available: false) — sem isso o
+  // dono do açougue via um catálogo vazio e precisava criar cada produto do
+  // zero. Preço é só ponto de partida (mesma referência usada no /ai/kit-perfeito);
+  // fica invisível pro cliente até o dono revisar e marcar disponível.
+  await prisma.product.createMany({
+    data: [
+      { boutiqueId: boutique.id, name: 'Picanha', category: 'CARNE', unit: 'kg', price: 90, available: false },
+      { boutiqueId: boutique.id, name: 'Costela Bovina', category: 'CARNE', unit: 'kg', price: 46, available: false },
+      { boutiqueId: boutique.id, name: 'Fraldinha', category: 'CARNE', unit: 'kg', price: 65, available: false },
+      { boutiqueId: boutique.id, name: 'Linguiça Toscana', category: 'CARNE', unit: 'kg', price: 33, available: false },
+      { boutiqueId: boutique.id, name: 'Frango Inteiro', category: 'CARNE', unit: 'kg', price: 19, available: false },
+    ],
+  }).catch((e) => console.error('[boutique-seed]', e?.message))
+
   // Notify all admins of new partner registration (push + WhatsApp)
   prisma.user.findMany({ where: { role: 'ADMIN' }, select: { id: true } }).then(admins => {
     for (const admin of admins) {

@@ -1,6 +1,6 @@
 ﻿'use client'
 import { API_URL } from '@/lib/api'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import ContractModal from '@/components/ContractModal'
 import { VoiceDictateButton } from '@/components/VoiceDictateButton'
@@ -65,6 +65,24 @@ export default function NewBoutiquePage() {
   const logoRef = useRef<HTMLInputElement>(null)
   const facadeRef = useRef<HTMLInputElement>(null)
   const galleryRef = useRef<HTMLInputElement>(null)
+
+  // Pré-preenche com o que já foi dado no /register — sem isso o dono do
+  // açougue digitava nome e telefone duas vezes em menos de um minuto.
+  useEffect(() => {
+    const token = getToken()
+    if (!token) return
+    fetch(API_URL + '/auth/me', { headers: { Authorization: 'Bearer ' + token } })
+      .then(r => r.ok ? r.json() : null)
+      .then(me => {
+        if (!me) return
+        setForm(f => ({
+          ...f,
+          name: f.name || me.name || '',
+          phone: f.phone || me.phone || '',
+        }))
+      })
+      .catch(() => {})
+  }, [])
 
   function handleLogo(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]

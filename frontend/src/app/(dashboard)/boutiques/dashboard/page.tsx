@@ -891,7 +891,7 @@ export default function BoutiqueDashboardPage() {
             </div>
           )}
 
-          {boutique.products.length === 0 && (
+          {boutique.products.filter(p => p.available).length === 0 && (
             <div className="bg-gradient-to-br from-orange-500/15 to-amber-500/10 border border-orange-500/40 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-4">
                 <RocketIcon size={22} className="text-orange-400" />
@@ -904,7 +904,7 @@ export default function BoutiqueDashboardPage() {
                 {[
                   { done: true,  icon: '✅', label: 'Açougue cadastrado', sub: 'Você já está na plataforma!' },
                   { done: boutique.approved, icon: boutique.approved ? '✅' : '⏳', label: 'Aprovação da equipe Tech Churras', sub: boutique.approved ? 'Aprovado — seu açougue está ativo' : 'Nossa equipe avisa no WhatsApp em até 24h' },
-                  { done: false, icon: '📦', label: 'Adicionar pelo menos 5 cortes de carne', sub: 'Vá em "Produtos" → "+ Produto" → selecione categoria Carne' },
+                  { done: boutique.products.some(p => p.available && p.category === 'CARNE'), icon: '📦', label: 'Revisar preço e ativar seus cortes', sub: 'Já deixamos 5 cortes comuns pré-cadastrados em "Produtos" — só ajustar o preço e marcar como disponível' },
                   { done: false, icon: '🥗', label: 'Adicionar 1 acompanhamento (farofa, vinagrete...)', sub: 'Categoria "Acompanhamento" — churrasqueiros retiram tudo em uma visita' },
                   { done: boutique.open, icon: boutique.open ? '✅' : '🔓', label: 'Abrir sua loja', sub: boutique.open ? 'Loja aberta — você já aparece nas buscas!' : 'Clique em "Loja fechada — abrir" no topo desta página' },
                   { done: false, icon: '🖨️', label: 'Imprimir a placa do balcão', sub: 'Vá em "Balcão" e imprima seu QR code exclusivo' },
