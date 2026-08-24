@@ -167,8 +167,8 @@ export default function GrillmastersPage() {
           <h1 className="text-2xl font-bold">Churrasqueiros</h1>
           <p className="text-sm text-gray-400 mt-1">Mestres da brasa disponiveis para seu evento</p>
         </div>
-        <Link href="/grillmasters/new" className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium text-sm">
-          Cadastrar-se
+        <Link href="/grillmasters/new" className="text-gray-500 hover:text-gray-300 text-xs font-medium transition-colors shrink-0">
+          É churrasqueiro? Cadastre-se →
         </Link>
       </div>
 
