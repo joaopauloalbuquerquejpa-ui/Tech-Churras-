@@ -1017,7 +1017,7 @@ export default function BoutiqueDashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm font-semibold text-white">Relatório mensal</p>
-                <p className="text-xs text-gray-500 mt-0.5">Grátis pra todo Açougue Embaixador — sem custo extra</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pedidos feitos neste mês · Pix cai após o evento, pode virar o mês</p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button

@@ -4,6 +4,7 @@ import { emailPartnerApproved } from '../email/email.service'
 import { fetchWithTimeout } from '../../utils/http'
 import Anthropic from '@anthropic-ai/sdk'
 import { checkPixOwnership } from '../auth/verification.service'
+import { TRIAL_ORDERS_THRESHOLD } from '../../utils/pricing'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -249,8 +250,8 @@ export async function approveBoutique(boutiqueId: string) {
     const name = boutique.user.name.split(' ')[0]
     sendPushToUser(
       boutique.user.id,
-      '🎉 Açougue aprovado! Embaixador — 1 mês grátis.',
-      `Parabéns ${name}! O açougue ${boutique.name} está ativo. Você é Açougue Embaixador — 1 mês grátis, depois R$ ${monthlyFee}/mês.`,
+      `🎉 Açougue aprovado! Embaixador — grátis até o ${TRIAL_ORDERS_THRESHOLD}º pedido.`,
+      `Parabéns ${name}! O açougue ${boutique.name} está ativo. Você é Açougue Embaixador — grátis até completar ${TRIAL_ORDERS_THRESHOLD} pedidos, depois R$ ${monthlyFee}/mês.`,
       '/boutiques/dashboard'
     ).catch((e) => console.error("[notif]", e?.message))
     emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
@@ -258,7 +259,7 @@ export async function approveBoutique(boutiqueId: string) {
       sendWhatsApp(
         boutique.user.phone,
         `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n` +
-        `🎁 Você é *Açougue Embaixador* — *1 mês GRÁTIS* e depois R$${monthlyFee}/mês.` +
+        `🎁 Você é *Açougue Embaixador* — *grátis até completar ${TRIAL_ORDERS_THRESHOLD} pedidos* e depois R$${monthlyFee}/mês.` +
         `\n\n*QR code do seu balcão:*\nhttps://www.techchurras.com.br/pedido?boutique=${boutique.id}\n\nAcesse seu painel completo:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
         'boutique-aprovado'
       ).catch((e) => console.error("[notif]", e?.message))

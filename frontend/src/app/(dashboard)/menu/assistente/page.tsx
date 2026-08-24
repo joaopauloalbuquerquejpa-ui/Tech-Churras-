@@ -276,7 +276,11 @@ export default function AssistentePage() {
         } catch { /* ignore */ }
       }
 
-      setApiHistory(prev => [...prev, { role: 'assistant', content: rawReply }])
+      // A API da Anthropic rejeita content vazio num turno de histórico — a IA
+      // pode chamar a tool generate_plan sem nenhum texto antes (o system
+      // prompt pede, mas não obriga), o que deixaria rawReply === '' aqui.
+      const historyContent = rawReply || 'Beleza, montando o plano pra você! 🔥'
+      setApiHistory(prev => [...prev, { role: 'assistant', content: historyContent }])
       setMessages(prev => [...prev, { role: 'ai', text: rawReply || undefined, plan }])
     } catch {
       setMessages(prev => [...prev, { role: 'ai', text: 'Tive um probleminha aqui, pode repetir? 🙏' }])
