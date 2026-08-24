@@ -208,7 +208,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 <Link
                   href="/register?role=boutique"
                   onClick={() => Events.boutiqueInterest('para-acougues-hero-cta')}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-8 py-4 rounded-xl text-base transition-all shadow-lg shadow-orange-500/25"
+                  className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-xl text-base transition-all shadow-lg shadow-orange-500/25"
                 >
                   🥩 Quero ser parceiro
                 </Link>
@@ -1066,7 +1066,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               <Link
                 href="/register?role=boutique"
                 onClick={() => Events.boutiqueInterest('para-acougues-footer-cta')}
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold px-10 py-4 rounded-xl text-lg transition-all shadow-xl shadow-orange-500/25"
+                className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-10 py-4 rounded-xl text-lg transition-all shadow-xl shadow-orange-500/25"
               >
                 🥩 Quero ser parceiro
               </Link>
