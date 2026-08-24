@@ -131,6 +131,19 @@ function PedidoForm() {
   const [men, setMen] = useState(5)
   const [women, setWomen] = useState(3)
   const [kids, setKids] = useState(2)
+  const [guestDetailMode, setGuestDetailMode] = useState(false)
+
+  // Distribui um total único em homens/mulheres/crianças (proporção do
+  // padrão 5/3/2) — usado pelo campo simples "Total de convidados", pra
+  // não obrigar todo mundo a preencher 3 contadores separados de cara.
+  // Quem quer precisão por perfil ainda pode abrir "Ajustar por perfil".
+  function setTotalGuests(total: number) {
+    const t = Math.max(0, total)
+    const kidsN = Math.round(t * 0.2)
+    const womenN = Math.round(t * 0.3)
+    const menN = Math.max(0, t - kidsN - womenN)
+    setMen(menN); setWomen(womenN); setKids(kidsN)
+  }
 
   // Step 2 — carnes
   const [qty, setQty] = useState<Record<string, number>>({})
@@ -556,22 +569,42 @@ function PedidoForm() {
 
             <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 space-y-4">
               <h2 className="font-bold text-base">Quantos convidados?</h2>
-              {[
-                { label: 'Homens', value: men, set: setMen },
-                { label: 'Mulheres', value: women, set: setWomen },
-                { label: 'Crianças', value: kids, set: setKids },
-              ].map(({ label, value, set }) => (
-                <div key={label} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-300">{label}</span>
+
+              {!guestDetailMode ? (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-300">Total de convidados</span>
                   <div className="flex items-center gap-3">
-                    <button onClick={() => set(Math.max(0, value - 1))} aria-label={`Diminuir ${label}`}
+                    <button onClick={() => setTotalGuests(totalPeople - 1)} aria-label="Diminuir convidados"
                       className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 font-bold text-lg flex items-center justify-center">−</button>
-                    <span className="w-8 text-center font-bold" aria-live="polite">{value}</span>
-                    <button onClick={() => set(value + 1)} aria-label={`Aumentar ${label}`}
+                    <span className="w-8 text-center font-bold" aria-live="polite">{totalPeople}</span>
+                    <button onClick={() => setTotalGuests(totalPeople + 1)} aria-label="Aumentar convidados"
                       className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 font-bold text-lg flex items-center justify-center">+</button>
                   </div>
                 </div>
-              ))}
+              ) : (
+                [
+                  { label: 'Homens', value: men, set: setMen },
+                  { label: 'Mulheres', value: women, set: setWomen },
+                  { label: 'Crianças', value: kids, set: setKids },
+                ].map(({ label, value, set }) => (
+                  <div key={label} className="flex items-center justify-between">
+                    <span className="text-sm text-gray-300">{label}</span>
+                    <div className="flex items-center gap-3">
+                      <button onClick={() => set(Math.max(0, value - 1))} aria-label={`Diminuir ${label}`}
+                        className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 font-bold text-lg flex items-center justify-center">−</button>
+                      <span className="w-8 text-center font-bold" aria-live="polite">{value}</span>
+                      <button onClick={() => set(value + 1)} aria-label={`Aumentar ${label}`}
+                        className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 font-bold text-lg flex items-center justify-center">+</button>
+                    </div>
+                  </div>
+                ))
+              )}
+
+              <button type="button" onClick={() => setGuestDetailMode(v => !v)}
+                className="text-xs text-orange-400/80 hover:text-orange-300 font-medium">
+                {guestDetailMode ? '← Voltar pro total simples' : 'Ajustar por perfil (homens/mulheres/crianças) →'}
+              </button>
+
               {totalPeople > 0 && (
                 <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl px-4 py-3 flex items-center justify-between">
                   <span className="text-sm text-orange-300">{totalPeople} pessoas → <span className="font-bold">{totalKg} kg de proteína</span></span>
