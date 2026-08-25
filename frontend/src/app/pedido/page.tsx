@@ -3,12 +3,12 @@ import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
-import { CheckIcon, FlameIcon } from '@/components/icons/Icons'
+import { CheckIcon, FlameIcon, MeatIcon } from '@/components/icons/Icons'
 import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier } from '@/lib/pricing'
 import { useCartStore } from '@/store/cart'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean; offersSideDishPrep?: boolean }
-interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null }
+interface Product { id: string; name: string; price: number; unit: string; category: string; available: boolean; stockQuantity?: number | null; imageUrl?: string | null; description?: string | null }
 interface Grillmaster { id: string; pricePerHour: number; city: string; state: string; rating: number; totalOrders: number; isChancelado: boolean; offersSideDishPrep?: boolean; bringsAuxiliar?: boolean; unlimitedAvailability?: boolean; photoUrl?: string | null; user: { name: string } }
 interface KitItem { productName?: string; name?: string; quantity?: number; qty?: number; unit: string }
 interface Kit { id: string; name: string; description: string; price: number; discountPrice?: number | null; minGuests: number; maxGuests: number; items: string }
@@ -23,22 +23,15 @@ const CATEGORY_LABELS: Record<string, string> = {
   ACOMPANHAMENTO: 'Acompanhamentos', BEBIDA: 'Bebidas', OUTRO: 'Outros',
 }
 
-const MEAT_BREAKDOWN = [
-  { label: 'Carne Nobre', cat: 'CARNE', pct: 0.45 },
-  { label: 'Porco e Linguiça', cat: 'CARNE', pct: 0.30 },
-  { label: 'Frango', cat: 'CARNE', pct: 0.25 },
-]
-
-function buildSuggested(products: Product[], men: number, women: number, kids: number) {
+// Divide a proteína total necessária em partes iguais só entre os cortes que
+// o cliente escolheu — nada é pré-selecionado antes disso. Cliente escolhe
+// primeiro quais cortes quer, a quantidade de cada um só é sugerida depois,
+// e continua editável por item com os botões +/-.
+function rebalanceSelected(selectedIds: string[], men: number, women: number, kids: number): Record<string, number> {
+  if (selectedIds.length === 0) return {}
   const totalKg = (men * 350 + women * 300 + kids * 200) / 1000
-  const qty: Record<string, number> = {}
-  for (const b of MEAT_BREAKDOWN) {
-    const prods = products.filter(p => p.category === b.cat && p.available)
-    if (!prods.length) continue
-    const kgEach = +(totalKg * b.pct / prods.length).toFixed(1)
-    for (const p of prods) qty[p.id] = Math.max(0.5, Math.round(kgEach * 2) / 2)
-  }
-  return qty
+  const kgEach = Math.max(0.5, Math.round((totalKg / selectedIds.length) * 2) / 2)
+  return Object.fromEntries(selectedIds.map(id => [id, kgEach]))
 }
 
 function renderStars(r: number) {
@@ -283,10 +276,11 @@ function PedidoForm() {
       .finally(() => setLoadingRecommended(false))
   }, [step])
 
-  // A promessa do produto é "a IA monta o kit certo pra você" — mas antes a
-  // sugestão só rodava se o cliente clicasse. Assim que o catálogo carrega,
-  // aplica automaticamente o kit mais compatível (ou a sugestão genérica por
-  // categoria se o açougue não tiver kit pronto), sempre editável depois.
+  // Só o kit pronto (produto real, montado pelo próprio açougue) é sugerido
+  // automaticamente ao carregar — é uma recomendação legítima do parceiro,
+  // não o sistema adivinhando o que o cliente quer. A montagem manual de
+  // cortes começa vazia: o cliente escolhe o que quer primeiro, a
+  // quantidade só é sugerida depois de cada corte selecionado.
   useEffect(() => {
     if (selectedKit !== null || products.length === 0) return
     if (Object.values(qty).some(q => q > 0)) return
@@ -296,7 +290,6 @@ function PedidoForm() {
         ? kits.reduce((prev, curr) => Math.abs(curr.minGuests - totalPeople) < Math.abs(prev.minGuests - totalPeople) ? curr : prev)
         : null)
     if (kit) applyKit(kit)
-    else applySuggested()
   }, [products, kits])
 
   // Prefila o restante do formulário com o que veio do Kit Perfeito/Assistente
@@ -324,9 +317,25 @@ function PedidoForm() {
     } catch {}
   }
 
-  function applySuggested() {
-    setQty(buildSuggested(products, men, women, kids))
+  // Reequilibra em partes iguais só os cortes que já estão selecionados —
+  // útil se o cliente mexeu manualmente num item e quer voltar pro sugerido.
+  function resetSelectedToEvenSplit() {
+    const selectedIds = Object.keys(qty).filter(id => (qty[id] || 0) > 0)
+    setQty(rebalanceSelected(selectedIds, men, women, kids))
+  }
+
+  // Alterna um corte selecionado/não-selecionado e reequilibra a quantidade
+  // sugerida entre os cortes atualmente escolhidos — ajuste manual por item
+  // continua disponível depois, via +/-.
+  function toggleProductSelection(productId: string) {
     setSelectedKit(null)
+    setQty(prev => {
+      const isSelected = (prev[productId] || 0) > 0
+      const nextIds = isSelected
+        ? Object.keys(prev).filter(id => id !== productId && (prev[id] || 0) > 0)
+        : [...Object.keys(prev).filter(id => (prev[id] || 0) > 0), productId]
+      return rebalanceSelected(nextIds, men, women, kids)
+    })
   }
 
   function applyKit(kit: Kit) {
@@ -632,10 +641,12 @@ function PedidoForm() {
                 <h2 className="font-bold text-base">Escolha os Cortes</h2>
                 <p className="text-xs text-gray-500">Cardápio do {boutique?.name}</p>
               </div>
-              <button onClick={applySuggested}
-                className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-2 rounded-xl transition-colors whitespace-nowrap">
-                ✨ Sugerir quantidades
-              </button>
+              {Object.values(qty).some(q => q > 0) && (
+                <button onClick={resetSelectedToEvenSplit}
+                  className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-2 rounded-xl transition-colors whitespace-nowrap">
+                  ✨ Reequilibrar quantidades
+                </button>
+              )}
             </div>
 
             {kits.length > 0 && (
@@ -684,26 +695,49 @@ function PedidoForm() {
               </div>
             ) : (
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-5">
+                <p className="text-xs text-gray-500 -mt-1">Toque num corte pra escolher — a quantidade é sugerida pra {totalPeople || '0'} convidados assim que você seleciona, mas dá pra ajustar depois.</p>
                 {categorias.map(cat => (
                   <div key={cat}>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">{CATEGORY_LABELS[cat] || cat}</p>
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
                       {products.filter(p => p.category === cat).map(p => {
                         const q = qty[p.id] || 0
+                        const selected = q > 0
                         return (
-                          <div key={p.id} className="flex items-center justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-white truncate">{p.name}</p>
-                              <p className="text-xs text-orange-400">R$ {p.price.toFixed(2)}/{p.unit}</p>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <button onClick={() => setQty(prev => ({ ...prev, [p.id]: Math.max(0, +((prev[p.id] || 0) - 0.5).toFixed(1)) }))}
-                                className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full font-bold">−</button>
-                              <span className="w-10 text-center text-sm font-bold">{q || '0'}</span>
-                              <button onClick={() => setQty(prev => ({ ...prev, [p.id]: +((prev[p.id] || 0) + 0.5).toFixed(1) }))}
-                                className="w-8 h-8 bg-orange-500 hover:bg-orange-600 rounded-full font-bold">+</button>
-                              {q > 0 && <span className="text-xs text-orange-400 w-14 text-right">R${(q * p.price).toFixed(0)}</span>}
-                            </div>
+                          <div key={p.id} className={'rounded-2xl border-2 overflow-hidden transition-all ' + (selected ? 'border-orange-500 bg-orange-500/5' : 'border-gray-800 bg-gray-800/40 hover:border-orange-500/40')}>
+                            <button type="button" onClick={() => toggleProductSelection(p.id)} className="w-full text-left" aria-pressed={selected}>
+                              <div className="relative aspect-square bg-gray-800">
+                                {p.imageUrl ? (
+                                  <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-gray-600"><MeatIcon size={32} /></div>
+                                )}
+                                {selected && (
+                                  <span className="absolute top-2 right-2 w-6 h-6 rounded-full bg-orange-500 text-white flex items-center justify-center shadow-lg shrink-0">
+                                    <CheckIcon size={14} />
+                                  </span>
+                                )}
+                              </div>
+                              <div className="p-2.5 pb-2">
+                                <p className="text-sm font-medium text-white truncate">{p.name}</p>
+                                {p.description && <p className="text-[11px] text-gray-500 line-clamp-2 mt-0.5">{p.description}</p>}
+                                <p className="text-xs text-orange-400 mt-0.5">R$ {p.price.toFixed(2)}/{p.unit}</p>
+                              </div>
+                            </button>
+                            {selected && (
+                              <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5">
+                                <div className="flex items-center gap-1.5">
+                                  <button onClick={() => setQty(prev => ({ ...prev, [p.id]: Math.max(0.5, +((prev[p.id] || 0) - 0.5).toFixed(1)) }))}
+                                    aria-label={`Diminuir ${p.name}`}
+                                    className="w-7 h-7 bg-gray-800 hover:bg-gray-700 rounded-full font-bold text-sm">−</button>
+                                  <span className="w-9 text-center text-sm font-bold">{q}{p.unit}</span>
+                                  <button onClick={() => setQty(prev => ({ ...prev, [p.id]: +((prev[p.id] || 0) + 0.5).toFixed(1) }))}
+                                    aria-label={`Aumentar ${p.name}`}
+                                    className="w-7 h-7 bg-orange-500 hover:bg-orange-600 rounded-full font-bold text-sm">+</button>
+                                </div>
+                                <span className="text-xs text-orange-400 font-medium">R${(q * p.price).toFixed(0)}</span>
+                              </div>
+                            )}
                           </div>
                         )
                       })}
