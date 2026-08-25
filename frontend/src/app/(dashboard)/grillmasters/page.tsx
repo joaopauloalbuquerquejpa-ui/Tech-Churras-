@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
+import { MeatIcon } from '@/components/icons/Icons'
 import { useFavoritesStore } from '@/store/favorites'
 import { requestLocation, getCachedLocation, clearCachedLocation, type UserLocation } from '@/lib/geolocation'
 
@@ -355,10 +356,11 @@ export default function GrillmastersPage() {
 
       {!loading && filtered.length === 0 && !error && (
         <div className="text-center py-16 bg-gray-900 rounded-xl text-gray-400">
+          <MeatIcon size={40} className="text-gray-700 mx-auto mb-3" />
           <p className="text-lg mb-4">Nenhum churrasqueiro encontrado.</p>
           <button
             onClick={clearAllFilters}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-lg text-sm"
+            className="bg-orange-500 hover:bg-orange-600 active:scale-95 transition-transform text-white px-5 py-2 rounded-lg text-sm"
           >
             Limpar filtros
           </button>

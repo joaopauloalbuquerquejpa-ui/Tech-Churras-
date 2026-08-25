@@ -82,6 +82,7 @@ export default function GrillmasterProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
+  const [showChancelaInfo, setShowChancelaInfo] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -162,12 +163,14 @@ export default function GrillmasterProfilePage() {
         {/* Top badges */}
         <div className="absolute top-4 left-4 flex flex-wrap gap-2">
           {gm.certifiedAt && (
-            <span className="bg-yellow-400 text-black text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1">
+            <button type="button" onClick={() => setShowChancelaInfo(v => !v)}
+              className="bg-yellow-400 text-black text-xs font-black px-2.5 py-1 rounded-full flex items-center gap-1 active:scale-95 transition-transform">
               ✓ Certificado Tech Churras
-            </span>
+            </button>
           )}
           {gm.isChancelado && !gm.certifiedAt && (
-            <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">CHANCELADO</span>
+            <button type="button" onClick={() => setShowChancelaInfo(v => !v)}
+              className="bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full active:scale-95 transition-transform">CHANCELADO</button>
           )}
           {gm.churrascoStyle && (
             <span className="bg-orange-500/80 text-white text-xs px-2 py-0.5 rounded-full">{gm.churrascoStyle}</span>
@@ -198,6 +201,12 @@ export default function GrillmasterProfilePage() {
           </div>
         </div>
       </div>
+
+      {(gm.certifiedAt || gm.isChancelado) && showChancelaInfo && (
+        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-3 mb-5 text-xs text-yellow-200 animate-revealIn">
+          O selo <strong>Chancelado</strong> é concedido pela Jota Grillmaster a profissionais que passaram pelo treinamento oficial da Tech Churras — indica alto nível técnico e compromisso com a qualidade.
+        </div>
+      )}
 
       {/* Bio + Stats */}
       <div className="grid md:grid-cols-3 gap-4 mb-5">

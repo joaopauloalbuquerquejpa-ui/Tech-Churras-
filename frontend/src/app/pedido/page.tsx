@@ -3,7 +3,7 @@ import { Suspense, useState, useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
-import { CheckIcon, FlameIcon, MeatIcon } from '@/components/icons/Icons'
+import { CheckIcon, FlameIcon, MeatIcon, StarIcon } from '@/components/icons/Icons'
 import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier } from '@/lib/pricing'
 import { useCartStore } from '@/store/cart'
 
@@ -495,7 +495,7 @@ function PedidoForm() {
           <div className="flex flex-col gap-3">
             {allBoutiques.map(b => (
               <button key={b.id} onClick={() => router.replace(`/pedido?boutiqueId=${b.id}` + (preselectGmId ? `&grillmasterId=${preselectGmId}` : ''))}
-                className="text-left bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-orange-500/60 rounded-2xl p-5 transition-colors">
+                className="text-left bg-gray-900 hover:bg-gray-800 active:scale-[0.98] border border-gray-800 hover:border-orange-500/60 rounded-2xl p-5 transition-all">
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-bold text-lg">{b.name}</span>
                   <span className={'text-xs font-bold px-2 py-0.5 rounded-full ' + (b.open ? 'bg-green-500/15 text-green-400' : 'bg-gray-700 text-gray-400')}>
@@ -592,10 +592,10 @@ function PedidoForm() {
                   <span className="text-sm text-gray-300">Total de convidados</span>
                   <div className="flex items-center gap-3">
                     <button onClick={() => setTotalGuests(totalPeople - 1)} aria-label="Diminuir convidados"
-                      className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 font-bold text-lg flex items-center justify-center">−</button>
+                      className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 active:scale-90 transition-transform font-bold text-lg flex items-center justify-center">−</button>
                     <span className="w-8 text-center font-bold" aria-live="polite">{totalPeople}</span>
                     <button onClick={() => setTotalGuests(totalPeople + 1)} aria-label="Aumentar convidados"
-                      className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 font-bold text-lg flex items-center justify-center">+</button>
+                      className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 active:scale-90 transition-transform font-bold text-lg flex items-center justify-center">+</button>
                   </div>
                 </div>
               ) : (
@@ -608,10 +608,10 @@ function PedidoForm() {
                     <span className="text-sm text-gray-300">{label}</span>
                     <div className="flex items-center gap-3">
                       <button onClick={() => set(Math.max(0, value - 1))} aria-label={`Diminuir ${label}`}
-                        className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 font-bold text-lg flex items-center justify-center">−</button>
+                        className="w-9 h-9 rounded-full bg-gray-800 hover:bg-gray-700 active:scale-90 transition-transform font-bold text-lg flex items-center justify-center">−</button>
                       <span className="w-8 text-center font-bold" aria-live="polite">{value}</span>
                       <button onClick={() => set(value + 1)} aria-label={`Aumentar ${label}`}
-                        className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 font-bold text-lg flex items-center justify-center">+</button>
+                        className="w-9 h-9 rounded-full bg-orange-500 hover:bg-orange-600 active:scale-90 transition-transform font-bold text-lg flex items-center justify-center">+</button>
                     </div>
                   </div>
                 ))
@@ -651,8 +651,8 @@ function PedidoForm() {
               </div>
               {Object.values(qty).some(q => q > 0) && (
                 <button onClick={resetSelectedToEvenSplit}
-                  className="text-xs bg-orange-500 hover:bg-orange-600 text-white font-bold px-3 py-2 rounded-xl transition-colors whitespace-nowrap">
-                  ✨ Reequilibrar quantidades
+                  className="text-xs bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-bold px-3 py-2 rounded-xl transition-all whitespace-nowrap inline-flex items-center gap-1">
+                  <StarIcon size={12} /> Reequilibrar quantidades
                 </button>
               )}
             </div>
@@ -666,7 +666,7 @@ function PedidoForm() {
                     const displayPrice = kit.discountPrice && kit.discountPrice < kit.price ? kit.discountPrice : kit.price
                     return (
                       <button key={kit.id} onClick={() => applyKit(kit)}
-                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all ' +
+                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all active:scale-[0.98] ' +
                           (sel ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 bg-gray-900 hover:border-orange-500/40')}>
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
@@ -724,7 +724,7 @@ function PedidoForm() {
                   <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1 sticky top-0 bg-gray-900 z-10">
                     {categorias.map(cat => (
                       <button key={cat} type="button" onClick={() => scrollToCategory(cat)}
-                        className="shrink-0 text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-full whitespace-nowrap transition-colors">
+                        className="shrink-0 text-xs font-medium bg-gray-800 hover:bg-gray-700 active:scale-95 text-gray-300 px-3 py-1.5 rounded-full whitespace-nowrap transition-all">
                         {CATEGORY_LABELS[cat] || cat}
                       </button>
                     ))}
@@ -739,11 +739,11 @@ function PedidoForm() {
                         const q = qty[p.id] || 0
                         const selected = q > 0
                         return (
-                          <div key={p.id} className={'rounded-2xl border-2 overflow-hidden transition-all ' + (selected ? 'border-orange-500 bg-orange-500/5' : 'border-gray-800 bg-gray-800/40 hover:border-orange-500/40')}>
-                            <button type="button" onClick={() => toggleProductSelection(p.id)} className="w-full text-left" aria-pressed={selected}>
+                          <div key={p.id} className={'rounded-2xl border-2 overflow-hidden transition-all ' + (selected ? 'border-orange-500 bg-orange-500/10 ring-1 ring-orange-500/30' : 'border-gray-800 bg-gray-800/40 hover:border-orange-500/40')}>
+                            <button type="button" onClick={() => toggleProductSelection(p.id)} className="w-full text-left active:scale-[0.97] transition-transform" aria-pressed={selected}>
                               <div className="relative aspect-square bg-gray-800">
                                 {p.imageUrl ? (
-                                  <img src={p.imageUrl} alt={p.name} className="w-full h-full object-cover" />
+                                  <img src={p.imageUrl} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center text-gray-600"><MeatIcon size={32} /></div>
                                 )}
@@ -760,15 +760,15 @@ function PedidoForm() {
                               </div>
                             </button>
                             {selected && (
-                              <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5">
+                              <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5 animate-revealIn">
                                 <div className="flex items-center gap-1.5">
                                   <button onClick={() => setQty(prev => ({ ...prev, [p.id]: Math.max(0.5, +((prev[p.id] || 0) - 0.5).toFixed(1)) }))}
                                     aria-label={`Diminuir ${p.name}`}
-                                    className="w-7 h-7 bg-gray-800 hover:bg-gray-700 rounded-full font-bold text-sm">−</button>
+                                    className="w-7 h-7 bg-gray-800 hover:bg-gray-700 active:scale-90 transition-transform rounded-full font-bold text-sm">−</button>
                                   <span className="w-9 text-center text-sm font-bold">{q}{p.unit}</span>
                                   <button onClick={() => setQty(prev => ({ ...prev, [p.id]: +((prev[p.id] || 0) + 0.5).toFixed(1) }))}
                                     aria-label={`Aumentar ${p.name}`}
-                                    className="w-7 h-7 bg-orange-500 hover:bg-orange-600 rounded-full font-bold text-sm">+</button>
+                                    className="w-7 h-7 bg-orange-500 hover:bg-orange-600 active:scale-90 transition-transform rounded-full font-bold text-sm">+</button>
                                 </div>
                                 <span className="text-xs text-orange-400 font-medium">R${(q * p.price).toFixed(0)}</span>
                               </div>
@@ -800,7 +800,7 @@ function PedidoForm() {
                 </div>
                 <div className="space-y-2">
                   <button onClick={() => setSideDishChoice(c => c === 'ACOUGUE' ? '' : 'ACOUGUE')}
-                    className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
+                    className={'w-full text-left rounded-xl p-3 border-2 transition-all active:scale-[0.98] flex items-center justify-between gap-3 ' +
                       (sideDishChoice === 'ACOUGUE' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-white">{boutique?.name ?? 'Açougue'} prepara pronto</p>
@@ -810,7 +810,7 @@ function PedidoForm() {
                     <span className="text-orange-400 font-bold text-sm shrink-0">R$ {SIDE_DISH_RATE_ACOUGUE.toFixed(2)}/pessoa</span>
                   </button>
                   <button onClick={() => setSideDishChoice('')}
-                    className="w-full text-left rounded-xl p-3 border-2 transition-all border-gray-800 hover:border-orange-500/40">
+                    className="w-full text-left rounded-xl p-3 border-2 transition-all active:scale-[0.98] border-gray-800 hover:border-orange-500/40">
                     <p className="text-sm font-medium text-white">Não, decido depois / eu levo por conta</p>
                   </button>
                 </div>
@@ -832,13 +832,13 @@ function PedidoForm() {
                 (dispatch.service.ts), só faltava essa escolha existir na tela. */}
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={() => setGmChoiceMode('manual')}
-                className={'text-left rounded-xl p-3 border-2 transition-all ' +
+                className={'text-left rounded-xl p-3 border-2 transition-all active:scale-[0.98] ' +
                   (gmChoiceMode === 'manual' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
                 <p className="text-sm font-semibold text-white">Escolher eu mesmo</p>
                 <p className="text-xs text-gray-500 mt-0.5">Veja avaliações e especialidades</p>
               </button>
               <button type="button" onClick={() => { setGmChoiceMode('auto'); setSelectedGm('') }}
-                className={'text-left rounded-xl p-3 border-2 transition-all ' +
+                className={'text-left rounded-xl p-3 border-2 transition-all active:scale-[0.98] ' +
                   (gmChoiceMode === 'auto' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
                 <p className="text-sm font-semibold text-white">Deixa com a Tech Churras</p>
                 <p className="text-xs text-gray-500 mt-0.5">Notificamos os disponíveis na região</p>
@@ -865,7 +865,7 @@ function PedidoForm() {
             {gmChoiceMode === 'manual' && (loadingRecommended || availableRecommendedGms.length > 0) && (
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-orange-400 uppercase tracking-wider flex items-center gap-1">
-                  ✨ Recomendados para você
+                  <StarIcon size={12} /> Recomendados para você
                 </p>
                 {loadingRecommended ? (
                   <div className="text-center py-4 text-gray-500 text-sm">Analisando disponibilidade...</div>
@@ -877,7 +877,7 @@ function PedidoForm() {
                       <button key={rg.id} type="button"
                         onClick={() => setSelectedGm(rg.id)}
                         aria-pressed={sel}
-                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all cursor-pointer ' +
+                        className={'w-full text-left rounded-2xl p-4 border-2 transition-all cursor-pointer active:scale-[0.98] ' +
                           (sel ? 'border-orange-500 bg-orange-500/10 shadow-lg shadow-orange-500/20' : 'border-orange-500/30 bg-orange-500/5 hover:border-orange-500/60')}>
                         <div className="flex items-start gap-3">
                           <div className="relative shrink-0">
@@ -927,11 +927,11 @@ function PedidoForm() {
                   <button key={g.id} type="button"
                     onClick={() => { setSelectedGm(g.id); if (sideDishChoice === 'GRILLMASTER' && !g.offersSideDishPrep) setSideDishChoice('') }}
                     aria-pressed={sel}
-                    className={'w-full text-left bg-gray-900 rounded-2xl p-4 border-2 transition-all cursor-pointer ' +
+                    className={'w-full text-left bg-gray-900 rounded-2xl p-4 border-2 transition-all cursor-pointer active:scale-[0.98] ' +
                       (sel ? 'border-orange-500 shadow-lg shadow-orange-500/20' : 'border-gray-800 hover:border-orange-500/40')}>
                     <div className="flex items-center gap-3">
                       {g.photoUrl ? (
-                        <img src={g.photoUrl} alt={g.user.name} className="w-12 h-12 rounded-full object-cover border-2 border-orange-500/30 shrink-0" />
+                        <img src={g.photoUrl} alt={g.user.name} loading="lazy" className="w-12 h-12 rounded-full object-cover border-2 border-orange-500/30 shrink-0" />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gray-800 border-2 border-orange-500/30 flex items-center justify-center font-bold text-orange-400 shrink-0">
                           {g.user.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
@@ -951,7 +951,7 @@ function PedidoForm() {
                         {g.totalOrders > 0 ? (
                           <p className="text-xs text-yellow-400">{renderStars(g.rating ?? 0)} <span className="text-gray-500">({g.totalOrders} eventos)</span></p>
                         ) : (
-                          <p className="text-xs text-blue-400">🆕 Novo na plataforma</p>
+                          <p className="text-xs text-blue-400">Novo na plataforma</p>
                         )}
                       </div>
                       <div className="text-right shrink-0">
@@ -981,7 +981,7 @@ function PedidoForm() {
                 </div>
                 <div className="space-y-2">
                   <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : 'GRILLMASTER')}
-                    className={'w-full text-left rounded-xl p-3 border-2 transition-all flex items-center justify-between gap-3 ' +
+                    className={'w-full text-left rounded-xl p-3 border-2 transition-all active:scale-[0.98] flex items-center justify-between gap-3 ' +
                       (sideDishChoice === 'GRILLMASTER' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-800 hover:border-orange-500/40')}>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-white">{gm.user.name} prepara no local</p>
@@ -992,7 +992,7 @@ function PedidoForm() {
                   </button>
 
                   <button onClick={() => setSideDishChoice(c => c === 'GRILLMASTER' ? '' : c)}
-                    className="w-full text-left rounded-xl p-3 border-2 transition-all border-gray-800 hover:border-orange-500/40">
+                    className="w-full text-left rounded-xl p-3 border-2 transition-all active:scale-[0.98] border-gray-800 hover:border-orange-500/40">
                     <p className="text-sm font-medium text-white">
                       {sideDishChoice === 'ACOUGUE' ? 'Não, mantém com o açougue' : 'Não, eu levo por conta'}
                     </p>
@@ -1030,15 +1030,20 @@ function PedidoForm() {
             <div className="bg-gray-900 border border-orange-500/20 rounded-2xl p-5 space-y-3 text-sm">
               <p className="font-bold text-white">Resumo do pedido</p>
               {boutique && <div className="flex justify-between text-gray-400"><span>Açougue</span><span className="text-white">{boutique.name}</span></div>}
-              {gm && <div className="flex justify-between text-gray-400"><span>Churrasqueiro</span><span className="text-white">{gm.user.name}</span></div>}
-              {!gm && showingAuto && (
+              {(gm || (!gm && showingAuto)) && (
                 <div className="flex justify-between text-gray-400 gap-4">
-                  <span className="shrink-0">Churrasqueiro</span>
-                  <span className="text-white text-right text-xs">A definir — notificamos os disponíveis na região</span>
+                  <span className="shrink-0 inline-flex items-center gap-1.5">
+                    Churrasqueiro
+                    <button type="button" onClick={() => { setStep(3); window.scrollTo({ top: 0 }) }} className="text-orange-400 hover:text-orange-300 text-[11px] underline">editar</button>
+                  </span>
+                  <span className="text-white text-right text-xs">{gm ? gm.user.name : 'A definir — notificamos os disponíveis na região'}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-400">
-                <span>Evento</span>
+                <span className="inline-flex items-center gap-1.5">
+                  Evento
+                  <button type="button" onClick={() => { setStep(1); window.scrollTo({ top: 0 }) }} className="text-orange-400 hover:text-orange-300 text-[11px] underline">editar</button>
+                </span>
                 <span className="text-white">{eventDate ? new Date(eventDate + 'T12:00').toLocaleDateString('pt-BR') : '—'} às {eventTime}</span>
               </div>
               {eventAddress && (
@@ -1048,7 +1053,15 @@ function PedidoForm() {
                 </div>
               )}
               <div className="flex justify-between text-gray-400"><span>Convidados</span><span className="text-white">{totalPeople} pessoas</span></div>
-              {productsCost > 0 && <div className="flex justify-between text-gray-400"><span>Cortes</span><span className="text-orange-400">R$ {productsCost.toFixed(2)}</span></div>}
+              {productsCost > 0 && (
+                <div className="flex justify-between text-gray-400">
+                  <span className="inline-flex items-center gap-1.5">
+                    Cortes
+                    <button type="button" onClick={() => { setStep(2); window.scrollTo({ top: 0 }) }} className="text-orange-400 hover:text-orange-300 text-[11px] underline">editar</button>
+                  </span>
+                  <span className="text-orange-400">R$ {productsCost.toFixed(2)}</span>
+                </div>
+              )}
               {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h){showingAuto && !gm ? ' — estimado' : ''}</span><span className="text-orange-400">R$ {(gmCost - auxiliarCost).toFixed(2)}</span></div>}
               {gmCost > 0 && laborModifier.label && (
                 <div className="flex justify-between text-gray-500 text-xs -mt-2">
@@ -1074,6 +1087,11 @@ function PedidoForm() {
 
             <GarantiaSelo compact />
 
+            <div className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-xs text-gray-400 space-y-1">
+              <p className="font-semibold text-gray-300">Cancelamento</p>
+              <p>Grátis até 48h antes do evento. Entre 24h e 48h antes, 30% de multa. Menos de 24h antes, 50%.</p>
+            </div>
+
             <p className="text-xs text-gray-600 text-center">
               Ao confirmar, criamos seu perfil automaticamente. Este é o valor que você paga — o churrasqueiro só confirma disponibilidade, o preço não muda.
             </p>
@@ -1092,7 +1110,7 @@ function PedidoForm() {
         <div className="sticky bottom-0 -mx-4 px-4 py-3 mt-8 bg-[#1c1714]/95 backdrop-blur border-t border-gray-800 flex items-center justify-between gap-3">
           {step > 1 ? (
             <button onClick={() => { setFormError(''); setStep(s => s - 1); window.scrollTo({ top: 0 }) }}
-              className="px-5 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 font-medium transition-colors shrink-0">
+              className="px-5 py-3 rounded-xl border border-gray-700 text-gray-300 hover:bg-gray-800 active:scale-95 font-medium transition-all shrink-0">
               ← Voltar
             </button>
           ) : <div />}
@@ -1101,12 +1119,12 @@ function PedidoForm() {
           )}
           {step < 4 ? (
             <button onClick={next}
-              className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all hover:shadow-lg hover:shadow-orange-500/20 shrink-0">
+              className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 text-white font-bold transition-all hover:shadow-lg hover:shadow-orange-500/20 shrink-0">
               Próximo →
             </button>
           ) : (
             <button onClick={handleConfirm} disabled={submitting}
-              className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold transition-all hover:shadow-lg hover:shadow-orange-500/20">
+              className="px-8 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 active:scale-95 disabled:opacity-50 disabled:active:scale-100 text-white font-bold transition-all hover:shadow-lg hover:shadow-orange-500/20">
               {submitting ? 'Criando pedido...' : (<span className="inline-flex items-center gap-2"><FlameIcon size={18} /> Confirmar Churrasco</span>)}
             </button>
           )}

@@ -731,7 +731,34 @@ export default function BoutiqueDashboardPage() {
     a.click()
   }
 
-  if (loading) return <p className="text-gray-400 p-6">Carregando...</p>
+  if (loading) return (
+    <div className="max-w-4xl mx-auto px-4 py-6 animate-pulse">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <div className="h-7 bg-gray-800 rounded w-48 mb-2" />
+          <div className="h-4 bg-gray-800 rounded w-32" />
+        </div>
+        <div className="h-10 bg-gray-800 rounded-lg w-36" />
+      </div>
+      <div className="flex gap-2 mb-6">
+        {Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-9 bg-gray-800 rounded-lg flex-1" />)}
+      </div>
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-24 bg-gray-900 rounded-xl" />)}
+      </div>
+      <div className="space-y-2">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-gray-900 rounded-xl p-4 flex items-center gap-3">
+            <div className="w-12 h-12 rounded-lg bg-gray-800 shrink-0" />
+            <div className="flex-1">
+              <div className="h-4 bg-gray-800 rounded w-1/2 mb-2" />
+              <div className="h-3 bg-gray-800 rounded w-1/3" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
 
   if (notFound) return (
     <div className="max-w-lg mx-auto px-4 py-12">
@@ -1037,7 +1064,10 @@ export default function BoutiqueDashboardPage() {
             </div>
 
             {monthlyReportLoading && !monthlyReport ? (
-              <p className="text-gray-600 text-sm py-4 text-center">Carregando...</p>
+              <div className="space-y-2 animate-pulse py-1">
+                <div className="h-4 bg-gray-800 rounded w-2/3" />
+                <div className="h-4 bg-gray-800 rounded w-1/2" />
+              </div>
             ) : monthlyReport && monthlyReport.ordersCompleted === 0 ? (
               <p className="text-gray-600 text-sm py-4 text-center">Nenhum pedido concluído {monthlyReport.isCurrentMonth ? 'ainda neste mês' : 'nesse mês'}.</p>
             ) : monthlyReport ? (
@@ -2084,7 +2114,10 @@ export default function BoutiqueDashboardPage() {
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
             <p className="text-sm font-semibold text-white mb-3">Seus posts gerados</p>
             {loadingPosts ? (
-              <p className="text-xs text-gray-500">Carregando...</p>
+              <div className="space-y-2 animate-pulse">
+                <div className="h-16 bg-gray-800 rounded-lg" />
+                <div className="h-16 bg-gray-800 rounded-lg" />
+              </div>
             ) : socialPosts.length === 0 ? (
               <p className="text-xs text-gray-500">Nenhum post gerado ainda — manda sua primeira foto acima.</p>
             ) : (

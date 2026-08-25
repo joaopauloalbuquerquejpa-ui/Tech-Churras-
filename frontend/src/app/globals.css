@@ -102,10 +102,21 @@ body {
   50%       { text-shadow: 0 0 28px rgba(249,115,22,1), 0 0 55px rgba(249,115,22,0.4); }
 }
 
+/* Reveal rápido pra elemento pequeno que aparece dentro de um card (ex: stepper
+   de quantidade ao selecionar um corte) — fadeInUp é grande/lento demais pra isso. */
+@keyframes revealIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ── Utility classes ── */
 
 .animate-fadeInUp {
   animation: fadeInUp 0.6s ease forwards;
+}
+
+.animate-revealIn {
+  animation: revealIn 0.18s ease-out forwards;
 }
 
 .animate-slideInFromBottom {
