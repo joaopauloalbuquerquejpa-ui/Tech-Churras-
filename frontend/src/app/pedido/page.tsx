@@ -151,7 +151,11 @@ function PedidoForm() {
   const [guestPhone, setGuestPhone] = useState('')
 
   const totalPeople = men + women + kids
-  const totalKg = ((men * 350 + women * 300 + kids * 200) / 1000).toFixed(1)
+  const totalKgNum = (men * 350 + women * 300 + kids * 200) / 1000
+  const totalKg = totalKgNum.toFixed(1)
+  const selectedCarneKg = products
+    .filter(p => p.category === 'CARNE' && p.unit === 'kg')
+    .reduce((s, p) => s + (qty[p.id] || 0), 0)
   const productsCost = products.reduce((s, p) => s + (qty[p.id] || 0) * p.price, 0)
   const gm = grillmasters.find(g => g.id === selectedGm)
   const auxiliaresNeeded = calcAuxiliaresNeeded(totalPeople)
@@ -315,6 +319,10 @@ function PedidoForm() {
       const d = await r.json()
       if (!d.erro) setEventAddress([d.logradouro, d.bairro, `${d.localidade} - ${d.uf}`].filter(Boolean).join(', '))
     } catch {}
+  }
+
+  function scrollToCategory(cat: string) {
+    document.getElementById(`cat-${cat}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   // Reequilibra em partes iguais só os cortes que já estão selecionados —
@@ -696,8 +704,35 @@ function PedidoForm() {
             ) : (
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 space-y-5">
                 <p className="text-xs text-gray-500 -mt-1">Toque num corte pra escolher — a quantidade é sugerida pra {totalPeople || '0'} convidados assim que você seleciona, mas dá pra ajustar depois.</p>
+
+                {totalKgNum > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between text-xs mb-1.5">
+                      <span className="text-gray-400">Proteína selecionada</span>
+                      <span className={selectedCarneKg >= totalKgNum ? 'text-green-400 font-bold' : 'text-orange-400 font-bold'}>
+                        {selectedCarneKg.toFixed(1)}kg de {totalKg}kg recomendados
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                      <div className={'h-full rounded-full transition-all duration-300 ' + (selectedCarneKg >= totalKgNum ? 'bg-green-500' : 'bg-orange-500')}
+                        style={{ width: `${Math.min(100, (selectedCarneKg / totalKgNum) * 100)}%` }} />
+                    </div>
+                  </div>
+                )}
+
+                {categorias.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto -mx-1 px-1 pb-1 sticky top-0 bg-gray-900 z-10">
+                    {categorias.map(cat => (
+                      <button key={cat} type="button" onClick={() => scrollToCategory(cat)}
+                        className="shrink-0 text-xs font-medium bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-full whitespace-nowrap transition-colors">
+                        {CATEGORY_LABELS[cat] || cat}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {categorias.map(cat => (
-                  <div key={cat}>
+                  <div key={cat} id={`cat-${cat}`} className="scroll-mt-14">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">{CATEGORY_LABELS[cat] || cat}</p>
                     <div className="grid grid-cols-2 gap-3">
                       {products.filter(p => p.category === cat).map(p => {
