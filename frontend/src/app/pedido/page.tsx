@@ -23,15 +23,33 @@ const CATEGORY_LABELS: Record<string, string> = {
   ACOMPANHAMENTO: 'Acompanhamentos', BEBIDA: 'Bebidas', OUTRO: 'Outros',
 }
 
-// Divide a proteína total necessária em partes iguais só entre os cortes que
-// o cliente escolheu — nada é pré-selecionado antes disso. Cliente escolhe
-// primeiro quais cortes quer, a quantidade de cada um só é sugerida depois,
-// e continua editável por item com os botões +/-.
-function rebalanceSelected(selectedIds: string[], men: number, women: number, kids: number): Record<string, number> {
+// Passo de ajuste do +/- depende da unidade — corte vendido por kg aceita
+// meio quilo, mas hambúrguer, pão de alho etc. só existem em unidade inteira.
+function qtyStep(unit: string): number {
+  return unit === 'un' ? 1 : 0.5
+}
+
+// Divide a proteína total necessária em partes iguais só entre os cortes por
+// kg que o cliente escolheu — item por unidade (hambúrguer, pão de alho) não
+// compete pelo mesmo "pote" de kg, ganha 1 unidade por convidado como ponto
+// de partida. Nada é pré-selecionado antes disso: cliente escolhe primeiro
+// quais itens quer, a quantidade só é sugerida depois, e continua editável
+// por item com os botões +/-.
+function rebalanceSelected(selectedIds: string[], products: Product[], men: number, women: number, kids: number): Record<string, number> {
   if (selectedIds.length === 0) return {}
+  const totalPeople = men + women + kids
   const totalKg = (men * 350 + women * 300 + kids * 200) / 1000
-  const kgEach = Math.max(0.5, Math.round((totalKg / selectedIds.length) * 2) / 2)
-  return Object.fromEntries(selectedIds.map(id => [id, kgEach]))
+  const unitById = new Map(products.map(p => [p.id, p.unit]))
+  const kgIds = selectedIds.filter(id => unitById.get(id) !== 'un')
+  const unIds = selectedIds.filter(id => unitById.get(id) === 'un')
+
+  const result: Record<string, number> = {}
+  if (kgIds.length > 0) {
+    const kgEach = Math.max(0.5, Math.round((totalKg / kgIds.length) * 2) / 2)
+    for (const id of kgIds) result[id] = kgEach
+  }
+  for (const id of unIds) result[id] = Math.max(1, totalPeople || 1)
+  return result
 }
 
 function renderStars(r: number) {
@@ -329,7 +347,7 @@ function PedidoForm() {
   // útil se o cliente mexeu manualmente num item e quer voltar pro sugerido.
   function resetSelectedToEvenSplit() {
     const selectedIds = Object.keys(qty).filter(id => (qty[id] || 0) > 0)
-    setQty(rebalanceSelected(selectedIds, men, women, kids))
+    setQty(rebalanceSelected(selectedIds, products, men, women, kids))
   }
 
   // Alterna um corte selecionado/não-selecionado e reequilibra a quantidade
@@ -342,7 +360,7 @@ function PedidoForm() {
       const nextIds = isSelected
         ? Object.keys(prev).filter(id => id !== productId && (prev[id] || 0) > 0)
         : [...Object.keys(prev).filter(id => (prev[id] || 0) > 0), productId]
-      return rebalanceSelected(nextIds, men, women, kids)
+      return rebalanceSelected(nextIds, products, men, women, kids)
     })
   }
 
@@ -762,11 +780,11 @@ function PedidoForm() {
                             {selected && (
                               <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5 animate-revealIn">
                                 <div className="flex items-center gap-1.5">
-                                  <button onClick={() => setQty(prev => ({ ...prev, [p.id]: Math.max(0.5, +((prev[p.id] || 0) - 0.5).toFixed(1)) }))}
+                                  <button onClick={() => setQty(prev => { const step = qtyStep(p.unit); return { ...prev, [p.id]: Math.max(step, +((prev[p.id] || 0) - step).toFixed(1)) } })}
                                     aria-label={`Diminuir ${p.name}`}
                                     className="w-7 h-7 bg-gray-800 hover:bg-gray-700 active:scale-90 transition-transform rounded-full font-bold text-sm">−</button>
                                   <span className="w-9 text-center text-sm font-bold">{q}{p.unit}</span>
-                                  <button onClick={() => setQty(prev => ({ ...prev, [p.id]: +((prev[p.id] || 0) + 0.5).toFixed(1) }))}
+                                  <button onClick={() => setQty(prev => { const step = qtyStep(p.unit); return { ...prev, [p.id]: +((prev[p.id] || 0) + step).toFixed(1) } })}
                                     aria-label={`Aumentar ${p.name}`}
                                     className="w-7 h-7 bg-orange-500 hover:bg-orange-600 active:scale-90 transition-transform rounded-full font-bold text-sm">+</button>
                                 </div>
