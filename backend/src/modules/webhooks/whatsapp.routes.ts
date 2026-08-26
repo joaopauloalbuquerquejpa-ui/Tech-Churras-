@@ -446,8 +446,14 @@ export async function sendFollowUps(): Promise<void> {
   })
 
   for (const lead of due) {
-    const msg = lead.status === 'qualified'
-      ? `Oi${lead.name ? ` ${lead.name.split(' ')[0]}` : ''}! 👋\n\nPassando pra lembrar que as vagas de *açougue fundador* da Tech Churras são limitadas por região — 1 por bairro.\n\nQuem entra como fundador garante *3 meses grátis* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/pitch-acougue`
+    const firstName = lead.name ? ` ${lead.name.split(' ')[0]}` : ''
+    // Lead corporativo (churrasco-corporativo/CorporateLeadForm.tsx) também
+    // nasce com status 'qualified' — sem checar source primeiro, ele recebia
+    // a mesma mensagem de captação de açougue, fora de contexto.
+    const msg = lead.source === 'corporativo'
+      ? `Oi${firstName}! 👋\n\nPassando pra lembrar da sua proposta de churrasco corporativo com a Tech Churras — fim de ano é a época mais concorrida, as melhores datas de novembro e dezembro se esgotam entre julho e setembro.\n\nAinda tem interesse? Me chama que fechamos os detalhes. techchurras.com.br/churrasco-corporativo`
+      : lead.status === 'qualified'
+      ? `Oi${firstName}! 👋\n\nPassando pra lembrar que as vagas de *açougue fundador* da Tech Churras são limitadas por região — 1 por bairro.\n\nQuem entra como fundador garante *grátis até o 3º pedido* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/pitch-acougue`
       : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nSomos a plataforma que transforma açougues de São Paulo em hub de churrasco — QR code no balcão para vender carne + churrasqueiro pelo celular.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
 
     await zapiSend(lead.phone, msg)
