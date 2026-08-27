@@ -21,7 +21,7 @@ const OPERACAO = [
 const FERRAMENTAS = [
   { href: '/admin/repasses', label: 'Repasses', icon: CashIcon },
   { href: '/admin/cupons', label: 'Cupons', icon: GiftIcon },
-  { href: '/admin/alpha-testers', label: 'Alpha Testers', icon: StarIcon },
+  { href: '/admin/alpha', label: 'Alpha Testers', icon: StarIcon },
   { href: '/admin/onboarding-acougue', label: 'Onboarding Açougue', icon: StoreIcon },
   { href: '/admin/seguranca', label: 'Segurança', icon: LockIcon },
 ] as const
