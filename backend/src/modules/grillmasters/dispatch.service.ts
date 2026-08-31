@@ -1,7 +1,6 @@
 import { prisma } from '../../config/prisma'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
-import { fetchWithTimeout } from '../../utils/http'
-import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
+import { sendPushToUser, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.service'
 import { calcAuxiliaresNeeded } from '../../utils/pricing'
 import type { Order } from '@prisma/client'
 
@@ -29,22 +28,6 @@ function estimateSPRegion(lat: number, lng: number): string {
   if (Math.abs(dLat) < 0.02 && Math.abs(dLng) < 0.02) return 'Centro'
   if (Math.abs(dLat) >= Math.abs(dLng)) return dLat > 0 ? 'Zona Norte' : 'Zona Sul'
   return dLng > 0 ? 'Zona Leste' : 'Zona Oeste'
-}
-
-async function sendWhatsAppMessage(phone: string, message: string, label: string) {
-  const instance = process.env.ZAPI_INSTANCE
-  const token = process.env.ZAPI_TOKEN
-  if (!instance || !token) return
-  const cleanPhone = phone.replace(/\D/g, '')
-  try {
-    const res = await fetchWithTimeout(
-      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: cleanPhone, message }) }
-    )
-    if (!res.ok) console.log(`[Dispatch WhatsApp] ${label} erro:`, res.status)
-  } catch (err) {
-    console.log(`[Dispatch WhatsApp] ${label} falha:`, err)
-  }
 }
 
 // Busca Grillmasters elegíveis pra um pedido: aprovados, disponíveis, dentro
@@ -139,7 +122,7 @@ async function notifyGrillmasterOfDispatch(gm: { id: string; user: { id: string;
   if (gm.user.phone) {
     const firstName = gm.user.name.split(' ')[0]
     const msg = `🔥 *Pedido disponível — Tech Churras!*\n\nOlá ${firstName}! Tem um pedido de churrasco disponível na sua região.\n\n📅 Data: ${date}\n👥 ${order.guestCount} convidados\n📍 ${order.eventAddress}\n\nQuem aceitar primeiro fica com o evento:\nhttps://www.techchurras.com.br/grillmasters/dashboard`
-    sendWhatsAppMessage(gm.user.phone, msg, 'dispatch-wave').catch(e => console.error('[dispatch]', e?.message))
+    sendWhatsApp(gm.user.phone, msg, 'dispatch-wave').catch(e => console.error('[dispatch]', e?.message))
   }
 }
 

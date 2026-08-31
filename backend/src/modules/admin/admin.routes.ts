@@ -77,10 +77,29 @@ export async function adminRoutes(app: FastifyInstance) {
   app.patch('/admin/grillmasters/:grillmasterId/reject', rejectGrillmasterHandler)
   app.get('/admin/grillmasters/awaiting-certification', listAwaitingCertificationHandler)
   app.post('/admin/grillmasters/:grillmasterId/certify', certifyGrillmasterHandler)
+  const grillmasterProfileSchema = z.object({
+    bio: z.string().optional(),
+    experience: z.number().optional(),
+    pricePerHour: z.number().positive().optional(),
+    city: z.string().optional(),
+    state: z.string().optional(),
+    specialties: z.string().optional(),
+    available: z.boolean().optional(),
+    isChancelado: z.boolean().optional(),
+    photoUrl: z.string().optional(),
+    churrascoStyle: z.string().optional(),
+    bringsEquipment: z.boolean().optional(),
+    minGuests: z.number().optional(),
+    maxGuests: z.number().optional(),
+    instagram: z.string().optional(),
+    videoUrl: z.string().optional(),
+  })
+
   app.patch('/admin/grillmasters/:grillmasterId/profile', async (req, reply) => {
     try {
       const { grillmasterId } = req.params as { grillmasterId: string }
-      const updated = await updateGrillmasterProfile(grillmasterId, req.body as Record<string, unknown>)
+      const data = grillmasterProfileSchema.parse(req.body)
+      const updated = await updateGrillmasterProfile(grillmasterId, data)
       return reply.send(updated)
     } catch (err: any) {
       return reply.status(400).send({ error: err.message })
@@ -102,10 +121,14 @@ export async function adminRoutes(app: FastifyInstance) {
     }
   })
 
+  const scheduleToggleSchema = z.object({
+    date: z.string().refine(s => !isNaN(new Date(s).getTime()), 'Data inválida'),
+  })
+
   app.post('/admin/grillmasters/:grillmasterId/schedule/toggle', async (req, reply) => {
     try {
       const { grillmasterId } = req.params as { grillmasterId: string }
-      const { date } = req.body as { date: string }
+      const { date } = scheduleToggleSchema.parse(req.body)
       const d = new Date(date); d.setUTCHours(12, 0, 0, 0)
       const existing = await prisma.grillmasterSchedule.findUnique({
         where: { grillmasterId_date: { grillmasterId, date: d } },

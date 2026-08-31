@@ -15,10 +15,12 @@ export async function enqueueNotificationRetry(type: string, payload: Record<str
 }
 
 async function dispatch(type: string, payload: any): Promise<void> {
-  const { sendWhatsAppToAdminRaw, sendPushToUserRaw } = await import('../push/push.service')
+  const { sendWhatsAppToAdminRaw, sendWhatsAppRaw, sendPushToUserRaw } = await import('../push/push.service')
   switch (type) {
     case 'whatsapp_admin':
       return sendWhatsAppToAdminRaw(payload.message)
+    case 'whatsapp_generic':
+      return sendWhatsAppRaw(payload.phone, payload.message)
     case 'push_user':
       return sendPushToUserRaw(payload.userId, payload.title, payload.body, payload.url)
     case 'ebook_email': {

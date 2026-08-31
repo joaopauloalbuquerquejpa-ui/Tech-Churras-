@@ -3,20 +3,33 @@ import { OrderStatus } from '@prisma/client'
 import { z } from 'zod'
 import crypto from 'crypto'
 import { validateCoupon } from '../coupons/coupons.service'
-import { sendPushToUser, sendPushToRole, sendWhatsAppToAdmin } from '../push/push.service'
+import { sendPushToUser, sendPushToRole, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.service'
 import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } from '../email/email.service'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { refundPayment } from '../payments/payments.service'
-import { fetchWithTimeout } from '../../utils/http'
 import { withSerializableRetry } from '../../utils/db-retry'
 import { startDispatch } from '../grillmasters/dispatch.service'
 import { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier } from '../../utils/pricing'
-import { maskPhone } from '../../utils/maskPii'
 
 const VALID_TRANSITIONS: Partial<Record<OrderStatus, OrderStatus[]>> = {
   PENDING:     ['CONFIRMED', 'CANCELLED'],
   CONFIRMED:   ['IN_PROGRESS', 'CANCELLED'],
   IN_PROGRESS: ['COMPLETED', 'CANCELLED'],
+}
+
+// Resolve o filtro "quem pode ver/mexer nesse pedido" por role — antes essa
+// lógica estava copiada em 5 funções diferentes deste arquivo, com risco de
+// divergir silenciosamente entre as cópias a cada ajuste de regra de acesso.
+// allowGrillmaster=false replica o comportamento de generateShareToken/rescheduleOrder,
+// que hoje não dão acesso a GRILLMASTER (cai em customerId, não encontra o pedido).
+async function resolveOrderAccessWhere(id: string, userId: string, role: string, opts: { allowGrillmaster?: boolean } = {}): Promise<Record<string, any>> {
+  if (role === 'ADMIN') return { id }
+  if (role === 'GRILLMASTER' && opts.allowGrillmaster !== false) {
+    const gm = await prisma.grillmaster.findUnique({ where: { userId } })
+    if (!gm) throw new Error('Churrasqueiro nao encontrado')
+    return { id, grillmasterId: gm.id }
+  }
+  return { id, customerId: userId }
 }
 
 // Taxa de serviço cobrada do cliente sobre o subtotal (após desconto).
@@ -307,7 +320,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       if (b.user?.phone) {
         const firstName = b.user.name.split(' ')[0]
         const msg = `🥩 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Chegou um pedido para o *${order.boutique?.name ?? 'seu açougue'}*.\n\n📅 Evento: ${eventDateFmt}\n👥 ${order.guestCount} convidados\n\nVeja os detalhes e prepare os cortes:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`
-        sendWhatsAppMessage(b.user.phone, msg, 'new-order-boutique').catch((e) => console.error("[notif]", e?.message))
+        sendWhatsApp(b.user.phone, msg, 'new-order-boutique').catch((e) => console.error("[notif]", e?.message))
       }
     }).catch((e) => console.error("[notif]", e?.message))
   }
@@ -329,7 +342,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         const firstName = gm.user.name.split(' ')[0]
         const customerName = customer?.name ?? 'Cliente'
         const msg = `🔥 *Novo pedido — Tech Churras!*\n\nOlá ${firstName}! Você recebeu um novo pedido.\n\n👤 Cliente: ${customerName}\n📅 Data: ${date}\n👥 ${order.guestCount} convidados\n\nAcesse o painel para *confirmar agora*:\nhttps://www.techchurras.com.br/grillmasters/dashboard\n\n_Responda rápido — clientes preferem churrasqueiros ágeis! 🔥_`
-        sendWhatsAppMessage(gm.user.phone, msg, 'new-order-gm').catch((e) => console.error("[notif]", e?.message))
+        sendWhatsApp(gm.user.phone, msg, 'new-order-gm').catch((e) => console.error("[notif]", e?.message))
       }
     }).catch((e) => console.error("[notif]", e?.message))
   }
@@ -363,23 +376,6 @@ export async function listOrders(customerId: string) {
   return orders.map(o => ({ ...o, _unreadMessages: unreadMap[o.id] ?? 0 }))
 }
 
-async function sendWhatsAppMessage(phone: string, message: string, label: string) {
-  const instance = process.env.ZAPI_INSTANCE
-  const token = process.env.ZAPI_TOKEN
-  if (!instance || !token) return
-  const cleanPhone = phone.replace(/\D/g, '')
-  try {
-    const res = await fetchWithTimeout(
-      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: cleanPhone, message }) }
-    )
-    if (!res.ok) console.log(`[WhatsApp] ${label} erro:`, res.status)
-    else console.log(`[WhatsApp] ${label} enviado para`, maskPhone(cleanPhone))
-  } catch (err) {
-    console.log(`[WhatsApp] ${label} falha:`, err)
-  }
-}
-
 async function sendWhatsAppConfirmation(
   phone: string,
   customerName: string,
@@ -387,17 +383,11 @@ async function sendWhatsAppConfirmation(
   grillmasterName: string,
   eventDate: Date
 ) {
-  const instance = process.env.ZAPI_INSTANCE
-  const token = process.env.ZAPI_TOKEN
-  if (!instance || !token) {
-    console.log('[WhatsApp] ZAPI_INSTANCE/ZAPI_TOKEN nao configurados — pulando envio')
-    return
-  }
   const date = new Intl.DateTimeFormat('pt-BR', {
     day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
   }).format(eventDate)
   const message = `🔥 Seu churrasco está confirmado! Olá ${customerName}, seu pedido #${orderId.slice(0, 8)} com ${grillmasterName} foi confirmado para ${date}. Acompanhe em: https://www.techchurras.com.br/orders/${orderId}`
-  await sendWhatsAppMessage(phone, message, 'confirmacao')
+  await sendWhatsApp(phone, message, 'confirmacao')
 }
 
 export async function updateOrderStatusDetail(id: string, statusDetail: string, userId: string, role: string) {
@@ -535,13 +525,13 @@ export async function updateOrderStatus(id: string, status: OrderStatus, userId?
       const firstName = o.boutique.user.name.split(' ')[0]
       const gmName = o.grillmaster?.user?.name ?? 'churrasqueiro'
       const msg = `✅ *Pedido confirmado — separe os cortes!*\n\nOlá ${firstName}, o churrasqueiro *${gmName}* confirmou o pedido e passará no seu açougue.\n\n📅 Evento: ${date}\n👥 ${o.guestCount} convidados\n\nSepare os cortes e acompanhamentos para quando ele chegar:\nhttps://www.techchurras.com.br/boutiques/dashboard\n\n_Tech Churras 🔥_`
-      sendWhatsAppMessage(o.boutique.user.phone, msg, 'order-confirmed-boutique').catch((e) => console.error("[notif]", e?.message))
+      sendWhatsApp(o.boutique.user.phone, msg, 'order-confirmed-boutique').catch((e) => console.error("[notif]", e?.message))
     }).catch((e) => console.error("[notif]", e?.message))
   }
   if (status === 'COMPLETED' && updated.customer.phone) {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
     const msg = `⭐ Como foi o churrasco com ${gmName}?\n\nEsperamos que tenha sido incrível! Avalie o evento em 1 minuto e ajude outros clientes:\nhttps://www.techchurras.com.br/orders/${updated.id}/review\n\n🔥 Tech Churras`
-    sendWhatsAppMessage(updated.customer.phone, msg, 'review-pos-evento').catch((e) => console.error("[notif]", e?.message))
+    sendWhatsApp(updated.customer.phone, msg, 'review-pos-evento').catch((e) => console.error("[notif]", e?.message))
   }
   if (status === 'COMPLETED') {
     const gmName = updated.grillmaster?.user?.name ?? 'churrasqueiro'
@@ -560,16 +550,7 @@ export async function updateOrderStatus(id: string, status: OrderStatus, userId?
 }
 
 export async function cancelOrder(id: string, userId: string, role: string, reason: string) {
-  let whereClause: Record<string, any>
-  if (role === 'ADMIN') {
-    whereClause = { id }
-  } else if (role === 'GRILLMASTER') {
-    const gm = await prisma.grillmaster.findUnique({ where: { userId } })
-    if (!gm) throw new Error('Churrasqueiro nao encontrado')
-    whereClause = { id, grillmasterId: gm.id }
-  } else {
-    whereClause = { id, customerId: userId }
-  }
+  const whereClause = await resolveOrderAccessWhere(id, userId, role)
 
   const order = await prisma.order.findFirst({ where: whereClause })
   if (!order) throw new Error('Pedido nao encontrado')
@@ -659,8 +640,7 @@ export async function updateOrderLocation(id: string, lat: number, lng: number, 
 }
 
 export async function generateShareToken(id: string, userId: string, role: string) {
-  let whereClause: Record<string, any> = { id, customerId: userId }
-  if (role === 'ADMIN') whereClause = { id }
+  const whereClause = await resolveOrderAccessWhere(id, userId, role, { allowGrillmaster: false })
   const order = await prisma.order.findFirst({ where: whereClause })
   if (!order) throw new Error('Pedido nao encontrado')
   if (order.publicShareToken) return { token: order.publicShareToken }
@@ -724,14 +704,7 @@ export async function getRepeatData(id: string, userId: string, role: string) {
 }
 
 export async function getOrderById(id: string, userId: string, role: string = 'CUSTOMER') {
-  let whereClause: Record<string, any> = { id, customerId: userId }
-  if (role === 'ADMIN') {
-    whereClause = { id }
-  } else if (role === 'GRILLMASTER') {
-    const gm = await prisma.grillmaster.findUnique({ where: { userId } })
-    if (!gm) throw new Error('Churrasqueiro nao encontrado')
-    whereClause = { id, grillmasterId: gm.id }
-  }
+  const whereClause = await resolveOrderAccessWhere(id, userId, role)
   const order = await prisma.order.findFirst({
     where: whereClause,
     include: {
@@ -748,8 +721,7 @@ export async function getOrderById(id: string, userId: string, role: string = 'C
 }
 
 export async function rescheduleOrder(id: string, newDate: Date, userId: string, role: string) {
-  let whereClause: Record<string, any> = { id, customerId: userId }
-  if (role === 'ADMIN') whereClause = { id }
+  const whereClause = await resolveOrderAccessWhere(id, userId, role, { allowGrillmaster: false })
 
   const order = await prisma.order.findFirst({ where: whereClause })
   if (!order) throw new Error('Pedido não encontrado')
@@ -782,14 +754,7 @@ export async function rescheduleOrder(id: string, newDate: Date, userId: string,
 }
 
 export async function getOrderEta(id: string, userId: string, role: string) {
-  let whereClause: Record<string, any> = { id, customerId: userId }
-  if (role === 'ADMIN') {
-    whereClause = { id }
-  } else if (role === 'GRILLMASTER') {
-    const gm = await prisma.grillmaster.findUnique({ where: { userId } })
-    if (!gm) throw new Error('Churrasqueiro nao encontrado')
-    whereClause = { id, grillmasterId: gm.id }
-  }
+  const whereClause = await resolveOrderAccessWhere(id, userId, role)
 
   const order = await prisma.order.findFirst({
     where: whereClause,

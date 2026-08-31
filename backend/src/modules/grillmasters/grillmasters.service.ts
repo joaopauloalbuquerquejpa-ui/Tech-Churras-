@@ -84,8 +84,9 @@ export async function listGrillmasters(params: {
   lat?: number
   lng?: number
   radiusKm?: number
+  eventDate?: string
 } = {}) {
-  const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9, lat, lng, radiusKm = 20 } = params
+  const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9, lat, lng, radiusKm = 20, eventDate } = params
   const where: any = { approved: true }
   if (available) where.available = true
   if (city) where.city = { contains: city, mode: 'insensitive' }
@@ -93,6 +94,23 @@ export async function listGrillmasters(params: {
   if (maxPrice != null) where.pricePerHour = { ...where.pricePerHour, lte: maxPrice }
   if (minRating != null) where.rating = { gte: minRating }
   if (specialty) where.specialties = { contains: specialty, mode: 'insensitive' }
+
+  // Sem isso, o wizard deixava escolher um churrasqueiro já ocupado na data e
+  // o cliente só descobria o conflito no clique final de "Confirmar Churrasco".
+  if (eventDate) {
+    const targetDate = new Date(eventDate)
+    const dayStart = new Date(targetDate); dayStart.setHours(0, 0, 0, 0)
+    const dayEnd = new Date(targetDate); dayEnd.setHours(23, 59, 59, 999)
+    const busyGmIds = await prisma.order.findMany({
+      where: {
+        status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+        eventDate: { gte: dayStart, lte: dayEnd },
+        grillmasterId: { not: null },
+      },
+      select: { grillmasterId: true },
+    }).then(orders => new Set(orders.map(o => o.grillmasterId)))
+    if (busyGmIds.size > 0) where.id = { notIn: Array.from(busyGmIds) as string[] }
+  }
 
   let orderBy: any = [{ rating: 'desc' }]
   if (sortBy === 'price_asc') orderBy = [{ pricePerHour: 'asc' }]

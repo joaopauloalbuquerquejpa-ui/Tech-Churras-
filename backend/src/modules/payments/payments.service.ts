@@ -1,8 +1,7 @@
 ﻿import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
 import { prisma } from '../../config/prisma'
-import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
+import { sendPushToUser, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.service'
 import { emailOrderConfirmed } from '../email/email.service'
-import { fetchWithTimeout } from '../../utils/http'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -148,23 +147,14 @@ export async function handleMPWebhook(payload: any) {
       const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(order.eventDate)
       sendPushToUser(order.boutique.user.id, '🥩 Novo pedido pago!', `Separe os cortes para o evento de ${date} (${order.guestCount} pessoas). Pedido confirmado!`, '/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
       if (order.boutique.user.phone) {
-        const instance = process.env.ZAPI_INSTANCE
-        const token = process.env.ZAPI_TOKEN
-        if (instance && token) {
-          const clean = order.boutique.user.phone.replace(/\D/g, '')
-          const msg = `🔥 *Pedido confirmado — Tech Churras!*\n\n` +
-            `🥩 *${order.boutique.name}*\n` +
-            `📋 Pedido: #${orderId.slice(-6).toUpperCase()}\n` +
-            `📅 Evento: ${date}\n` +
-            `👥 ${order.guestCount} pessoas\n` +
-            `💰 Valor pedido: R$ ${order.totalPrice.toFixed(2)}\n\n` +
-            `Separe os cortes! Acompanhe no painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`
-          fetchWithTimeout(`https://api.z-api.io/instances/${instance}/token/${token}/send-text`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: clean, message: msg }),
-          }).catch((e) => console.error('[notif boutique WA]', e?.message))
-        }
+        const msg = `🔥 *Pedido confirmado — Tech Churras!*\n\n` +
+          `🥩 *${order.boutique.name}*\n` +
+          `📋 Pedido: #${orderId.slice(-6).toUpperCase()}\n` +
+          `📅 Evento: ${date}\n` +
+          `👥 ${order.guestCount} pessoas\n` +
+          `💰 Valor pedido: R$ ${order.totalPrice.toFixed(2)}\n\n` +
+          `Separe os cortes! Acompanhe no painel:\nhttps://www.techchurras.com.br/boutiques/dashboard`
+        sendWhatsApp(order.boutique.user.phone, msg, 'pagamento-confirmado-boutique').catch((e) => console.error('[notif boutique WA]', e?.message))
       }
     }
     if (order?.customer) {

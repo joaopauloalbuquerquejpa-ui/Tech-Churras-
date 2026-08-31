@@ -187,7 +187,7 @@ const HOW_IT_WORKS = [
   {
     step: '3', icon: FlameIcon,
     title: 'Curta. Acompanhe ao vivo.',
-    desc: 'No dia do evento, o Grillmaster aparece no mapa em tempo real (em breve). Você e seus convidados acompanham tudo pela Tech Churras. Só relaxar e curtir.',
+    desc: 'No dia do evento, o Grillmaster aparece no mapa em tempo real. Você e seus convidados acompanham tudo pela Tech Churras. Só relaxar e curtir.',
   },
 ]
 
@@ -304,7 +304,7 @@ export default async function HomePage() {
           <p className="text-gray-500 text-sm">Já vem com açougue parceiro e cortes inclusos — você só escolhe o Grillmaster.</p>
         </div>
         <p className="text-gray-600 text-xs mt-8 max-w-lg mx-auto">
-          Grillmaster chancelado + açougue parceiro + IA que monta o kit + rastreio ao vivo no dia (em breve) — sem cobrar seu tempo.
+          Grillmaster chancelado + açougue parceiro + IA que monta o kit + rastreio ao vivo no dia — sem cobrar seu tempo.
         </p>
       </section>
 

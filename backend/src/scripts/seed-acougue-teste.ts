@@ -13,7 +13,8 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
 const EMAIL = 'acougue@techchurras.com.br'
-const PASSWORD = 'TechChurras@2026'
+if (!process.env.SEED_ACOUGUE_PASSWORD) throw new Error('SEED_ACOUGUE_PASSWORD não definida no .env')
+const PASSWORD: string = process.env.SEED_ACOUGUE_PASSWORD
 
 async function main() {
   // 1. Garante que o usuário do açougue existe
@@ -29,7 +30,7 @@ async function main() {
         onboardingCompleted: true,
       },
     })
-    console.log(`✅ Usuário criado: ${EMAIL} / senha: ${PASSWORD}`)
+    console.log(`✅ Usuário criado: ${EMAIL}`)
   } else {
     console.log(`✅ Usuário já existe: ${EMAIL}`)
   }

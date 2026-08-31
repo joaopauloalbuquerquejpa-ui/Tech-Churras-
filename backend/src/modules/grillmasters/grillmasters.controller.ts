@@ -43,6 +43,7 @@ export async function listGrillmastersHandler(req: FastifyRequest, reply: Fastif
       lat: q.lat ? Number(q.lat) : undefined,
       lng: q.lng ? Number(q.lng) : undefined,
       radiusKm: q.radiusKm ? Number(q.radiusKm) : undefined,
+      eventDate: q.eventDate || undefined,
     })
     return reply.send(result)
   } catch (err: any) {

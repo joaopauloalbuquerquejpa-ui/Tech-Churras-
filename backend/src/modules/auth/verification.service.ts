@@ -1,24 +1,8 @@
 import { prisma } from '../../config/prisma'
-import { fetchWithTimeout } from '../../utils/http'
+import { sendWhatsApp } from '../push/push.service'
 import crypto from 'crypto'
 
 const CODE_TTL_MINUTES = 10
-
-async function sendWhatsAppMessage(phone: string, message: string) {
-  const instance = process.env.ZAPI_INSTANCE
-  const token = process.env.ZAPI_TOKEN
-  if (!instance || !token) return
-  const cleanPhone = phone.replace(/\D/g, '')
-  try {
-    const res = await fetchWithTimeout(
-      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: cleanPhone, message }) }
-    )
-    if (!res.ok) console.log('[Verificação WhatsApp] erro:', res.status)
-  } catch (err) {
-    console.log('[Verificação WhatsApp] falha:', err)
-  }
-}
 
 export async function sendPhoneVerification(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } })
@@ -30,7 +14,7 @@ export async function sendPhoneVerification(userId: string) {
   const expiresAt = new Date(Date.now() + CODE_TTL_MINUTES * 60 * 1000)
   await prisma.user.update({ where: { id: userId }, data: { phoneVerificationCode: code, phoneVerificationExpiresAt: expiresAt } })
 
-  await sendWhatsAppMessage(user.phone, `🔥 *Tech Churras* — seu código de verificação é *${code}*. Válido por ${CODE_TTL_MINUTES} minutos. Não compartilhe com ninguém.`)
+  await sendWhatsApp(user.phone, `🔥 *Tech Churras* — seu código de verificação é *${code}*. Válido por ${CODE_TTL_MINUTES} minutos. Não compartilhe com ninguém.`, 'verificacao')
   return { alreadyVerified: false, sentTo: user.phone.replace(/\D/g, '').replace(/(\d{2})(\d+)(\d{4})/, '$1*****$3') }
 }
 

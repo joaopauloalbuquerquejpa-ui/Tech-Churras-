@@ -97,7 +97,11 @@ export async function getMyBoutiqueHandler(req: FastifyRequest, reply: FastifyRe
 
 export async function updateBoutiqueHandler(req: FastifyRequest, reply: FastifyReply) {
   try {
-    const userId = (req as any).user.id
+    const user = (req as any).user
+    if (user.role !== 'BOUTIQUE' && user.role !== 'ADMIN') {
+      return reply.status(403).send({ error: 'Apenas contas de açougue podem editar um perfil de parceiro' })
+    }
+    const userId = user.id
     const data = updateBoutiqueSchema.parse(req.body)
     const boutique = await updateBoutique(userId, data)
     return reply.send(boutique)

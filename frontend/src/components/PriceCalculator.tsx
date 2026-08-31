@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 
 // Gramatura padrão da Tech Churras (mesma usada no wizard e na IA): 350g de
 // proteína por pessoa, considerando adulto médio.
@@ -56,13 +57,18 @@ export default function PriceCalculator({ avgGmPricePerHour, avgMeatPricePerKg }
           </div>
         </div>
         <div className="text-center">
+          <Link
+            href="/pedido"
+            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-xl text-sm transition-colors">
+            Montar meu churrasco agora →
+          </Link>
+          <p className="text-xs text-gray-600 mt-2">Estimativa baseada em preços médios. Valor exato combinado com você.</p>
           <a
             href={`https://wa.me/5511970593650?text=${encodeURIComponent('Quero montar meu churrasco com a Tech Churras')}`}
             target="_blank" rel="noopener noreferrer"
-            className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-3 rounded-xl text-sm transition-colors">
-            Quero montar meu churrasco no WhatsApp →
+            className="inline-block text-xs text-gray-500 hover:text-gray-300 mt-2 underline">
+            Prefiro combinar pelo WhatsApp
           </a>
-          <p className="text-xs text-gray-600 mt-2">Estimativa baseada em preços médios. Valor exato combinado com você.</p>
         </div>
       </div>
     </section>

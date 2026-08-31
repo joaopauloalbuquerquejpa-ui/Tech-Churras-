@@ -243,6 +243,17 @@ function PedidoForm() {
     }).catch(() => {}).finally(() => setLoading(false))
   }, [boutiqueId])
 
+  // Refiltra a lista de churrasqueiros assim que a data do evento é definida
+  // no passo 1 — sem isso, o cliente só descobria que o GM escolhido no passo
+  // 3 já tinha evento marcado naquele dia no clique final de "Confirmar".
+  useEffect(() => {
+    if (!boutiqueId || !eventDate) return
+    fetch(`${API_URL}/grillmasters?limit=200&available=true&eventDate=${eventDate}`)
+      .then(r => r.json())
+      .then(gms => setGrillmasters(Array.isArray(gms) ? gms : gms.grillmasters ?? []))
+      .catch(() => {})
+  }, [boutiqueId, eventDate])
+
   // Cliente veio do Kit Perfeito/Assistente sem boutiqueId na URL ainda —
   // redireciona já com o açougue (e GM, se a IA também tiver escolhido) que
   // o carrinho guardou, pra cair direto no wizard certo em vez da tela de
@@ -866,6 +877,12 @@ function PedidoForm() {
             {gmChoiceMode === 'auto' && (
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-sm text-gray-300">
                 Vamos notificar todos os churrasqueiros aprovados e disponíveis na sua região e data — o primeiro que aceitar fica com o seu evento. Você recebe a confirmação assim que alguém aceitar.
+              </div>
+            )}
+
+            {gmChoiceMode === 'manual' && selectedGm && (
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-sm text-gray-300">
+                {grillmasters.find(g => g.id === selectedGm)?.user.name ?? 'O churrasqueiro'} tem até 2h depois do pagamento pra confirmar presença. Você recebe um aviso assim que ele confirmar.
               </div>
             )}
 

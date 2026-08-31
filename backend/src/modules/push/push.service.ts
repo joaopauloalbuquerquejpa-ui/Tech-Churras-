@@ -14,18 +14,36 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 
 // Variante "raw": lanca excecao em falha, sem engolir erro. Usada tanto pela
 // chamada original quanto pelo processador da fila de retry — mesma logica,
-// uma unica fonte de verdade.
-export async function sendWhatsAppToAdminRaw(message: string): Promise<void> {
-  const phone = process.env.ADMIN_WHATSAPP_PHONE
+// uma unica fonte de verdade. Fonte única de envio de WhatsApp do projeto —
+// antes existiam 5 cópias quase idênticas espalhadas por outros módulos,
+// cada uma com resiliência diferente (a maioria sem retry nenhum).
+export async function sendWhatsAppRaw(phone: string, message: string): Promise<void> {
   const instance = process.env.ZAPI_INSTANCE
   const token = process.env.ZAPI_TOKEN
-  if (!phone || !instance || !token) return
+  if (!instance || !token) return
   const clean = phone.replace(/\D/g, '')
   const res = await fetchWithTimeout(
     `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: clean, message }) }
   )
   if (!res.ok) throw new Error(`Z-API respondeu ${res.status}`)
+}
+
+// Variante "segura": nunca lanca — se falhar na hora, enfileira retry com backoff
+// em vez de so logar e esquecer (era o comportamento antigo).
+export async function sendWhatsApp(phone: string, message: string, label = 'whatsapp'): Promise<void> {
+  try {
+    await sendWhatsAppRaw(phone, message)
+  } catch (err: any) {
+    console.log(`[WhatsApp] ${label} erro, enfileirando retry:`, err?.message)
+    await enqueueNotificationRetry('whatsapp_generic', { phone, message }, err?.message)
+  }
+}
+
+export async function sendWhatsAppToAdminRaw(message: string): Promise<void> {
+  const phone = process.env.ADMIN_WHATSAPP_PHONE
+  if (!phone) return
+  return sendWhatsAppRaw(phone, message)
 }
 
 // Variante "segura": nunca lanca — se falhar na hora, enfileira retry com backoff

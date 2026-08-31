@@ -1,26 +1,11 @@
 ﻿import { prisma } from '../../config/prisma'
-import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
+import { sendPushToUser, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.service'
 import { emailPartnerApproved } from '../email/email.service'
-import { fetchWithTimeout } from '../../utils/http'
 import Anthropic from '@anthropic-ai/sdk'
 import { checkPixOwnership } from '../auth/verification.service'
 import { TRIAL_ORDERS_THRESHOLD } from '../../utils/pricing'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-
-async function sendWhatsApp(phone: string, message: string, label: string) {
-  const instance = process.env.ZAPI_INSTANCE
-  const token = process.env.ZAPI_TOKEN
-  if (!instance || !token) return
-  const clean = phone.replace(/\D/g, '')
-  try {
-    const res = await fetchWithTimeout(
-      `https://api.z-api.io/instances/${instance}/token/${token}/send-text`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone: clean, message }) }
-    )
-    if (!res.ok) console.log(`[WhatsApp] ${label} erro:`, res.status)
-  } catch {}
-}
 
 const GRILLMASTER_EDITABLE_FIELDS = new Set([
   'bio', 'experience', 'pricePerHour', 'city', 'state', 'specialties',

@@ -16,7 +16,8 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
 const EMAIL = 'jota@techchurras.com.br'
-const PASSWORD = 'TechChurras@2026!'
+if (!process.env.SEED_JOTA_PASSWORD) throw new Error('SEED_JOTA_PASSWORD não definida no .env')
+const PASSWORD: string = process.env.SEED_JOTA_PASSWORD
 
 async function main() {
   let user = await prisma.user.findUnique({ where: { email: EMAIL } })
@@ -32,7 +33,7 @@ async function main() {
         phoneVerified: true,
       },
     })
-    console.log(`✅ Usuário criado: ${EMAIL} / senha: ${PASSWORD}`)
+    console.log(`✅ Usuário criado: ${EMAIL}`)
   } else {
     console.log(`✅ Usuário já existe: ${EMAIL}`)
   }

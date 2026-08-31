@@ -169,7 +169,7 @@ export async function generatePayouts() {
           orderId: order.id,
           grossAmount: productsGross,
           commission: BOUTIQUE_COMMISSION,
-          amount: +(productsGross * 0.90).toFixed(2),
+          amount: +(productsGross * (1 - BOUTIQUE_COMMISSION / 100)).toFixed(2),
           weekStart: monday,
           weekEnd: sunday,
           pixKey: order.boutique?.pixKey ?? null,

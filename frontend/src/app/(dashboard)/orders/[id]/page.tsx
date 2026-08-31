@@ -74,6 +74,7 @@ interface OrderDetail {
   id: string
   status: string
   statusDetail?: string | null
+  grillmasterAcceptedAt?: string | null
   totalPrice: number
   eventDate: string
   eventAddress: string
@@ -437,10 +438,16 @@ export default function OrderDetailPage() {
     ? order.grillmaster.pricePerHour * order.eventHours
     : null
   const itemsCost = order.items?.reduce((s, i) => s + i.quantity * i.unitPrice, 0) ?? 0
-  const accompCost = (order.gmAccompaniments ?? []).reduce((s, a) => s + a.laborPrice, 0)
   const otherPersonName = isOrderGrillmaster
     ? (order.customer?.name ?? 'o cliente')
     : (order.grillmaster?.user?.name ?? 'o churrasqueiro')
+
+  // status === 'CONFIRMED' reflete o pagamento aprovado, não que o
+  // churrasqueiro aceitou — sem essa distinção o cliente via "Confirmado"
+  // enquanto o pedido ainda podia levar horas em despacho sem ninguém aceito.
+  const awaitingGmAcceptance = !isOrderGrillmaster && order.status === 'CONFIRMED' && !order.grillmasterAcceptedAt
+  const displayStatusLabel = awaitingGmAcceptance ? 'Aguardando churrasqueiro' : (STATUS_LABEL[order.status] || order.status)
+  const displayStatusColor = awaitingGmAcceptance ? 'bg-yellow-500' : (STATUS_COLOR[order.status] || 'bg-gray-500')
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -504,8 +511,8 @@ export default function OrderDetailPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Pedido #{order.id.slice(0, 8)}</h1>
         <div className="flex items-center gap-2">
-          <span className={'text-sm text-white px-3 py-1 rounded-full font-medium ' + (STATUS_COLOR[order.status] || 'bg-gray-500')}>
-            {STATUS_LABEL[order.status] || order.status}
+          <span className={'text-sm text-white px-3 py-1 rounded-full font-medium ' + displayStatusColor}>
+            {displayStatusLabel}
           </span>
           <Link
             href={`/orders/${id}/chat`}
@@ -523,6 +530,15 @@ export default function OrderDetailPage() {
           </Link>
         </div>
       </div>
+
+      {awaitingGmAcceptance && (
+        <div className="mb-6 bg-yellow-500/10 border border-yellow-500/30 rounded-2xl p-4 flex items-start gap-3">
+          <FlameIcon size={20} className="text-yellow-400 shrink-0 mt-0.5" />
+          <p className="text-sm text-yellow-200">
+            Pagamento aprovado! {order.grillmaster?.user?.name ?? 'O churrasqueiro'} ainda precisa confirmar presença — isso costuma acontecer em poucas horas. Se demorar muito, fale com a gente pelo chat aqui embaixo.
+          </p>
+        </div>
+      )}
 
       {/* Journey Timeline */}
       {order.status !== 'CANCELLED' && (() => {
@@ -810,11 +826,7 @@ export default function OrderDetailPage() {
               {order.gmAccompaniments.map((a, i) => (
                 <div key={i} className="flex items-center justify-between text-sm">
                   <span className="text-gray-300">{a.name}</span>
-                  <span className="text-orange-400 font-medium">
-                    {a.laborPrice > 0
-                      ? `+R$ ${a.laborPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
-                      : 'Incluído'}
-                  </span>
+                  <span className="text-green-400 font-medium">Incluído</span>
                 </div>
               ))}
             </div>
@@ -873,12 +885,6 @@ export default function OrderDetailPage() {
               <div className="flex justify-between text-gray-400">
                 <span>Insumos{order.boutique ? ' — ' + order.boutique.name : ''}</span>
                 <span>R$ {itemsCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
-              </div>
-            )}
-            {accompCost > 0 && (
-              <div className="flex justify-between text-gray-400">
-                <span>Acompanhamentos (mão de obra)</span>
-                <span>R$ {accompCost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
               </div>
             )}
             {(order.discountAmount ?? 0) > 0 && (
