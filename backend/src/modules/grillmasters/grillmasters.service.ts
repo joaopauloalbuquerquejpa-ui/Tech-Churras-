@@ -176,6 +176,52 @@ export async function findNearbyGrillmasters(lat: number, lng: number, radiusKm 
     .sort((a, b) => a.distanceKm - b.distanceKm)
 }
 
+// Resumo curto das avaliações em texto de um GM, gerado por IA e cacheado no
+// próprio registro — evita ler dezenas de reviews cru pra decidir e evita
+// gastar uma chamada de IA a cada carregamento (só regenera quando aparece
+// review nova depois do último resumo salvo).
+async function getReviewSummary(grillmasterId: string): Promise<string | null> {
+  const gm = await prisma.grillmaster.findUnique({
+    where: { id: grillmasterId },
+    select: { reviewSummary: true, reviewSummaryUpdatedAt: true },
+  })
+  if (!gm) return null
+
+  const comments = await prisma.review.findMany({
+    where: { grillmasterId, grillComment: { not: null } },
+    select: { grillComment: true, grillRating: true, createdAt: true },
+    orderBy: { createdAt: 'desc' },
+    take: 15,
+  })
+  if (comments.length < 2) return null
+
+  const latestCommentAt = comments[0].createdAt
+  if (gm.reviewSummary && gm.reviewSummaryUpdatedAt && gm.reviewSummaryUpdatedAt >= latestCommentAt) {
+    return gm.reviewSummary
+  }
+
+  try {
+    const resp = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 80,
+      messages: [{
+        role: 'user',
+        content: `Resuma em 1 frase curta (máx 20 palavras), em português, o consenso dessas avaliações de um churrasqueiro profissional. Cite elogios recorrentes e, se houver reclamação real, mencione com moderação. Não invente nada que não esteja nos comentários.\n\n${comments.map(c => `- (${c.grillRating}/5) ${c.grillComment}`).join('\n')}\n\nResponda apenas a frase-resumo.`,
+      }],
+    })
+    const summary = resp.content[0].type === 'text' ? resp.content[0].text.trim() : null
+    if (summary) {
+      await prisma.grillmaster.update({
+        where: { id: grillmasterId },
+        data: { reviewSummary: summary, reviewSummaryUpdatedAt: new Date() },
+      }).catch(() => {})
+    }
+    return summary
+  } catch {
+    return gm.reviewSummary ?? null
+  }
+}
+
 // ── Feature 4: Matching inteligente de GM
 export async function recommendGrillmasters(params: {
   lat?: number
@@ -262,6 +308,8 @@ export async function recommendGrillmasters(params: {
     } catch { return '' }
   }))
 
+  const reviewSummaries = await Promise.allSettled(top3.map(g => getReviewSummary(g.id)))
+
   return top3.map((g, i) => ({
     id: g.id,
     name: g.user.name,
@@ -274,6 +322,7 @@ export async function recommendGrillmasters(params: {
     reviewCount: g._count.reviews,
     distanceKm: g.distanceKm ? Math.round(g.distanceKm * 10) / 10 : null,
     reason: reasons[i].status === 'fulfilled' ? reasons[i].value : '',
+    reviewSummary: reviewSummaries[i].status === 'fulfilled' ? reviewSummaries[i].value : null,
   }))
 }
 

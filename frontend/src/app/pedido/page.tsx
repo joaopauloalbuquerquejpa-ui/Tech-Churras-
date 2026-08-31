@@ -16,6 +16,7 @@ interface RecommendedGm {
   id: string; name: string; rating: number; pricePerHour: number
   photoUrl?: string | null; city?: string; specialties?: string
   experience?: number; reviewCount: number; distanceKm: number | null; reason: string
+  reviewSummary?: string | null
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -938,6 +939,12 @@ function PedidoForm() {
                               {rg.distanceKm != null && <span>{rg.distanceKm}km</span>}
                             </div>
                             {rg.reason && <p className="text-xs text-orange-300/80 mt-1 italic">{rg.reason}</p>}
+                            {rg.reviewSummary && (
+                              <p className="text-xs text-gray-400 mt-1 flex items-start gap-1">
+                                <StarIcon size={11} className="text-yellow-400 shrink-0 mt-0.5" />
+                                {rg.reviewSummary}
+                              </p>
+                            )}
                             <div className="flex items-center justify-between mt-2">
                               <span className="text-xs text-gray-500">R$ {rg.pricePerHour}/hora</span>
                               <span className="text-sm font-bold text-orange-400">R$ {cost.toFixed(2)} total</span>

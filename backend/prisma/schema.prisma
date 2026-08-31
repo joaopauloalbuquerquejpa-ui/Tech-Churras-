@@ -90,6 +90,8 @@ model Grillmaster {
   pixKey          String?
   cpfCnpj         String?
   videoUrl        String?
+  reviewSummary   String?
+  reviewSummaryUpdatedAt DateTime?
   certificationCode String? @unique
   certifiedAt     DateTime?
   trainingModules Int[]    @default([])
