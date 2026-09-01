@@ -19,6 +19,12 @@ export function calcAuxiliaresNeeded(guestCount: number): number {
 // e boutiques.service.ts (cálculo ao vivo pro dashboard).
 export const TRIAL_ORDERS_THRESHOLD = 3
 
+// Inspirado no modelo do iFood (mensalidade só acima de um piso de
+// faturamento): açougue com faturamento baixo via plataforma não paga a
+// mensalidade fixa naquele período, só a comissão — reduz o risco de churn
+// de açougue pequeno que ainda não recebeu volume suficiente de pedidos.
+export const BOUTIQUE_FEE_WAIVER_THRESHOLD = 1000
+
 // Sobretaxa de fim de semana (mais demanda) e desconto por antecedência
 // (ajuda a preencher agenda de dias de semana) — regra fixa de calendário,
 // sem precificação dinâmica/algorítmica. Aplicada só sobre o custo do

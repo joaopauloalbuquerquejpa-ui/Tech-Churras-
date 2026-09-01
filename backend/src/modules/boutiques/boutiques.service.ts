@@ -3,7 +3,7 @@ import { sendPushToUser, sendWhatsAppToAdmin } from '../push/push.service'
 import { z } from 'zod'
 import { geocodeAddress, haversineKm } from '../../utils/geo'
 import { randomBytes } from 'crypto'
-import { TRIAL_ORDERS_THRESHOLD } from '../../utils/pricing'
+import { TRIAL_ORDERS_THRESHOLD, BOUTIQUE_FEE_WAIVER_THRESHOLD } from '../../utils/pricing'
 
 function generateReferralCode(name: string): string {
   const prefix = name.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4).padEnd(4, 'X')
@@ -311,6 +311,10 @@ export async function getBoutiqueDashboardStats(userId: string) {
     trialOrdersCompleted: completedOrdersLifetime,
     trialOrdersThreshold: TRIAL_ORDERS_THRESHOLD,
     trialActive: completedOrdersLifetime < TRIAL_ORDERS_THRESHOLD,
+    monthlyFee: boutique.monthlyFee,
+    feeWaiverThreshold: BOUTIQUE_FEE_WAIVER_THRESHOLD,
+    feeWaivedByRevenue: totalRevenue30days < BOUTIQUE_FEE_WAIVER_THRESHOLD,
+    effectiveMonthlyFee: totalRevenue30days < BOUTIQUE_FEE_WAIVER_THRESHOLD ? 0 : boutique.monthlyFee,
   }
 }
 

@@ -2,7 +2,7 @@
 import { OrderStatus } from '@prisma/client'
 import { z } from 'zod'
 import crypto from 'crypto'
-import { validateCoupon } from '../coupons/coupons.service'
+import { validateCoupon, createCashbackCoupon } from '../coupons/coupons.service'
 import { sendPushToUser, sendPushToRole, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.service'
 import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } from '../email/email.service'
 import { refundPayment } from '../payments/payments.service'
@@ -417,6 +417,14 @@ export async function updateOrderStatus(id: string, status: OrderStatus, userId?
           data: { points: { increment: pts } },
         }).catch((e) => console.error("[notif]", e?.message))
       }
+      createCashbackCoupon(updated.totalPrice).then(cashback => {
+        if (!cashback) return
+        sendPushToUser(updated.customerId, `🎁 R$ ${cashback.amount.toFixed(2)} de volta pra você!`, `Use o cupom ${cashback.code} no seu próximo churrasco.`, '/menu').catch((e) => console.error("[notif]", e?.message))
+        if (updated.customer.phone) {
+          const msg = `🎁 *Cashback Tech Churras!*\n\nVocê ganhou *R$ ${cashback.amount.toFixed(2)}* de volta pelo churrasco que acabou de rolar.\n\nUse o cupom *${cashback.code}* no seu próximo pedido — válido por 90 dias.\n\nhttps://www.techchurras.com.br/pedido`
+          sendWhatsApp(updated.customer.phone, msg, 'cashback').catch((e) => console.error("[notif]", e?.message))
+        }
+      }).catch((e) => console.error("[notif]", e?.message))
     }
   }
   if (status === 'CONFIRMED' && updated.customer.phone) {

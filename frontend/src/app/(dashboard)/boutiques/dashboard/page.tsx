@@ -75,6 +75,7 @@ interface Stats {
   recentOrders: { id: string; customerName: string; customerPhone?: string | null; grillmasterName?: string | null; totalPrice: number; status: string; eventDate: string; guestCount?: number; items?: OrderItem[] }[]
   referralCode: string | null; referralCount: number
   trialActive?: boolean; trialOrdersCompleted?: number; trialOrdersThreshold?: number
+  monthlyFee?: number; feeWaiverThreshold?: number; feeWaivedByRevenue?: boolean; effectiveMonthlyFee?: number
 }
 
 interface DemandItem {
@@ -841,6 +842,14 @@ export default function BoutiqueDashboardPage() {
         const done = stats.trialOrdersCompleted ?? 0
         const threshold = stats.trialOrdersThreshold
         const remaining = Math.max(0, threshold - done)
+        if (!stats.trialActive && stats.feeWaivedByRevenue) return (
+          <div className="bg-green-500/15 border border-green-500/40 rounded-xl px-5 py-3 flex items-center gap-3">
+            <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0" />
+            <p className="text-green-300 font-semibold text-sm">
+              Seu período gratuito encerrou, mas esse mês seu faturamento pela Tech Churras está abaixo de R$ {stats.feeWaiverThreshold?.toLocaleString('pt-BR')} — mensalidade isenta, você só paga a comissão.
+            </p>
+          </div>
+        )
         if (!stats.trialActive) return (
           <div className="bg-red-500/15 border border-red-500/40 rounded-xl px-5 py-3 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">

@@ -1,4 +1,28 @@
 import { prisma } from '../../config/prisma'
+import { randomBytes } from 'crypto'
+
+// Cashback pós-churrasco (inspirado no programa de fidelidade do iFood) —
+// incentiva recompra sem depender de indicação viral. Reaproveita o sistema
+// de cupom já existente em vez de criar um "wallet" novo: gera um cupom de
+// valor fixo, uso único, só pra esse cliente saber o código.
+export const CASHBACK_RATE = 0.05
+const CASHBACK_VALID_DAYS = 90
+
+export async function createCashbackCoupon(totalPrice: number): Promise<{ code: string; amount: number } | null> {
+  const amount = +(totalPrice * CASHBACK_RATE).toFixed(2)
+  if (amount <= 0) return null
+  const code = `VOLTA${randomBytes(3).toString('hex').toUpperCase()}`
+  await prisma.coupon.create({
+    data: {
+      code,
+      discountType: 'FIXED',
+      discountValue: amount,
+      maxUses: 1,
+      validUntil: new Date(Date.now() + CASHBACK_VALID_DAYS * 24 * 60 * 60 * 1000),
+    },
+  })
+  return { code, amount }
+}
 
 export async function validateCoupon(code: string, orderValue: number) {
   const coupon = await prisma.coupon.findUnique({ where: { code: code.toUpperCase().trim() } })
