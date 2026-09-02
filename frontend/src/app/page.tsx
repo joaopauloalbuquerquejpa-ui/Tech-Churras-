@@ -5,6 +5,7 @@ import { FlameIcon, MeatIcon, ChefIcon, CelebrationIcon, CheckIcon, TrophyIcon }
 import PriceCalculator from '@/components/PriceCalculator'
 import GarantiaSelo from '@/components/GarantiaSelo'
 import HomeMobileMenu from '@/components/HomeMobileMenu'
+import BottomNav from '@/components/BottomNav'
 import { API_URL } from '@/lib/api'
 
 export const metadata: Metadata = {
@@ -490,7 +491,7 @@ export default async function HomePage() {
         <section className="max-w-xl mx-auto px-4 pb-20 text-center" suppressHydrationWarning>
           <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Quem usou, aprovou</p>
           <h2 className="font-display text-2xl font-black mb-3">Você pode ser a primeira avaliação</h2>
-          <p className="text-gray-500 text-sm mb-5">Estamos em pré-lançamento em São Paulo. Fundada por Jota Albuquerque, 13 anos de Jota BBQ Eventos atendendo eventos de até 300 pessoas.</p>
+          <p className="text-gray-500 text-sm mb-5">Fundada por Jota Albuquerque, 13 anos de Jota BBQ Eventos atendendo eventos de até 300 pessoas.</p>
           <div className="flex items-center justify-center gap-2 flex-wrap">
             {['13 anos de experiência', 'CNPJ 67.830.186/0001-87', 'Chancela Jota Albuquerque'].map(selo => (
               <span key={selo} className="text-xs text-gray-400 border border-gray-800 bg-gray-900 rounded-full px-3 py-1.5">
@@ -653,6 +654,8 @@ export default async function HomePage() {
           © {new Date().getFullYear()} Tech Churras · CNPJ 67.830.186/0001-87 · Feito com 🔥 no Brasil
         </div>
       </footer>
+      <div className="sm:hidden h-20" />
+      <BottomNav />
     </div>
     </>
   )
