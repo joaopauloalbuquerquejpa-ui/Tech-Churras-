@@ -359,7 +359,7 @@ export default async function HomePage() {
           (a empresa de churrasco do Jota antes da Tech Churras existir).
           Legenda honesta: é credencial do fundador, não avaliação de
           cliente da plataforma — a Tech Churras ainda não lançou pedidos reais. */}
-      <section className="max-w-5xl mx-auto px-4 pb-16">
+      <section className="max-w-5xl mx-auto px-4 pb-6">
         <p className="text-center text-sm text-orange-400 font-semibold uppercase tracking-wide mb-3">Antes da Tech Churras</p>
         <h2 className="font-display text-3xl font-black text-center mb-4">Já eram anos de brasa</h2>
         <p className="text-center text-gray-500 max-w-xl mx-auto mb-10 text-base">
