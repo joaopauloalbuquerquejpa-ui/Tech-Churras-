@@ -371,7 +371,7 @@ export default function KitPerfeitoPage() {
                 <div>
                   <p className="font-bold text-white">{result.grillmaster.name}</p>
                   <p className="text-xs text-gray-500">
-                    ⭐ {result.grillmaster.rating.toFixed(1)} · {result.grillmaster.distanceKm.toFixed(1)} km do evento
+                    {result.grillmaster.rating > 0 ? `⭐ ${result.grillmaster.rating.toFixed(1)} · ` : ''}{result.grillmaster.distanceKm.toFixed(1)} km do evento
                   </p>
                 </div>
               </div>

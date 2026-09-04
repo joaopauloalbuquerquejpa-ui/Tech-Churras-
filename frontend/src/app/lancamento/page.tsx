@@ -190,7 +190,7 @@ export default async function LancamentoPage() {
                   <p className="font-bold text-white text-sm truncate">{gm.user.name.split(' ')[0]}</p>
                   <p className="text-xs text-gray-500">{gm.city}</p>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-yellow-400 text-xs">★ {gm.rating.toFixed(1)}</span>
+                    <span className="text-yellow-400 text-xs">{gm.rating > 0 ? `★ ${gm.rating.toFixed(1)}` : 'Novo'}</span>
                     <span className="text-orange-400 font-bold text-xs">R$ {gm.pricePerHour.toFixed(0)}/h</span>
                   </div>
                 </div>

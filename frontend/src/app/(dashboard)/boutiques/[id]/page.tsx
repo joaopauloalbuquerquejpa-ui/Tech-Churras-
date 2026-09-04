@@ -20,7 +20,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const logo: string | null = b?.logoUrl ?? b?.facadeUrl ?? null
 
     const title = `${name} — Açougue em ${city}`
-    const desc = `⭐ ${rating.toFixed(1)} | Açougue premium em ${city}, ${state}. Cortes selecionados para churrasco. Peça pelo app Tech Churras.`
+    const ratingPart = rating > 0 ? `⭐ ${rating.toFixed(1)} | ` : ''
+    const desc = `${ratingPart}Açougue premium em ${city}, ${state}. Cortes selecionados para churrasco. Peça pelo app Tech Churras.`
     const img = logo ?? '/jota.jpg'
 
     return {

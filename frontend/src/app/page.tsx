@@ -150,7 +150,7 @@ const PERSONAS = [
       'Receba pedidos e gerencie agenda pelo app (em breve)',
       'Chancela Jota Albuquerque inclusa',
       'Treinamento de chancelamento presencial',
-      '2 meses sem mensalidade para os primeiros',
+      'Sem mensalidade — só 7% quando um pedido fecha, você fica com 93%',
     ],
     href: '/para-churrasqueiros',
     cta: 'Quero ser Grillmaster parceiro',
@@ -530,7 +530,11 @@ export default async function HomePage() {
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-bold text-white">{gm.user.name}</h3>
-                    <span className="shrink-0 text-yellow-400 font-bold text-sm">★ {gm.rating.toFixed(1)}</span>
+                    {gm.rating > 0 ? (
+                      <span className="shrink-0 text-yellow-400 font-bold text-sm">★ {gm.rating.toFixed(1)}</span>
+                    ) : (
+                      <span className="shrink-0 text-orange-400 font-bold text-xs bg-orange-500/10 px-2 py-0.5 rounded-full">Novo</span>
+                    )}
                   </div>
                   <p className="text-xs text-gray-500 mb-2">{gm.city}, {gm.state}</p>
                   {gm.specialties && <p className="text-xs text-gray-400 line-clamp-2 mb-3">{gm.specialties}</p>}

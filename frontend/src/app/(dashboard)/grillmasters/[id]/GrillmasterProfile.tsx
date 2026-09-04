@@ -344,7 +344,8 @@ export default function GrillmasterProfilePage() {
           <button
             onClick={() => {
               const url = `https://www.techchurras.com.br/grillmasters/${gm.id}`
-              const msg = `🔥 Olha esse churrasqueiro incrível que achei na Tech Churras!\n\n👨‍🍳 ${name}\n⭐ ${gm.rating.toFixed(1)} — ${gm.totalOrders} eventos\n📍 ${gm.city}, ${gm.state}\n\nVeja o perfil completo:\n${url}`
+              const ratingLine = gm.rating > 0 ? `\n⭐ ${gm.rating.toFixed(1)} — ${gm.totalOrders} eventos` : ''
+              const msg = `🔥 Olha esse churrasqueiro incrível que achei na Tech Churras!\n\n👨‍🍳 ${name}${ratingLine}\n📍 ${gm.city}, ${gm.state}\n\nVeja o perfil completo:\n${url}`
               window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank')
             }}
             className="flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-3 rounded-xl transition-colors text-sm whitespace-nowrap"

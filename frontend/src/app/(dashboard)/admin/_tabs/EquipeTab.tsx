@@ -168,7 +168,9 @@ export function EquipeTab() {
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="font-bold text-white text-lg">{teamJota.user?.name}</h2>
                 <Badge tone="orange">{teamJota.certificationCode}</Badge>
-                <span className="text-xs text-yellow-400 inline-flex items-center gap-1"><StarIcon size={11} filled /> {teamJota.rating.toFixed(1)}</span>
+                {teamJota.rating > 0 && (
+                  <span className="text-xs text-yellow-400 inline-flex items-center gap-1"><StarIcon size={11} filled /> {teamJota.rating.toFixed(1)}</span>
+                )}
               </div>
               <p className="text-xs text-gray-400">{teamJota.user?.email}</p>
               <p className="text-xs text-gray-500 mt-0.5">{teamJota.city}, {teamJota.state} · {teamJota.totalOrders} pedidos</p>

@@ -21,7 +21,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const photo: string | null = gm?.photoUrl ?? null
 
     const title = `${name} — Churrasqueiro em ${city}`
-    const desc = `⭐ ${rating.toFixed(1)} | R$ ${price.toFixed(0)}/h | Churrasqueiro profissional em ${city}, ${state}. Contrate pelo app Tech Churras.`
+    const ratingPart = rating > 0 ? `⭐ ${rating.toFixed(1)} | ` : ''
+    const desc = `${ratingPart}R$ ${price.toFixed(0)}/h | Churrasqueiro profissional em ${city}, ${state}. Contrate pelo app Tech Churras.`
     const img = photo ?? '/jota.jpg'
 
     return {
