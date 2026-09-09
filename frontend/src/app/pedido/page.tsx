@@ -133,6 +133,15 @@ function PedidoForm() {
   const [submitting, setSubmitting] = useState(false)
   const [formError, setFormError] = useState('')
 
+  // Cupom (indicação de cliente/açougue ou resgate de pontos) — até aqui o
+  // código era gerado em 3 fluxos diferentes (indicar, /r/[code], pontos) mas
+  // não existia nenhum campo no wizard pra usá-lo: promessa de desconto que
+  // nunca chegava a ser aplicada.
+  const [couponInput, setCouponInput] = useState('')
+  const [couponApplied, setCouponApplied] = useState<{ code: string; discountAmount: number } | null>(null)
+  const [couponChecking, setCouponChecking] = useState(false)
+  const [couponError, setCouponError] = useState('')
+
   // Step 1 — evento
   const [eventDate, setEventDate] = useState('')
   const [eventTime, setEventTime] = useState('12:00')
@@ -211,9 +220,43 @@ function PedidoForm() {
   const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * totalPeople).toFixed(2)
     : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * totalPeople).toFixed(2)
     : 0
-  const serviceFee = +((productsCost + gmCost + sideDishFee) * SERVICE_FEE_RATE).toFixed(2)
-  const total = productsCost + gmCost + sideDishFee + serviceFee
+  const subtotal = productsCost + gmCost + sideDishFee
+  const discountAmount = couponApplied?.discountAmount ?? 0
+  const netSubtotal = Math.max(0, subtotal - discountAmount)
+  const serviceFee = +(netSubtotal * SERVICE_FEE_RATE).toFixed(2)
+  const total = netSubtotal + serviceFee
   const categorias = [...new Set(products.map(p => p.category))]
+
+  async function applyCoupon() {
+    const code = couponInput.trim()
+    if (!code || couponChecking) return
+    setCouponChecking(true)
+    setCouponError('')
+    try {
+      const res = await fetch(`${API_URL}/coupons/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, orderValue: subtotal }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.valid) {
+        setCouponError(data.reason || 'Cupom inválido')
+        setCouponApplied(null)
+        return
+      }
+      setCouponApplied({ code: code.toUpperCase(), discountAmount: data.discountAmount })
+    } catch {
+      setCouponError('Não foi possível validar o cupom agora. Tenta de novo.')
+    } finally {
+      setCouponChecking(false)
+    }
+  }
+
+  function removeCoupon() {
+    setCouponApplied(null)
+    setCouponInput('')
+    setCouponError('')
+  }
 
   useEffect(() => {
     if (!boutiqueId) {
@@ -486,6 +529,7 @@ function PedidoForm() {
           guestCount: totalPeople || 1,
           items: orderItems.length > 0 ? orderItems : undefined,
           sideDishPreparedBy: sideDishChoice || undefined,
+          couponCode: couponApplied?.code || undefined,
         }),
       })
       if (!orderRes.ok) throw new Error((await orderRes.json()).error)
@@ -1121,10 +1165,45 @@ function PedidoForm() {
                 </div>
               )}
               {serviceFee > 0 && <div className="flex justify-between text-gray-400"><span>Taxa de serviço</span><span className="text-orange-400">R$ {serviceFee.toFixed(2)}</span></div>}
+              {couponApplied && (
+                <div className="flex justify-between text-green-400">
+                  <span>Cupom {couponApplied.code}</span>
+                  <span>− R$ {couponApplied.discountAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
                 <span className="font-bold text-white">Total</span>
                 <span className="text-2xl font-black text-orange-400">R$ {total.toFixed(2)}</span>
               </div>
+            </div>
+
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+              {couponApplied ? (
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm text-green-400 font-semibold inline-flex items-center gap-1.5">
+                    <CheckIcon size={14} /> Cupom {couponApplied.code} aplicado
+                  </p>
+                  <button type="button" onClick={removeCoupon} className="text-xs text-gray-500 hover:text-gray-300 underline shrink-0">
+                    remover
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <label htmlFor="coupon-code" className="text-sm text-gray-400 mb-2 block">Cupom de desconto</label>
+                  <div className="flex gap-2">
+                    <input id="coupon-code" value={couponInput}
+                      onChange={e => { setCouponInput(e.target.value); setCouponError('') }}
+                      onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); applyCoupon() } }}
+                      placeholder="Ex: BEMVINDO-ABC123"
+                      className="flex-1 bg-gray-800 rounded-xl px-4 py-3 text-white placeholder-gray-600 uppercase" />
+                    <button type="button" onClick={applyCoupon} disabled={couponChecking || !couponInput.trim()}
+                      className="px-5 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-white font-semibold text-sm transition-colors shrink-0">
+                      {couponChecking ? '...' : 'Aplicar'}
+                    </button>
+                  </div>
+                  {couponError && <p className="text-xs text-red-400 mt-2">{couponError}</p>}
+                </>
+              )}
             </div>
 
             <GarantiaSelo compact />
