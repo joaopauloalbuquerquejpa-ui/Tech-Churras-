@@ -5,13 +5,16 @@ import CorporateLeadForm from './CorporateLeadForm'
 import { AnimatedCTA, RevealSection } from './CorporateAnimated'
 
 export const metadata: Metadata = {
-  title: 'Churrasco Corporativo em São Paulo | Eventos de Empresa o Ano Todo',
+  title: 'Confraternização de Fim de Ano para Empresas | Churrasco Corporativo SP',
   description:
-    'Churrasco completo pra qualquer evento da sua empresa — confraternização, team building, lançamento, evento de cliente. Churrasqueiro profissional, carnes de açougue premium, preço fechado por pessoa e garantia de execução.',
+    'Confraternização de fim de ano, team building, lançamento ou evento de cliente — churrasco corporativo completo em São Paulo. Churrasqueiro profissional, carnes de açougue premium, preço fechado por pessoa e proposta em 24h.',
   keywords: [
+    'confraternização de fim de ano empresa',
+    'festa de confraternização empresarial',
     'churrasco corporativo São Paulo',
     'confraternização empresa churrasco',
     'churrasco fim de ano empresa SP',
+    'buffet confraternização são paulo',
     'buffet churrasco corporativo',
     'churrasqueiro para empresa',
     'evento corporativo churrasco',
@@ -19,8 +22,8 @@ export const metadata: Metadata = {
     'fornecedor de eventos corporativos',
   ],
   openGraph: {
-    title: 'Churrasco Corporativo em SP — eventos de empresa resolvidos, o ano todo',
-    description: 'Churrasqueiro profissional + carnes premium + preço fechado, pra confra, team building, lançamento ou evento de cliente.',
+    title: 'Confraternização de Fim de Ano para Empresas — Churrasco Corporativo em SP',
+    description: 'Churrasqueiro profissional + carnes premium + preço fechado, pra confra de fim de ano, team building, lançamento ou evento de cliente.',
     type: 'website',
     url: 'https://www.techchurras.com.br/churrasco-corporativo',
     images: [{ url: '/jota.jpg', width: 1200, height: 630, alt: 'Tech Churras — Churrasco Corporativo' }],
@@ -60,9 +63,9 @@ export default function ChurrascoCorporativoPage() {
       {/* Hero */}
       <section className="max-w-5xl mx-auto px-4 pt-12 pb-10 grid lg:grid-cols-[1.1fr_0.9fr] gap-10 items-center">
         <div>
-          <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-3">Eventos corporativos · São Paulo</p>
+          <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-3">Confraternização de fim de ano · São Paulo</p>
           <h1 className="text-3xl sm:text-5xl font-black leading-tight mb-4">
-            O churrasco que resolve <span className="text-orange-500">qualquer evento da sua empresa.</span>
+            A confraternização de fim de ano <span className="text-orange-500">que sua empresa vai lembrar.</span>
           </h1>
           <p className="text-gray-300 text-lg max-w-2xl mb-3">
             Confraternização de fim de ano, team building, lançamento de produto, evento pra cliente ou happy hour trimestral —
