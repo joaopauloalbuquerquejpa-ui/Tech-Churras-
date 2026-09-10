@@ -7,6 +7,7 @@ import GarantiaSelo from '@/components/GarantiaSelo'
 import HomeMobileMenu from '@/components/HomeMobileMenu'
 import BottomNav from '@/components/BottomNav'
 import { API_URL } from '@/lib/api'
+import { safeJsonLd } from '@/lib/jsonld'
 
 export const metadata: Metadata = {
   title: 'Contratar Churrasqueiro Profissional em São Paulo',
@@ -240,8 +241,8 @@ export default async function HomePage() {
 
   return (
     <>
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd({
       "@context": "https://schema.org",
       "@type": "Service",
       "serviceType": "Churrasco a domicílio com churrasqueiro profissional",

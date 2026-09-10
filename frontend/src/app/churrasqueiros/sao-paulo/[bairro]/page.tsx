@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { API_URL } from '@/lib/api'
+import { safeJsonLd } from '@/lib/jsonld'
 
 const BAIRROS_SP = [
   'pinheiros', 'moema', 'vila-olimpia', 'itaim-bibi', 'jardins',
@@ -88,7 +89,7 @@ export default async function BairroPage({ params }: { params: Promise<{ bairro:
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ldJson) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(ldJson) }} />
 
       <div className="min-h-screen bg-black text-white">
         {/* Hero */}

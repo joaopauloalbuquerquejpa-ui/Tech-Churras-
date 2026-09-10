@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from 'next'
 import GrillmasterProfile from './GrillmasterProfile'
 import { API_URL } from '@/lib/api'
+import { safeJsonLd } from '@/lib/jsonld'
 
 
 interface Props {
@@ -88,7 +89,7 @@ export default async function GrillmasterPage({ params }: Props) {
   } catch {}
   return (
     <>
-      {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />}
+      {schema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(schema) }} />}
       <GrillmasterProfile />
     </>
   )

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import ParaAcouguesClient from './ParaAcouguesClient'
 import { API_URL } from '@/lib/api'
+import { safeJsonLd } from '@/lib/jsonld'
 
 export const metadata: Metadata = {
   title: 'Parceria para Açougues em São Paulo',
@@ -68,7 +69,7 @@ export default async function ParaAcouguesPage() {
   const boutiqueCount = await getBoutiqueCount()
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqSchema) }} />
       <ParaAcouguesClient boutiqueCount={boutiqueCount} />
     </>
   )

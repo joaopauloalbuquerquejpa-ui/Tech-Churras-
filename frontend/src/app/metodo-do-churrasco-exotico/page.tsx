@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import EbookClient from './EbookClient'
+import { safeJsonLd } from '@/lib/jsonld'
 
 export const metadata: Metadata = {
   title: 'O Método do Churrasco Exótico — E-book do Jota Albuquerque',
@@ -66,7 +67,7 @@ export default function EbookPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(JSON_LD) }}
       />
       <EbookClient />
     </>

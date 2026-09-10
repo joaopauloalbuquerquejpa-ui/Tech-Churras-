@@ -414,8 +414,14 @@ export default function GrillmastersPage() {
                     </Link>
                   </div>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-yellow-400 text-sm">{renderStars(g.rating ?? 0)}</span>
-                    <span className="text-xs text-gray-400">{(g.rating ?? 0).toFixed(1)} ({g.totalOrders ?? 0} pedidos)</span>
+                    {g.rating > 0 ? (
+                      <>
+                        <span className="text-yellow-400 text-sm">{renderStars(g.rating)}</span>
+                        <span className="text-xs text-gray-400">{g.rating.toFixed(1)} ({g.totalOrders ?? 0} pedidos)</span>
+                      </>
+                    ) : (
+                      <span className="text-xs text-orange-400 font-bold bg-orange-500/10 px-2 py-0.5 rounded-full">Novo</span>
+                    )}
                   </div>
 
                   <p className="text-sm text-gray-400 line-clamp-2 mb-3">

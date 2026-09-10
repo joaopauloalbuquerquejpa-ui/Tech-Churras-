@@ -4,6 +4,7 @@ import Script from 'next/script'
 import { PostHogProvider } from '@/components/PostHogProvider'
 import { CookieConsent } from '@/components/CookieConsent'
 import { TrackingScripts } from '@/components/TrackingScripts'
+import { safeJsonLd } from '@/lib/jsonld'
 import './globals.css'
 
 const fraunces = Fraunces({
@@ -98,7 +99,7 @@ export default function RootLayout({
         {/* ── JSON-LD Schema Markup ── */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          dangerouslySetInnerHTML={{ __html: safeJsonLd({
             "@context": "https://schema.org",
             "@graph": [
               {

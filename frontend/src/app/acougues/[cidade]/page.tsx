@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from 'next'
 import Link from 'next/link'
 import { API_URL } from '@/lib/api'
+import { safeJsonLd } from '@/lib/jsonld'
 import CityMap from '@/components/CityMapClient'
 
 interface Boutique {
@@ -149,9 +150,9 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
 
   return (
     <div className="min-h-screen bg-gray-950 text-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(listLd) }} />
-      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(listLd) }} />
+      {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(faqLd) }} />}
 
       {/* Nav */}
       <nav className="border-b border-gray-900 px-4 py-3 flex items-center justify-between max-w-5xl mx-auto">

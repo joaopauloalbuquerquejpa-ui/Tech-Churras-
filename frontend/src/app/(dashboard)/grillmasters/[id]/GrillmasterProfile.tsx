@@ -186,8 +186,14 @@ export default function GrillmasterProfilePage() {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">{name}</h1>
               <div className="flex flex-wrap items-center gap-2">
-                <Stars n={gm.rating ?? 0} size="text-sm" />
-                <span className="text-sm text-gray-300">{(gm.rating ?? 0).toFixed(1)} ({gm.totalOrders ?? 0} eventos)</span>
+                {gm.rating > 0 ? (
+                  <>
+                    <Stars n={gm.rating} size="text-sm" />
+                    <span className="text-sm text-gray-300">{gm.rating.toFixed(1)} ({gm.totalOrders ?? 0} eventos)</span>
+                  </>
+                ) : (
+                  <span className="text-xs text-orange-400 font-bold bg-orange-500/10 px-2 py-0.5 rounded-full">Novo</span>
+                )}
                 <span className="text-xs text-gray-400">{gm.city}, {gm.state}</span>
                 <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + (gm.available ? 'bg-green-500/80 text-white' : 'bg-gray-700/80 text-gray-400')}>
                   {gm.available ? 'Disponivel' : 'Ocupado'}

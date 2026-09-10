@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import CorporateLeadForm from './CorporateLeadForm'
 import { AnimatedCTA, RevealSection } from './CorporateAnimated'
+import { safeJsonLd } from '@/lib/jsonld'
 
 export const metadata: Metadata = {
   title: 'Confraternização de Fim de Ano para Empresas | Churrasco Corporativo SP',
@@ -50,7 +51,7 @@ const DIFERENCIAIS = [
 export default function ChurrascoCorporativoPage() {
   return (
     <div className="min-h-screen bg-[#1c1714] text-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
 
       {/* Header */}
       <div className="bg-gray-900/80 border-b border-gray-800 px-4 py-3">
