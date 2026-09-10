@@ -1,8 +1,21 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { API_URL } from '@/lib/api'
 
+// Antes era uma lista fixa (Agosto...Dezembro) que virava mes passado sozinha
+// com o tempo - gera os proximos 6 meses a partir de hoje, sempre atual.
+function nextMonthOptions() {
+  const now = new Date()
+  const months = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+    const label = d.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    return label.charAt(0).toUpperCase() + label.slice(1)
+  })
+  return [...months, 'Ainda não sei']
+}
+
 export default function CorporateLeadForm() {
+  const monthOptions = useMemo(nextMonthOptions, [])
   const [empresa, setEmpresa] = useState('')
   const [nome, setNome] = useState('')
   const [telefone, setTelefone] = useState('')
@@ -51,7 +64,7 @@ export default function CorporateLeadForm() {
         <input type="number" min={1} max={5000} className={inputCls} placeholder="Nº de pessoas" value={pessoas} onChange={e => setPessoas(e.target.value)} />
         <select className={inputCls} value={mesEvento} onChange={e => setMesEvento(e.target.value)}>
           <option value="">Mês do evento</option>
-          {['Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro', 'Ainda não sei'].map(m => <option key={m} value={m}>{m}</option>)}
+          {monthOptions.map(m => <option key={m} value={m}>{m}</option>)}
         </select>
       </div>
       <button type="submit" disabled={status === 'sending'}

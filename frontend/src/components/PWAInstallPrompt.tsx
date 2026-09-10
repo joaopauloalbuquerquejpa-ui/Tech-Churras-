@@ -1,5 +1,12 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+
+// Paginas onde o popup fixo (canto inferior) pode cair em cima do preco/botao
+// "Contratar" de um card real - auditoria de UX flagrou isso escondendo o CTA
+// principal em /grillmasters no desktop. Mais seguro nao mostrar nessas rotas
+// de alta intencao de conversao do que arriscar cobrir a acao que importa.
+const SUPPRESSED_PREFIXES = ['/grillmasters', '/boutiques', '/pedido']
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -7,6 +14,8 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 export default function PWAInstallPrompt() {
+  const pathname = usePathname()
+  const suppressed = SUPPRESSED_PREFIXES.some(p => pathname?.startsWith(p))
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [show, setShow] = useState(false)
   const [isIOS, setIsIOS] = useState(false)
@@ -52,7 +61,7 @@ export default function PWAInstallPrompt() {
     setDeferredPrompt(null)
   }
 
-  if (!show || isStandalone) return null
+  if (!show || isStandalone || suppressed) return null
 
   return (
     <div className="fixed bottom-20 md:bottom-6 left-4 right-4 md:left-auto md:right-6 md:max-w-sm z-50 animate-slideInFromBottom">

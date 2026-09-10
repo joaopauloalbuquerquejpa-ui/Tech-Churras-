@@ -528,6 +528,7 @@ function PedidoForm() {
           eventHours,
           guestCount: totalPeople || 1,
           items: orderItems.length > 0 ? orderItems : undefined,
+          kitId: selectedKit && selectedKit !== '__from_ai__' ? selectedKit : undefined,
           sideDishPreparedBy: sideDishChoice || undefined,
           couponCode: couponApplied?.code || undefined,
         }),
