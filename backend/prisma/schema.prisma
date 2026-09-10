@@ -367,6 +367,13 @@ model Coupon {
   validUntil    DateTime?
   active        Boolean   @default(true)
   createdAt     DateTime  @default(now())
+  // Null = cupom promocional/admin, aberto a qualquer um. Setado = cupom
+  // pessoal (cashback, indicacao, resgate de pontos) - so pode ser usado
+  // pelo dono. Sem isso, o codigo (enviado em texto puro por WhatsApp/push)
+  // podia ser aplicado por qualquer pessoa que o visse, em qualquer conta.
+  customerId    String?
+
+  @@index([customerId])
 }
 
 model PushSubscription {

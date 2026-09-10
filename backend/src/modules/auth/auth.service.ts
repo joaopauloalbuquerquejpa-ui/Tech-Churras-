@@ -65,7 +65,7 @@ export async function registerUser(data: RegisterInput) {
   if (referredByBoutiqueId) {
     const couponCode = 'BEMVINDO-' + user.id.slice(0, 6).toUpperCase()
     await prisma.coupon.create({
-      data: { code: couponCode, discountType: 'PERCENT', discountValue: 15, maxUses: 1, active: true },
+      data: { code: couponCode, discountType: 'PERCENT', discountValue: 15, maxUses: 1, active: true, customerId: user.id },
     }).then(() => { welcomeCoupon = { code: couponCode, label: '15% OFF' } })
       .catch((e) => console.error("[notif]", e?.message))
   }
@@ -78,7 +78,7 @@ export async function registerUser(data: RegisterInput) {
     if (referrer && referrer.role === 'CUSTOMER' && referrer.id !== user.id) {
       const couponCode = 'CONVITE-' + user.id.slice(0, 6).toUpperCase()
       await prisma.coupon.create({
-        data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true },
+        data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true, customerId: user.id },
       }).then(() => { welcomeCoupon = { code: couponCode, label: '10% OFF' } })
         .catch((e) => console.error("[notif]", e?.message))
     }
@@ -87,7 +87,7 @@ export async function registerUser(data: RegisterInput) {
   if (!welcomeCoupon && data.role === 'CUSTOMER') {
     const couponCode = 'CHURRAS10-' + user.id.slice(0, 6).toUpperCase()
     await prisma.coupon.create({
-      data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true },
+      data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true, customerId: user.id },
     }).then(() => { welcomeCoupon = { code: couponCode, label: '10% OFF' } })
       .catch((e) => console.error("[notif]", e?.message))
   }

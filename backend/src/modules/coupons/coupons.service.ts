@@ -8,7 +8,7 @@ import { randomBytes } from 'crypto'
 export const CASHBACK_RATE = 0.05
 const CASHBACK_VALID_DAYS = 90
 
-export async function createCashbackCoupon(totalPrice: number): Promise<{ code: string; amount: number } | null> {
+export async function createCashbackCoupon(totalPrice: number, customerId: string): Promise<{ code: string; amount: number } | null> {
   const amount = +(totalPrice * CASHBACK_RATE).toFixed(2)
   if (amount <= 0) return null
   const code = `VOLTA${randomBytes(3).toString('hex').toUpperCase()}`
@@ -18,16 +18,22 @@ export async function createCashbackCoupon(totalPrice: number): Promise<{ code: 
       discountType: 'FIXED',
       discountValue: amount,
       maxUses: 1,
+      customerId,
       validUntil: new Date(Date.now() + CASHBACK_VALID_DAYS * 24 * 60 * 60 * 1000),
     },
   })
   return { code, amount }
 }
 
-export async function validateCoupon(code: string, orderValue: number, client: Pick<typeof prisma, 'coupon'> = prisma) {
+// customerId: quando informado, cupons pessoais (customerId setado no
+// registro) so validam pra esse mesmo cliente - sem isso, um cupom de
+// cashback/indicacao (enviado em texto puro por WhatsApp/push) podia ser
+// aplicado por qualquer pessoa que visse o codigo, em qualquer conta.
+export async function validateCoupon(code: string, orderValue: number, client: Pick<typeof prisma, 'coupon'> = prisma, customerId?: string) {
   const coupon = await client.coupon.findUnique({ where: { code: code.toUpperCase().trim() } })
   if (!coupon) return { valid: false, reason: 'Cupom nao encontrado' }
   if (!coupon.active) return { valid: false, reason: 'Cupom inativo' }
+  if (coupon.customerId && coupon.customerId !== customerId) return { valid: false, reason: 'Cupom nao pertence a este cliente' }
   if (coupon.validUntil && coupon.validUntil < new Date()) return { valid: false, reason: 'Cupom expirado' }
   if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses!) return { valid: false, reason: 'Cupom esgotado' }
   if (coupon.minOrderValue && orderValue < coupon.minOrderValue) {

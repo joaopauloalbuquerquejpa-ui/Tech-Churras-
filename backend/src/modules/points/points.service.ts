@@ -31,6 +31,7 @@ export async function redeemPoints(userId: string) {
         discountValue,
         maxUses: 1,
         active: true,
+        customerId: userId,
       },
     }),
     (prisma as any).pointsRedemption.create({
