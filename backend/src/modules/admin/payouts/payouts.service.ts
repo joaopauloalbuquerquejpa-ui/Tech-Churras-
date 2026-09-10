@@ -140,9 +140,15 @@ export async function generatePayouts() {
     const subtotal = order.totalPrice - (order.serviceFee ?? 0) + (order.discountAmount ?? 0)
     const discountRatio = subtotal > 0 && order.discountAmount ? Math.min(order.discountAmount / subtotal, 1) : 0
 
+    // Taxa de acompanhamento (sideDishFee) e cobrada do cliente e vai pra
+    // quem de fato preparou - GM ou acougue - com o mesmo rateio de desconto,
+    // senao a plataforma fica com 100% de um valor que nao presta o servico.
+    const sideDishForGm = order.sideDishPreparedBy === 'GRILLMASTER' ? (order.sideDishFee ?? 0) : 0
+    const sideDishForBoutique = order.sideDishPreparedBy === 'ACOUGUE' ? (order.sideDishFee ?? 0) : 0
+
     // Mão de obra do churrasqueiro = valor travado no pedido (não a tarifa ao vivo do GM)
     if (order.grillmasterId && !existingSet.has(`${order.id}:GRILLMASTER`)) {
-      const laborGross = +((order.laborPrice ?? 0) * (1 - discountRatio)).toFixed(2)
+      const laborGross = +(((order.laborPrice ?? 0) + sideDishForGm) * (1 - discountRatio)).toFixed(2)
       if (laborGross > 0) {
         const { commission } = await resolveGmCommission(order.grillmasterId, GM_COMMISSION)
         toCreate.push({
@@ -160,7 +166,7 @@ export async function generatePayouts() {
     }
     // Produtos do açougue = soma dos OrderItems, com o mesmo rateio de desconto
     if (order.boutiqueId && !existingSet.has(`${order.id}:BOUTIQUE`)) {
-      const productsGrossRaw = order.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0)
+      const productsGrossRaw = order.items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0) + sideDishForBoutique
       const productsGross = +(productsGrossRaw * (1 - discountRatio)).toFixed(2)
       if (productsGross > 0) {
         toCreate.push({
