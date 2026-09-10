@@ -467,7 +467,7 @@ export async function sendDailySummary(): Promise<void> {
   const weekStart = new Date()
   weekStart.setDate(weekStart.getDate() - 7)
 
-  const [ordersYesterday, revenueYesterday, newUsers, activeOrders, pendingGMs, qualifiedLeads, revenueWeek, attentionCount] = await Promise.all([
+  const [ordersYesterday, revenueYesterday, newUsers, activeOrders, pendingGMs, qualifiedLeads, revenueWeek, attentionCount, stuckRetries] = await Promise.all([
     prisma.order.count({ where: { createdAt: { gte: yesterday, lt: todayStart } } }),
     prisma.order.aggregate({ where: { createdAt: { gte: yesterday, lt: todayStart }, status: 'COMPLETED' }, _sum: { totalPrice: true } }),
     prisma.user.count({ where: { createdAt: { gte: yesterday, lt: todayStart } } }),
@@ -476,6 +476,10 @@ export async function sendDailySummary(): Promise<void> {
     prisma.lead.count({ where: { status: 'qualified', createdAt: { gte: yesterday, lt: todayStart } } }),
     prisma.order.aggregate({ where: { createdAt: { gte: weekStart }, status: 'COMPLETED' }, _sum: { totalPrice: true } }),
     countOrdersNeedingAttention(),
+    // NotificationRetry e' write-only por padrao - sem isso, WhatsApp/push que
+    // esgotaram tentativas (Z-API fora do ar, por ex.) ficam FAILED pra sempre
+    // sem ninguem perceber. So essa linha ja fecha esse ponto cego.
+    prisma.notificationRetry.count({ where: { status: { in: ['PENDING', 'FAILED'] }, createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) } } }),
   ])
 
   const revenue = revenueYesterday._sum.totalPrice ?? 0
@@ -492,6 +496,7 @@ export async function sendDailySummary(): Promise<void> {
     `⏳ GMs aguardando aprovação: *${pendingGMs}*\n` +
     `🥩 Leads açougue ontem: *${qualifiedLeads}*\n` +
     (attentionCount > 0 ? `\n⚠️ *${attentionCount} pedido(s) com estorno pendente/falho ou disputa* — checar /admin\n` : '') +
+    (stuckRetries > 0 ? `\n📵 *${stuckRetries} notificação(ões) travada(s) nas últimas 24h* (WhatsApp/push que falharam) — Z-API pode estar instável\n` : '') +
     `\n👉 techchurras.com.br/admin`
 
   await sendWhatsAppToAdmin(message)

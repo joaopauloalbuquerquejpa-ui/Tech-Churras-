@@ -3,6 +3,7 @@ import { prisma } from '../../config/prisma'
 import { Role } from '@prisma/client'
 import { fetchWithTimeout } from '../../utils/http'
 import { enqueueNotificationRetry } from '../notifications/retry-queue.service'
+import { emailAdminAlert } from '../email/email.service'
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
@@ -47,13 +48,17 @@ export async function sendWhatsAppToAdminRaw(message: string): Promise<void> {
 }
 
 // Variante "segura": nunca lanca — se falhar na hora, enfileira retry com backoff
-// em vez de so logar e esquecer (era o comportamento antigo).
+// em vez de so logar e esquecer (era o comportamento antigo). Tambem dispara
+// um email de fallback: sem isso, um alerta critico (ex: "Z-API caiu") tenta
+// ir pelo proprio WhatsApp que falhou, e a fila de retry que tentaria de novo
+// tambem depende do Z-API voltar - circulo fechado sem nenhum canal alternativo.
 export async function sendWhatsAppToAdmin(message: string): Promise<void> {
   try {
     await sendWhatsAppToAdminRaw(message)
   } catch (err: any) {
     console.log('[WhatsApp admin] erro, enfileirando retry:', err?.message)
     await enqueueNotificationRetry('whatsapp_admin', { message }, err?.message)
+    emailAdminAlert('Alerta Tech Churras (WhatsApp falhou)', message).catch(() => {})
   }
 }
 

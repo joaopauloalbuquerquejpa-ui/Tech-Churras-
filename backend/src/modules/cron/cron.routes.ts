@@ -9,10 +9,13 @@ import { processDispatchEscalations } from '../grillmasters/dispatch.service'
 import { safeCompare } from '../../utils/safeCompare'
 import { maskPhone } from '../../utils/maskPii'
 
-// Dead-man's-switch: avisa se o cron-job.org parar de chamar essa rota (já aconteceu antes, sem alerta).
-// HEALTHCHECKS_PING_URL vem de https://healthchecks.io — sem a env var configurada, é só um no-op.
-function pingHeartbeat(suffix: '' | '/fail' = '') {
-  const url = process.env.HEALTHCHECKS_PING_URL
+// Dead-man's-switch: avisa se o cron-job.org parar de chamar uma rota (já
+// aconteceu antes, sem alerta, com event-reminders). Cada rota de cron tem
+// sua própria env var de check (Healthchecks.io free dá até 20) — sem a env
+// var configurada, é só um no-op, então não quebra nada enquanto o Jota não
+// cria os checks novos no painel do Healthchecks.io.
+function pingHeartbeat(envVar: string, suffix: '' | '/fail' = '') {
+  const url = process.env[envVar]
   if (!url) return
   fetchWithTimeout(`${url}${suffix}`, { method: 'GET' }).catch(() => {})
 }
@@ -138,11 +141,11 @@ export async function cronRoutes(app: FastifyInstance) {
     })
     if (expired.count > 0) console.log(`[cron] ${expired.count} pedido(s) PENDING expirados e cancelados`)
 
-    pingHeartbeat()
+    pingHeartbeat('HEALTHCHECKS_PING_URL')
     return { ok: true, sent48, sent24, sentGm24, expired: expired.count }
     } catch (err: any) {
       req.log.error('[cron/event-reminders] erro:', err?.message)
-      pingHeartbeat('/fail')
+      pingHeartbeat('HEALTHCHECKS_PING_URL', '/fail')
       return reply.status(500).send({ error: 'Erro interno no cron de reminders' })
     }
   })
@@ -163,9 +166,11 @@ export async function cronRoutes(app: FastifyInstance) {
     }
     try {
       const result = await processNotificationRetries()
+      pingHeartbeat('HEALTHCHECKS_PING_URL_RETRIES')
       return { ok: true, ...result }
     } catch (err: any) {
       req.log.error('[cron/notification-retries] erro:', err?.message)
+      pingHeartbeat('HEALTHCHECKS_PING_URL_RETRIES', '/fail')
       return reply.status(500).send({ error: 'Erro interno no cron de retries' })
     }
   })
@@ -180,9 +185,11 @@ export async function cronRoutes(app: FastifyInstance) {
     }
     try {
       const result = await processDispatchEscalations()
+      pingHeartbeat('HEALTHCHECKS_PING_URL_DISPATCH')
       return { ok: true, ...result }
     } catch (err: any) {
       req.log.error('[cron/dispatch-escalation] erro:', err?.message)
+      pingHeartbeat('HEALTHCHECKS_PING_URL_DISPATCH', '/fail')
       return reply.status(500).send({ error: 'Erro interno no cron de escalação de despacho' })
     }
   })

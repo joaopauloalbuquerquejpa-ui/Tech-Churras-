@@ -174,6 +174,17 @@ export async function emailPasswordReset(to: string, customerName: string, reset
   await sendEmail(to, '🔒 Redefinição de senha — Tech Churras', html, 'password-reset')
 }
 
+// Fallback pros alertas criticos de admin (WhatsApp e' o canal principal, mas
+// se o Z-API cair, o alerta de "Z-API caiu" tentaria ir pelo proprio canal
+// que falhou - achado por SRE). ADMIN_ALERT_EMAIL ausente = no-op, mesmo
+// padrao do HEALTHCHECKS_PING_URL, nao quebra nada enquanto nao configurado.
+export async function emailAdminAlert(subject: string, message: string): Promise<void> {
+  const to = process.env.ADMIN_ALERT_EMAIL
+  if (!to) return
+  const html = `<div style="font-family:sans-serif;white-space:pre-wrap">${esc(message)}</div>`
+  await sendEmail(to, `🚨 ${subject}`, html, 'admin-alert-fallback')
+}
+
 export async function emailWelcomeCustomer(to: string, customerName: string, coupon?: { code: string; label: string } | null) {
   const firstName = customerName.split(' ')[0]
   // Cupom so aparece se de fato existir no banco - antes o email prometia um
