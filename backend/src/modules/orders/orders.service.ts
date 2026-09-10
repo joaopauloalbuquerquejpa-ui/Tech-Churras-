@@ -149,7 +149,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   let appliedCouponCode: string | undefined
 
   if (couponCode) {
-    const result = await validateCoupon(couponCode, subtotal)
+    const result = await validateCoupon(couponCode, subtotal, prisma, customerId)
     if (result.valid && result.coupon) {
       discountAmount = result.discountAmount!
       appliedCouponCode = result.coupon.code
@@ -193,7 +193,7 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       // Revalidacao completa (nao so active/maxUses) dentro da propria
       // transacao - antes um admin expirando/editando o cupom entre a
       // validacao inicial e o commit nao era pego por essa checagem parcial.
-      const revalidated = await validateCoupon(appliedCouponCode, subtotal, tx)
+      const revalidated = await validateCoupon(appliedCouponCode, subtotal, tx, customerId)
       if (!revalidated.valid) {
         throw new Error('Cupom não está mais disponível. Tente novamente.')
       }
@@ -425,7 +425,7 @@ export async function updateOrderStatus(id: string, status: OrderStatus, userId?
           data: { points: { increment: pts } },
         }).catch((e) => console.error("[notif]", e?.message))
       }
-      createCashbackCoupon(updated.totalPrice).then(cashback => {
+      createCashbackCoupon(updated.totalPrice, updated.customerId).then(cashback => {
         if (!cashback) return
         sendPushToUser(updated.customerId, `🎁 R$ ${cashback.amount.toFixed(2)} de volta pra você!`, `Use o cupom ${cashback.code} no seu próximo churrasco.`, '/menu').catch((e) => console.error("[notif]", e?.message))
         if (updated.customer.phone) {
@@ -671,43 +671,56 @@ export async function rescheduleOrder(id: string, newDate: Date, userId: string,
   if (newDate < today) throw new Error('A nova data não pode ser no passado')
 
   // createOrder bloqueia dois pedidos confirmados pro mesmo GM no mesmo dia -
-  // sem essa mesma checagem aqui, remarcar um pedido existente era a unica
-  // forma de escalar um GM em dois eventos simultaneos sem nenhum alerta.
-  if (order.grillmasterId) {
-    const grillmaster = await prisma.grillmaster.findUnique({
-      where: { id: order.grillmasterId },
-      select: { unlimitedAvailability: true },
-    })
-    if (!grillmaster?.unlimitedAvailability) {
-      const dayStart = new Date(newDate); dayStart.setHours(0, 0, 0, 0)
-      const dayEnd = new Date(newDate); dayEnd.setHours(23, 59, 59, 999)
-      const [blockedSchedule, conflictingOrder] = await Promise.all([
-        prisma.grillmasterSchedule.findFirst({
-          where: { grillmasterId: order.grillmasterId, date: { gte: dayStart, lte: dayEnd }, available: false },
-        }),
-        prisma.order.findFirst({
-          where: {
-            id: { not: id },
-            grillmasterId: order.grillmasterId,
-            eventDate: { gte: dayStart, lte: dayEnd },
-            status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
-          },
-        }),
-      ])
-      if (blockedSchedule || conflictingOrder) {
-        throw new Error('Este churrasqueiro não está disponível nesta data. Escolha outro horário.')
+  // essa mesma checagem aqui precisa do mesmo isolamento Serializable que
+  // createOrder usa: sem transacao, duas remarcacoes concorrentes pro mesmo
+  // GM/data passavam ambas pela checagem antes de qualquer uma commitar
+  // (TOCTOU), causando dupla reserva - achado por revisao de seguranca.
+  const updated = await withSerializableRetry(() => prisma.$transaction(async (tx) => {
+    if (order.grillmasterId) {
+      const grillmaster = await tx.grillmaster.findUnique({
+        where: { id: order.grillmasterId },
+        select: { unlimitedAvailability: true },
+      })
+      if (!grillmaster?.unlimitedAvailability) {
+        const dayStart = new Date(newDate); dayStart.setHours(0, 0, 0, 0)
+        const dayEnd = new Date(newDate); dayEnd.setHours(23, 59, 59, 999)
+        const [blockedSchedule, conflictingOrder] = await Promise.all([
+          tx.grillmasterSchedule.findFirst({
+            where: { grillmasterId: order.grillmasterId, date: { gte: dayStart, lte: dayEnd }, available: false },
+          }),
+          tx.order.findFirst({
+            where: {
+              id: { not: id },
+              grillmasterId: order.grillmasterId,
+              eventDate: { gte: dayStart, lte: dayEnd },
+              status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
+            },
+          }),
+        ])
+        if (blockedSchedule || conflictingOrder) {
+          throw new Error('Este churrasqueiro não está disponível nesta data. Escolha outro horário.')
+        }
       }
     }
-  }
 
-  const updated = await prisma.order.update({
-    where: { id },
-    data: { eventDate: newDate },
-    include: {
-      grillmaster: { include: { user: { select: { id: true, name: true } } } },
-      customer: { select: { name: true, phone: true } },
-    },
-  })
+    // Guard de status na propria escrita (mesmo padrao de cancelOrder/
+    // updateOrderStatus) - sem isso, um cancelamento concorrente entre a
+    // checagem do topo da funcao e este update poderia mudar eventDate
+    // silenciosamente num pedido ja CANCELLED/IN_PROGRESS/COMPLETED.
+    const { count } = await tx.order.updateMany({
+      where: { id, status: order.status },
+      data: { eventDate: newDate },
+    })
+    if (count === 0) throw new Error('Pedido já foi processado por outra solicitação')
+
+    return tx.order.findUniqueOrThrow({
+      where: { id },
+      include: {
+        grillmaster: { include: { user: { select: { id: true, name: true } } } },
+        customer: { select: { name: true, phone: true } },
+      },
+    })
+  }, { isolationLevel: 'Serializable' }))
 
   if (updated.grillmaster?.user?.id) {
     const date = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(newDate)
