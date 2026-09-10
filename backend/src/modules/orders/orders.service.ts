@@ -190,9 +190,11 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
     }
 
     if (appliedCouponCode) {
-      const freshCoupon = await tx.coupon.findUnique({ where: { code: appliedCouponCode } })
-      if (!freshCoupon || !freshCoupon.active ||
-          (freshCoupon.maxUses !== null && freshCoupon.usedCount >= freshCoupon.maxUses)) {
+      // Revalidacao completa (nao so active/maxUses) dentro da propria
+      // transacao - antes um admin expirando/editando o cupom entre a
+      // validacao inicial e o commit nao era pego por essa checagem parcial.
+      const revalidated = await validateCoupon(appliedCouponCode, subtotal, tx)
+      if (!revalidated.valid) {
         throw new Error('Cupom não está mais disponível. Tente novamente.')
       }
       await tx.coupon.update({ where: { code: appliedCouponCode }, data: { usedCount: { increment: 1 } } })
@@ -210,7 +212,13 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
         paymentStatus: 'PENDING',
         couponCode: appliedCouponCode,
         discountAmount,
-        gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0 ? gmAccompaniments : undefined,
+        // F1: feature desativada, preco nao tem backing em DB (comentario acima) -
+        // so persiste o nome, nunca o laborPrice informado pelo cliente, senao
+        // qualquer tela/recibo que leia esse campo mostraria um valor que nunca
+        // entrou no totalPrice real.
+        gmAccompaniments: gmAccompaniments && gmAccompaniments.length > 0
+          ? gmAccompaniments.map(a => ({ name: a.name }))
+          : undefined,
         sideDishPreparedBy,
         sideDishFee,
         items: itemsWithPrice.length > 0 ? { create: itemsWithPrice } : undefined,
@@ -661,6 +669,36 @@ export async function rescheduleOrder(id: string, newDate: Date, userId: string,
   }
   const today = new Date(); today.setHours(0, 0, 0, 0)
   if (newDate < today) throw new Error('A nova data não pode ser no passado')
+
+  // createOrder bloqueia dois pedidos confirmados pro mesmo GM no mesmo dia -
+  // sem essa mesma checagem aqui, remarcar um pedido existente era a unica
+  // forma de escalar um GM em dois eventos simultaneos sem nenhum alerta.
+  if (order.grillmasterId) {
+    const grillmaster = await prisma.grillmaster.findUnique({
+      where: { id: order.grillmasterId },
+      select: { unlimitedAvailability: true },
+    })
+    if (!grillmaster?.unlimitedAvailability) {
+      const dayStart = new Date(newDate); dayStart.setHours(0, 0, 0, 0)
+      const dayEnd = new Date(newDate); dayEnd.setHours(23, 59, 59, 999)
+      const [blockedSchedule, conflictingOrder] = await Promise.all([
+        prisma.grillmasterSchedule.findFirst({
+          where: { grillmasterId: order.grillmasterId, date: { gte: dayStart, lte: dayEnd }, available: false },
+        }),
+        prisma.order.findFirst({
+          where: {
+            id: { not: id },
+            grillmasterId: order.grillmasterId,
+            eventDate: { gte: dayStart, lte: dayEnd },
+            status: { in: ['PENDING', 'CONFIRMED', 'IN_PROGRESS'] },
+          },
+        }),
+      ])
+      if (blockedSchedule || conflictingOrder) {
+        throw new Error('Este churrasqueiro não está disponível nesta data. Escolha outro horário.')
+      }
+    }
+  }
 
   const updated = await prisma.order.update({
     where: { id },
