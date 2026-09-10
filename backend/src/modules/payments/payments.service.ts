@@ -1,4 +1,4 @@
-﻿import { MercadoPagoConfig, Preference, Payment } from 'mercadopago'
+﻿import { MercadoPagoConfig, Preference, Payment, PaymentRefund } from 'mercadopago'
 import { prisma } from '../../config/prisma'
 import { sendPushToUser, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.service'
 import { emailOrderConfirmed } from '../email/email.service'
@@ -13,7 +13,7 @@ function getClients() {
   const token = process.env.MP_ACCESS_TOKEN
   if (!token) throw new Error('MP_ACCESS_TOKEN nao configurado. Adicione no Railway.')
   const client = new MercadoPagoConfig({ accessToken: token })
-  return { preference: new Preference(client), payment: new Payment(client), token }
+  return { preference: new Preference(client), payment: new Payment(client), refund: new PaymentRefund(client), token }
 }
 
 export async function createPreference(orderId: string, customerId: string) {
@@ -202,8 +202,8 @@ export async function handleMPWebhook(payload: any) {
 }
 
 export async function refundPayment(paymentId: string, amount: number): Promise<void> {
-  const { payment: paymentClient } = getClients()
-  await (paymentClient as any).refund({ id: Number(paymentId), body: { amount } })
+  const { refund: refundClient } = getClients()
+  await refundClient.create({ payment_id: Number(paymentId), body: { amount } })
 }
 
 async function triggerReferralBonus(customerId: string, orderId: string) {

@@ -504,8 +504,13 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
 
   const needsRefund = order.paymentStatus === 'PAID' && order.paymentId && refundAmount !== null && refundAmount > 0
 
-  const updated = await prisma.order.update({
-    where: { id },
+  // updateMany com status esperado no WHERE = guarda otimista contra corrida
+  // (duplo clique, ou cliente e GM cancelando quase ao mesmo tempo). Sem
+  // isso, duas chamadas concorrentes liam o mesmo status, calculavam o
+  // mesmo refundAmount e disparavam DOIS estornos reais no Mercado Pago
+  // pro mesmo pagamento — mesmo padrão de guarda já usado em updateOrderStatus.
+  const { count } = await prisma.order.updateMany({
+    where: { id, status: order.status },
     data: {
       status: 'CANCELLED',
       cancelledBy,
@@ -514,6 +519,11 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
       refundAmount: refundAmount !== null ? refundAmount : undefined,
       refundStatus: needsRefund ? 'PENDING' : null,
     },
+  })
+  if (count === 0) throw new Error('Pedido ja foi processado por outra solicitacao')
+
+  const updated = await prisma.order.findUniqueOrThrow({
+    where: { id },
     include: { grillmaster: { select: { userId: true } } },
   })
 
@@ -529,7 +539,12 @@ export async function cancelOrder(id: string, userId: string, role: string, reas
   if (needsRefund) {
     refundPayment(order.paymentId!, refundAmount!)
       .then(() => {
-        prisma.order.update({ where: { id }, data: { refundStatus: 'DONE' } }).catch(() => {})
+        // Dinheiro ja voltou de verdade no MP aqui — se essa gravacao falhar,
+        // o pedido fica "PENDING" pra sempre e o admin pode estornar nele de
+        // novo manualmente achando que nunca rolou. Logar e' o minimo pra
+        // esse cenario nao ficar 100% silencioso.
+        prisma.order.update({ where: { id }, data: { refundStatus: 'DONE' } })
+          .catch((e) => console.error(`[cancelOrder] Estorno ${id} confirmado no MP mas falhou ao gravar refundStatus=DONE:`, e?.message))
       })
       .catch((e: any) => {
         prisma.order.update({ where: { id }, data: { refundStatus: 'FAILED' } }).catch(() => {})
