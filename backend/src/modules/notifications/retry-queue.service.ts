@@ -25,7 +25,7 @@ async function dispatch(type: string, payload: any): Promise<void> {
       return sendPushToUserRaw(payload.userId, payload.title, payload.body, payload.url)
     case 'ebook_email': {
       const { emailEbookDelivered } = await import('../email/email.service')
-      const ok = await emailEbookDelivered(payload.to, payload.name, payload.downloadUrl)
+      const ok = await emailEbookDelivered(payload.to, payload.name, payload.downloadUrl, payload.couponCode)
       if (!ok) throw new Error('Reenvio de email do e-book falhou')
       return
     }

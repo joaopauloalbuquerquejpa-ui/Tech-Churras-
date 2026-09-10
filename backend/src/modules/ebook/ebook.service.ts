@@ -94,15 +94,26 @@ export async function handleEbookWebhook(payload: any) {
   if (!purchase) return { received: true }
 
   const downloadUrl = `${BACKEND_URL}/ebook/download/${purchase.downloadToken}`
+  // Codigo deterministico a partir do id da compra (mesmo padrao BEMVINDO-/
+  // CONVITE- do cadastro) - o email prometia "EBOOK50" fixo que nunca virou
+  // um Coupon de verdade no banco; todo comprador recebia cupom inexistente.
+  // upsert pra ficar idempotente em caso de retry (mesmo id de compra = mesmo codigo).
+  const couponCode = 'EBOOK50-' + purchase.id.slice(0, 6).toUpperCase()
+  await prisma.coupon.upsert({
+    where: { code: couponCode },
+    update: {},
+    create: { code: couponCode, discountType: 'FIXED', discountValue: 50, maxUses: 1, active: true },
+  }).catch((e) => console.error('[ebook coupon]', e?.message))
+
   // Email é o ÚNICO canal de entrega do e-book (sem conta de usuário, sem "minhas compras").
   // Cliente já pagou nesse ponto — falha aqui não pode ser só um console.error que ninguém lê.
-  emailEbookDelivered(purchase.email, purchase.name, downloadUrl).then((ok) => {
+  emailEbookDelivered(purchase.email, purchase.name, downloadUrl, couponCode).then((ok) => {
     if (ok) return
     Sentry.captureMessage('Falha ao entregar e-book por email — cliente pagou e não recebeu', {
       level: 'error',
       extra: { purchaseId: purchase.id, email: purchase.email, downloadUrl },
     })
-    enqueueNotificationRetry('ebook_email', { to: purchase.email, name: purchase.name, downloadUrl }, 'sendEmail retornou false')
+    enqueueNotificationRetry('ebook_email', { to: purchase.email, name: purchase.name, downloadUrl, couponCode }, 'sendEmail retornou false')
   }).catch((e) => console.error('[ebook email]', e?.message))
   sendWhatsAppToAdmin(
     `📖 *Venda do e-book — Tech Churras!*\n\n👤 ${purchase.name}\n📧 ${purchase.email}\n💰 R$ ${purchase.amount.toFixed(2)}`

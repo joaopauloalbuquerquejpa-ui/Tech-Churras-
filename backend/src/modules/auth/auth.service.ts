@@ -54,11 +54,20 @@ export async function registerUser(data: RegisterInput) {
     select: { id: true, name: true, email: true, role: true, onboardingCompleted: true, createdAt: true, tokenVersion: true },
   })
 
+  // Cupom de boas-vindas: no maximo um, priorizando indicacao de acougue
+  // (15%) > indicacao de cliente (10%) > cupom generico de primeiro pedido
+  // (10%, o antigo "CHURRAS10" hardcoded no email que nunca existia como
+  // Coupon de verdade). Guardado aqui pra ser passado pro email - antes o
+  // codigo era criado no banco mas nunca saia da funcao, entao o cliente
+  // nunca ficava sabendo do codigo pra usar.
+  let welcomeCoupon: { code: string; label: string } | null = null
+
   if (referredByBoutiqueId) {
     const couponCode = 'BEMVINDO-' + user.id.slice(0, 6).toUpperCase()
     await prisma.coupon.create({
       data: { code: couponCode, discountType: 'PERCENT', discountValue: 15, maxUses: 1, active: true },
-    }).catch((e) => console.error("[notif]", e?.message))
+    }).then(() => { welcomeCoupon = { code: couponCode, label: '15% OFF' } })
+      .catch((e) => console.error("[notif]", e?.message))
   }
 
   if (data.conviteId && !referredByBoutiqueId) {
@@ -70,13 +79,22 @@ export async function registerUser(data: RegisterInput) {
       const couponCode = 'CONVITE-' + user.id.slice(0, 6).toUpperCase()
       await prisma.coupon.create({
         data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true },
-      }).catch((e) => console.error("[notif]", e?.message))
+      }).then(() => { welcomeCoupon = { code: couponCode, label: '10% OFF' } })
+        .catch((e) => console.error("[notif]", e?.message))
     }
+  }
+
+  if (!welcomeCoupon && data.role === 'CUSTOMER') {
+    const couponCode = 'CHURRAS10-' + user.id.slice(0, 6).toUpperCase()
+    await prisma.coupon.create({
+      data: { code: couponCode, discountType: 'PERCENT', discountValue: 10, maxUses: 1, active: true },
+    }).then(() => { welcomeCoupon = { code: couponCode, label: '10% OFF' } })
+      .catch((e) => console.error("[notif]", e?.message))
   }
 
   // Fire-and-forget welcome email + admin notification
   if (data.role === 'CUSTOMER') {
-    emailWelcomeCustomer(user.email, user.name).catch((e) => console.error("[notif]", e?.message))
+    emailWelcomeCustomer(user.email, user.name, welcomeCoupon).catch((e) => console.error("[notif]", e?.message))
     sendPushToRole('ADMIN', '👤 Novo cliente!', `${user.name} se cadastrou na plataforma.`, '/admin').catch((e) => console.error("[notif]", e?.message))
     sendWhatsAppToAdmin(
       `👤 *Novo cliente cadastrado — Tech Churras!*\n\n` +

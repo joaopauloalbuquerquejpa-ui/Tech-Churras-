@@ -22,7 +22,7 @@ const FAQ_SCHEMA = [
   ['Funciona em churrasqueira comum, ou só em fogo de chão?', 'Funciona na sua churrasqueira normal. As técnicas de assador de cruz e fogo aberto são mostradas como opção pra quem quiser ir além, mas a maioria das receitas é pensada pra churrasqueira de quintal, do jeito que você já tem em casa.'],
   ['Como eu recebo o e-book depois de comprar?', 'Na hora. Assim que o pagamento é aprovado, o link de download cai automaticamente no seu e-mail — não precisa esperar nem pedir nada.'],
   ['E se eu não gostar?', 'Você tem 7 dias de garantia. Se o método não fizer sentido pra você, é só chamar no WhatsApp que devolvemos seu dinheiro, sem burocracia.'],
-  ['O cupom de R$50 tem pegadinha?', 'Nenhuma. É um cupom real (EBOOK50), enviado no mesmo e-mail do e-book, pra usar no seu primeiro churrasco contratado pela Tech Churras.'],
+  ['O cupom de R$50 tem pegadinha?', 'Nenhuma. É um cupom real, único pra sua compra, enviado no mesmo e-mail do e-book, pra usar no seu primeiro churrasco contratado pela Tech Churras.'],
 ]
 
 const JSON_LD = {

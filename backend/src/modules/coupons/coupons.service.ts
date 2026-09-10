@@ -24,8 +24,8 @@ export async function createCashbackCoupon(totalPrice: number): Promise<{ code: 
   return { code, amount }
 }
 
-export async function validateCoupon(code: string, orderValue: number) {
-  const coupon = await prisma.coupon.findUnique({ where: { code: code.toUpperCase().trim() } })
+export async function validateCoupon(code: string, orderValue: number, client: Pick<typeof prisma, 'coupon'> = prisma) {
+  const coupon = await client.coupon.findUnique({ where: { code: code.toUpperCase().trim() } })
   if (!coupon) return { valid: false, reason: 'Cupom nao encontrado' }
   if (!coupon.active) return { valid: false, reason: 'Cupom inativo' }
   if (coupon.validUntil && coupon.validUntil < new Date()) return { valid: false, reason: 'Cupom expirado' }

@@ -174,8 +174,14 @@ export async function emailPasswordReset(to: string, customerName: string, reset
   await sendEmail(to, '🔒 Redefinição de senha — Tech Churras', html, 'password-reset')
 }
 
-export async function emailWelcomeCustomer(to: string, customerName: string) {
+export async function emailWelcomeCustomer(to: string, customerName: string, coupon?: { code: string; label: string } | null) {
   const firstName = customerName.split(' ')[0]
+  // Cupom so aparece se de fato existir no banco - antes o email prometia um
+  // "CHURRAS10" fixo que nunca foi criado como Coupon real, então 100% dos
+  // cadastros recebiam uma promessa de desconto que dava erro no checkout.
+  const couponBlock = coupon
+    ? `<p style="color:#666;font-size:12px;text-align:center;margin-top:16px">Use o cupom <strong style="color:#f97316">${coupon.code}</strong> no primeiro pedido para ${coupon.label}.</p>`
+    : ''
   const html = baseTemplate(`
     <h2 style="color:#f97316;margin:0 0 8px;font-size:24px">🔥 Bem-vindo à Tech Churras!</h2>
     <p style="color:#aaa;margin:0 0 20px">Oi ${firstName}! Você acaba de entrar no maior marketplace de churrasqueiros profissionais do Brasil.</p>
@@ -188,12 +194,12 @@ export async function emailWelcomeCustomer(to: string, customerName: string) {
     <a href="${BASE_URL}/grillmasters" style="display:block;background:#f97316;color:#fff;text-decoration:none;text-align:center;padding:14px;border-radius:10px;font-weight:bold;font-size:16px">
       Encontrar churrasqueiros
     </a>
-    <p style="color:#666;font-size:12px;text-align:center;margin-top:16px">Use o cupom <strong style="color:#f97316">CHURRAS10</strong> no primeiro pedido para 10% OFF.</p>
+    ${couponBlock}
   `)
   await sendEmail(to, '🔥 Bem-vindo à Tech Churras! Seu churrasco perfeito está aqui.', html, 'welcome-customer')
 }
 
-export async function emailEbookDelivered(to: string, name: string, downloadUrl: string): Promise<boolean> {
+export async function emailEbookDelivered(to: string, name: string, downloadUrl: string, couponCode: string): Promise<boolean> {
   const firstName = esc(name.split(' ')[0])
   const html = baseTemplate(`
     <h2 style="color:#f97316;margin:0 0 8px;font-size:24px">🔥 Seu e-book chegou!</h2>
@@ -202,7 +208,7 @@ export async function emailEbookDelivered(to: string, name: string, downloadUrl:
       Baixar meu e-book
     </a>
     <div style="background:#111;border-radius:12px;padding:16px;margin-top:20px">
-      <p style="margin:4px 0 8px;color:#fff">🎁 <strong>Bônus:</strong> use o cupom <strong style="color:#f97316">EBOOK50</strong> e ganhe R$ 50 OFF no seu primeiro churrasco pela Tech Churras.</p>
+      <p style="margin:4px 0 8px;color:#fff">🎁 <strong>Bônus:</strong> use o cupom <strong style="color:#f97316">${couponCode}</strong> e ganhe R$ 50 OFF no seu primeiro churrasco pela Tech Churras.</p>
     </div>
     <p style="color:#666;font-size:12px;text-align:center;margin-top:20px">Guarde este e-mail — o link de download não expira.</p>
   `)
