@@ -1,5 +1,6 @@
 ﻿import { MercadoPagoConfig, Preference, Payment, PaymentRefund } from 'mercadopago'
 import { prisma } from '../../config/prisma'
+import { withSerializableRetry } from '../../utils/db-retry'
 import { sendPushToUser, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.service'
 import { emailOrderConfirmed } from '../email/email.service'
 import dotenv from 'dotenv'
@@ -219,33 +220,39 @@ async function triggerReferralBonus(customerId: string, orderId: string) {
   })
   if (previousPaid > 0) return
 
-  // Avoid duplicate bonus
-  const exists = await prisma.payout.findFirst({
-    where: { type: 'REFERRAL_BONUS', recipientId: customer.referredByBoutiqueId, notes: customerId },
-  })
-  if (exists) return
-
   const boutique = await prisma.boutique.findUnique({
     where: { id: customer.referredByBoutiqueId },
     select: { pixKey: true, userId: true },
   })
 
   const now = new Date()
-  await prisma.payout.create({
-    data: {
-      type: 'REFERRAL_BONUS',
-      recipientId: customer.referredByBoutiqueId,
-      orderId,
-      amount: 40,
-      commission: 0,
-      grossAmount: 40,
-      status: 'PENDING',
-      weekStart: now,
-      weekEnd: now,
-      pixKey: boutique?.pixKey ?? null,
-      notes: customerId,
-    },
-  })
+  // Checagem de duplicata + criacao dentro de uma unica transacao Serializable
+  // (mesmo padrao de createOrder em orders.service.ts) - dois webhooks do MP
+  // quase simultaneos pro mesmo cliente (cenario real, MP reenvia notificacao)
+  // liam "nao existe" ao mesmo tempo e criavam dois bonus de R$40 duplicados.
+  const created = await withSerializableRetry(() => prisma.$transaction(async (tx) => {
+    const exists = await tx.payout.findFirst({
+      where: { type: 'REFERRAL_BONUS', recipientId: customer.referredByBoutiqueId!, notes: customerId },
+    })
+    if (exists) return false
+    await tx.payout.create({
+      data: {
+        type: 'REFERRAL_BONUS',
+        recipientId: customer.referredByBoutiqueId!,
+        orderId,
+        amount: 40,
+        commission: 0,
+        grossAmount: 40,
+        status: 'PENDING',
+        weekStart: now,
+        weekEnd: now,
+        pixKey: boutique?.pixKey ?? null,
+        notes: customerId,
+      },
+    })
+    return true
+  }))
+  if (!created) return
 
   // Notify boutique owner
   if (boutique?.userId) {
