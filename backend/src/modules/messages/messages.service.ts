@@ -49,6 +49,16 @@ export async function sendMessage(orderId: string, senderId: string, content: st
 }
 
 export async function markMessagesRead(orderId: string, userId: string) {
+  const order = await prisma.order.findFirst({
+    where: {
+      id: orderId,
+      OR: [
+        { customerId: userId },
+        { grillmaster: { userId } },
+      ],
+    },
+  })
+  if (!order) throw new Error('Pedido nao encontrado ou acesso negado')
   await prisma.message.updateMany({
     where: { orderId, senderId: { not: userId }, read: false },
     data: { read: true },
