@@ -41,6 +41,28 @@ const jsonLd = {
   audience: { '@type': 'BusinessAudience', name: 'Empresas em São Paulo' },
 }
 
+const MENUS = [
+  {
+    nome: 'Experiência 1',
+    entradas: ['Choripán (sanduíche argentino)', 'Panchetta com sweet chilli'],
+    grelhados: ['Chorizo', 'Picanha', 'Fraldinha', 'Linguiças especiais'],
+    acompanhamentos: ['Farofa crocante', 'Chimichurri', 'Vinagrete de abacaxi'],
+  },
+  {
+    nome: 'Experiência 2',
+    entradas: ['Choripán (sanduíche argentino)', 'Queijo coalho com mel trufado', 'Panchetta com sweet chilli'],
+    grelhados: ['Chorizo', 'Picanha', 'Fraldinha', 'Denver steak', 'Linguiças especiais', 'Burguer (X-Burguer, X-Salada, X-Bacon)'],
+    acompanhamentos: ['Farofa crocante', 'Chimichurri', 'Vinagrete de abacaxi', 'Parrilla de legumes', 'Arroz'],
+    destaque: true,
+  },
+  {
+    nome: 'Experiência 3',
+    entradas: ['Choripán (sanduíche argentino)', 'Queijo coalho com mel trufado', 'Panchetta com sweet chilli'],
+    grelhados: ['Steak Wagyu com folhas de ouro', 'Defumados (costela suína e cupim)', 'Chorizo', 'Picanha', 'Fraldinha', 'Denver steak', 'Linguiças especiais', 'Burguer (X-Burguer, X-Salada, X-Bacon)'],
+    acompanhamentos: ['Farofa crocante', 'Chimichurri', 'Vinagrete de abacaxi', 'Batata bolinha defumada com alecrim', 'Parrilla de legumes'],
+  },
+]
+
 const DIFERENCIAIS = [
   { icon: '🔥', title: 'O churrasqueiro é o show', desc: 'Corte ao vivo, estação de brasa e o fogo como entretenimento — a confra vira experiência, não fila de buffet.' },
   { icon: '🥩', title: 'Carne calculada por pessoa', desc: 'Cortes de açougue parceiro dimensionados por convidado. Carne não acaba no meio da festa — garantido.' },
@@ -129,6 +151,33 @@ export default function ChurrascoCorporativoPage() {
               <div className="text-2xl mb-2">{d.icon}</div>
               <h3 className="font-bold mb-1">{d.title}</h3>
               <p className="text-gray-400 text-sm">{d.desc}</p>
+            </div>
+          ))}
+        </div>
+      </RevealSection>
+
+      {/* Menus */}
+      <RevealSection className="max-w-5xl mx-auto px-4 py-10 border-t border-gray-800">
+        <h2 className="text-2xl font-black mb-2">Nossos menus</h2>
+        <p className="text-gray-400 text-sm mb-6">Três montagens de exemplo — a proposta final é sempre fechada sob medida pro seu evento e número de convidados.</p>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {MENUS.map((m) => (
+            <div key={m.nome} className={`rounded-2xl p-5 border ${m.destaque ? 'bg-orange-500/5 border-orange-500/40' : 'bg-gray-900 border-gray-800'}`}>
+              {m.destaque && <span className="inline-block text-[10px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full mb-2">Mais pedido</span>}
+              <h3 className="font-black text-lg mb-4">{m.nome}</h3>
+
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1.5">Entradas</p>
+              <p className="text-sm text-gray-300 mb-4">{m.entradas.join(' · ')}</p>
+
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1.5">Grelhados</p>
+              <p className="text-sm text-gray-300 mb-4">{m.grelhados.join(' · ')}</p>
+
+              <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1.5">Acompanhamentos</p>
+              <p className="text-sm text-gray-300 mb-5">{m.acompanhamentos.join(' · ')}</p>
+
+              <a href="#proposta" className="text-orange-400 hover:text-orange-300 font-semibold text-sm">
+                Pedir preço deste menu →
+              </a>
             </div>
           ))}
         </div>
