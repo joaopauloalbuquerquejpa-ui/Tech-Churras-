@@ -156,6 +156,22 @@ export default function ChurrascoCorporativoPage() {
         </div>
       </RevealSection>
 
+      {/* Credencial do fundador */}
+      <RevealSection className="max-w-4xl mx-auto px-4 py-10 border-t border-gray-800">
+        <div className="grid sm:grid-cols-[1fr_1.3fr] gap-6 items-center bg-gray-900 border border-gray-800 rounded-2xl p-5 sm:p-6">
+          <div className="relative aspect-square rounded-xl overflow-hidden border border-gray-800">
+            <Image src="/churrasco-real-6.jpg" alt="Jota Albuquerque e equipe Jota BBQ Eventos com Neymar Jr. em evento privado" fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover" />
+          </div>
+          <div>
+            <p className="text-orange-400 text-xs font-bold uppercase tracking-widest mb-2">Quem executa o seu evento</p>
+            <p className="text-gray-200 text-base leading-relaxed">
+              Jota Albuquerque, fundador da Tech Churras, já assinou eventos para nomes como <b>Neymar Jr.</b> e outros
+              atletas e artistas — o mesmo padrão de execução que sua empresa recebe.
+            </p>
+          </div>
+        </div>
+      </RevealSection>
+
       {/* Galeria de pratos reais */}
       <RevealSection className="max-w-5xl mx-auto px-4 py-10 border-t border-gray-800">
         <h2 className="text-2xl font-black mb-2">Nossos pratos</h2>
