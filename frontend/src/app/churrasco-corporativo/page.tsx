@@ -8,7 +8,7 @@ import { safeJsonLd } from '@/lib/jsonld'
 export const metadata: Metadata = {
   title: 'Confraternização de Fim de Ano para Empresas | Churrasco Corporativo SP',
   description:
-    'Confraternização de fim de ano, team building, lançamento ou evento de cliente — churrasco corporativo completo em São Paulo. Churrasqueiro profissional, carnes de açougue premium, preço fechado por pessoa e proposta em 24h.',
+    'Confraternização de fim de ano, team building, lançamento ou evento de cliente — churrasco corporativo completo em São Paulo. Churrasqueiro profissional, carnes de açougue premium, preço fechado por pessoa e proposta em até 10 minutos.',
   keywords: [
     'confraternização de fim de ano empresa',
     'festa de confraternização empresarial',
@@ -100,7 +100,7 @@ export default function ChurrascoCorporativoPage() {
           </p>
           <div className="flex flex-wrap gap-3 mb-6">
             <AnimatedCTA href="#proposta" className="inline-block bg-orange-500 hover:bg-orange-600 text-white font-bold px-8 py-4 rounded-2xl text-lg transition-colors shadow-lg shadow-orange-500/25">
-              Receber proposta em 24h →
+              Receber proposta em 10 min →
             </AnimatedCTA>
             <AnimatedCTA external href={`https://wa.me/5511970593650?text=${encodeURIComponent('Quero um orçamento de churrasco corporativo')}`}
               className="inline-flex items-center gap-2 border border-gray-700 hover:border-orange-500/60 text-white font-semibold px-6 py-4 rounded-2xl text-base transition-colors">
@@ -156,6 +156,23 @@ export default function ChurrascoCorporativoPage() {
         </div>
       </RevealSection>
 
+      {/* Galeria de pratos reais */}
+      <RevealSection className="max-w-5xl mx-auto px-4 py-10 border-t border-gray-800">
+        <h2 className="text-2xl font-black mb-2">Nossos pratos</h2>
+        <p className="text-gray-400 text-sm mb-6">Fotos reais de eventos que já executamos — nada de banco de imagem.</p>
+        <div className="grid sm:grid-cols-3 gap-4">
+          {[
+            { src: '/churrasco-real-3.jpg', alt: 'Corte grelhado sendo finalizado na tábua Jota BBQ Eventos' },
+            { src: '/churrasco-real-4.jpg', alt: 'Bruschetta de carnes nobres servida em evento pela Jota BBQ Eventos' },
+            { src: '/churrasco-real-5.jpg', alt: 'Costela no assador de cruz sobre fogo aberto, equipe Jota BBQ Eventos' },
+          ].map((foto) => (
+            <div key={foto.src} className="relative aspect-square rounded-2xl overflow-hidden border border-gray-800">
+              <Image src={foto.src} alt={foto.alt} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover" />
+            </div>
+          ))}
+        </div>
+      </RevealSection>
+
       {/* Menus */}
       <RevealSection className="max-w-5xl mx-auto px-4 py-10 border-t border-gray-800">
         <h2 className="text-2xl font-black mb-2">Nossos menus</h2>
@@ -203,7 +220,7 @@ export default function ChurrascoCorporativoPage() {
         <ol className="space-y-4">
           {[
             ['1', 'Você conta o tamanho da festa', 'Número de pessoas, mês desejado e local (escritório, área externa, chácara — a gente se adapta).'],
-            ['2', 'Proposta fechada em até 24h', 'Valor total por pessoa com carnes, churrasqueiro e taxa — tudo incluso, aprovação por e-mail ou WhatsApp.'],
+            ['2', 'Proposta fechada em até 10 minutos', 'Valor total por pessoa com carnes, churrasqueiro e taxa — tudo incluso, aprovação por e-mail ou WhatsApp.'],
             ['3', 'A Tech Churras executa', 'Açougue parceiro entrega os cortes, o Grill Master comanda o fogo e sua equipe só aproveita.'],
           ].map(([n, t, d]) => (
             <li key={n} className="flex gap-4 items-start">
@@ -218,7 +235,7 @@ export default function ChurrascoCorporativoPage() {
       <section id="proposta" className="max-w-4xl mx-auto px-4 py-12 border-t border-gray-800">
         <div className="max-w-lg">
           <h2 className="text-2xl font-black mb-2">Peça sua proposta</h2>
-          <p className="text-gray-400 text-sm mb-6">Resposta em até 24h úteis, direto no seu WhatsApp. Sem compromisso.</p>
+          <p className="text-gray-400 text-sm mb-6">Resposta em até 10 minutos, direto no seu WhatsApp. Sem compromisso.</p>
           <CorporateLeadForm />
         </div>
       </section>
