@@ -327,8 +327,8 @@ export default async function HomePage() {
       </section>
 
       {/* Founder — logo abaixo da garantia, não escondido no fim da página.
-          É o principal ativo de credibilidade da marca (Zanzibar/Bahari of
-          Brazil) e a citação mais humana que a Tech Churras tem. */}
+          Credibilidade local (13 anos, SP/RJ); Zanzibar/Bahari fica só em /founder,
+          pra quem já demonstrou interesse — não distrai quem só quer contratar. */}
       <section className="max-w-5xl mx-auto px-4 py-16">
         <div className="bg-gray-900 border border-gray-800 rounded-3xl overflow-hidden">
           <div className="grid grid-cols-1 md:grid-cols-2">
@@ -343,9 +343,6 @@ export default async function HomePage() {
               <p className="text-4xl text-orange-500 font-black leading-none mb-2">"</p>
               <p className="text-gray-300 text-base leading-relaxed mb-6">
                 Já fiz churrasco para artistas e atletas que todo mundo conhece. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua casa. A Tech Churras existe para isso.
-              </p>
-              <p className="text-xs text-amber-400/90 mb-8 flex items-center gap-1.5">
-                🌍 Hoje construindo o primeiro hub culinário brasileiro em parceria oficial com o Governo de Zanzibar, Tanzânia.
               </p>
               <Link href="/founder"
                 className="inline-block self-start bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl text-sm transition-colors">

@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, useSpring, useMotionValue, useTransform, animate } from 'framer-motion'
 import { QRCodeSVG } from 'qrcode.react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Events } from '@/lib/analytics'
 
 const MENSALIDADE = 369
@@ -333,20 +332,19 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
             <div>
               <p className="text-xs font-semibold tracking-widest text-orange-400 uppercase mb-4">Quem está por trás disso</p>
               <h2 className="text-2xl sm:text-3xl font-black mb-4 leading-tight">
-                O fundador está em{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-400">
-                  Zanzibar, na África
+                  13 anos de churrasco de alto padrão
                 </span>{' '}
-                — e está lançando a Tech Churras daqui
+                — agora virando plataforma
               </h2>
               <p className="text-gray-400 text-base leading-relaxed mb-5">
-                Jota Albuquerque é churrasqueiro profissional e o fundador da Tech Churras. Hoje ele está na Tanzânia como sócio e BBQ Master do <strong className="text-white">Bahari of Brazil</strong> — hub culinário criado em parceria oficial com o <strong className="text-white">Governo de Zanzibar</strong>.
+                Jota Albuquerque é churrasqueiro profissional certificado e fundador da Tech Churras. Fundou a <strong className="text-white">Jota BBQ Eventos</strong> — 13 anos operando em São Paulo e Rio de Janeiro para clientes que não perdoam erro.
               </p>
               <p className="text-gray-400 text-base leading-relaxed mb-6">
-                De lá, ele está lançando a Tech Churras no Brasil — porque acredita que o churrasco brasileiro merece a mesma estrutura profissional que está construindo na África. Ele vai conversar pessoalmente com cada açougue parceiro fundador.
+                Ele acredita que o churrasco brasileiro merece a mesma estrutura profissional que já entrega em evento particular. Vai conversar pessoalmente com cada açougue parceiro fundador — não é call center, é o dono do negócio.
               </p>
               <a
-                href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Vi que você está em Zanzibar e quero saber mais sobre a Tech Churras.')}`}
+                href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero saber mais sobre a Tech Churras para o meu açougue.')}`}
                 target="_blank" rel="noopener noreferrer"
                 onClick={() => Events.clickWhatsApp('para-acougues-fundador')}
                 className="inline-flex items-center gap-2 bg-orange-500 hover:bg-orange-400 text-white font-bold px-6 py-3 rounded-xl transition-colors text-sm"
@@ -356,30 +354,30 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
             </div>
 
             <div className="space-y-4">
-              {/* Equipe em SP — contra-argumenta "é só um cara sozinho lá fora" */}
+              {/* Equipe em SP — reforça presença local, não é operação remota */}
               <div className="rounded-2xl overflow-hidden border border-gray-800">
                 <img src="/equipe-tech-churras.jpg" alt="Equipe Tech Churras em evento em São Paulo" className="w-full h-48 object-cover" />
-                <p className="text-xs text-gray-500 bg-gray-900 px-4 py-2.5">Equipe com anos de eventos reais em São Paulo — o Jota toca a estratégia de Zanzibar, mas quem atende seu açougue está aqui.</p>
+                <p className="text-xs text-gray-500 bg-gray-900 px-4 py-2.5">Equipe com anos de eventos reais em São Paulo — é quem atende seu açougue no dia a dia.</p>
               </div>
 
-              {/* Card Bahari */}
+              {/* Card Jota BBQ Eventos */}
               <div className="bg-gray-900 border border-amber-500/20 rounded-2xl p-5">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl">🌍</div>
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-xl">🔥</div>
                   <div>
-                    <p className="font-bold text-white text-sm">Bahari of Brazil</p>
-                    <p className="text-xs text-amber-400">Zanzibar, Tanzânia · Hub Culinário Oficial</p>
+                    <p className="font-bold text-white text-sm">Jota BBQ Eventos</p>
+                    <p className="text-xs text-amber-400">São Paulo e Rio de Janeiro · 13 anos de operação</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-400 leading-relaxed">
-                  PPP com o Ministério de Comunicação, Tecnologia e Inovação do Governo de Zanzibar. Restaurante + centro de treinamento + inovação digital. Jota Albuquerque como BBQ Master.
+                  Churrasco para eventos particulares de alto padrão, com clientes que exigem execução impecável. É o mesmo padrão que o Jota exige de cada açougue chancelado na Tech Churras.
                 </p>
               </div>
 
               {/* Stats credibilidade */}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { valor: 'Gov. Zanzibar', label: 'Parceiro institucional', icon: '🏛️' },
+                  { valor: '13 anos', label: 'De Jota BBQ Eventos', icon: '🔥' },
                   { valor: 'CNPJ ativo', label: 'Empresa registrada', icon: '📋' },
                   { valor: 'Grátis 3 pedidos', label: 'Todo Açougue Embaixador', icon: '🏅' },
                   { valor: '~R$ 15 bi', label: 'Mercado de churrasco/ano (estim.)', icon: '📈' },
@@ -390,34 +388,6 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                     <p className="text-xs text-gray-500">{s.label}</p>
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── BAHARI PHOTO BLOCK ───────────────────────────────────────── */}
-      <section className="px-4 sm:px-6 pb-16">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-gradient-to-br from-amber-500/10 to-gray-900 border border-amber-500/20 rounded-2xl overflow-hidden">
-            <div className="grid sm:grid-cols-[320px_1fr]">
-              <div className="relative h-56 sm:h-auto bg-gray-800">
-                <Image src="/bahari-restaurante.jpg" alt="Bahari of Brazil — Zanzibar" fill sizes="(max-width: 640px) 100vw, 320px"
-                  className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-gray-900/20" />
-                <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-xs text-amber-300 px-2.5 py-1 rounded-full font-semibold">
-                  🌍 Zanzibar, Tanzânia
-                </div>
-              </div>
-              <div className="p-6 sm:p-8 flex flex-col justify-center">
-                <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">O restaurante onde o Jota está agora</p>
-                <h3 className="font-black text-white text-xl mb-3">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
-                <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                  Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia — o primeiro restaurante do país em parceria oficial com o Governo. É o mesmo padrão de exigência que o Jota aplica na escolha de cada açougue parceiro da Tech Churras.
-                </p>
-                <p className="text-xs text-gray-600">
-                  Quem constrói um hub culinário com governo africano sabe o que é padrão de qualidade — e é esse padrão que ele está trazendo para os açougues parceiros da Tech Churras.
-                </p>
               </div>
             </div>
           </div>

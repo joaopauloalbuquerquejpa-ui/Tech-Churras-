@@ -17,9 +17,9 @@ const ESCALA_GANHOS = [
 })
 
 const O_QUE_VOCE_APRENDE = [
-  { icon: '🔪', titulo: 'Cortes com propósito', desc: 'Picanha, maminha, fraldinha — técnica de espessura, direção da faca e apresentação no prato. Padrão que Jota levou ao Bahari of Brazil em Zanzibar.' },
-  { icon: '🔥', titulo: 'Controle absoluto do fogo', desc: 'Temperatura por zona, gestão de brasa vs chama, timing de carnes simultâneas. O que leva anos sozinho, você aprende em dias com quem já fez isso em 3 continentes.' },
-  { icon: '🌿', titulo: 'Temperos que diferenciam', desc: 'Blend exclusivo de sal grosso e ervas, marinadas regionais, molhos de origem. Com identidade de quem viajou de São Paulo a Zanzibar.' },
+  { icon: '🔪', titulo: 'Cortes com propósito', desc: 'Picanha, maminha, fraldinha — técnica de espessura, direção da faca e apresentação no prato. Padrão de 13 anos de Jota BBQ Eventos.' },
+  { icon: '🔥', titulo: 'Controle absoluto do fogo', desc: 'Temperatura por zona, gestão de brasa vs chama, timing de carnes simultâneas. O que leva anos sozinho, você aprende em dias com quem já fez isso em centenas de eventos.' },
+  { icon: '🌿', titulo: 'Temperos que diferenciam', desc: 'Blend exclusivo de sal grosso e ervas, marinadas regionais, molhos de origem. Com identidade de quem atende clientela AAA em SP e RJ.' },
   { icon: '🎤', titulo: 'Postura e experiência do cliente', desc: 'Churrasco não é só carne — é performance. Como se apresentar, conduzir o evento e fazer o cliente te recomendar antes de você ir embora.' },
   { icon: '📱', titulo: 'Gestão digital do seu negócio', desc: 'Perfil na plataforma, resposta a pedidos, acompanhamento do evento. Sistema pronto — você foca no fogo, não na burocracia.' },
   { icon: '🤝', titulo: 'Acesso direto ao Jota', desc: 'WhatsApp direto com o fundador para dúvida, feedback e crescimento. Não é suporte — é mentoria de quem já fez isso em escala.' },
@@ -94,38 +94,12 @@ function ConviteContent() {
               <p className="text-3xl text-orange-500 font-black leading-none mb-2">"</p>
               <p className="text-gray-200 text-base leading-relaxed mb-5">
                 {primeiroNome}, você me conhece. Sabe o que eu cobro de técnica e de postura.
-                Estou montando meu time no Brasil com o mesmo padrão que levei pra Zanzibar — e quero você como um dos primeiros.
+                Estou montando meu time no Brasil com o mesmo padrão dos meus 13 anos de Jota BBQ Eventos — e quero você como um dos primeiros.
               </p>
               <div>
                 <p className="text-white font-bold text-sm">Jota Albuquerque</p>
                 <p className="text-gray-500 text-xs">Fundador & CEO, Tech Churras</p>
-                <p className="text-gray-600 text-xs mt-0.5">BBQ Master · PPP Governo de Zanzibar · 13 anos de Jota BBQ Eventos</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bloco Bahari — credencial principal */}
-        <div className="bg-gradient-to-br from-amber-500/10 to-gray-900 border border-amber-500/20 rounded-2xl overflow-hidden mb-6">
-          <div className="grid sm:grid-cols-[240px_1fr]">
-            <div className="relative h-48 sm:h-auto bg-gray-800">
-              <img src="/bahari-restaurante.jpg" alt="Bahari of Brazil — Zanzibar"
-                className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent sm:bg-gradient-to-r sm:from-transparent sm:to-gray-900/20" />
-              <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-xs text-amber-300 px-2.5 py-1 rounded-full font-semibold">
-                🌍 Zanzibar, Tanzânia
-              </div>
-            </div>
-            <div className="p-6 flex flex-col justify-center">
-              <p className="text-xs text-amber-400 font-bold uppercase tracking-widest mb-1">De onde vem o padrão</p>
-              <h3 className="font-black text-white text-lg mb-2">Bahari of Brazil — PPP com o Governo de Zanzibar</h3>
-              <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                Bahari of Brazil tem 500 metros quadrados dentro do Ministério de TI e Inovação da Tanzânia — o primeiro restaurante do país em parceria oficial com o Governo. É a credencial que sustenta a chancela que você está sendo convidado a receber.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {['🏛️ Parceria oficial com o Governo', '📐 500m² dentro do Ministério', '👨‍💼 Sócio executivo', '🍖 Cardápio assinado'].map(t => (
-                  <span key={t} className="text-xs bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2.5 py-1 rounded-full">{t}</span>
-                ))}
+                <p className="text-gray-600 text-xs mt-0.5">BBQ Master certificado · 13 anos de Jota BBQ Eventos · SP e RJ</p>
               </div>
             </div>
           </div>
@@ -147,9 +121,9 @@ function ConviteContent() {
         {/* Treinamento — proposta central */}
         <div className="mb-10">
           <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">O que você recebe</p>
-          <h2 className="text-2xl font-black mb-2">Treinamento pessoal — com o que aprendi em 3 continentes</h2>
+          <h2 className="text-2xl font-black mb-2">Treinamento pessoal — com o que aprendi em 13 anos de estrada</h2>
           <p className="text-gray-500 text-sm mb-6">
-            Não é um curso online. Não é apostila. É treinamento presencial, com quem fez isso em Zanzibar, nos EUA e em São Paulo — e agora está montando o time Fundador da Tech Churras.
+            Não é um curso online. Não é apostila. É treinamento presencial, com quem fez isso por 13 anos em São Paulo e Rio de Janeiro — e agora está montando o time Fundador da Tech Churras.
           </p>
 
           <div className="grid sm:grid-cols-2 gap-3">

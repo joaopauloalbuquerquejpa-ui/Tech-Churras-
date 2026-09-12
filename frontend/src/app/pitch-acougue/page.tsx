@@ -133,19 +133,6 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
           </div>
           <p className="text-[10px] text-gray-600 mb-4">Fotos reais de eventos — nada gerado por IA.</p>
 
-          <div className="bg-black/40 border border-amber-500/20 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">🌍</span>
-              <div>
-                <p className="text-sm font-bold text-white">Bahari of Brazil — Zanzibar, Tanzânia</p>
-                <p className="text-xs text-amber-400">Parceria oficial com o Governo de Zanzibar</p>
-              </div>
-            </div>
-            <p className="text-xs text-gray-400 leading-relaxed">
-              Jota é sócio e BBQ Master do Bahari of Brazil, hub culinário criado em PPP com o Ministério de TI e Inovação da Tanzânia. Quem constrói um restaurante com governo africano traz o mesmo padrão de qualidade para os açougues parceiros da Tech Churras.
-            </p>
-          </div>
-
           <blockquote className="border-l-2 border-orange-500 pl-4">
             <p className="text-gray-300 text-sm italic leading-relaxed">
               "Já fiz churrasco para artistas e atletas que todo mundo conhece. Mas o churrasco que mais me orgulha vai acontecer no quintal da sua cidade — e o seu açougue vai estar no meio disso."

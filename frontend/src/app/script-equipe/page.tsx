@@ -226,7 +226,7 @@ export default function ScriptEquipe() {
             />
             <Objecao
               pergunta="Preciso pensar"
-              resposta="Claro, faz sentido. Mas deixa eu te conectar direto com o Jota, o fundador — ele está em Zanzibar agora, criando um restaurante com o governo de lá, e responde pessoalmente no WhatsApp. Você tira qualquer dúvida com ele. Posso mandar o contato agora?"
+              resposta="Claro, faz sentido. Mas deixa eu te conectar direto com o Jota, o fundador — 13 anos de churrasco de alto padrão em SP e RJ, e responde pessoalmente no WhatsApp. Você tira qualquer dúvida com ele. Posso mandar o contato agora?"
             />
             <Objecao
               pergunta="Não faço nada sem falar com meu sócio / esposa / contador"
@@ -373,7 +373,7 @@ export default function ScriptEquipe() {
             />
             <Objecao
               pergunta="Nunca ouvi falar do Jota Albuquerque"
-              resposta="Procura ele agora — Jota Albuquerque churrasqueiro. [Abrir Google ou Instagram] Ele tem o Bahari of Brazil em Zanzibar, parceria com o governo de lá. É o churrasqueiro com maior credencial internacional do Brasil. O treinamento com ele agrega valor direto no seu perfil."
+              resposta="Procura ele agora — Jota Albuquerque churrasqueiro. [Abrir Google ou Instagram] 13 anos de Jota BBQ Eventos, clientela AAA em SP e RJ — já assinou eventos pra atletas e artistas que todo mundo conhece. O treinamento com ele agrega valor direto no seu perfil."
             />
             <Objecao
               pergunta="Deixa eu ver com calma"

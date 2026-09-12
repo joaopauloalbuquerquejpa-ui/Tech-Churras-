@@ -205,14 +205,14 @@ export default function PitchChurrasqueiro() {
 
         <div className="bg-gray-900 border border-amber-500/20 rounded-2xl p-4 mb-4">
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-lg">🌍</span>
+            <span className="text-lg">🔥</span>
             <div>
-              <p className="text-sm font-bold text-white">Bahari of Brazil — Zanzibar, Tanzânia</p>
-              <p className="text-xs text-amber-400">Parceria oficial com o Governo de Zanzibar</p>
+              <p className="text-sm font-bold text-white">Jota BBQ Eventos — São Paulo e Rio de Janeiro</p>
+              <p className="text-xs text-amber-400">13 anos de churrasco de alto padrão</p>
             </div>
           </div>
           <p className="text-xs text-gray-400 leading-relaxed">
-            Jota é sócio e BBQ Master do Bahari of Brazil — hub culinário de 500m² criado em PPP com o Ministério de TI e Inovação da Tanzânia. Primeiro restaurante do país com parceria oficial de governo. É o padrão que ele traz para os churrasqueiros da Tech Churras.
+            Jota é churrasqueiro profissional certificado, fundador da Jota BBQ Eventos e da Tech Churras. Já assinou eventos para clientela AAA em SP e RJ. É o padrão que ele traz para os churrasqueiros chancelados na Tech Churras.
           </p>
         </div>
 
@@ -221,7 +221,7 @@ export default function PitchChurrasqueiro() {
             { valor: '13', label: 'anos de experiência' },
             { valor: 'SP e RJ', label: 'Jota BBQ Eventos' },
             { valor: 'AAA', label: 'clientela atendida' },
-            { valor: 'Gov. Zanzibar', label: 'parceiro institucional' },
+            { valor: 'CNPJ ativo', label: 'empresa registrada' },
           ].map(s => (
             <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
               <p className="font-black text-orange-400 text-base">{s.valor}</p>

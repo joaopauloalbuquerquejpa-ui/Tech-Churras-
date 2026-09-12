@@ -211,24 +211,23 @@ export default function LancamentoAcouguePage() {
                 Construído por quem opera no mais alto nível
               </h2>
               <p className="text-gray-400 leading-relaxed mb-3">
-                <strong className="text-white">Jota Albuquerque</strong> é sócio executivo do <strong className="text-white">Bahari of Brazil</strong> —
-                500m² dentro do Ministério de TI e Inovação da Tanzânia, parceria oficial PPP com o Governo de Zanzibar.
-                Assinou o cardápio de cortes nobres para uma experiência única no continente africano.
+                <strong className="text-white">Jota Albuquerque</strong> é churrasqueiro profissional certificado, fundador da <strong className="text-white">Jota BBQ Eventos</strong> —
+                13 anos operando em São Paulo e Rio de Janeiro para clientela AAA que não perdoa erro.
               </p>
               <p className="text-gray-400 leading-relaxed">
-                A mesma visão de profissionalizar o churrasco chegou ao Brasil. A Tech Churras é a infraestrutura que o açougue brasileiro sempre precisou e nunca teve.
+                A mesma exigência que ele aplica em evento particular chegou ao Brasil como plataforma. A Tech Churras é a infraestrutura que o açougue brasileiro sempre precisou e nunca teve.
               </p>
               <div className="flex flex-wrap gap-2 mt-5">
-                {['🏛️ PPP com o Governo', '🌍 Zanzibar, Tanzânia', '📐 500m² no Ministério', '🍖 Cardápio assinado'].map(t => (
+                {['🔥 13 anos de operação', '📍 SP e RJ', '⭐ Clientela AAA', '📋 CNPJ ativo'].map(t => (
                   <span key={t} className="text-xs bg-amber-500/10 border border-amber-500/20 text-amber-300 px-3 py-1 rounded-full">{t}</span>
                 ))}
               </div>
             </div>
             <div className="rounded-2xl overflow-hidden border border-amber-500/20 bg-gray-900 aspect-video flex items-center justify-center relative">
-              <img src="/bahari-restaurante.jpg" alt="Bahari of Brazil" className="w-full h-full object-cover"
+              <img src="/jota.jpg" alt="Jota Albuquerque" className="w-full h-full object-cover"
                 onError={e => { (e.target as HTMLImageElement).style.display = 'none' }} />
               <div className="absolute bottom-3 left-3 bg-black/70 backdrop-blur text-xs text-amber-300 font-bold px-3 py-1 rounded-full border border-amber-500/20">
-                🌍 Zanzibar, Tanzânia
+                🔥 Jota BBQ Eventos
               </div>
             </div>
           </div>
