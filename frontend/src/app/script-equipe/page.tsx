@@ -175,10 +175,10 @@ export default function ScriptEquipe() {
                 <p>📱 Abrir <strong>techchurras.com.br/pitch-acougue</strong></p>
                 <p>→ Mostrar os três números: R$0, 10%, PIX</p>
                 <p>→ Rolar até a foto do Jota — mostrar o Instagram e LinkedIn reais, se perguntarem "quem é você mesmo?"</p>
-                <p>→ Rolar até "4 fontes de renda" — explicar cada uma, do dia 1 até o próprio churrasqueiro</p>
+                <p>→ Rolar até "4 fontes de renda" — explicar cada uma, incluindo o bônus de 10% na mão de obra</p>
                 <p>→ Mostrar a tabela de faturamento escalado (2 a 40 eventos/semana)</p>
                 <p>→ Rolar até "Como funciona" e explicar os 3 passos</p>
-                <p>→ Mostrar o Programa Açougue Embaixador — grátis até o 3º pedido pra todo novo parceiro</p>
+                <p>→ Mostrar que é zero mensalidade, sempre — não é período de teste</p>
               </div>
             </div>
             <Dica>
@@ -189,18 +189,16 @@ export default function ScriptEquipe() {
 
           {/* Passo 4 */}
           <div className="mb-6">
-            <Step n="4" label="A oferta — Açougue Embaixador" />
+            <Step n="4" label="A oferta — zero mensalidade" />
             <Fala>
-              Todo novo açougue que entrar agora vira Açougue Embaixador — grátis até completar
-              3 pedidos, sem mensalidade nesse período, pra vocês verem com os próprios olhos que a
-              Tech Churras funciona antes de pagar qualquer coisa. Quanto antes começar, antes
-              os primeiros pedidos chegam.
+              Zero mensalidade, sempre — não é período de teste, é o modelo definitivo. Você só
+              paga 10% de comissão quando vende de verdade, e ainda ganha 10% de bônus sobre a
+              mão de obra de cada evento, mesmo sem executar nada.
             </Fala>
             <Dica>
-              É grátis até completar 3 pedidos — não é por prazo, é por resultado. Isso tira o
-              risco financeiro da decisão: o açougue só começa a pagar depois de já ter vendido
-              de verdade pela plataforma. Reforce isso: "você só começa a pagar depois que a
-              Tech Churras já te trouxe 3 pedidos reais".
+              Não é "grátis por um tempo depois cobra" — é zero mensalidade pra sempre. Isso tira o
+              risco financeiro da decisão de vez: o açougue nunca paga nada fixo, só comissão sobre
+              o que realmente vendeu. Reforce isso: "se não vender, você não paga nada — nunca".
             </Dica>
           </div>
 
@@ -218,7 +216,7 @@ export default function ScriptEquipe() {
             />
             <Objecao
               pergunta="10% de comissão é muito"
-              resposta="É 10% sobre o que você vender a mais — receita que não existe hoje. Você não paga nada se não vier pedido nenhum. E no primeiro mês como Açougue Embaixador, a mensalidade é zero. O risco financeiro é literalmente zero."
+              resposta="É 10% sobre o que você vender a mais — receita que não existe hoje. Você não paga nada se não vier pedido nenhum, e nunca paga mensalidade, em hipótese nenhuma. O risco financeiro é literalmente zero."
             />
             <Objecao
               pergunta="Nunca ouvi falar dessa plataforma"
@@ -421,9 +419,9 @@ export default function ScriptEquipe() {
               <p className="font-bold text-white mb-3">✅ O que você pode prometer</p>
               <div className="space-y-1.5 text-sm text-gray-400">
                 <p>• Zero custo de entrada</p>
-                <p>• Grátis até o 3º pedido para todo novo Açougue Embaixador (sem exclusividade, vale pra qualquer um)</p>
+                <p>• Zero mensalidade, sempre — pra todo novo parceiro, sem exclusividade, vale pra qualquer um</p>
                 <p>• Treinamento presencial com Jota para Churrasqueiro Fundador</p>
-                <p>• 7% de comissão do churrasqueiro / 10% do açougue, só quando o evento é realizado</p>
+                <p>• Açougue: 10% de comissão na carne + 10% de bônus na mão de obra. Churrasqueiro independente (quando reativado): 7% de comissão. Só quando o evento é realizado</p>
                 <p>• Repasse semanal via PIX toda sexta</p>
                 <p>• Conteúdo de Instagram gerado por IA de graça pra todo açougue parceiro (foto real + legenda pronta)</p>
                 <p>• 10 vagas de Churrasqueiro Fundador no total em SP</p>

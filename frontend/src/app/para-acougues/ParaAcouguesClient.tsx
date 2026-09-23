@@ -5,8 +5,10 @@ import { QRCodeSVG } from 'qrcode.react'
 import Link from 'next/link'
 import { Events } from '@/lib/analytics'
 
-const MENSALIDADE = 369
-const COMISSAO_RATE = 0.10
+import { BOUTIQUE_COMMISSION, BOUTIQUE_LABOR_BONUS_RATE, LABOR_BASE_FLAT_PRICE } from '@/lib/pricing'
+
+const COMISSAO_RATE = BOUTIQUE_COMMISSION / 100
+const LABOR_BONUS_RATE = BOUTIQUE_LABOR_BONUS_RATE / 100
 const BONUS_POR_CLIENTE = 40
 const WHATSAPP = 'https://wa.me/5511970593650?text=Ol%C3%A1%2C+quero+ser+parceiro+açougue+do+Tech+Churras'
 
@@ -95,9 +97,12 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
 
   const faturamento = clientes * ticket
   const comissao = faturamento * COMISSAO_RATE
-  const bonus = clientes * BONUS_POR_CLIENTE
-  const liquido = faturamento - comissao + bonus - MENSALIDADE
-  const breakeven = Math.ceil(MENSALIDADE / (ticket * (1 - COMISSAO_RATE) + BONUS_POR_CLIENTE))
+  const bonusIndicacao = clientes * BONUS_POR_CLIENTE
+  // Bônus sobre mão de obra: você ganha também quando o cliente contrata o
+  // churrasqueiro, mesmo não executando nada — não é só sobre a carne.
+  const bonusMaoDeObra = clientes * LABOR_BASE_FLAT_PRICE * LABOR_BONUS_RATE
+  const bonus = bonusIndicacao + bonusMaoDeObra
+  const liquido = faturamento - comissao + bonus
 
   const faq = [
     {
@@ -182,7 +187,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
               {/* Prova concreta antes do headline */}
               <div className="inline-flex items-center gap-3 bg-gray-900 border border-gray-800 rounded-2xl px-5 py-3 mb-6">
                 <div>
-                  <p className="text-2xl font-black text-orange-400 leading-none">R$ 3.779<span className="text-base font-bold text-orange-300">/mês</span></p>
+                  <p className="text-2xl font-black text-orange-400 leading-none">R$ 4.740<span className="text-base font-bold text-orange-300">/mês</span></p>
                   <p className="text-xs text-gray-500 mt-0.5">renda extra com 20 pedidos · cálculo transparente abaixo</p>
                 </div>
                 <div className="w-px h-10 bg-gray-800" />
@@ -223,11 +228,11 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
 
               {/* Preço explícito — pra ninguém chegar até aqui sem saber quanto custa */}
               <div className="mt-6 inline-flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-full px-4 py-2 text-sm">
-                <span className="font-black text-white">R$ 369/mês</span>
-                <span className="text-gray-600">+</span>
+                <span className="font-black text-white">Zero mensalidade</span>
+                <span className="text-gray-600">·</span>
                 <span className="font-black text-white">10% de comissão</span>
                 <span className="text-gray-600">·</span>
-                <span className="text-orange-400 font-semibold">Grátis até o 3º pedido</span>
+                <span className="text-orange-400 font-semibold">+10% de bônus na mão de obra</span>
               </div>
 
               {/* Trust row */}
@@ -240,28 +245,22 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 ))}
               </div>
 
-              {/* Açougue Embaixador box */}
+              {/* Dois ganhos no mesmo evento */}
               <div className="mt-8 bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-5">
                 <div className="flex items-start gap-3">
-                  <span className="text-2xl">🏅</span>
+                  <span className="text-2xl">🥩</span>
                   <div className="flex-1">
-                    <div className="flex items-center justify-between gap-2 mb-1">
-                      <p className="font-black text-white text-sm">Programa Açougue Embaixador</p>
-                      <span className="text-xs bg-green-500/20 text-green-400 border border-green-500/30 px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
-                        Todo novo parceiro
-                      </span>
-                    </div>
-                    <p className="text-xs text-white font-semibold mb-1">
-                      Seja um dos primeiros embaixadores da sua região
+                    <p className="font-black text-white text-sm mb-1">
+                      Você ganha duas vezes no mesmo evento
                     </p>
                     <p className="text-xs text-amber-400/80 mb-3">
-                      Aberto pra todo açougue que entrar agora — pra você ver com seus próprios olhos que a Tech Churras funciona
+                      Mesmo sem executar o churrasco, você fatura na carne e na mão de obra — a Tech Churras leva o churrasqueiro, você só fornece o corte
                     </p>
                     <div className="space-y-1.5">
                       {[
-                        'Grátis até o 3º pedido — sem mensalidade nesse período',
-                        'Badge "Açougue Embaixador" na plataforma',
-                        'Destaque nas buscas durante o período grátis',
+                        '90% do valor da carne fica com você (10% de comissão)',
+                        '10% de bônus sobre a mão de obra do evento, todo evento',
+                        'Zero mensalidade, sempre — sem período de teste, sem pegadinha',
                         'Acesso direto ao Jota Albuquerque via WhatsApp',
                       ].map(b => (
                         <div key={b} className="flex items-start gap-2 text-xs text-gray-300">
@@ -271,12 +270,12 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                       ))}
                     </div>
                     <a
-                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero ser Açougue Embaixador da Tech Churras.')}`}
+                      href={`https://wa.me/5511970593650?text=${encodeURIComponent('Olá Jota! Quero ser parceiro açougue da Tech Churras.')}`}
                       target="_blank" rel="noopener noreferrer"
                       onClick={() => Events.boutiqueFounderClick('para-acougues-hero')}
                       className="mt-4 inline-block text-xs bg-amber-500 hover:bg-amber-400 text-black font-black px-4 py-2 rounded-lg transition-colors"
                     >
-                      Quero ser Açougue Embaixador →
+                      Quero ser parceiro →
                     </a>
                   </div>
                 </div>
@@ -379,7 +378,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                 {[
                   { valor: '13 anos', label: 'De Jota BBQ Eventos', icon: '🔥' },
                   { valor: 'CNPJ ativo', label: 'Empresa registrada', icon: '📋' },
-                  { valor: 'Grátis 3 pedidos', label: 'Todo Açougue Embaixador', icon: '🏅' },
+                  { valor: 'Zero mensalidade', label: 'Sempre, sem pegadinha', icon: '🏅' },
                   { valor: '~R$ 15 bi', label: 'Mercado de churrasco/ano (estim.)', icon: '📈' },
                 ].map(s => (
                   <div key={s.label} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
@@ -825,27 +824,25 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   </span>
                 </p>
                 <p className="text-xs text-gray-600 flex gap-2">
-                  <span className="text-gray-500">Bônus de indicação (R$ 40/cliente):</span>
+                  <span className="text-gray-500">Bônus de indicação (R$ 40/cliente novo):</span>
                   <span className="text-green-400 font-medium">
-                    + <AnimatedNumber value={bonus} prefix="R$ " decimals={2} />
+                    + <AnimatedNumber value={bonusIndicacao} prefix="R$ " decimals={2} />
                   </span>
                 </p>
                 <p className="text-xs text-gray-600 flex gap-2">
-                  <span className="text-gray-500">Mensalidade:</span>
-                  <span className="text-red-400 font-medium">− R$ 369,00</span>
+                  <span className="text-gray-500">Bônus sobre mão de obra (10%):</span>
+                  <span className="text-green-400 font-medium">
+                    + <AnimatedNumber value={bonusMaoDeObra} prefix="R$ " decimals={2} />
+                  </span>
                 </p>
               </div>
             </div>
 
             {/* Result card */}
             <div>
-              <div className={`rounded-2xl p-8 border transition-all ${
-                liquido > 0
-                  ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
-                  : 'bg-gradient-to-br from-red-500/10 to-red-500/5 border-red-500/20'
-              }`}>
+              <div className="rounded-2xl p-8 border transition-all bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30">
                 <p className="text-sm text-gray-400 mb-2">Resultado líquido estimado / mês</p>
-                <p className={`text-5xl font-black mb-1 tabular-nums ${liquido > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <p className="text-5xl font-black mb-1 tabular-nums text-green-400">
                   <AnimatedNumber value={liquido} prefix="R$ " decimals={2} />
                 </p>
 
@@ -855,30 +852,27 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
                   </p>
                 ) : (
                   <p className="text-sm text-green-400/80 mt-3">
-                    💡 Com o ticket médio de <strong>R$ {ticket}</strong>, apenas{' '}
-                    <strong><AnimatedNumber value={breakeven} /></strong>{' '}
-                    cliente{breakeven === 1 ? '' : 's'}/mês já cobre{breakeven === 1 ? '' : 'm'} a mensalidade.
-                    {liquido > 0 ? ' Tudo que vier além disso é lucro extra.' : ' Você ainda não atingiu o ponto de equilíbrio.'}
+                    💡 Sem mensalidade pra cobrir — o primeiro cliente do mês já é lucro líquido. Você ganha na carne <strong>e</strong> na mão de obra do mesmo evento.
                   </p>
                 )}
               </div>
 
-              {/* ROI chips */}
-              {liquido > 0 && (
+              {/* Breakdown chips */}
+              {clientes > 0 && (
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">Retorno em</p>
+                    <p className="text-xs text-gray-500 mb-1">Você fica com</p>
                     <p className="text-2xl font-black text-amber-400">
-                      {Math.ceil(MENSALIDADE / (ticket * (1 - COMISSAO_RATE)))}
+                      {Math.round((1 - COMISSAO_RATE) * 100)}%
                     </p>
-                    <p className="text-xs text-gray-500">clientes</p>
+                    <p className="text-xs text-gray-500">do valor da carne</p>
                   </div>
                   <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">ROI estimado</p>
+                    <p className="text-xs text-gray-500 mb-1">Bônus total</p>
                     <p className="text-2xl font-black text-amber-400">
-                      {Math.round((liquido / MENSALIDADE) * 100)}%
+                      <AnimatedNumber value={bonus} prefix="R$ " decimals={0} />
                     </p>
-                    <p className="text-xs text-gray-500">ao mês</p>
+                    <p className="text-xs text-gray-500">indicação + mão de obra</p>
                   </div>
                 </div>
               )}
@@ -899,21 +893,28 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
             <h2 className="text-3xl sm:text-4xl font-black">Transparência total de custos</h2>
           </div>
 
-          <div className="grid sm:grid-cols-3 gap-6 mb-10">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {[
               {
                 label: 'Mensalidade',
-                value: 'R$ 369/mês',
-                sub: 'Cobrança mensal recorrente',
+                value: 'R$ 0',
+                sub: 'Sempre, sem período de teste',
                 icon: '📅',
-                color: 'border-orange-500/40',
+                color: 'border-green-500/40',
               },
               {
                 label: 'Comissão',
                 value: '10%',
-                sub: 'Sobre vendas via plataforma',
+                sub: 'Sobre a carne vendida',
                 icon: '📊',
                 color: 'border-amber-500/40',
+              },
+              {
+                label: 'Bônus mão de obra',
+                value: '+10%',
+                sub: 'Sobre todo evento, mesmo sem executar',
+                icon: '🥩',
+                color: 'border-orange-500/40',
               },
               {
                 label: 'Taxa de adesão',
@@ -934,7 +935,7 @@ export default function ParaAcouguesClient({ boutiqueCount }: { boutiqueCount: n
 
           {/* Inclusos */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 sm:p-8">
-            <h3 className="font-bold text-lg mb-5 text-white">O que está incluído na mensalidade</h3>
+            <h3 className="font-bold text-lg mb-5 text-white">O que vem incluso, sem custo extra</h3>
             <div className="grid sm:grid-cols-2 gap-3">
               {[
                 '📈 Dashboard com pedidos e faturamento em tempo real',

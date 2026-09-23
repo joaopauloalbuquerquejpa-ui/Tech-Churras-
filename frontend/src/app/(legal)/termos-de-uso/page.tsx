@@ -73,7 +73,7 @@ export default function TermosDeUsoPage() {
         Sobre o valor total de cada pedido incide uma <strong className="text-white">taxa de serviço de 6% (seis por cento)</strong>, cobrada do Cliente e exibida de forma destacada no resumo do pedido antes da confirmação do pagamento. Esta taxa remunera a operação da Plataforma — coordenação entre churrasqueiro e açougue, acompanhamento ao vivo do evento, suporte e garantias da intermediação.
       </P>
       <P>
-        Açougues parceiros estão sujeitos à mensalidade de <strong className="text-white">R$ 369/mês</strong>, com 1 (um) mês de período gratuito para novos parceiros ("Açougue Embaixador"), além de comissão de <strong className="text-white">10%</strong> sobre o valor das carnes vendidas via Plataforma.
+        Açougues parceiros não pagam mensalidade. Incide comissão de <strong className="text-white">10%</strong> sobre o valor das carnes vendidas via Plataforma, e o açougue parceiro recebe bônus de <strong className="text-white">10%</strong> sobre o valor da mão de obra de cada evento vinculado ao seu estabelecimento, ainda que a execução seja realizada pela Tech Churras.
       </P>
 
       <H3>4.3 Datas dos Eventos</H3>

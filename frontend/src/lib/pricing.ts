@@ -29,3 +29,18 @@ export function calcLaborPriceModifier(eventDate: Date): { rate: number; label: 
   }
   return { rate: 0, label: null }
 }
+
+// Pivô de modelo (set/2026): mão de obra da equipe própria da Tech Churras
+// em tabela flat por faixa de convidados — o cálculo por hora acima
+// (WEEKEND_SURCHARGE_RATE etc.) segue existindo só pro marketplace de
+// churrasqueiro independente (hoje dormente).
+export const LABOR_BASE_FLAT_PRICE = 350.00
+export const LABOR_AUXILIAR_FLAT_PRICE = 195.00
+
+export function calcLaborFlatPrice(guestCount: number): { total: number; auxiliares: number } {
+  const auxiliares = calcAuxiliaresNeeded(guestCount)
+  return { total: LABOR_BASE_FLAT_PRICE + auxiliares * LABOR_AUXILIAR_FLAT_PRICE, auxiliares }
+}
+
+export const BOUTIQUE_COMMISSION = 10
+export const BOUTIQUE_LABOR_BONUS_RATE = 10

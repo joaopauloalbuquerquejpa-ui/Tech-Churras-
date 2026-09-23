@@ -74,8 +74,6 @@ interface Stats {
   revenueByDay: { date: string; revenue: number }[]
   recentOrders: { id: string; customerName: string; customerPhone?: string | null; grillmasterName?: string | null; totalPrice: number; status: string; eventDate: string; guestCount?: number; items?: OrderItem[] }[]
   referralCode: string | null; referralCount: number
-  trialActive?: boolean; trialOrdersCompleted?: number; trialOrdersThreshold?: number
-  monthlyFee?: number; feeWaiverThreshold?: number; feeWaivedByRevenue?: boolean; effectiveMonthlyFee?: number
 }
 
 interface DemandItem {
@@ -801,7 +799,7 @@ export default function BoutiqueDashboardPage() {
       >
         Cadastrar meu açougue agora
       </Link>
-      <p className="text-center text-xs text-gray-600 mt-3">R$ 369/mês + 10% de comissão · Grátis até o 3º pedido como Açougue Embaixador</p>
+      <p className="text-center text-xs text-gray-600 mt-3">Zero mensalidade · 10% sobre a carne + 10% sobre a mão de obra de cada evento</p>
     </div>
   )
 
@@ -838,43 +836,12 @@ export default function BoutiqueDashboardPage() {
 
       <PhoneVerificationBanner verified={phoneVerified} onVerified={() => setPhoneVerified(true)} />
 
-      {stats && stats.trialOrdersThreshold != null && (() => {
-        const done = stats.trialOrdersCompleted ?? 0
-        const threshold = stats.trialOrdersThreshold
-        const remaining = Math.max(0, threshold - done)
-        if (!stats.trialActive && stats.feeWaivedByRevenue) return (
-          <div className="bg-green-500/15 border border-green-500/40 rounded-xl px-5 py-3 flex items-center gap-3">
-            <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-400 shrink-0" />
-            <p className="text-green-300 font-semibold text-sm">
-              Seu período gratuito encerrou, mas esse mês seu faturamento pela Tech Churras está abaixo de R$ {stats.feeWaiverThreshold?.toLocaleString('pt-BR')} — mensalidade isenta, você só paga a comissão.
-            </p>
-          </div>
-        )
-        if (!stats.trialActive) return (
-          <div className="bg-red-500/15 border border-red-500/40 rounded-xl px-5 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse shrink-0" />
-              <p className="text-red-300 font-semibold text-sm">Seu período gratuito encerrou depois do {threshold}º pedido. Assine para continuar recebendo pedidos.</p>
-            </div>
-            <a href="mailto:techchurras@gmail.com?subject=Assinar Tech Churras" className="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-4 py-2 rounded-lg whitespace-nowrap transition-colors">Assinar agora</a>
-          </div>
-        )
-        if (remaining <= 1) return (
-          <div className="bg-yellow-500/15 border border-yellow-500/40 rounded-xl px-5 py-3 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shrink-0" />
-              <p className="text-yellow-300 font-semibold text-sm">Falta <span className="font-black">{remaining === 0 ? 'completar este' : '1'} pedido</span> pro seu período gratuito acabar. Continue sem parar!</p>
-            </div>
-            <a href="mailto:techchurras@gmail.com?subject=Assinar Tech Churras" className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-xs px-4 py-2 rounded-lg whitespace-nowrap transition-colors">Assinar agora</a>
-          </div>
-        )
-        return (
-          <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-5 py-3 flex items-center gap-3">
-            <GiftIcon size={18} className="text-green-400" />
-            <p className="text-green-300 text-sm"><span className="font-bold">Grátis até o {threshold}º pedido</span> — você já completou {done}, faltam {remaining}.</p>
-          </div>
-        )
-      })()}
+      {stats && (
+        <div className="bg-green-500/10 border border-green-500/30 rounded-xl px-5 py-3 flex items-center gap-3">
+          <GiftIcon size={18} className="text-green-400" />
+          <p className="text-green-300 text-sm"><span className="font-bold">Zero mensalidade, sempre.</span> Você ganha 10% sobre a carne vendida e mais 10% sobre a mão de obra de cada evento — mesmo sem executar nada.</p>
+        </div>
+      )}
 
       {stats && stats.pendingOrdersCount > 0 && (
         <div className="bg-orange-500/15 border border-orange-500/40 rounded-xl px-5 py-3 flex items-center gap-3">

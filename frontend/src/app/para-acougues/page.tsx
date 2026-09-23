@@ -5,7 +5,7 @@ import { safeJsonLd } from '@/lib/jsonld'
 
 export const metadata: Metadata = {
   title: 'Parceria para Açougues em São Paulo',
-  description: 'Transforme seu açougue em um canal digital recorrente em São Paulo. QR code no balcão, pedidos no app, repasse semanal via PIX. Mensalidade R$ 369/mês + 10% de comissão.',
+  description: 'Transforme seu açougue em um canal digital recorrente em São Paulo. QR code no balcão, pedidos no app, repasse semanal via PIX. Zero mensalidade, sempre — 10% de comissão + 10% de bônus na mão de obra.',
   keywords: ['açougue parceiro São Paulo', 'vender carne online SP', 'parceria açougue SP', 'Tech Churras açougue', 'açougue digital São Paulo', 'açougue QR code', 'açougue app delivery churrasco'],
   alternates: { canonical: '/para-acougues' },
   openGraph: {
@@ -28,7 +28,7 @@ const faqSchema = {
     {
       '@type': 'Question',
       name: 'Quanto custa a parceria da Tech Churras para açougues?',
-      acceptedAnswer: { '@type': 'Answer', text: 'A mensalidade é de R$ 369/mês com 10% de comissão sobre cada pedido concluído. Açougues fundadores (os primeiros a entrar na plataforma) têm condições especiais e exclusivas.' },
+      acceptedAnswer: { '@type': 'Answer', text: 'Não há mensalidade. Incide 10% de comissão sobre cada pedido concluído, e o açougue ainda recebe 10% de bônus sobre a mão de obra de cada evento. Açougues fundadores (os primeiros a entrar na plataforma) têm condições especiais e exclusivas.' },
     },
     {
       '@type': 'Question',

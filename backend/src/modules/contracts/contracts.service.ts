@@ -96,19 +96,19 @@ O PARCEIRO se obriga a:
 CLÁUSULA 5 — MODELO FINANCEIRO
 
 5.1. MENSALIDADE
-O PARCEIRO pagará à TECH CHURRAS mensalidade de R$ 369,00 (trezentos e sessenta e nove reais) por mês, correspondente ao acesso à plataforma e ferramentas disponibilizadas.
+Não há cobrança de mensalidade. O acesso à plataforma e às ferramentas disponibilizadas é gratuito, em qualquer volume de vendas.
 
-5.2. COMISSÃO
+5.2. COMISSÃO SOBRE PRODUTOS
 Sobre o valor bruto de todos os produtos vendidos via plataforma incidirá comissão de 10% (dez por cento) em favor da TECH CHURRAS, descontada no momento do repasse.
 
-5.3. TAXA DE ADESÃO
+5.3. BÔNUS SOBRE MÃO DE OBRA
+O PARCEIRO receberá bônus de 10% (dez por cento) sobre o valor da mão de obra de cada evento realizado através da plataforma e vinculado ao seu estabelecimento, ainda que a execução do serviço seja realizada pela própria TECH CHURRAS ou por profissional por ela designado.
+
+5.4. TAXA DE ADESÃO
 Não há taxa de adesão. O ingresso à plataforma é isento de valor inicial.
 
-5.4. FORMA E PERIODICIDADE DE REPASSE
-Os valores líquidos de comissão serão repassados semanalmente via Pix, conforme agenda disponível em /admin/repasses. O PARCEIRO deve manter sua chave Pix atualizada no cadastro.
-
-5.5. REAJUSTE
-A mensalidade será reajustada anualmente pelo IPCA acumulado no período, ou pelo índice oficial que o substitua, mediante notificação prévia de 30 (trinta) dias.
+5.5. FORMA E PERIODICIDADE DE REPASSE
+Os valores líquidos de comissão, já somado o bônus de mão de obra quando aplicável, serão repassados semanalmente via Pix, conforme agenda disponível em /admin/repasses. O PARCEIRO deve manter sua chave Pix atualizada no cadastro.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -129,11 +129,11 @@ CLÁUSULA 7 — RESCISÃO
   b) Por qualquer das partes, com aviso prévio de 30 (trinta) dias;
   c) De imediato pela TECH CHURRAS em caso de descumprimento grave, atos ilícitos ou conduta prejudicial à reputação da plataforma.
 
-7.2. Rescisão antecipada por iniciativa do PARCEIRO antes do término do período contratado:
-  O PARCEIRO pagará multa equivalente a 1 (uma) mensalidade vigente por mês remanescente do período contratado, limitada a 3 (três) mensalidades.
+7.2. Rescisão antecipada por iniciativa do PARCEIRO:
+  Não há multa nem período mínimo de fidelidade, em razão da ausência de mensalidade ou taxa fixa recorrente neste contrato.
 
 7.3. Rescisão antecipada pela TECH CHURRAS sem justa causa:
-  A TECH CHURRAS reembolsará ao PARCEIRO o valor proporcional da mensalidade referente aos dias não utilizados do mês corrente.
+  Permanecem devidos ao PARCEIRO os valores de comissão e bônus de mão de obra já apurados e não repassados até a data da rescisão.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

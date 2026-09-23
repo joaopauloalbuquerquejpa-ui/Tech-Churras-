@@ -38,7 +38,7 @@ export default function QRCodeImpressaoPage() {
     load()
   }, [])
 
-  const referralUrl = referralCode ? `${SITE_URL}/r/${referralCode}` : ''
+  const referralUrl = referralCode ? `${SITE_URL}/loja/${referralCode}` : ''
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -104,7 +104,7 @@ export default function QRCodeImpressaoPage() {
             {/* Headline */}
             <div className="text-center">
               <p className="text-xl font-black text-white leading-tight">
-                Escaneie e ganhe
+                Escaneie e monte
               </p>
               <p
                 className="text-4xl font-black leading-tight"
@@ -114,10 +114,10 @@ export default function QRCodeImpressaoPage() {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                15% de desconto
+                seu churrasco
               </p>
               <p className="text-lg font-semibold text-gray-300 mt-1">
-                no seu primeiro churrasco!
+                com churrasqueiro incluso, na hora!
               </p>
             </div>
 

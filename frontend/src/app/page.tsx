@@ -164,13 +164,13 @@ const PERSONAS = [
     titulo: 'Transforme balcão em hub de eventos',
     items: [
       'Seu cliente já está no balcão com 5kg de carne na mão. Converta em evento de R$2.500',
-      'Você não entrega nada. Só separa o kit. O Grillmaster retira e faz o evento',
-      'Receba comissão por evento + aumento do ticket médio do seu açougue',
+      'Você não entrega nada. Só separa o kit. A equipe da Tech Churras retira e faz o evento',
+      '10% de comissão na carne + 10% de bônus na mão de obra, mesmo evento',
       'Kit completo: QR Code de acrílico para o balcão + cardápio + uniforme',
-      'Pix semanal + grátis até o 3º pedido para Açougues Embaixadores fundadores',
+      'Pix semanal + zero mensalidade, sempre',
     ],
     href: '/para-acougues',
-    cta: 'Quero ser Açougue Embaixador',
+    cta: 'Quero ser parceiro açougue',
     cor: 'border-red-500/20 bg-red-500/5',
   },
 ]

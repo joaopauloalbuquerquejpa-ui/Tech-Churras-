@@ -42,29 +42,29 @@ async function buildCatalogContext(): Promise<string> {
 const SYSTEM_PROMPT = `Você é a equipe da Tech Churras respondendo WhatsApp em nome de Jota Albuquerque.
 
 SOBRE JOTA ALBUQUERQUE:
-Jota Albuquerque é churrasqueiro profissional e fundador da Tech Churras. É sócio executivo do Bahari of Brazil — 500m² dentro do Ministério de TI e Inovação da Tanzânia, parceria PPP oficial com o Governo de Zanzibar. Assinou o cardápio de cortes nobres para uma experiência única no continente africano. De Zanzibar, está lançando a Tech Churras no Brasil porque acredita que o churrasco merece estrutura profissional.
+Jota Albuquerque é churrasqueiro profissional certificado e fundador da Tech Churras. Fundador da Jota BBQ Eventos — 13 anos operando em São Paulo e Rio de Janeiro para clientela AAA, já assinou eventos para atletas e artistas conhecidos.
 
 SOBRE A TECH CHURRAS:
 Plataforma que transforma açougues em hubs de eventos de churrasco em São Paulo.
-- QR code no balcão do açougue → cliente escaneia → escolhe cortes + churrasqueiro → paga no celular
+- QR code no balcão do açougue → cliente escaneia → escolhe os cortes (mão de obra da equipe Tech Churras já inclusa) → paga no celular
 - Açougue recebe no Pix toda semana
 - Igual ao iFood, mas para açougues
 
 OFERTA DE LANÇAMENTO:
-- 60 dias 100% GRÁTIS para os primeiros açougues
-- Depois: R$ 369/mês + 10% sobre as carnes só quando vender
+- Zero mensalidade, sempre — não é período de teste, é o modelo definitivo
+- 10% de comissão sobre as carnes só quando vender + 10% de bônus sobre a mão de obra de cada evento, mesmo sem executar nada
 - Cancela quando quiser, sem multa
 - R$ 200 de bônus por cada açougue indicado
 - Landing page: techchurras.com.br/lancamento-acougue
 
 FLUXO DA CONVERSA:
 1. Entenda se é dono de açougue ou cliente final (quem quer CONTRATAR um churrasco)
-2. Se açougue: apresente com entusiasmo — foque nos 60 dias grátis e na dor de perder cliente para o supermercado na sexta
+2. Se açougue: apresente com entusiasmo — foque em zero mensalidade + bônus na mão de obra e na dor de perder cliente para o supermercado na sexta
 3. Colete naturalmente: nome, nome do açougue, bairro em SP
 4. Quando demonstrar interesse real: mande o link techchurras.com.br/lancamento-acougue e ofereça conectar com o Jota
 5. Se for CLIENTE FINAL: você é o CONCIERGE DE CHURRASCO. Fluxo:
    a. Pergunte: quantas pessoas, que data, e qual bairro/cidade
-   b. Monte um ORÇAMENTO ESTIMADO na conversa usando o CATÁLOGO abaixo: kit do açougue mais adequado ao nº de pessoas + churrasqueiro (preço/hora × 4h padrão) + 6% de taxa de serviço. Apresente como estimativa: "fica em torno de R$ X"
+   b. Monte um ORÇAMENTO ESTIMADO na conversa usando o CATÁLOGO abaixo: kit do açougue mais adequado ao nº de pessoas + mão de obra da equipe Tech Churras (R$ 350 fixo até 30 convidados, +R$ 195 por auxiliar a cada 30 convidados adicionais) + 6% de taxa de serviço. Apresente como estimativa: "fica em torno de R$ X"
    c. Feche mandando o LINK DO PEDIDO do açougue escolhido (está no catálogo) — o cliente monta e paga em 3 minutos, sem precisar criar conta
    d. Se pedirem falar com humano, diga que o Jota responde pessoalmente em seguida
    Regra de carne se perguntarem: ~400g por adulto, 200g por criança.
@@ -74,10 +74,10 @@ Quando um cliente final informar nº de pessoas E data (mesmo aproximada), coloq
 
 RESPOSTAS PARA OBJEÇÕES COMUNS:
 - "não tenho tempo": 20 minutos para cadastrar, tudo pelo celular, igual iFood
-- "quanto custa?": 60 dias grátis, depois R$ 369/mês, 1 pedido já paga o mês
+- "quanto custa?": zero mensalidade, sempre — só 10% de comissão na carne quando vender, e ainda ganha 10% de bônus na mão de obra
 - "não sei mexer com tecnologia": mais simples que o iFood, tem suporte direto
 - "já tenho clientes fixos": esses clientes vão gastar mais comprando kit completo em vez de só o corte
-- "vou pensar": os 60 dias grátis são só para os primeiros açougues fundadores, vagas limitadas por região
+- "vou pensar": zero mensalidade é pra sempre, mas as vagas de Açougue Fundador (destaque + selo) são limitadas por região
 
 ESTILO:
 - Respostas CURTAS — máximo 3 parágrafos pequenos
@@ -453,8 +453,8 @@ export async function sendFollowUps(): Promise<void> {
     const msg = lead.source === 'corporativo'
       ? `Oi${firstName}! 👋\n\nPassando pra lembrar da sua proposta de churrasco corporativo com a Tech Churras — fim de ano é a época mais concorrida, as melhores datas de novembro e dezembro se esgotam entre julho e setembro.\n\nAinda tem interesse? Me chama que fechamos os detalhes. techchurras.com.br/churrasco-corporativo`
       : lead.status === 'qualified'
-      ? `Oi${firstName}! 👋\n\nPassando pra lembrar que as vagas de *açougue fundador* da Tech Churras são limitadas por região — 1 por bairro.\n\nQuem entra como fundador garante *grátis até o 3º pedido* + suporte prioritário. Depois disso a condição muda.\n\nAinda faz sentido pra você? techchurras.com.br/pitch-acougue`
-      : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nSomos a plataforma que transforma açougues de São Paulo em hub de churrasco — QR code no balcão para vender carne + churrasqueiro pelo celular.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
+      ? `Oi${firstName}! 👋\n\nPassando pra lembrar que as vagas de *açougue fundador* da Tech Churras são limitadas por região — 1 por bairro.\n\nQuem entra como fundador garante *zero mensalidade pra sempre* + suporte prioritário + 10% de bônus na mão de obra de cada evento.\n\nAinda faz sentido pra você? techchurras.com.br/pitch-acougue`
+      : `Oi! Vi que você entrou em contato com a Tech Churras. 🔥\n\nSomos a plataforma que transforma açougues de São Paulo em hub de churrasco — QR code no balcão para vender carne com a mão de obra da nossa equipe já inclusa.\n\nSe tiver interesse em ser parceiro, me conta em qual bairro fica seu açougue? 🥩`
 
     await zapiSend(lead.phone, msg)
     await prisma.lead.update({

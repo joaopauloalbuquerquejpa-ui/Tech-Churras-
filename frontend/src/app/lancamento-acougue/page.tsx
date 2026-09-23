@@ -27,7 +27,7 @@ export default function LancamentoAcouguePage() {
       {/* ── URGENCY BAR ── */}
       <div className="w-full bg-orange-500 text-center py-2 px-4">
         <p className="text-xs sm:text-sm font-bold text-black">
-          🔥 Açougue Embaixador em São Paulo — grátis até o 3º pedido para os primeiros açougues
+          🔥 Zero mensalidade, sempre — comissão só quando você vende, mais bônus na mão de obra
         </p>
       </div>
 
@@ -46,7 +46,7 @@ export default function LancamentoAcouguePage() {
 
         <div className="inline-flex items-center gap-2 text-xs font-bold text-orange-400 bg-orange-500/10 border border-orange-500/20 rounded-full px-4 py-1.5 mb-7">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse inline-block" />
-          Açougue Embaixador — grátis até o 3º pedido pra quem entrar agora
+          Zero mensalidade, sempre — pra quem entrar agora
         </div>
 
         <h1 className="text-4xl sm:text-6xl font-black leading-[1.05] mb-5">
@@ -59,16 +59,16 @@ export default function LancamentoAcouguePage() {
 
         <p className="text-gray-400 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed mb-10">
           Na quinta-feira o cliente passa no balcão. Na sexta ele decide fazer churrasco. Com a Tech Churras,
-          ele escaneia o QR do seu açougue e contrata <strong className="text-white">carne + churrasqueiro profissional</strong> sem sair da loja.
+          ele escaneia o QR do seu açougue e monta <strong className="text-white">carne + churrasqueiro profissional da Tech Churras</strong> sem sair da loja.
           Você aumenta o ticket e captura um cliente que ia pro supermercado.
         </p>
 
         {/* METRICS ROW */}
         <div className="flex flex-wrap justify-center gap-4 mb-12">
           {[
-            { v: '3 pedidos', l: 'grátis', sub: 'sem cartão' },
+            { v: 'R$ 0', l: 'mensalidade', sub: 'sempre, sem cartão' },
             { v: '20 min', l: 'para operar', sub: 'do cadastro ao QR no balcão' },
-            { v: '10%', l: 'comissão', sub: 'só quando você vender' },
+            { v: '10%+10%', l: 'comissão + bônus', sub: 'só quando você vender' },
             { v: 'R$ 0', l: 'de setup', sub: 'zero custo inicial' },
           ].map(m => (
             <div key={m.l} className="bg-gray-900 border border-gray-800 rounded-2xl px-5 py-4 text-center min-w-[110px]">
@@ -82,7 +82,7 @@ export default function LancamentoAcouguePage() {
         {/* CTA FORM */}
         <form onSubmit={submit} className="bg-gray-900 border border-orange-500/30 rounded-3xl p-7 max-w-md mx-auto">
           <p className="text-xl font-black text-white mb-1">Quero ser açougue fundador</p>
-          <p className="text-xs text-gray-500 mb-5">Garanta grátis até o 3º pedido e suporte prioritário como Açougue Embaixador</p>
+          <p className="text-xs text-gray-500 mb-5">Zero mensalidade e suporte prioritário como Açougue Fundador</p>
           <div className="space-y-3 mb-4">
             <input type="text" required placeholder="Nome do açougue"
               value={name} onChange={e => setName(e.target.value)}
@@ -165,7 +165,7 @@ export default function LancamentoAcouguePage() {
                   'Cliente vê seu açougue já pré-selecionado',
                   'Escolhe os cortes e as quantidades',
                   'O sistema sugere as quantidades pelo número de convidados',
-                  'Seleciona o churrasqueiro disponível na região',
+                  'Mão de obra da equipe Tech Churras já inclusa, sem escolher ninguém',
                   'Paga pelo Mercado Pago — sem cadastro',
                 ].map(item => (
                   <li key={item} className="flex items-start gap-2 text-sm text-gray-400">
@@ -239,14 +239,14 @@ export default function LancamentoAcouguePage() {
         <div className="max-w-3xl mx-auto px-5 text-center">
           <div className="rounded-3xl border border-orange-500/30 p-10"
             style={{ background: 'linear-gradient(135deg, rgba(194,54,22,0.08), #060606)' }}>
-            <p className="text-7xl font-black text-orange-400 leading-none mb-1">1</p>
-            <p className="text-2xl font-bold text-white mb-1">mês 100% gratuito</p>
-            <p className="text-gray-500 text-sm mb-6">Programa Açougue Embaixador</p>
+            <p className="text-7xl font-black text-orange-400 leading-none mb-1">R$ 0</p>
+            <p className="text-2xl font-bold text-white mb-1">de mensalidade, sempre</p>
+            <p className="text-gray-500 text-sm mb-6">Não é período de teste — é o modelo definitivo</p>
             <div className="grid sm:grid-cols-3 gap-4 mb-8 text-left">
               {[
                 { icon: '✅', t: 'Painel completo', d: 'Produtos, kits, pedidos, QR, relatórios — tudo disponível desde o dia 1.' },
                 { icon: '✅', t: 'Suporte prioritário', d: 'Açougues fundadores entram no grupo VIP com suporte direto da equipe.' },
-                { icon: '✅', t: 'Sem cobrança', d: 'Zero custo no 1º mês. Sem cartão de crédito no cadastro.' },
+                { icon: '✅', t: 'Sem cobrança', d: 'Zero mensalidade. Sem cartão de crédito no cadastro.' },
               ].map(f => (
                 <div key={f.t} className="bg-gray-900 border border-gray-800 rounded-xl p-4">
                   <p className="text-base mb-1">{f.icon}</p>
@@ -256,7 +256,7 @@ export default function LancamentoAcouguePage() {
               ))}
             </div>
             <p className="text-gray-400 text-sm mb-6">
-              Após o período gratuito: <strong className="text-white">R$ 369/mês</strong> + <strong className="text-white">10% de comissão</strong> só quando você vender.
+              Você paga só <strong className="text-white">10% de comissão</strong> sobre a carne vendida — e ainda ganha <strong className="text-white">+10% de bônus</strong> sobre a mão de obra de cada evento, mesmo sem executar nada.
               Cancele quando quiser, sem multa.
             </p>
             <Link href="/register?role=BOUTIQUE&utm_source=lancamento_freemium"
@@ -294,7 +294,7 @@ export default function LancamentoAcouguePage() {
 
       {/* ── FINAL CTA ── */}
       <section className="border-t border-gray-900 bg-gray-950 py-16 text-center px-5">
-        <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Açougue Embaixador · São Paulo</p>
+        <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-3">Açougue Fundador · São Paulo</p>
         <h2 className="text-3xl sm:text-4xl font-black text-white mb-5 leading-tight max-w-2xl mx-auto">
           Seu açougue merece mais do que vender corte por corte.
         </h2>
@@ -307,7 +307,7 @@ export default function LancamentoAcouguePage() {
           style={{ background: 'linear-gradient(90deg,#c23616,#9e2d12)', boxShadow: '0 0 60px rgba(194,54,22,0.4)' }}>
           🔥 Quero ser açougue fundador →
         </Link>
-        <p className="text-xs text-gray-600 mt-4">Grátis até o 3º pedido · Sem cartão · Cancele quando quiser</p>
+        <p className="text-xs text-gray-600 mt-4">Zero mensalidade · Sem cartão · Cancele quando quiser</p>
       </section>
 
       {/* ── FOOTER ── */}

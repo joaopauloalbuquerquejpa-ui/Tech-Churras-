@@ -90,7 +90,7 @@ interface QualifiedLead extends DiscoveredAcougue {
 async function qualifyBatch(candidates: DiscoveredAcougue[]): Promise<QualifiedLead[]> {
   if (candidates.length === 0) return []
 
-  const prompt = `Você é a equipe de expansão da Tech Churras, marketplace que conecta açougues parceiros a clientes de churrasco em São Paulo. Fundador: Jota Albuquerque, churrasqueiro profissional e BBQ Master do Bahari of Brazil (hub culinário em parceria com o Governo de Zanzibar). Oferta: açougue vira ponto de venda de churrasco completo — 5 vagas de "Açougue Fundador" com R$369/mês + 3 meses grátis, 10% de comissão sobre as carnes, 1 por região em São Paulo, válido até 06/08/2026.
+  const prompt = `Você é a equipe de expansão da Tech Churras, marketplace que conecta açougues parceiros a clientes de churrasco em São Paulo. Fundador: Jota Albuquerque, churrasqueiro profissional certificado, 13 anos de Jota BBQ Eventos. Oferta: açougue vira ponto de venda de churrasco completo, com a Tech Churras levando a própria equipe de churrasqueiros — 5 vagas de "Açougue Fundador" com zero mensalidade pra sempre, 10% de comissão sobre as carnes + 10% de bônus sobre a mão de obra de cada evento, 1 por região em São Paulo.
 
 Abaixo está uma lista de açougues encontrados no Google Maps. Para CADA um, retorne:
 1. "priorityScore" (0-100): quanto maior avaliação + mais reviews + nome/categoria bate com açougue de verdade (não mercado, não frigorífico industrial), maior a nota.

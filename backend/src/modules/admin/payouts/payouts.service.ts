@@ -1,4 +1,5 @@
 import { prisma } from '../../../config/prisma'
+import { GM_COMMISSION, BOUTIQUE_COMMISSION, BOUTIQUE_LABOR_BONUS_RATE, INTERNAL_TEAM_PAYOUT_PER_EVENT } from '../../../utils/pricing'
 
 // ── Comissão por nota (proposta aprovada 21/07/2026, desligada até o Jota ativar) ──
 // Desligada: COMMISSION_BY_RATING_ENABLED=false (ou ausente) mantém os 7% flat de sempre.
@@ -54,8 +55,8 @@ export async function listPayouts(status?: string, weekStart?: string, type?: st
   const payouts = await prisma.payout.findMany({ where, orderBy: { createdAt: 'desc' } })
 
   const gmIds = payouts.filter(p => p.type === 'GRILLMASTER').map(p => p.recipientId)
-  // REFERRAL_BONUS também usa boutique.id como recipientId (bônus de indicação de cliente)
-  const btIds = payouts.filter(p => p.type === 'BOUTIQUE' || p.type === 'REFERRAL_BONUS').map(p => p.recipientId)
+  // REFERRAL_BONUS e BOUTIQUE_LABOR_BONUS também usam boutique.id como recipientId
+  const btIds = payouts.filter(p => p.type === 'BOUTIQUE' || p.type === 'REFERRAL_BONUS' || p.type === 'BOUTIQUE_LABOR_BONUS').map(p => p.recipientId)
 
   const [gms, bts] = await Promise.all([
     gmIds.length > 0
@@ -75,7 +76,10 @@ export async function listPayouts(status?: string, weekStart?: string, type?: st
   return payouts.map(p => {
     if (p.type === 'GRILLMASTER') return { ...p, recipientName: gmMap.get(p.recipientId) ?? 'Churrasqueiro' }
     const nome = btMap.get(p.recipientId) ?? 'Acougue'
-    return { ...p, recipientName: p.type === 'REFERRAL_BONUS' ? `${nome} (bônus indicação)` : nome }
+    const sufixo = p.type === 'REFERRAL_BONUS' ? ' (bônus indicação)'
+      : p.type === 'BOUTIQUE_LABOR_BONUS' ? ' (bônus mão de obra)'
+      : ''
+    return { ...p, recipientName: `${nome}${sufixo}` }
   })
 }
 
@@ -101,8 +105,6 @@ export async function getPayoutsSummary() {
 
 export async function generatePayouts() {
   const { monday, sunday } = getWeekBounds()
-  const GM_COMMISSION = 7        // plataforma retém 7% da mão de obra
-  const BOUTIQUE_COMMISSION = 10 // plataforma retém 10% das carnes
 
   const orders = await prisma.order.findMany({
     where: {
@@ -146,18 +148,25 @@ export async function generatePayouts() {
     const sideDishForGm = order.sideDishPreparedBy === 'GRILLMASTER' ? (order.sideDishFee ?? 0) : 0
     const sideDishForBoutique = order.sideDishPreparedBy === 'ACOUGUE' ? (order.sideDishFee ?? 0) : 0
 
-    // Mão de obra do churrasqueiro = valor travado no pedido (não a tarifa ao vivo do GM)
+    // Mão de obra do churrasqueiro = valor travado no pedido (não a tarifa ao vivo do GM).
+    // Equipe interna (executionType='INTERNAL') recebe valor fixo por evento,
+    // não comissão percentual — a regra de mercado (resolveGmCommission) só
+    // se aplica a churrasqueiro independente (marketplace, dormente).
     if (order.grillmasterId && !existingSet.has(`${order.id}:GRILLMASTER`)) {
       const laborGross = +(((order.laborPrice ?? 0) + sideDishForGm) * (1 - discountRatio)).toFixed(2)
       if (laborGross > 0) {
-        const { commission } = await resolveGmCommission(order.grillmasterId, GM_COMMISSION)
+        const isInternal = order.executionType === 'INTERNAL'
+        const amount = isInternal ? Math.min(INTERNAL_TEAM_PAYOUT_PER_EVENT, laborGross) : 0
+        const { commission } = isInternal
+          ? { commission: +(100 - (amount / laborGross) * 100).toFixed(2) }
+          : await resolveGmCommission(order.grillmasterId, GM_COMMISSION)
         toCreate.push({
           type: 'GRILLMASTER',
           recipientId: order.grillmasterId,
           orderId: order.id,
           grossAmount: laborGross,
           commission,
-          amount: +(laborGross * (1 - commission / 100)).toFixed(2),
+          amount: isInternal ? amount : +(laborGross * (1 - commission / 100)).toFixed(2),
           weekStart: monday,
           weekEnd: sunday,
           pixKey: order.grillmaster?.pixKey ?? null,
@@ -176,6 +185,28 @@ export async function generatePayouts() {
           grossAmount: productsGross,
           commission: BOUTIQUE_COMMISSION,
           amount: +(productsGross * (1 - BOUTIQUE_COMMISSION / 100)).toFixed(2),
+          weekStart: monday,
+          weekEnd: sunday,
+          pixKey: order.boutique?.pixKey ?? null,
+        })
+      }
+    }
+    // Pivô de modelo (set/2026): açougue ganha um bônus extra sobre a mão de
+    // obra do evento, como incentivo por ter insumo vendido junto — mesmo não
+    // executando nada. Base de cálculo separada da comissão sobre carne
+    // (BOUTIQUE) de propósito, pra não misturar as duas na auditoria.
+    // `commission` aqui representa "% que fica com a Tech Churras" só por
+    // convenção de campo — nesse tipo é o inverso de BOUTIQUE_LABOR_BONUS_RATE.
+    if (order.boutiqueId && !existingSet.has(`${order.id}:BOUTIQUE_LABOR_BONUS`)) {
+      const laborGross = +(((order.laborPrice ?? 0) + sideDishForGm) * (1 - discountRatio)).toFixed(2)
+      if (laborGross > 0) {
+        toCreate.push({
+          type: 'BOUTIQUE_LABOR_BONUS',
+          recipientId: order.boutiqueId,
+          orderId: order.id,
+          grossAmount: laborGross,
+          commission: +(100 - BOUTIQUE_LABOR_BONUS_RATE).toFixed(2),
+          amount: +(laborGross * (BOUTIQUE_LABOR_BONUS_RATE / 100)).toFixed(2),
           weekStart: monday,
           weekEnd: sunday,
           pixKey: order.boutique?.pixKey ?? null,

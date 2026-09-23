@@ -3,7 +3,7 @@ import { sendPushToUser, sendWhatsAppToAdmin, sendWhatsApp } from '../push/push.
 import { emailPartnerApproved } from '../email/email.service'
 import Anthropic from '@anthropic-ai/sdk'
 import { checkPixOwnership } from '../auth/verification.service'
-import { TRIAL_ORDERS_THRESHOLD } from '../../utils/pricing'
+import { BOUTIQUE_COMMISSION, BOUTIQUE_LABOR_BONUS_RATE } from '../../utils/pricing'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -214,29 +214,23 @@ export async function approveBoutique(boutiqueId: string) {
     referralCode = code
   }
 
-  // Modelo Açougue Embaixador: todo novo açougue aprovado paga R$369/mês
-  // (mensalidade única, sem plano padrão de R$497) — sem limite de vagas,
-  // sem exclusividade regional. `isFounder` no schema virou sinônimo de "já
-  // é Embaixador" (nome do campo mantido por ora pra não mexer em
-  // migration/índice à toa; o rótulo pro usuário já é outro).
-  // Trial não é mais por prazo (30 dias corriam mesmo sem nenhum pedido
-  // completo, cobrando de quem não viu a plataforma funcionar ainda) — vira
-  // "grátis até completar TRIAL_ORDERS_THRESHOLD pedidos" (utils/pricing.ts),
-  // calculado ao vivo em getBoutiqueDashboardStats. trialEndsAt não é mais
-  // setado aqui; campo mantido no schema só por histórico.
-  const monthlyFee = 369
-
+  // Pivô de modelo (set/2026): sem mensalidade em nenhuma hipótese — açougue
+  // paga só BOUTIQUE_COMMISSION sobre a carne vendida, e ainda ganha
+  // BOUTIQUE_LABOR_BONUS_RATE sobre a mão de obra do evento como incentivo
+  // (payouts.service.ts). `isFounder` no schema virou só um marcador de
+  // "aprovado" (nome mantido pra não mexer em migration/índice à toa).
   const updated = await prisma.boutique.update({
     where: { id: boutiqueId },
-    data: { approved: true, rejected: false, referralCode, isFounder: true, monthlyFee },
+    data: { approved: true, rejected: false, referralCode, isFounder: true },
   })
   console.log(JSON.stringify({ audit: 'BOUTIQUE_APPROVED', boutiqueId, name: boutique.name, ts: new Date().toISOString() }))
+  const qrUrl = `https://www.techchurras.com.br/loja/${referralCode}`
   if (boutique.user) {
     const name = boutique.user.name.split(' ')[0]
     sendPushToUser(
       boutique.user.id,
-      `🎉 Açougue aprovado! Embaixador — grátis até o ${TRIAL_ORDERS_THRESHOLD}º pedido.`,
-      `Parabéns ${name}! O açougue ${boutique.name} está ativo. Você é Açougue Embaixador — grátis até completar ${TRIAL_ORDERS_THRESHOLD} pedidos, depois R$ ${monthlyFee}/mês.`,
+      '🎉 Açougue aprovado!',
+      `Parabéns ${name}! O açougue ${boutique.name} está ativo. Zero mensalidade — você ganha ${BOUTIQUE_COMMISSION}% sobre a carne vendida e mais ${BOUTIQUE_LABOR_BONUS_RATE}% sobre a mão de obra de cada evento.`,
       '/boutiques/dashboard'
     ).catch((e) => console.error("[notif]", e?.message))
     emailPartnerApproved(boutique.user.email, boutique.user.name, 'BOUTIQUE', 'https://www.techchurras.com.br/boutiques/dashboard').catch((e) => console.error("[notif]", e?.message))
@@ -244,8 +238,8 @@ export async function approveBoutique(boutiqueId: string) {
       sendWhatsApp(
         boutique.user.phone,
         `🥩 Parabéns ${name}! O açougue *${boutique.name}* foi *aprovado* na Tech Churras!\n\n` +
-        `🎁 Você é *Açougue Embaixador* — *grátis até completar ${TRIAL_ORDERS_THRESHOLD} pedidos* e depois R$${monthlyFee}/mês.` +
-        `\n\n*QR code do seu balcão:*\nhttps://www.techchurras.com.br/pedido?boutique=${boutique.id}\n\nAcesse seu painel completo:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
+        `🎁 *Zero mensalidade* — você ganha *${BOUTIQUE_COMMISSION}%* sobre a carne vendida e ainda recebe *${BOUTIQUE_LABOR_BONUS_RATE}%* sobre a mão de obra de cada evento, mesmo sem executar nada.` +
+        `\n\n*QR code do seu balcão:*\n${qrUrl}\n\nAcesse seu painel completo:\nhttps://www.techchurras.com.br/boutiques/dashboard`,
         'boutique-aprovado'
       ).catch((e) => console.error("[notif]", e?.message))
     }

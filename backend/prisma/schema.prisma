@@ -108,6 +108,11 @@ model Grillmaster {
   // pra não ser notificado em pedidos aleatórios nem distorcer a mediana de
   // preço usada pra cobrar quem topa esse modo.
   manualBookingOnly  Boolean  @default(false)
+  // Equipe própria da Tech Churras (Jota BBQ Eventos) — não aparece na vitrine
+  // pública de churrasqueiros e não passa por comissão de mercado nem despacho
+  // amplo. Pedido sem grillmasterId escolhido é atribuído direto a um GM com
+  // essa flag em vez do pool de marketplace (hoje dormente).
+  isInternalTeam Boolean @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -148,7 +153,11 @@ model Boutique {
   approved       Boolean  @default(false)
   rejected       Boolean  @default(false)
   open           Boolean  @default(true)
+  /// @deprecated Campo morto — nunca dispara cobrança real (sem Stripe/Asaas/boleto).
+  /// Mantido só por histórico do dashboard antigo. Não usar em lógica nova.
   monthlyFee     Float    @default(369.00)
+  /// @deprecated Nunca lido em código — comissão real fica hardcoded em
+  /// backend/src/utils/pricing.ts (BOUTIQUE_COMMISSION). Não usar.
   commissionRate Float    @default(0.10)
   isFounder      Boolean  @default(false)
   pixKey           String?
@@ -273,6 +282,11 @@ model Order {
   // preço no despacho: só GM com pricePerHour <= isso pode aceitar, senão
   // ele trabalharia abaixo do próprio preço cadastrado.
   estimatedHourlyRate   Float?
+  // 'INTERNAL' = executado pela equipe própria da Tech Churras (mão de obra
+  // em tabela flat por faixa de convidados, sem comissão de mercado).
+  // 'MARKETPLACE_GM' = churrasqueiro independente (hoje dormente, mas o
+  // caminho continua 100% funcional se um grillmasterId for passado direto).
+  executionType  String      @default("MARKETPLACE_GM")
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 

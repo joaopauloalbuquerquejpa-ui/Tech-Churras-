@@ -8,7 +8,7 @@ import { emailOrderConfirmed, emailNewOrderGrillmaster, emailOrderCompleted } fr
 import { refundPayment } from '../payments/payments.service'
 import { withSerializableRetry } from '../../utils/db-retry'
 import { startDispatch } from '../grillmasters/dispatch.service'
-import { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier } from '../../utils/pricing'
+import { AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier, calcLaborFlatPrice } from '../../utils/pricing'
 import { resolveOrderAccessWhere } from './orders-access'
 import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, detectSuspiciousOrder } from './orders-pricing'
 import { sendWhatsAppConfirmation } from './orders-notifications'
@@ -83,6 +83,20 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   if (data.grillmasterId && grillmaster && !grillmaster.available) {
     throw new Error('Este churrasqueiro está indisponível no momento.')
   }
+
+  // Pivô de modelo (set/2026): cliente que não escolhe churrasqueiro é
+  // atribuído direto à equipe interna da Tech Churras (executionType=
+  // 'INTERNAL', mão de obra em tabela flat por convidado) em vez do pool de
+  // mediana + despacho amplo do marketplace. startDispatch já sabe tratar um
+  // grillmasterId pré-atribuído como "cliente escolheu direto" — nenhuma
+  // mudança necessária no despacho. Marketplace continua 100% funcional se um
+  // grillmasterId explícito for passado (dormente, não removido).
+  const internalGm = !grillmaster
+    ? await prisma.grillmaster.findFirst({ where: { isInternalTeam: true, available: true } })
+    : null
+  const effectiveGrillmaster = grillmaster ?? internalGm
+  const executionType: 'INTERNAL' | 'MARKETPLACE_GM' = internalGm ? 'INTERNAL' : 'MARKETPLACE_GM'
+
   const boutique = data.boutiqueId
     ? await prisma.boutique.findUnique({ where: { id: data.boutiqueId }, select: { approved: true, offersSideDishPrep: true } })
     : null
@@ -97,14 +111,14 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
   if (grillmaster && auxiliaresNeeded > 0 && !grillmaster.unlimitedAvailability && !grillmaster.bringsAuxiliar) {
     throw new Error(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar cadastrado, ou reduza o número de convidados.`)
   }
-  // Cliente pode deixar sem Grillmaster escolhido (Tech Churras notifica todos
-  // da região) — nesse caso cobra pela mediana de preço/hora do mercado (não
-  // média: um único perfil-âncora premium distorceria a média pra cima) e
-  // grava esse valor no pedido. getEligibleGrillmasters usa isso como teto
-  // de preço no despacho, pra nenhum Grillmaster ser escalado a trabalhar
-  // abaixo do próprio preço cadastrado.
+  // Cliente pode deixar sem Grillmaster escolhido — hoje isso cai na equipe
+  // interna (executionType='INTERNAL', mão de obra flat, ver abaixo). Esse
+  // fallback de mediana só roda se não houver equipe interna cadastrada nem
+  // grillmasterId explícito (nunca falha a compra por falta de config).
+  // getEligibleGrillmasters usa isso como teto de preço no despacho, pra
+  // nenhum Grillmaster ser escalado a trabalhar abaixo do próprio preço.
   let estimatedHourlyRate: number | null = null
-  if (!grillmaster) {
+  if (!effectiveGrillmaster) {
     // manualBookingOnly (perfil premium/exclusivo, ex: CEO a R$2.000/h) fica
     // fora — só reservável escolhendo de propósito, não deve nem distorcer a
     // mediana nem ser candidato ao despacho automático.
@@ -118,14 +132,23 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       : prices[(prices.length - 1) / 2]
   }
 
-  const auxiliarCost = auxiliaresNeeded > 0 && (grillmaster ? !grillmaster.unlimitedAvailability : true)
-    ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * (data.eventHours ?? 4)
-    : 0
-  // Sobretaxa de fim de semana / desconto por antecedência — só sobre a
-  // mão de obra do Grillmaster (a taxa-base), não sobre o auxiliar nem carne.
-  const { rate: laborModifierRate } = calcLaborPriceModifier(orderData.eventDate)
-  const baseHourlyRate = grillmaster ? grillmaster.pricePerHour : estimatedHourlyRate!
-  const grillmasterCost = baseHourlyRate * (data.eventHours ?? 4) * (1 + laborModifierRate) + auxiliarCost
+  let grillmasterCost: number
+  if (executionType === 'INTERNAL') {
+    // Tabela flat por faixa de convidados (não mais por hora) — equipe
+    // própria já tem capacidade pra evento grande, sem sobretaxa de
+    // fim de semana/antecedência (essas regras são do mercado de GM
+    // independente, dormente).
+    grillmasterCost = calcLaborFlatPrice(data.guestCount).total
+  } else {
+    const auxiliarCost = auxiliaresNeeded > 0 && (grillmaster ? !grillmaster.unlimitedAvailability : true)
+      ? auxiliaresNeeded * AUXILIAR_HOURLY_RATE * (data.eventHours ?? 4)
+      : 0
+    // Sobretaxa de fim de semana / desconto por antecedência — só sobre a
+    // mão de obra do Grillmaster (a taxa-base), não sobre o auxiliar nem carne.
+    const { rate: laborModifierRate } = calcLaborPriceModifier(orderData.eventDate)
+    const baseHourlyRate = grillmaster ? grillmaster.pricePerHour : estimatedHourlyRate!
+    grillmasterCost = baseHourlyRate * (data.eventHours ?? 4) * (1 + laborModifierRate) + auxiliarCost
+  }
 
   // F1: gmAccompaniments removidos do MVP — preço não tem backing em DB, cliente poderia manipular
   const accompLaborTotal = 0
@@ -203,6 +226,8 @@ export async function createOrder(customerId: string, data: CreateOrderInput) {
       data: {
         customerId,
         ...orderData,
+        grillmasterId: effectiveGrillmaster?.id ?? data.grillmasterId,
+        executionType,
         totalPrice,
         laborPrice: grillmasterCost,
         estimatedHourlyRate,

@@ -4,11 +4,12 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import Link from 'next/link'
 import { Events } from '@/lib/analytics'
+import { BOUTIQUE_COMMISSION, BOUTIQUE_LABOR_BONUS_RATE, LABOR_BASE_FLAT_PRICE } from '@/lib/pricing'
 
 const WHATSAPP_BASE = 'https://wa.me/5511970593650'
 const TICKET_MEDIO = 300
-const COMISSAO = 0.10
-const MENSALIDADE = 369
+const COMISSAO = BOUTIQUE_COMMISSION / 100
+const LABOR_BONUS_RATE = BOUTIQUE_LABOR_BONUS_RATE / 100
 
 const ESCALA_GANHOS = [
   { nivel: 'Iniciante', pedidos: 5, icon: '🌱' },
@@ -18,25 +19,25 @@ const ESCALA_GANHOS = [
 ].map(e => {
   const bruto = e.pedidos * TICKET_MEDIO
   const comissao = bruto * COMISSAO
-  const liquido = bruto - comissao - MENSALIDADE
-  const liquidoFundador = bruto - comissao
-  return { ...e, bruto, liquido, liquidoFundador }
+  const bonusMaoDeObra = e.pedidos * LABOR_BASE_FLAT_PRICE * LABOR_BONUS_RATE
+  const liquido = bruto - comissao + bonusMaoDeObra
+  return { ...e, bruto, liquido, bonusMaoDeObra }
 })
 
 const BENEFICIOS_FUNDADOR = [
-  { icon: '📅', titulo: '3 meses sem mensalidade', desc: 'Economia de R$ 1.107 garantida antes de cobrar qualquer centavo.' },
+  { icon: '📅', titulo: 'Zero mensalidade, sempre', desc: 'Não é período de teste — é o modelo definitivo. Você nunca paga mensalidade.' },
   { icon: '🏅', titulo: 'Badge "Açougue Fundador"', desc: 'Selo permanente na plataforma. Quem entrar depois não terá esse diferencial.' },
   { icon: '📍', titulo: 'Destaque nas buscas por 6 meses', desc: 'Seu açougue aparece em primeiro antes de qualquer outro em SP.' },
   { icon: '🤝', titulo: 'Acesso direto ao fundador', desc: 'WhatsApp direto com Jota para qualquer dúvida, ajuste ou sugestão.' },
-  { icon: '🤖', titulo: 'IA que indica seu açougue', desc: 'Quando o cliente monta o kit do evento, a IA sugere os cortes do seu catálogo.' },
+  { icon: '🥩', titulo: 'Bônus de 10% na mão de obra', desc: 'Além da comissão sobre a carne, você ganha também sobre a mão de obra de cada evento — mesmo sem executar nada.' },
   { icon: '✦', titulo: 'Produtos validados pela Tech Churras', desc: 'Seu açougue recebe o selo de qualidade validado — diferencial que o cliente vê antes de comprar.' },
 ]
 
 const COMO_FUNCIONA = [
   { n: '1', texto: 'Você cadastra seus cortes e preços no dashboard — leva menos de 10 minutos' },
-  { n: '2', texto: 'Cliente contrata o churrasqueiro + seleciona os cortes do seu açougue no mesmo app' },
-  { n: '3', texto: 'O churrasqueiro retira a carne E os acompanhamentos prontos no seu balcão — tudo em uma única visita' },
-  { n: '4', texto: 'Você recebe o valor via PIX toda sexta-feira, já com comissão descontada' },
+  { n: '2', texto: 'Cliente monta o churrasco completo + seleciona os cortes do seu açougue no mesmo app' },
+  { n: '3', texto: 'A equipe da Tech Churras retira a carne E os acompanhamentos prontos no seu balcão — tudo em uma única visita' },
+  { n: '4', texto: 'Você recebe o valor via PIX toda sexta-feira, já com a comissão descontada e o bônus de mão de obra somado' },
 ]
 
 function WaIcon() {
@@ -66,7 +67,7 @@ function ConviteContent() {
   const waUrl = `${WHATSAPP_BASE}?text=${waMsg}`
   const cadastroUrl = `/register?role=boutique&ref=convite&nome=${encodeURIComponent(nomeFormatado)}`
 
-  const maxLiquido = ESCALA_GANHOS[ESCALA_GANHOS.length - 1].liquidoFundador
+  const maxLiquido = ESCALA_GANHOS[ESCALA_GANHOS.length - 1].liquido
 
   return (
     <div className="min-h-screen bg-[#1c1714] text-white">
@@ -149,7 +150,7 @@ function ConviteContent() {
           <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-5">
             <p className="text-sm text-orange-400 font-semibold uppercase tracking-wide mb-2">Como a Tech Churras muda isso</p>
             <p className="text-gray-300 leading-relaxed text-sm mb-4">
-              Quando alguém contrata um churrasqueiro pela Tech Churras, o app apresenta automaticamente os cortes do seu açougue como a opção premium — com foto, preço e validação de qualidade. O cliente compra os cortes junto com o serviço, o churrasqueiro retira no seu balcão e você fatura sem precisar fazer entrega, marketing ou atendimento extra.
+              Quando alguém monta um churrasco completo pela Tech Churras, o app apresenta automaticamente os cortes do seu açougue como a opção premium — com foto, preço e validação de qualidade. O cliente compra os cortes junto com o serviço, a equipe da Tech Churras retira no seu balcão e você fatura sem precisar fazer entrega, marketing ou atendimento extra.
             </p>
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
@@ -174,12 +175,12 @@ function ConviteContent() {
             </div>
             <div>
               <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-1">Diferencial exclusivo</p>
-              <h3 className="font-black text-white text-lg mb-2">Churrasqueiros 100% chancelados pela Tech Churras</h3>
+              <h3 className="font-black text-white text-lg mb-2">Execução pela própria equipe da Tech Churras</h3>
               <p className="text-gray-400 text-sm leading-relaxed mb-4">
-                Nenhum churrasqueiro entra na plataforma sem passar pelo programa de chancelamento da Tech Churras — onboarding no padrão desenvolvido por Jota a partir de 13 anos de Jota BBQ Eventos, seguido de entrevista pessoal com ele antes da Chancela ser concedida. Técnicas de corte, controle de fogo, temperos, equipamentos e postura profissional. Só quem é aprovado e mantém avaliação acima de 4.5★ continua ativo.
+                Quem executa o evento é a equipe própria da Tech Churras, treinada no padrão desenvolvido por Jota Albuquerque a partir de 13 anos de Jota BBQ Eventos — técnicas de corte, controle de fogo, temperos, equipamentos e postura profissional. Não é freelancer avulso: é o mesmo padrão que ele exige de si mesmo em cada evento.
               </p>
               <div className="flex flex-wrap gap-2">
-                {['Técnicas de corte certificadas', 'Controle de fogo', 'Equipamentos homologados', 'Avaliação mínima 4.5★'].map(t => (
+                {['Técnicas de corte certificadas', 'Controle de fogo', 'Equipamentos homologados', 'Padrão Jota Albuquerque'].map(t => (
                   <span key={t} className="text-xs bg-orange-500/10 text-orange-300 border border-orange-500/20 px-2.5 py-1 rounded-full">{t}</span>
                 ))}
               </div>
@@ -300,7 +301,7 @@ function ConviteContent() {
                 n: '1', icon: '📱', cor: 'border-orange-500/30 bg-orange-500/5',
                 badgeCor: 'bg-orange-500/20 text-orange-400', badge: 'Começa no dia 1',
                 titulo: 'Clientes que chegam pela Tech Churras',
-                desc: 'Quem contrata um churrasqueiro pelo app escolhe os cortes do seu açougue automaticamente. Você não faz nada — o cliente aparece, o churrasqueiro retira e você fatura.',
+                desc: 'Quem monta um churrasco pelo app escolhe os cortes do seu açougue automaticamente. Você não faz nada — o cliente aparece, a equipe retira e você fatura.',
               },
               {
                 n: '2', icon: '🏪', cor: 'border-amber-500/30 bg-amber-500/5',
@@ -356,11 +357,11 @@ function ConviteContent() {
         <div className="mb-10">
           <p className="text-xs text-orange-400 font-bold uppercase tracking-widest mb-2">Potencial de receita</p>
           <h2 className="text-2xl font-black mb-1">Quanto seu açougue pode ganhar</h2>
-          <p className="text-gray-500 text-sm mb-6">Baseado em ticket médio de R$ 300 por pedido de carne. Como Parceiro Fundador, os 3 primeiros meses são sem mensalidade.</p>
+          <p className="text-gray-500 text-sm mb-6">Baseado em ticket médio de R$ 300 por pedido de carne. Zero mensalidade, sempre — o número abaixo já é o que sobra líquido pra você.</p>
 
           <div className="space-y-3">
             {ESCALA_GANHOS.map(e => {
-              const barPct = Math.round((e.liquidoFundador / maxLiquido) * 100)
+              const barPct = Math.round((e.liquido / maxLiquido) * 100)
               return (
                 <div key={e.nivel} className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-3">
@@ -372,8 +373,8 @@ function ConviteContent() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-amber-400 font-black text-lg">R$ {fmt(e.liquidoFundador)}</p>
-                      <p className="text-xs text-amber-600">líquido/mês (Fundador)</p>
+                      <p className="text-amber-400 font-black text-lg">R$ {fmt(e.liquido)}</p>
+                      <p className="text-xs text-amber-600">líquido/mês</p>
                     </div>
                   </div>
                   <div className="w-full bg-gray-800 rounded-full h-1.5">
@@ -382,11 +383,9 @@ function ConviteContent() {
                       style={{ width: `${barPct}%` }}
                     />
                   </div>
-                  {e.liquido > 0 && (
-                    <p className="text-xs text-gray-600 mt-2">
-                      Após o período Fundador: R$ {fmt(e.liquido)}/mês líquido
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-600 mt-2">
+                    Inclui R$ {fmt(e.bonusMaoDeObra)} de bônus sobre a mão de obra desses eventos
+                  </p>
                 </div>
               )
             })}
@@ -422,9 +421,10 @@ function ConviteContent() {
           <div className="divide-y divide-gray-800">
             {[
               { label: 'Taxa de adesão', valor: 'R$ 0', cor: 'text-green-400', obs: 'Grátis para entrar' },
-              { label: 'Mensalidade — Parceiro Fundador', valor: 'R$ 0 / 3 meses', cor: 'text-amber-400', obs: 'Depois R$ 369/mês — cancela quando quiser, sem multa' },
-              { label: 'Comissão por pedido', valor: '10%', cor: 'text-gray-200', obs: 'Só sobre pedidos vendidos via plataforma' },
-              { label: 'Repasse', valor: 'Toda sexta', cor: 'text-green-400', obs: 'Via PIX, já com comissão descontada automaticamente' },
+              { label: 'Mensalidade', valor: 'R$ 0', cor: 'text-green-400', obs: 'Sempre — não é período de teste, é o modelo definitivo' },
+              { label: 'Comissão sobre a carne', valor: '10%', cor: 'text-gray-200', obs: 'Só sobre pedidos vendidos via plataforma' },
+              { label: 'Bônus sobre mão de obra', valor: '+10%', cor: 'text-amber-400', obs: 'Todo evento, mesmo sem executar nada' },
+              { label: 'Repasse', valor: 'Toda sexta', cor: 'text-green-400', obs: 'Via PIX, já com comissão descontada e bônus somado' },
             ].map(c => (
               <div key={c.label} className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0">
                 <div>

@@ -4,7 +4,13 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { API_URL } from '@/lib/api'
 import GarantiaSelo from '@/components/GarantiaSelo'
 import { CheckIcon, FlameIcon, MeatIcon, StarIcon } from '@/components/icons/Icons'
-import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier } from '@/lib/pricing'
+import { SERVICE_FEE_RATE, SIDE_DISH_RATE_ACOUGUE, SIDE_DISH_RATE_GRILLMASTER, AUXILIAR_GUEST_THRESHOLD, AUXILIAR_HOURLY_RATE, calcAuxiliaresNeeded, calcLaborPriceModifier, calcLaborFlatPrice, LABOR_BASE_FLAT_PRICE, LABOR_AUXILIAR_FLAT_PRICE } from '@/lib/pricing'
+
+// Pivô de modelo (set/2026): mão de obra passa a ser a equipe própria da
+// Tech Churras, atribuída automaticamente pelo backend — marketplace de
+// churrasqueiro independente fica dormente (não removido, só desligado
+// aqui na tela). Reativar é só trocar isso pra true.
+const MARKETPLACE_GM_ENABLED = false
 import { useCartStore } from '@/store/cart'
 
 interface Boutique { id: string; name: string; city: string; state: string; open: boolean; offersSideDishPrep?: boolean }
@@ -212,11 +218,17 @@ function PedidoForm() {
     : 0
   // Sobretaxa de fim de semana / desconto por antecedência — mesma regra do
   // backend (que cobra de verdade), só sobre a mão de obra do Grillmaster.
+  // Só se aplica ao marketplace de churrasqueiro independente (dormente).
   const laborModifier = eventDate ? calcLaborPriceModifier(new Date(`${eventDate}T${eventTime || '12:00'}`)) : { rate: 0, label: null }
   const baseHourlyRate = gm ? gm.pricePerHour : estimatedHourlyRate
-  const gmCost = (gm || showingAuto)
-    ? baseHourlyRate * eventHours * (1 + laborModifier.rate) + auxiliarCost
-    : 0
+  // Equipe própria: tabela flat por convidado, sem escolha de churrasqueiro —
+  // mesmo cálculo que orders.service.ts usa pra cobrar de verdade.
+  const flatLabor = calcLaborFlatPrice(totalPeople)
+  const gmCost = !MARKETPLACE_GM_ENABLED
+    ? flatLabor.total
+    : (gm || showingAuto)
+      ? baseHourlyRate * eventHours * (1 + laborModifier.rate) + auxiliarCost
+      : 0
   const sideDishFee = sideDishChoice === 'ACOUGUE' ? +(SIDE_DISH_RATE_ACOUGUE * totalPeople).toFixed(2)
     : sideDishChoice === 'GRILLMASTER' ? +(SIDE_DISH_RATE_GRILLMASTER * totalPeople).toFixed(2)
     : 0
@@ -475,8 +487,8 @@ function PedidoForm() {
 
   function next() {
     if (step === 1 && (!eventDate || !eventAddress.trim())) { setFormError('Preencha a data e o endereço do evento'); return }
-    if (step === 3 && gmChoiceMode === 'manual' && !selectedGm) { setFormError('Selecione um churrasqueiro'); return }
-    if (step === 3 && gm && gmBlocked(gm)) { setFormError(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar, ou reduza o número de convidados.`); return }
+    if (MARKETPLACE_GM_ENABLED && step === 3 && gmChoiceMode === 'manual' && !selectedGm) { setFormError('Selecione um churrasqueiro'); return }
+    if (MARKETPLACE_GM_ENABLED && step === 3 && gm && gmBlocked(gm)) { setFormError(`Este Grillmaster atende sozinho até ${AUXILIAR_GUEST_THRESHOLD} convidados. Escolha um Grillmaster com auxiliar, ou reduza o número de convidados.`); return }
     setFormError('')
     setStep(s => s + 1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -521,7 +533,7 @@ function PedidoForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
-          grillmasterId: gmChoiceMode === 'manual' ? selectedGm : undefined,
+          grillmasterId: MARKETPLACE_GM_ENABLED && gmChoiceMode === 'manual' ? selectedGm : undefined,
           boutiqueId: boutiqueId || undefined,
           eventDate: new Date(`${eventDate}T${eventTime}`).toISOString(),
           eventAddress: eventComplement.trim() ? `${eventAddress}, ${eventComplement.trim()}` : eventAddress,
@@ -895,7 +907,18 @@ function PedidoForm() {
         )}
 
         {/* ── STEP 3: CHURRASQUEIRO ── */}
-        {step === 3 && (
+        {step === 3 && !MARKETPLACE_GM_ENABLED && (
+          <div className="space-y-4">
+            <div>
+              <h2 className="font-bold text-base">Mão de obra profissional incluída</h2>
+              <p className="text-xs text-gray-500">Equipe própria da Tech Churras — Chancela Jota Albuquerque</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 text-sm text-gray-300">
+              Sua equipe é escalada automaticamente pra esse evento, sem precisar escolher ninguém — mesma chancela de qualidade de sempre. Mão de obra: <span className="text-orange-400 font-semibold">R$ {flatLabor.total.toFixed(2)}</span>{flatLabor.auxiliares > 0 ? ` (inclui ${flatLabor.auxiliares} auxiliar${flatLabor.auxiliares > 1 ? 'es' : ''} pra esse número de convidados)` : ''}.
+            </div>
+          </div>
+        )}
+        {step === 3 && MARKETPLACE_GM_ENABLED && (
           <div className="space-y-4">
             <div>
               <h2 className="font-bold text-base">Escolha o Churrasqueiro</h2>
@@ -1149,16 +1172,25 @@ function PedidoForm() {
                   <span className="text-orange-400">R$ {productsCost.toFixed(2)}</span>
                 </div>
               )}
-              {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h){showingAuto && !gm ? ' — estimado' : ''}</span><span className="text-orange-400">R$ {(gmCost - auxiliarCost).toFixed(2)}</span></div>}
-              {gmCost > 0 && laborModifier.label && (
-                <div className="flex justify-between text-gray-500 text-xs -mt-2">
-                  <span>{laborModifier.label}</span>
-                  <span className={laborModifier.rate > 0 ? 'text-red-400' : 'text-green-400'}>
-                    {laborModifier.rate > 0 ? '+' : ''}{(laborModifier.rate * 100).toFixed(0)}%
-                  </span>
-                </div>
+              {!MARKETPLACE_GM_ENABLED ? (
+                <>
+                  <div className="flex justify-between text-gray-400"><span>Mão de obra (equipe Tech Churras)</span><span className="text-orange-400">R$ {LABOR_BASE_FLAT_PRICE.toFixed(2)}</span></div>
+                  {flatLabor.auxiliares > 0 && <div className="flex justify-between text-gray-400"><span>Auxiliar ({flatLabor.auxiliares}x)</span><span className="text-orange-400">R$ {(flatLabor.auxiliares * LABOR_AUXILIAR_FLAT_PRICE).toFixed(2)}</span></div>}
+                </>
+              ) : (
+                <>
+                  {gmCost > 0 && <div className="flex justify-between text-gray-400"><span>Churrasqueiro ({eventHours}h){showingAuto && !gm ? ' — estimado' : ''}</span><span className="text-orange-400">R$ {(gmCost - auxiliarCost).toFixed(2)}</span></div>}
+                  {gmCost > 0 && laborModifier.label && (
+                    <div className="flex justify-between text-gray-500 text-xs -mt-2">
+                      <span>{laborModifier.label}</span>
+                      <span className={laborModifier.rate > 0 ? 'text-red-400' : 'text-green-400'}>
+                        {laborModifier.rate > 0 ? '+' : ''}{(laborModifier.rate * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  )}
+                  {auxiliarCost > 0 && <div className="flex justify-between text-gray-400"><span>Auxiliar ({auxiliaresNeeded}x, {eventHours}h)</span><span className="text-orange-400">R$ {auxiliarCost.toFixed(2)}</span></div>}
+                </>
               )}
-              {auxiliarCost > 0 && <div className="flex justify-between text-gray-400"><span>Auxiliar ({auxiliaresNeeded}x, {eventHours}h)</span><span className="text-orange-400">R$ {auxiliarCost.toFixed(2)}</span></div>}
               {sideDishFee > 0 && (
                 <div className="flex justify-between text-gray-400">
                   <span>Acompanhamentos ({sideDishChoice === 'ACOUGUE' ? 'açougue' : 'churrasqueiro'})</span>

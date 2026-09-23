@@ -87,7 +87,9 @@ export async function listGrillmasters(params: {
   eventDate?: string
 } = {}) {
   const { city, minPrice, maxPrice, minRating, specialty, sortBy, available = true, page = 1, limit = 9, lat, lng, radiusKm = 20, eventDate } = params
-  const where: any = { approved: true }
+  // Equipe interna (Team Jota) não é produto de marketplace escolhível — é
+  // capacidade interna atribuída automaticamente em orders.service.ts.
+  const where: any = { approved: true, isInternalTeam: false }
   if (available) where.available = true
   if (city) where.city = { contains: city, mode: 'insensitive' }
   if (minPrice != null) where.pricePerHour = { ...where.pricePerHour, gte: minPrice }

@@ -143,7 +143,7 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
       {
         '@type': 'Question',
         name: 'Como um açougue em São Paulo pode se tornar parceiro da Tech Churras?',
-        acceptedAnswer: { '@type': 'Answer', text: 'O açougue se cadastra em techchurras.com.br/para-acougues. A mensalidade é R$ 369/mês com comissão de 10% sobre pedidos. Açougues fundadores têm condições especiais. Entre em contato via WhatsApp pelo botão na página.' },
+        acceptedAnswer: { '@type': 'Answer', text: 'O açougue se cadastra em techchurras.com.br/para-acougues. Zero mensalidade, sempre — só 10% de comissão sobre pedidos vendidos, mais 10% de bônus sobre a mão de obra de cada evento. Açougues fundadores têm condições especiais. Entre em contato via WhatsApp pelo botão na página.' },
       },
     ],
   } : null
@@ -264,9 +264,9 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
             chegam organizados para o seu churrasqueiro profissional trabalhar.
           </p>
           <p className="text-gray-400 mt-3">
-            Açougues parceiros pagam uma mensalidade reduzida (R$ 369/mês) e uma comissão de 10% por pedido
-            concluído. Em troca, ganham visibilidade na plataforma, acesso a clientes premium e integração
-            com o sistema de gestão de pedidos.
+            Açougues parceiros não pagam mensalidade — só uma comissão de 10% sobre os pedidos concluídos, e ainda
+            ganham 10% de bônus sobre a mão de obra de cada evento. Em troca, têm visibilidade na plataforma, acesso
+            a clientes premium e integração com o sistema de gestão de pedidos.
           </p>
           {isSP && (
             <>
@@ -279,8 +279,8 @@ export default async function AcouguesPage({ params }: { params: Promise<{ cidad
               <h3 className="text-lg font-bold text-white mt-6 mb-2">Seu açougue em São Paulo pode ser parceiro</h3>
               <p className="text-gray-400">
                 A Tech Churras abre parceria com açougues em toda São Paulo. O açougue ganha um canal digital
-                com QR code no balcão, pedidos via app e repasse semanal via PIX. Mensalidade a partir de
-                R$ 369/mês com comissão de 10% por pedido.{' '}
+                com QR code no balcão, pedidos via app e repasse semanal via PIX. Zero mensalidade, sempre —
+                10% de comissão por pedido, mais 10% de bônus sobre a mão de obra de cada evento.{' '}
                 <a href="/para-acougues" className="text-orange-400 hover:underline">Saiba mais sobre a parceria para açougues</a>.
               </p>
               <h3 className="text-lg font-bold text-white mt-6 mb-2">Dúvidas frequentes</h3>

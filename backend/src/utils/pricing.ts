@@ -13,17 +13,39 @@ export function calcAuxiliaresNeeded(guestCount: number): number {
   return Math.ceil((guestCount - AUXILIAR_GUEST_THRESHOLD) / AUXILIAR_GUEST_THRESHOLD)
 }
 
-// Açougue Embaixador é grátis até completar esses pedidos — não por prazo
-// (30 dias corriam igual mesmo sem nenhum pedido, cobrando de quem não viu
-// a plataforma gerar venda nenhuma ainda). Ver admin.service.ts (aprovação)
-// e boutiques.service.ts (cálculo ao vivo pro dashboard).
-export const TRIAL_ORDERS_THRESHOLD = 3
+// Pivô de modelo (set/2026): açougue não paga mais mensalidade em nenhuma
+// hipótese — TRIAL_ORDERS_THRESHOLD e BOUTIQUE_FEE_WAIVER_THRESHOLD foram
+// removidos porque não existe mais mensalidade pra "liberar depois de X
+// pedidos" ou "dispensar acima de um piso de faturamento". Comissão sobre
+// carne (BOUTIQUE_COMMISSION) continua a única cobrança da Tech Churras.
 
-// Inspirado no modelo do iFood (mensalidade só acima de um piso de
-// faturamento): açougue com faturamento baixo via plataforma não paga a
-// mensalidade fixa naquele período, só a comissão — reduz o risco de churn
-// de açougue pequeno que ainda não recebeu volume suficiente de pedidos.
-export const BOUTIQUE_FEE_WAIVER_THRESHOLD = 1000
+// Mão de obra do evento — executada pela equipe própria da Tech Churras
+// (marketplace de churrasqueiro independente fica dormente, ver
+// Order.executionType). Tabela fixa por faixa de convidados, não mais
+// pricePerHour × horas: R$350 cobre até AUXILIAR_GUEST_THRESHOLD (30)
+// convidados; cada bloco de 30 adicionais soma um auxiliar fixo.
+export const LABOR_BASE_FLAT_PRICE = 350.00
+export const LABOR_AUXILIAR_FLAT_PRICE = 195.00
+
+export function calcLaborFlatPrice(guestCount: number): { total: number; auxiliares: number } {
+  const auxiliares = calcAuxiliaresNeeded(guestCount)
+  return { total: LABOR_BASE_FLAT_PRICE + auxiliares * LABOR_AUXILIAR_FLAT_PRICE, auxiliares }
+}
+
+// Comissões da Tech Churras — únicas fontes da verdade, usadas em
+// payouts.service.ts (nunca hardcodear esses números de novo em outro
+// arquivo). GM_COMMISSION só se aplica a Order.executionType='MARKETPLACE_GM'
+// (churrasqueiro independente, dormente); equipe interna usa
+// INTERNAL_TEAM_PAYOUT_PER_EVENT (valor fixo, não percentual).
+export const BOUTIQUE_COMMISSION = 10
+export const GM_COMMISSION = 7
+export const INTERNAL_TEAM_PAYOUT_PER_EVENT = 250.00
+
+// Incentivo novo do pivô: açougue ganha esse percentual sobre a mão de obra
+// do evento (order.laborPrice), além da comissão que já paga sobre a carne —
+// mesmo não executando o evento, é recompensado por ter mão de obra vendida
+// junto com os insumos dele. Ver Payout.type='BOUTIQUE_LABOR_BONUS'.
+export const BOUTIQUE_LABOR_BONUS_RATE = 10
 
 // Sobretaxa de fim de semana (mais demanda) e desconto por antecedência
 // (ajuda a preencher agenda de dias de semana) — regra fixa de calendário,

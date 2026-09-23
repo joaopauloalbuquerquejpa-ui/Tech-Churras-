@@ -25,7 +25,7 @@ export default function PitchAcougue() {
       <section className="px-5 pt-2 pb-10">
         <div className="inline-flex items-center gap-2 bg-red-500/10 border border-red-500/20 rounded-full px-3 py-1 text-xs text-red-400 font-semibold mb-5">
           <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />
-Grátis até o 3º pedido pra todo novo Açougue Embaixador
+          Zero mensalidade, sempre — comissão só quando você vende
         </div>
 
         <h1 className="text-3xl font-black leading-tight mb-4">
@@ -35,7 +35,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
         </h1>
 
         <p className="text-gray-400 text-base leading-relaxed mb-4">
-          A Tech Churras conecta clientes que querem fazer churrasco com churrasqueiros profissionais — e o açougue parceiro é quem fornece a carne. O pedido chega no seu app, o churrasqueiro retira no balcão. Você não muda nada na sua operação.
+          A Tech Churras conecta clientes que querem fazer churrasco com a própria equipe de churrasqueiros da plataforma — e o açougue parceiro é quem fornece a carne. O pedido chega no seu app, a equipe retira no balcão. Você não muda nada na sua operação.
         </p>
 
         {/* CTA secundário — pra quem já decidiu antes de rolar a página inteira */}
@@ -55,7 +55,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
             de bairro perdeu 6% de volume no último ano — e quem foi embora foi justamente o cliente de alta renda,
             pro digital e pra quem já vende online. A Tech Churras traz esse cliente de volta pra você: <b className="text-white">pedido
             de churrasco completo, ticket a partir de R$ 350 (podendo passar de R$ 1.000) em carne</b>, direto no seu
-            açougue. Um pedido grande por mês já paga a mensalidade.
+            açougue — e você ainda ganha um bônus sobre a mão de obra do evento, mesmo sem executar nada.
           </p>
         </div>
         <p className="text-[10px] text-gray-600 mb-6">* Fonte: Kantar 2025 — dado de mercado, não específico da Tech Churras.</p>
@@ -67,16 +67,16 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
             <p className="text-[10px] text-gray-500 mt-0.5">açougues em negociação em SP</p>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
-            <p className="text-2xl font-black text-orange-400">35</p>
-            <p className="text-[10px] text-gray-500 mt-0.5">churrasqueiros já cadastrados, em todas as regiões</p>
+            <p className="text-2xl font-black text-orange-400">✓</p>
+            <p className="text-[10px] text-gray-500 mt-0.5">equipe própria pronta, sem depender de freelancer</p>
           </div>
         </div>
 
         {/* Quick numbers */}
         <div className="grid grid-cols-3 gap-3 mb-2">
           {[
-            { valor: 'R$ 369/mês', label: 'mensalidade' },
-            { valor: '10%', label: 'de comissão' },
+            { valor: 'R$ 0', label: 'mensalidade' },
+            { valor: '10%+10%', label: 'comissão + bônus' },
             { valor: 'PIX', label: 'toda sexta' },
           ].map(n => (
             <div key={n.label} className="bg-gray-900 border border-gray-800 rounded-xl p-3 text-center">
@@ -85,7 +85,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
             </div>
           ))}
         </div>
-        <p className="text-xs text-gray-600 text-center">* R$ 0 de taxa de adesão · grátis até o 3º pedido como Açougue Embaixador</p>
+        <p className="text-xs text-gray-600 text-center">* R$ 0 de taxa de adesão · zero mensalidade, sempre</p>
       </section>
 
       {/* ── QUEM ESTÁ POR TRÁS ── */}
@@ -145,7 +145,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
       {/* ── 5 FONTES DE FATURAMENTO ── */}
       <section className="px-5 py-8 border-t border-gray-900">
         <p className="text-xs font-bold uppercase tracking-widest text-orange-400 mb-1">O que muda no seu faturamento</p>
-        <h2 className="font-black text-white text-xl leading-tight mb-6">4 fontes de renda — de hoje até o seu próprio churrasqueiro</h2>
+        <h2 className="font-black text-white text-xl leading-tight mb-6">4 fontes de renda, desde o primeiro pedido</h2>
         <div className="space-y-5">
           {[
             {
@@ -165,8 +165,8 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
             },
             {
               n: '4', icon: ChefIcon,
-              titulo: 'O passo seguinte: seu próprio churrasqueiro',
-              desc: 'Com o volume de pedidos crescendo semana a semana, seu açougue pode ter um churrasqueiro chancelado pelo próprio Jota Albuquerque. Carne e mão de obra saindo do mesmo lugar — 100% do faturamento do evento fica com vocês, tudo validado pela Tech Churras.',
+              titulo: 'Bônus sobre a mão de obra, todo evento',
+              desc: 'A equipe da Tech Churras leva o churrasqueiro e executa o evento — mas você ganha 10% sobre essa mão de obra também, mesmo sem fazer nada além de fornecer a carne. Renda que não existia antes.',
               destaque: true,
             },
           ].map(s => (
@@ -229,7 +229,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
               </tbody>
             </table>
           </div>
-          <p className="text-[11px] text-gray-600 mt-3">* Estimativa conservadora, considerando só o evento mínimo (10 convidados) e apenas a venda de carne — não inclui acompanhamentos nem indicações.</p>
+          <p className="text-[11px] text-gray-600 mt-3">* Estimativa conservadora, considerando só o evento mínimo (10 convidados) e apenas a venda de carne — não inclui acompanhamentos, bônus de 10% sobre mão de obra, nem indicações.</p>
         </div>
       </section>
 
@@ -285,21 +285,21 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
         </div>
       </section>
 
-      {/* ── PROGRAMA AÇOUGUE EMBAIXADOR ── */}
+      {/* ── DOIS GANHOS NO MESMO EVENTO ── */}
       <section className="px-5 py-8 border-t border-gray-900">
         <div className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/30 rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <TrophyIcon size={30} className="text-amber-400" />
             <div>
-              <p className="font-black text-white">Programa Açougue Embaixador</p>
-              <p className="text-xs text-amber-400">Pra todo novo parceiro — pra você ver com seus próprios olhos que funciona</p>
+              <p className="font-black text-white">Você ganha na carne e na mão de obra</p>
+              <p className="text-xs text-amber-400">Sem mensalidade, sem taxa de adesão, sem pegadinha</p>
             </div>
           </div>
           <div className="space-y-2.5 mb-5">
             {[
-              'Grátis até o 3º pedido — sem mensalidade',
-              'Badge "Açougue Embaixador" no app',
-              'Destaque nas buscas durante o período grátis',
+              'Zero mensalidade — sempre, não é período de teste',
+              '90% do valor da carne fica com você',
+              '+10% de bônus sobre a mão de obra de cada evento',
               'Acesso direto ao Jota Albuquerque via WhatsApp',
             ].map(b => (
               <div key={b} className="flex items-start gap-2 text-sm text-gray-300">
@@ -309,7 +309,7 @@ Grátis até o 3º pedido pra todo novo Açougue Embaixador
             ))}
           </div>
           <div className="bg-black/30 rounded-xl p-3 text-center">
-            <p className="text-orange-400 font-black text-sm">Você paga R$ 0 no primeiro mês</p>
+            <p className="text-orange-400 font-black text-sm">Você paga R$ 0 pra entrar</p>
           </div>
         </div>
       </section>

@@ -28,7 +28,7 @@ const STEPS = [
   {
     fase: 'As 3 frentes de faturamento',
     cor: 'orange',
-    script: '"Você tem 3 formas de ganhar com a Tech Churras. Primeira: clientes que nunca vieram aqui passam a te encontrar pelo app. Segunda: clientes que já compram aqui no balcão você converte em pedido digital com um QR code — a gente imprime a placa para você colocar no caixa. Terceira, no futuro: se quiser, sua própria equipe de churrasqueiros atende eventos e aumenta seu faturamento ainda mais."',
+    script: '"Você tem 3 formas de ganhar com a Tech Churras. Primeira: clientes que nunca vieram aqui passam a te encontrar pelo app. Segunda: clientes que já compram aqui no balcão você converte em pedido digital com um QR code — a gente imprime a placa para você colocar no caixa. Terceira: você ganha 10% também sobre a mão de obra do churrasqueiro em cada evento, mesmo sem executar nada — é a equipe da Tech Churras que vai lá fazer."',
     items: [
       { label: 'Mostrar a seção "3 Frentes" no dashboard do açougue', done: false },
       { label: 'Mostrar o QR code do balcão como exemplo', done: false },
