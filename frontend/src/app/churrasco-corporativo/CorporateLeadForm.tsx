@@ -71,7 +71,18 @@ export default function CorporateLeadForm() {
         className="w-full bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white font-bold py-4 rounded-xl text-lg transition-colors">
         {status === 'sending' ? 'Enviando...' : 'Quero a proposta →'}
       </button>
-      {status === 'error' && <p className="text-red-400 text-sm text-center">Não foi possível enviar. Confere o WhatsApp digitado e tenta de novo.</p>}
+      {status === 'error' && (
+        <p className="text-red-400 text-sm text-center">
+          Não foi possível enviar agora. Tenta de novo em instantes, ou{' '}
+          <a
+            href={`https://wa.me/5511970593650?text=${encodeURIComponent(`Olá! Quero um orçamento de churrasco corporativo. Empresa: ${empresa || '(preencher)'}, ${pessoas ? pessoas + ' pessoas' : ''}`)}`}
+            target="_blank" rel="noopener noreferrer"
+            className="underline text-orange-400 hover:text-orange-300"
+          >
+            fala direto no WhatsApp
+          </a>.
+        </p>
+      )}
     </form>
   )
 }
